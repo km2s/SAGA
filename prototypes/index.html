@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAGA — Protótipo de UI</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a12;
+  --surface: #11111e;
+  --surface-2: #191926;
+  --surface-3: #21212f;
+  --border: #2c2c42;
+  --border-bright: #3d3d58;
+  --gold: #c9a22a;
+  --gold-dim: rgba(201,162,42,0.12);
+  --gold-glow: rgba(201,162,42,0.25);
+  --purple: #7c3aed;
+  --purple-dim: rgba(124,58,237,0.15);
+  --purple-bright: #9d5af5;
+  --text: #e2e2f0;
+  --text-muted: #7878a0;
+  --text-dim: #4a4a6a;
+  --success: #22c55e;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --radius-lg: 16px;
+  --transition: all 0.18s ease;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow: hidden; }
+
+/* ── Prototype nav ── */
+#nav-bar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  background: rgba(10,10,18,0.97); backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 20px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+}
+#nav-bar > span { font-size: 11px; color: var(--text-muted); margin-right: 6px; font-weight: 600; letter-spacing: 1px; }
+.nav-btn {
+  padding: 5px 13px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+  background: var(--surface-2); color: var(--text-muted); font-size: 12px; cursor: pointer;
+  font-family: 'Inter', sans-serif; transition: var(--transition);
+}
+.nav-btn:hover { background: var(--surface-3); color: var(--text); }
+.nav-btn.active { background: var(--gold-dim); border-color: var(--gold); color: var(--gold); }
+
+/* ── Screens ── */
+.screen { display: none; width: 100vw; height: 100vh; }
+.screen.active { display: flex; }
+
+/* ── Shared: Sidebar ── */
+.sidebar {
+  width: 220px; min-width: 220px; height: 100vh;
+  background: var(--surface); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; padding-top: 60px;
+}
+.sidebar-logo {
+  font-family: 'Cinzel', serif; font-size: 22px; font-weight: 700; letter-spacing: 8px;
+  background: linear-gradient(135deg, #c9a22a, #f0d060); -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent; background-clip: text;
+  padding: 16px 20px 16px; border-bottom: 1px solid var(--border); margin-bottom: 12px;
+}
+.sidebar-label {
+  font-size: 10px; font-weight: 600; color: var(--text-dim);
+  letter-spacing: 2px; text-transform: uppercase; padding: 8px 20px 4px;
+}
+.sidebar-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px; margin: 1px 8px; border-radius: var(--radius-sm);
+  cursor: pointer; color: var(--text-muted); font-size: 13px; transition: var(--transition);
+}
+.sidebar-item:hover { background: var(--surface-2); color: var(--text); }
+.sidebar-item.active { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(201,162,42,0.2); }
+.sidebar-bottom {
+  margin-top: auto; padding: 14px 12px; border-top: 1px solid var(--border);
+}
+.user-card {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 8px; border-radius: var(--radius-sm); cursor: pointer;
+}
+.user-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--purple), var(--gold));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700; flex-shrink: 0;
+}
+.user-name { font-size: 13px; font-weight: 500; }
+.user-role { font-size: 11px; color: var(--text-muted); }
+
+/* ── Shared: Main ── */
+.main-content { flex: 1; height: 100vh; overflow-y: auto; padding-top: 60px; }
+.main-header {
+  padding: 26px 32px 0; display: flex; align-items: flex-start;
+  justify-content: space-between; margin-bottom: 22px;
+}
+.main-header h1 { font-family: 'Cinzel', serif; font-size: 20px; font-weight: 600; }
+.main-header p { font-size: 13px; color: var(--text-muted); margin-top: 3px; }
+.main-body { padding: 0 32px 32px; }
+
+/* ── Buttons ── */
+.btn {
+  padding: 9px 18px; border-radius: var(--radius-sm); border: none;
+  font-size: 13px; font-weight: 500; cursor: pointer;
+  font-family: 'Inter', sans-serif; transition: var(--transition);
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.btn-primary { background: var(--gold); color: #0a0a12; }
+.btn-primary:hover { background: #ddb530; transform: translateY(-1px); }
+.btn-secondary { background: var(--surface-3); color: var(--text); border: 1px solid var(--border); }
+.btn-secondary:hover { border-color: var(--border-bright); }
+.btn-danger { background: rgba(239,68,68,0.12); color: var(--danger); border: 1px solid rgba(239,68,68,0.25); }
+.btn-success { background: rgba(34,197,94,0.12); color: var(--success); border: 1px solid rgba(34,197,94,0.25); }
+
+/* ── Badges ── */
+.badge {
+  display: inline-flex; align-items: center;
+  padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600;
+}
+.badge-gold { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(201,162,42,0.25); }
+.badge-purple { background: var(--purple-dim); color: var(--purple-bright); border: 1px solid rgba(124,58,237,0.25); }
+.badge-success { background: rgba(34,197,94,0.1); color: var(--success); border: 1px solid rgba(34,197,94,0.25); }
+.badge-muted { background: var(--surface-3); color: var(--text-muted); border: 1px solid var(--border); }
+
+/* ── Pulse dot ── */
+.pulse-dot {
+  width: 9px; height: 9px; border-radius: 50%; background: var(--success); flex-shrink: 0;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.4); }
+  50% { box-shadow: 0 0 0 5px rgba(34,197,94,0); }
+}
+
+/* ─────────────────────────────
+   SCREEN 1 — LOGIN
+───────────────────────────── */
+#screen-login {
+  flex-direction: column; align-items: center; justify-content: center;
+  background:
+    radial-gradient(ellipse at 20% 80%, rgba(124,58,237,0.13) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(201,162,42,0.07) 0%, transparent 50%),
+    var(--bg);
+  padding-top: 50px; gap: 0;
+}
+.login-logo {
+  font-family: 'Cinzel', serif; font-size: 76px; font-weight: 700; letter-spacing: 22px;
+  background: linear-gradient(135deg, #c9a22a 0%, #f0d060 50%, #c9a22a 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.login-tagline {
+  font-size: 12px; color: var(--text-muted); letter-spacing: 5px;
+  text-transform: uppercase; margin-bottom: 48px; margin-top: 4px;
+}
+.login-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 36px 40px; width: 380px; display: flex; flex-direction: column; align-items: center; gap: 14px;
+}
+.login-card h2 { font-family: 'Cinzel', serif; font-size: 17px; font-weight: 600; }
+.login-card p { font-size: 13px; color: var(--text-muted); text-align: center; line-height: 1.6; }
+.btn-discord {
+  width: 100%; padding: 13px; background: #5865F2; border: none; border-radius: var(--radius);
+  color: white; font-size: 14px; font-weight: 600; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  font-family: 'Inter', sans-serif; transition: var(--transition);
+}
+.btn-discord:hover { background: #4752c4; transform: translateY(-1px); }
+.login-features { display: flex; gap: 20px; margin-top: 36px; }
+.login-feature {
+  display: flex; flex-direction: column; align-items: center; gap: 7px;
+  color: var(--text-muted); font-size: 11px; text-align: center;
+}
+.login-feature-icon {
+  width: 40px; height: 40px; border-radius: var(--radius); background: var(--surface-2);
+  border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 19px;
+}
+
+/* ─────────────────────────────
+   SCREEN 2 — DASHBOARD
+───────────────────────────── */
+.campaign-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px;
+}
+.campaign-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  overflow: hidden; cursor: pointer; transition: var(--transition);
+}
+.campaign-card:hover { border-color: var(--border-bright); transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,0.3); }
+.campaign-cover { height: 112px; position: relative; }
+.cc-1 { background: linear-gradient(135deg, #1a0533, #4a1080, #7c3aed); }
+.cc-2 { background: linear-gradient(135deg, #1a0a00, #5c2800, #c9622a); }
+.cc-3 { background: linear-gradient(135deg, #001a1a, #004040, #0a9090); }
+.cc-new {
+  background: var(--surface-2); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+}
+.cover-badge { position: absolute; bottom: 8px; right: 10px; }
+.campaign-info { padding: 14px 16px; }
+.campaign-name { font-family: 'Cinzel', serif; font-size: 14px; font-weight: 600; margin-bottom: 7px; }
+.campaign-meta { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--text-muted); flex-wrap: wrap; }
+.dot { width: 3px; height: 3px; border-radius: 50%; background: var(--text-dim); }
+.new-btn { display: flex; flex-direction: column; align-items: center; gap: 7px; color: var(--text-muted); font-size: 12px; }
+.plus-icon {
+  width: 38px; height: 38px; border: 2px dashed var(--border-bright);
+  border-radius: var(--radius); display: flex; align-items: center; justify-content: center;
+  font-size: 20px; color: var(--text-dim);
+}
+
+/* ─────────────────────────────
+   SCREEN 3 — CAMPAIGN
+───────────────────────────── */
+.campaign-banner {
+  height: 150px; background: linear-gradient(135deg, #1a0533, #4a1080, #7c3aed);
+  position: relative; display: flex; align-items: flex-end; padding: 18px 32px;
+  flex-shrink: 0;
+}
+.banner-info h1 { font-family: 'Cinzel', serif; font-size: 24px; font-weight: 700; text-shadow: 0 2px 8px rgba(0,0,0,0.5); }
+.banner-info p { font-size: 12px; color: rgba(255,255,255,0.65); margin-top: 3px; }
+.banner-actions { position: absolute; top: 14px; right: 24px; display: flex; gap: 8px; }
+.tabs {
+  display: flex; border-bottom: 1px solid var(--border); padding: 0 32px;
+  margin-bottom: 20px; flex-shrink: 0;
+}
+.tab {
+  padding: 13px 16px; font-size: 13px; color: var(--text-muted); cursor: pointer;
+  border-bottom: 2px solid transparent; transition: var(--transition); font-weight: 500;
+}
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+.session-banner {
+  background: linear-gradient(135deg, rgba(34,197,94,0.09), rgba(34,197,94,0.04));
+  border: 1px solid rgba(34,197,94,0.2); border-radius: var(--radius);
+  padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+}
+.session-info-row { display: flex; align-items: center; gap: 10px; }
+.two-col { display: grid; grid-template-columns: 1fr 270px; gap: 16px; }
+.panel {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
+}
+.panel-header {
+  padding: 12px 16px; border-bottom: 1px solid var(--border);
+  font-size: 11px; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 1.5px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.roll-row {
+  padding: 11px 16px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; font-size: 13px;
+}
+.roll-row:last-child { border-bottom: none; }
+.roll-who { display: flex; align-items: center; gap: 8px; }
+.mini-av {
+  width: 26px; height: 26px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700;
+}
+.roll-result { font-family: 'Cinzel', serif; font-size: 22px; font-weight: 700; color: var(--gold); }
+.roll-expr { font-size: 11px; color: var(--text-muted); }
+.member-row {
+  padding: 11px 14px; display: flex; align-items: center; gap: 10px;
+  border-bottom: 1px solid var(--border); font-size: 13px; cursor: pointer; transition: var(--transition);
+}
+.member-row:last-child { border-bottom: none; }
+.member-row:hover { background: var(--surface-2); }
+.av32 { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+.online { width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
+.offline { width: 8px; height: 8px; border-radius: 50%; background: var(--text-dim); }
+
+/* ─────────────────────────────
+   SCREEN 4 — CHARACTER SHEET
+───────────────────────────── */
+.sheet-grid { display: grid; grid-template-columns: 250px 1fr; gap: 16px; }
+.portrait-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+.portrait-img { height: 190px; background: linear-gradient(135deg, #1a0533 0%, #4a1080 50%, #2a1540 100%); display: flex; align-items: center; justify-content: center; font-size: 64px; }
+.portrait-body { padding: 16px; }
+.char-name { font-family: 'Cinzel', serif; font-size: 17px; font-weight: 600; margin-bottom: 10px; }
+.meta-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); padding: 4px 0; }
+.meta-row span:last-child { color: var(--text); font-weight: 500; }
+.level-badge {
+  margin-top: 12px; padding: 8px 12px; background: var(--gold-dim);
+  border: 1px solid rgba(201,162,42,0.2); border-radius: var(--radius-sm);
+  text-align: center; font-family: 'Cinzel', serif; font-size: 12px; color: var(--gold);
+}
+.hp-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 16px; margin-top: 12px;
+}
+.hp-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; }
+.hp-value { display: flex; align-items: baseline; gap: 4px; }
+.hp-current { font-family: 'Cinzel', serif; font-size: 38px; font-weight: 700; color: var(--success); }
+.hp-max { color: var(--text-muted); font-size: 16px; }
+.hp-bar { height: 5px; background: var(--surface-3); border-radius: 3px; margin-top: 8px; }
+.hp-fill { width: 90%; height: 100%; background: var(--success); border-radius: 3px; }
+.attr-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+.attr-header {
+  padding: 14px 20px; border-bottom: 1px solid var(--border);
+  font-family: 'Cinzel', serif; font-size: 12px; font-weight: 600;
+  color: var(--text-muted); text-transform: uppercase; letter-spacing: 2.5px;
+}
+.attr-row {
+  display: flex; align-items: center; padding: 13px 20px;
+  border-bottom: 1px solid var(--border); gap: 12px;
+}
+.attr-row:last-child { border-bottom: none; }
+.attr-icon {
+  width: 34px; height: 34px; border-radius: var(--radius-sm); background: var(--surface-2);
+  border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 17px;
+}
+.attr-name { font-size: 13px; font-weight: 500; }
+.attr-die { font-size: 11px; color: var(--text-muted); }
+.attr-val { font-family: 'Cinzel', serif; font-size: 20px; font-weight: 700; color: var(--gold); min-width: 38px; text-align: center; }
+.attr-val.neg { color: var(--danger); }
+.btn-roll {
+  padding: 6px 13px; background: var(--purple-dim); border: 1px solid rgba(124,58,237,0.3);
+  border-radius: var(--radius-sm); color: var(--purple-bright); font-size: 12px; font-weight: 600;
+  cursor: pointer; font-family: 'Inter', sans-serif; transition: var(--transition);
+}
+.btn-roll:hover { background: rgba(124,58,237,0.25); }
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 12px; }
+.stat-box {
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 12px; text-align: center;
+}
+.stat-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+.stat-value { font-family: 'Cinzel', serif; font-size: 26px; font-weight: 700; }
+
+/* ─────────────────────────────
+   SCREEN 5 — GM PANEL
+───────────────────────────── */
+.gm-grid { display: grid; grid-template-columns: 1fr 290px; gap: 16px; }
+.npc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; }
+.npc-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  overflow: hidden; cursor: pointer; transition: var(--transition);
+}
+.npc-card:hover { border-color: var(--border-bright); transform: translateY(-2px); }
+.npc-img { height: 95px; display: flex; align-items: center; justify-content: center; font-size: 38px; }
+.ni-1 { background: linear-gradient(135deg, #1a0a00, #5c1500); }
+.ni-2 { background: linear-gradient(135deg, #001a0a, #004020); }
+.ni-3 { background: linear-gradient(135deg, #1a1a00, #404000); }
+.ni-4 { background: linear-gradient(135deg, #0a0020, #200050); }
+.npc-body { padding: 10px 12px; }
+.npc-name { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+.npc-footer { display: flex; gap: 4px; flex-wrap: wrap; }
+.session-ctrl {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 18px; margin-bottom: 12px;
+}
+.ctrl-title {
+  font-family: 'Cinzel', serif; font-size: 12px; font-weight: 600; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 2px; margin-bottom: 14px;
+}
+.session-running { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.session-dur { font-size: 11px; color: var(--text-muted); margin-bottom: 14px; padding-left: 17px; }
+.ctrl-btns { display: flex; flex-direction: column; gap: 8px; }
+.ctrl-btns .btn { width: 100%; justify-content: center; }
+.vis-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.vis-row {
+  padding: 11px 14px; display: flex; align-items: center; gap: 10px;
+  border-bottom: 1px solid var(--border); font-size: 13px;
+}
+.vis-row:last-child { border-bottom: none; }
+.toggle { width: 34px; height: 19px; border-radius: 10px; position: relative; cursor: pointer; transition: var(--transition); margin-left: auto; flex-shrink: 0; }
+.toggle.on { background: var(--success); }
+.toggle.off { background: var(--border-bright); }
+.toggle::after { content: ''; position: absolute; width: 13px; height: 13px; border-radius: 50%; background: white; top: 3px; transition: var(--transition); }
+.toggle.on::after { right: 3px; }
+.toggle.off::after { left: 3px; }
+
+/* ─────────────────────────────
+   SCREEN 6 — VIRTUAL TABLE
+───────────────────────────── */
+#screen-mesa { flex-direction: column; }
+.mesa-bar {
+  height: 48px; background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 14px; gap: 10px; flex-shrink: 0; margin-top: 60px;
+}
+.mesa-title { font-family: 'Cinzel', serif; font-size: 14px; font-weight: 600; color: var(--gold); }
+.mesa-sep { color: var(--border-bright); }
+.mesa-sess { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 5px; }
+.mesa-acts { margin-left: auto; display: flex; gap: 8px; }
+.mesa-body { flex: 1; display: grid; grid-template-columns: 56px 1fr 290px; overflow: hidden; }
+.toolbar {
+  background: var(--surface); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; align-items: center; padding: 10px 0; gap: 3px;
+}
+.tool {
+  width: 38px; height: 38px; border-radius: var(--radius-sm); background: transparent;
+  border: 1px solid transparent; color: var(--text-muted); font-size: 16px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; transition: var(--transition);
+}
+.tool:hover, .tool.on { background: var(--surface-3); border-color: var(--border); color: var(--text); }
+.tool.on { background: var(--gold-dim); border-color: rgba(201,162,42,0.3); color: var(--gold); }
+.tdiv { width: 26px; height: 1px; background: var(--border); margin: 3px 0; }
+.grid-canvas {
+  background:
+    linear-gradient(rgba(44,44,66,0.35) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(44,44,66,0.35) 1px, transparent 1px),
+    radial-gradient(ellipse at 50% 50%, rgba(124,58,237,0.06) 0%, transparent 70%),
+    #0d0d1a;
+  background-size: 40px 40px, 40px 40px, 100% 100%;
+  position: relative; overflow: hidden;
+}
+.token {
+  width: 40px; height: 40px; border-radius: 50%; position: absolute;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; cursor: pointer; font-weight: 700; border: 2px solid transparent;
+  transition: var(--transition);
+}
+.token:hover { transform: scale(1.1); }
+.t-player { background: linear-gradient(135deg, var(--purple), #5020a0); border-color: rgba(124,58,237,0.6); box-shadow: 0 0 10px rgba(124,58,237,0.35); }
+.t-enemy { background: linear-gradient(135deg, #800000, #c00000); border-color: rgba(200,0,0,0.6); box-shadow: 0 0 10px rgba(200,0,0,0.3); }
+.t-npc { background: linear-gradient(135deg, #005000, #008000); border-color: rgba(0,150,0,0.6); box-shadow: 0 0 10px rgba(0,150,0,0.25); }
+.token-lbl {
+  position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%);
+  font-size: 10px; color: rgba(255,255,255,0.7); white-space: nowrap;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.9); font-weight: 600;
+}
+.fog {
+  position: absolute; right: 0; top: 0; bottom: 0; width: 42%;
+  background: rgba(0,0,0,0.78); pointer-events: none;
+  border-left: 2px dashed rgba(255,255,255,0.08);
+  display: flex; align-items: center; justify-content: center;
+}
+.fog-label { color: rgba(255,255,255,0.12); font-size: 12px; text-align: center; line-height: 2; }
+.chat-panel {
+  background: var(--surface); border-left: 1px solid var(--border);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.chat-hdr {
+  padding: 13px 14px; border-bottom: 1px solid var(--border);
+  font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: space-between;
+}
+.chat-msgs { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+.msg {
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 9px 12px; font-size: 12px;
+}
+.msg-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; }
+.msg-who { font-weight: 700; font-size: 12px; }
+.msg-time { font-size: 10px; color: var(--text-dim); }
+.msg-body { color: var(--text-muted); line-height: 1.45; }
+.roll-card {
+  background: var(--surface-3); border: 1px solid var(--border-bright);
+  border-radius: var(--radius); padding: 11px 12px;
+}
+.roll-card.crit {
+  background: linear-gradient(135deg, rgba(201,162,42,0.1), rgba(201,162,42,0.04));
+  border-color: rgba(201,162,42,0.3);
+}
+.roll-card-title { font-size: 11px; color: var(--text-muted); margin-bottom: 3px; }
+.roll-card-num { font-family: 'Cinzel', serif; font-size: 34px; font-weight: 700; color: var(--gold); line-height: 1; }
+.roll-card-break { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+.chat-foot { padding: 10px; border-top: 1px solid var(--border); }
+.chat-input {
+  width: 100%; background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 9px 11px; color: var(--text);
+  font-size: 12px; font-family: 'Inter', sans-serif; outline: none;
+}
+.chat-input::placeholder { color: var(--text-dim); }
+.chat-input:focus { border-color: var(--border-bright); }
+.dice-bar { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; margin-top: 7px; }
+.d-btn {
+  padding: 5px 3px; background: var(--surface-3); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text-muted); font-size: 11px; font-weight: 600;
+  cursor: pointer; text-align: center; font-family: 'Inter', sans-serif; transition: var(--transition);
+}
+.d-btn:hover { background: var(--gold-dim); border-color: rgba(201,162,42,0.3); color: var(--gold); }
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- ── Prototype Nav ── -->
+<div id="nav-bar">
+  <span>SAGA — PROTÓTIPO:</span>
+  <button class="nav-btn active"    onclick="go('login')">🔑 Login</button>
+  <button class="nav-btn"           onclick="go('dashboard')">🏠 Dashboard</button>
+  <button class="nav-btn"           onclick="go('campaign')">🌑 Campanha</button>
+  <button class="nav-btn"           onclick="go('sheet')">📋 Ficha</button>
+  <button class="nav-btn"           onclick="go('gm')">⚔️ Painel Mestre</button>
+  <button class="nav-btn"           onclick="go('mesa')">🗺️ Mesa Virtual</button>
+</div>
+
+<!-- ══════════════════════════════
+     1. LOGIN
+══════════════════════════════ -->
+<div id="screen-login" class="screen active">
+  <div class="login-logo">SAGA</div>
+  <div class="login-tagline">Gerencie suas aventuras</div>
+  <div class="login-card">
+    <h2>Entrar no SAGA</h2>
+    <p>Conecte sua conta do Discord para acessar suas campanhas, fichas e mesas virtuais.</p>
+    <button class="btn-discord" onclick="go('dashboard')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057.1 18.08.114 18.1.132 18.11a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 19.84 19.84 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128c.126-.094.252-.192.372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.1.246.198.373.292a.077.077 0 0 1-.006.127c-.598.35-1.22.645-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+      Entrar com Discord
+    </button>
+  </div>
+  <div class="login-features">
+    <div class="login-feature"><div class="login-feature-icon">🎲</div>Rolagem inteligente</div>
+    <div class="login-feature"><div class="login-feature-icon">🗺️</div>Mesa virtual</div>
+    <div class="login-feature"><div class="login-feature-icon">📜</div>Fichas completas</div>
+    <div class="login-feature"><div class="login-feature-icon">⚔️</div>Gestão de NPCs</div>
+    <div class="login-feature"><div class="login-feature-icon">🎵</div>Trilha sonora</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     2. DASHBOARD
+══════════════════════════════ -->
+<div id="screen-dashboard" class="screen">
+  <nav class="sidebar">
+    <div class="sidebar-logo">SAGA</div>
+    <div class="sidebar-item active"><span>🏠</span> Dashboard</div>
+    <div class="sidebar-item" onclick="go('sheet')"><span>📋</span> Meus Personagens</div>
+    <div class="sidebar-label">Minhas Campanhas</div>
+    <div class="sidebar-item" onclick="go('campaign')"><span>🌑</span> A Sombra de Malachor</div>
+    <div class="sidebar-item"><span>🔥</span> Cinzas do Império</div>
+    <div class="sidebar-item"><span>🌊</span> Profundezas de Eryndor</div>
+    <div class="sidebar-bottom">
+      <div class="user-card">
+        <div class="user-avatar">K</div>
+        <div><div class="user-name">Karin</div><div class="user-role">Mestre · Jogadora</div></div>
+        <span style="color:var(--text-dim);margin-left:auto;font-size:15px;">⚙</span>
+      </div>
+    </div>
+  </nav>
+  <div class="main-content">
+    <div class="main-header">
+      <div><h1>Bem-vinda de volta, Karin</h1><p>Você tem 3 campanhas ativas e 1 sessão em andamento</p></div>
+      <button class="btn btn-primary">+ Nova Campanha</button>
+    </div>
+    <div class="main-body">
+      <div class="campaign-grid">
+        <div class="campaign-card" onclick="go('campaign')">
+          <div class="campaign-cover cc-1"><div class="cover-badge"><span class="badge badge-success">● Sessão ativa</span></div></div>
+          <div class="campaign-info">
+            <div class="campaign-name">A Sombra de Malachor</div>
+            <div class="campaign-meta"><span class="badge badge-gold">Mestre</span><div class="dot"></div><span>5 jogadores</span><div class="dot"></div><span>D&D 5e</span></div>
+          </div>
+        </div>
+        <div class="campaign-card">
+          <div class="campaign-cover cc-2"></div>
+          <div class="campaign-info">
+            <div class="campaign-name">Cinzas do Império</div>
+            <div class="campaign-meta"><span class="badge badge-purple">Jogadora</span><div class="dot"></div><span>4 jogadores</span><div class="dot"></div><span>Tormenta 20</span></div>
+          </div>
+        </div>
+        <div class="campaign-card">
+          <div class="campaign-cover cc-3"></div>
+          <div class="campaign-info">
+            <div class="campaign-name">Profundezas de Eryndor</div>
+            <div class="campaign-meta"><span class="badge badge-purple">Jogadora</span><div class="dot"></div><span>3 jogadores</span><div class="dot"></div><span>Personalizado</span></div>
+          </div>
+        </div>
+        <div class="campaign-card">
+          <div class="campaign-cover cc-new" style="height:112px;">
+            <div class="new-btn"><div class="plus-icon">+</div>Nova Campanha</div>
+          </div>
+          <div class="campaign-info">
+            <div class="campaign-name" style="color:var(--text-muted)">Criar campanha</div>
+            <div class="campaign-meta"><span>Configure tema, sistema e jogadores</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     3. CAMPAIGN
+══════════════════════════════ -->
+<div id="screen-campaign" class="screen" style="flex-direction:column;">
+  <div style="display:flex;flex:1;overflow:hidden;">
+    <nav class="sidebar">
+      <div class="sidebar-logo">SAGA</div>
+      <div class="sidebar-item" onclick="go('dashboard')"><span>🏠</span> Dashboard</div>
+      <div class="sidebar-label">A Sombra de Malachor</div>
+      <div class="sidebar-item active"><span>📊</span> Visão Geral</div>
+      <div class="sidebar-item" onclick="go('gm')"><span>⚔️</span> Painel do Mestre</div>
+      <div class="sidebar-item" onclick="go('mesa')"><span>🗺️</span> Mesa Virtual</div>
+      <div class="sidebar-item" onclick="go('sheet')"><span>📋</span> Fichas</div>
+      <div class="sidebar-bottom">
+        <div class="user-card">
+          <div class="user-avatar">K</div>
+          <div><div class="user-name">Karin</div><div class="user-role">Mestre</div></div>
+        </div>
+      </div>
+    </nav>
+    <div class="main-content" style="padding-top:0;">
+      <div class="campaign-banner">
+        <div class="banner-info"><h1>A Sombra de Malachor</h1><p>D&D 5e · 5 jogadores · Sessão 14</p></div>
+        <div class="banner-actions">
+          <button class="btn btn-secondary" onclick="go('gm')">⚔️ Painel do Mestre</button>
+          <button class="btn btn-primary" onclick="go('mesa')">🗺️ Abrir Mesa</button>
+        </div>
+      </div>
+      <div class="tabs">
+        <div class="tab active">Visão Geral</div>
+        <div class="tab">Membros</div>
+        <div class="tab">NPCs</div>
+        <div class="tab">Sessões</div>
+        <div class="tab">Notas</div>
+      </div>
+      <div class="main-body" style="padding-top:0;">
+        <div class="session-banner">
+          <div class="session-info-row">
+            <div class="pulse-dot"></div>
+            <div>
+              <div style="font-size:13px;font-weight:600;">Sessão 14 em andamento</div>
+              <div style="font-size:11px;color:var(--text-muted);">Iniciada há 2h 14min · 4 de 5 jogadores online</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-secondary" style="font-size:12px;">Ver resumo anterior</button>
+            <button class="btn btn-primary" style="font-size:12px;" onclick="go('mesa')">Entrar na sessão →</button>
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="panel">
+            <div class="panel-header">Log de Rolagens <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted);">última sessão</span></div>
+            <div class="roll-row">
+              <div class="roll-who"><div class="mini-av" style="background:linear-gradient(135deg,var(--purple),#5020a0);">A</div><div><div style="font-weight:500;">Aldric</div><div class="roll-expr">Percepção · d20+3</div></div></div>
+              <div style="text-align:right;"><div class="roll-result">18</div><div class="roll-expr">15 + 3</div></div>
+            </div>
+            <div class="roll-row">
+              <div class="roll-who"><div class="mini-av" style="background:linear-gradient(135deg,#c9622a,#a04010);">V</div><div><div style="font-weight:500;">Vyrra</div><div class="roll-expr">Ataque · d20+7</div></div></div>
+              <div style="text-align:right;"><div class="roll-result" style="color:#f0d060;">20</div><div class="roll-expr" style="color:var(--warning);">✦ Crítico!</div></div>
+            </div>
+            <div class="roll-row">
+              <div class="roll-who"><div class="mini-av" style="background:linear-gradient(135deg,#228822,#115511);">T</div><div><div style="font-weight:500;">Theron</div><div class="roll-expr">Furtividade · d20+5</div></div></div>
+              <div style="text-align:right;"><div class="roll-result" style="color:var(--danger);">7</div><div class="roll-expr">2 + 5</div></div>
+            </div>
+            <div class="roll-row">
+              <div class="roll-who"><div class="mini-av" style="background:linear-gradient(135deg,#c9a22a,#a07810);">L</div><div><div style="font-weight:500;">Lyra</div><div class="roll-expr">Dano · 2d6+4</div></div></div>
+              <div style="text-align:right;"><div class="roll-result">13</div><div class="roll-expr">5 + 4 + 4</div></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">Jogadores <span class="badge badge-success" style="font-size:10px;">4 online</span></div>
+            <div class="member-row"><div class="av32" style="background:linear-gradient(135deg,#c9a22a,#a07810);">K</div><div style="flex:1;"><div style="font-weight:500;font-size:13px;">Karin <span class="badge badge-gold" style="margin-left:4px;font-size:10px;">Mestre</span></div><div style="font-size:11px;color:var(--text-muted);">Narradora</div></div><div class="online"></div></div>
+            <div class="member-row"><div class="av32" style="background:linear-gradient(135deg,var(--purple),#5020a0);">R</div><div style="flex:1;"><div style="font-weight:500;font-size:13px;">Rafael</div><div style="font-size:11px;color:var(--text-muted);">Aldric · Guerreiro Nv.8</div></div><div class="online"></div></div>
+            <div class="member-row"><div class="av32" style="background:linear-gradient(135deg,#c9622a,#a04010);">M</div><div style="flex:1;"><div style="font-weight:500;font-size:13px;">Maria</div><div style="font-size:11px;color:var(--text-muted);">Vyrra · Ladina Nv.8</div></div><div class="online"></div></div>
+            <div class="member-row"><div class="av32" style="background:linear-gradient(135deg,#228822,#115511);">J</div><div style="flex:1;"><div style="font-weight:500;font-size:13px;">João</div><div style="font-size:11px;color:var(--text-muted);">Theron · Druida Nv.7</div></div><div class="online"></div></div>
+            <div class="member-row"><div class="av32" style="background:linear-gradient(135deg,#2288aa,#115577);">P</div><div style="flex:1;"><div style="font-weight:500;font-size:13px;">Pedro</div><div style="font-size:11px;color:var(--text-muted);">Lyra · Feiticeira Nv.8</div></div><div class="offline"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     4. CHARACTER SHEET
+══════════════════════════════ -->
+<div id="screen-sheet" class="screen">
+  <nav class="sidebar">
+    <div class="sidebar-logo">SAGA</div>
+    <div class="sidebar-item" onclick="go('dashboard')"><span>🏠</span> Dashboard</div>
+    <div class="sidebar-item active"><span>📋</span> Meus Personagens</div>
+    <div class="sidebar-label">Campanhas</div>
+    <div class="sidebar-item" onclick="go('campaign')"><span>🌑</span> A Sombra de Malachor</div>
+    <div class="sidebar-bottom">
+      <div class="user-card">
+        <div class="user-avatar">K</div>
+        <div><div class="user-name">Karin</div><div class="user-role">Jogadora</div></div>
+      </div>
+    </div>
+  </nav>
+  <div class="main-content">
+    <div class="main-header">
+      <div><h1>Ficha de Personagem</h1><p>A Sombra de Malachor · D&D 5e</p></div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-secondary">Editar ficha</button>
+        <button class="btn btn-primary">🎲 Rolar dado</button>
+      </div>
+    </div>
+    <div class="main-body">
+      <div class="sheet-grid">
+        <div>
+          <div class="portrait-card">
+            <div class="portrait-img">🧙</div>
+            <div class="portrait-body">
+              <div class="char-name">Lyra Sombramoon</div>
+              <div class="meta-row"><span>Raça</span><span>Meio-Elfa</span></div>
+              <div class="meta-row"><span>Classe</span><span>Feiticeira</span></div>
+              <div class="meta-row"><span>Origem</span><span>Nobre</span></div>
+              <div class="meta-row"><span>Alinhamento</span><span>Neutro Bom</span></div>
+              <div class="level-badge">Nível 8 · 21.000 XP</div>
+            </div>
+          </div>
+          <div class="hp-card">
+            <div class="hp-label">Pontos de Vida</div>
+            <div class="hp-value"><span class="hp-current">38</span><span class="hp-max">/ 42</span></div>
+            <div class="hp-bar"><div class="hp-fill"></div></div>
+          </div>
+          <div class="stats-row">
+            <div class="stat-box"><div class="stat-label">CA</div><div class="stat-value">13</div></div>
+            <div class="stat-box"><div class="stat-label">Inic.</div><div class="stat-value">+2</div></div>
+            <div class="stat-box"><div class="stat-label">Vel.</div><div class="stat-value" style="font-size:18px;">9m</div></div>
+            <div class="stat-box"><div class="stat-label">Prof.</div><div class="stat-value" style="color:var(--gold);">+3</div></div>
+          </div>
+        </div>
+        <div>
+          <div class="attr-card">
+            <div class="attr-header">Atributos</div>
+            <div class="attr-row"><div class="attr-icon">💪</div><div style="flex:1;"><div class="attr-name">Força</div><div class="attr-die">d20 padrão</div></div><div class="attr-val neg">-1</div><button class="btn-roll">+rolar</button></div>
+            <div class="attr-row"><div class="attr-icon">🏃</div><div style="flex:1;"><div class="attr-name">Destreza</div><div class="attr-die">d20 padrão</div></div><div class="attr-val">+2</div><button class="btn-roll">+rolar</button></div>
+            <div class="attr-row"><div class="attr-icon">❤️</div><div style="flex:1;"><div class="attr-name">Constituição</div><div class="attr-die">d20 padrão</div></div><div class="attr-val">+1</div><button class="btn-roll">+rolar</button></div>
+            <div class="attr-row"><div class="attr-icon">📚</div><div style="flex:1;"><div class="attr-name">Inteligência</div><div class="attr-die">d20 padrão</div></div><div class="attr-val">+3</div><button class="btn-roll">+rolar</button></div>
+            <div class="attr-row"><div class="attr-icon">🌿</div><div style="flex:1;"><div class="attr-name">Sabedoria</div><div class="attr-die">d20 padrão</div></div><div class="attr-val">+2</div><button class="btn-roll">+rolar</button></div>
+            <div class="attr-row"><div class="attr-icon">✨</div><div style="flex:1;"><div class="attr-name">Carisma</div><div class="attr-die">d20 padrão</div></div><div class="attr-val">+4</div><button class="btn-roll">+rolar</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     5. GM PANEL
+══════════════════════════════ -->
+<div id="screen-gm" class="screen">
+  <nav class="sidebar">
+    <div class="sidebar-logo">SAGA</div>
+    <div class="sidebar-item" onclick="go('dashboard')"><span>🏠</span> Dashboard</div>
+    <div class="sidebar-label">A Sombra de Malachor</div>
+    <div class="sidebar-item" onclick="go('campaign')"><span>📊</span> Visão Geral</div>
+    <div class="sidebar-item active"><span>⚔️</span> Painel do Mestre</div>
+    <div class="sidebar-item" onclick="go('mesa')"><span>🗺️</span> Mesa Virtual</div>
+    <div class="sidebar-bottom">
+      <div class="user-card">
+        <div class="user-avatar">K</div>
+        <div><div class="user-name">Karin</div><div class="user-role">Mestre</div></div>
+      </div>
+    </div>
+  </nav>
+  <div class="main-content">
+    <div class="main-header">
+      <div><h1>Painel do Mestre</h1><p>A Sombra de Malachor · Sessão 14 em andamento</p></div>
+      <button class="btn btn-danger">⏹ Encerrar Sessão</button>
+    </div>
+    <div class="main-body">
+      <div class="gm-grid">
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+            <div style="font-family:'Cinzel',serif;font-size:14px;font-weight:600;">NPCs da Campanha</div>
+            <button class="btn btn-primary">+ Criar NPC</button>
+          </div>
+          <div class="npc-grid">
+            <div class="npc-card"><div class="npc-img ni-1">🧟</div><div class="npc-body"><div class="npc-name">Malachor, o Lich</div><div class="npc-footer"><span class="badge badge-muted">Antagonista</span><span class="badge badge-muted">🔒 Oculto</span></div></div></div>
+            <div class="npc-card"><div class="npc-img ni-2">🧝</div><div class="npc-body"><div class="npc-name">Aelindra</div><div class="npc-footer"><span class="badge badge-success">Aliada</span><span class="badge badge-success">👁 Visível</span></div></div></div>
+            <div class="npc-card"><div class="npc-img ni-3">🐉</div><div class="npc-body"><div class="npc-name">Farenx (Montaria)</div><div class="npc-footer"><span class="badge badge-purple">Vyrra</span><span class="badge badge-success">👁 Dono vê</span></div></div></div>
+            <div class="npc-card"><div class="npc-img ni-4">👻</div><div class="npc-body"><div class="npc-name">Espectro Guarda</div><div class="npc-footer"><span class="badge badge-muted">Neutro</span><span class="badge badge-muted">🔒 Oculto</span></div></div></div>
+          </div>
+        </div>
+        <div>
+          <div class="session-ctrl">
+            <div class="ctrl-title">Controle de Sessão</div>
+            <div class="session-running"><div class="pulse-dot"></div><span style="font-size:13px;font-weight:600;color:var(--success);">Sessão 14 ativa</span></div>
+            <div class="session-dur">Duração: 2h 14min</div>
+            <div class="ctrl-btns">
+              <button class="btn btn-secondary">📝 Nota de sessão</button>
+              <button class="btn btn-danger">⏹ Encerrar e gerar resumo</button>
+            </div>
+          </div>
+          <div class="vis-panel">
+            <div class="panel-header">Visibilidade por Jogador</div>
+            <div class="vis-row"><div class="av32" style="width:28px;height:28px;font-size:11px;background:linear-gradient(135deg,var(--purple),#5020a0);">R</div><div style="flex:1;font-size:13px;">Rafael</div><div class="toggle on"></div></div>
+            <div class="vis-row"><div class="av32" style="width:28px;height:28px;font-size:11px;background:linear-gradient(135deg,#c9622a,#a04010);">M</div><div style="flex:1;font-size:13px;">Maria</div><div class="toggle on"></div></div>
+            <div class="vis-row"><div class="av32" style="width:28px;height:28px;font-size:11px;background:linear-gradient(135deg,#228822,#115511);">J</div><div style="flex:1;font-size:13px;">João</div><div class="toggle off"></div></div>
+            <div class="vis-row"><div class="av32" style="width:28px;height:28px;font-size:11px;background:linear-gradient(135deg,#2288aa,#115577);">P</div><div style="flex:1;font-size:13px;">Pedro <span style="font-size:11px;color:var(--text-muted);">(offline)</span></div><div class="toggle off"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     6. VIRTUAL TABLE
+══════════════════════════════ -->
+<div id="screen-mesa" class="screen">
+  <div class="mesa-bar">
+    <span class="mesa-title">A Sombra de Malachor</span>
+    <span class="mesa-sep">/</span>
+    <div class="mesa-sess"><div class="pulse-dot"></div>Sessão 14 · 2h 14min</div>
+    <div class="mesa-acts">
+      <button class="btn btn-secondary" style="font-size:12px;padding:6px 11px;">🎵 Música</button>
+      <button class="btn btn-secondary" style="font-size:12px;padding:6px 11px;" onclick="go('gm')">⚔️ Mestre</button>
+      <button class="btn btn-danger" style="font-size:12px;padding:6px 11px;">⏹ Encerrar</button>
+    </div>
+  </div>
+  <div class="mesa-body">
+    <div class="toolbar">
+      <div class="tool on" title="Selecionar">↖</div>
+      <div class="tool" title="Mover">✋</div>
+      <div class="tdiv"></div>
+      <div class="tool" title="Token">🔵</div>
+      <div class="tool" title="Marcador">📍</div>
+      <div class="tool" title="Medir">📏</div>
+      <div class="tdiv"></div>
+      <div class="tool" title="Névoa">🌫</div>
+      <div class="tool" title="Revelar">👁</div>
+      <div class="tdiv"></div>
+      <div class="tool" style="font-size:14px;font-weight:700;" title="Zoom +">+</div>
+      <div class="tool" style="font-size:14px;font-weight:700;" title="Zoom −">−</div>
+    </div>
+    <div class="grid-canvas">
+      <div class="token t-player" style="left:200px;top:170px;">A<div class="token-lbl">Aldric</div></div>
+      <div class="token t-player" style="left:280px;top:210px;">V<div class="token-lbl">Vyrra</div></div>
+      <div class="token t-player" style="left:240px;top:270px;">T<div class="token-lbl">Theron</div></div>
+      <div class="token t-player" style="left:160px;top:230px;">L<div class="token-lbl">Lyra</div></div>
+      <div class="token t-enemy" style="left:440px;top:190px;">M<div class="token-lbl">Malachor</div></div>
+      <div class="token t-npc" style="left:380px;top:310px;">✦<div class="token-lbl">Aelindra</div></div>
+      <div class="fog"><div class="fog-label">🌫<br>Névoa de Guerra<br><span style="font-size:10px;">área não revelada</span></div></div>
+    </div>
+    <div class="chat-panel">
+      <div class="chat-hdr">💬 Chat da Sessão <span class="badge badge-success" style="font-size:10px;">4 online</span></div>
+      <div class="chat-msgs">
+        <div class="msg">
+          <div class="msg-hdr"><span class="msg-who" style="color:var(--gold);">🛡 Karin (Mestre)</span><span class="msg-time">21:34</span></div>
+          <div class="msg-body">O Lich ergue sua mão ossuda — vocês sentem a magia necromântica se concentrar no ar...</div>
+        </div>
+        <div class="msg">
+          <div class="msg-hdr"><span class="msg-who">⚔️ Rafael</span><span class="msg-time">21:35</span></div>
+          <div class="msg-body">Aldric avança com a espada longa! Vou atacar.</div>
+        </div>
+        <div class="roll-card crit">
+          <div class="roll-card-title">⚔️ Rafael rolou <strong>Ataque · d20+7</strong></div>
+          <div class="roll-card-num">20</div>
+          <div class="roll-card-break">🎉 Crítico! · dado: 13 · mod: +7</div>
+        </div>
+        <div class="msg">
+          <div class="msg-hdr"><span class="msg-who" style="color:var(--gold);">🛡 Karin (Mestre)</span><span class="msg-time">21:35</span></div>
+          <div class="msg-body">CRÍTICO! Role dano duplo!</div>
+        </div>
+        <div class="roll-card">
+          <div class="roll-card-title">⚔️ Rafael rolou <strong>Dano · 2d8+5</strong></div>
+          <div class="roll-card-num">19</div>
+          <div class="roll-card-break">dados: [7, 7] · mod: +5</div>
+        </div>
+        <div class="msg">
+          <div class="msg-hdr"><span class="msg-who">🗡 Maria</span><span class="msg-time">21:36</span></div>
+          <div class="msg-body">Vyrra usa Ataque Furtivo aproveitando a abertura!</div>
+        </div>
+        <div class="roll-card">
+          <div class="roll-card-title">🗡 Maria rolou <strong>Carisma · d20+4</strong></div>
+          <div class="roll-card-num">17</div>
+          <div class="roll-card-break">dados: [13] · mod: +4</div>
+        </div>
+      </div>
+      <div class="chat-foot">
+        <input class="chat-input" placeholder="+rolar carisma  ·  ou escreva uma mensagem..." />
+        <div class="dice-bar">
+          <div class="d-btn">d4</div><div class="d-btn">d6</div><div class="d-btn">d8</div>
+          <div class="d-btn">d10</div><div class="d-btn">d12</div><div class="d-btn">d20</div><div class="d-btn">d100</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function go(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  const keys = ['login','dashboard','campaign','sheet','gm','mesa'];
+  const i = keys.indexOf(name);
+  if (i >= 0) document.querySelectorAll('.nav-btn')[i].classList.add('active');
+}
+</script>
+</body>
+</html>

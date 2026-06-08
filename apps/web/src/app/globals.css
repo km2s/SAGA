@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --gold-dim: rgba(201, 162, 42, 0.12);
+  --gold-glow: rgba(201, 162, 42, 0.25);
+  --purple-dim: rgba(124, 58, 237, 0.15);
+  --success-dim: rgba(34, 197, 94, 0.1);
+  --danger-dim: rgba(239, 68, 68, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #0a0a12;
+  color: #e2e2f0;
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #3d3d58; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #4a4a6a; }
+
+/* Gold gradient text utility */
+.text-gold-gradient {
+  background: linear-gradient(135deg, #c9a22a, #f0d060, #c9a22a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Pulse animation for active session dot */
+.pulse-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 9999px;
+  background: #22c55e;
+  animation: sagaPulse 2s infinite;
+  flex-shrink: 0;
+}
+
+@keyframes sagaPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+  50% { box-shadow: 0 0 0 5px rgba(34, 197, 94, 0); }
+}
+
+/* Gold/purple dim backgrounds (can't express rgba in Tailwind easily) */
+.bg-gold-dim { background: var(--gold-dim); }
+.bg-purple-dim { background: var(--purple-dim); }
+.bg-success-dim { background: var(--success-dim); }
+.bg-danger-dim { background: var(--danger-dim); }
+.border-gold-dim { border-color: var(--gold-glow); }
+
+/* Card hover lift */
+.card-hover {
+  transition: all 0.18s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+}

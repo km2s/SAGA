@@ -1,0 +1,20 @@
+{
+  "name": "database",
+  "version": "0.0.1",
+  "private": true,
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "generate": "prisma generate --schema=./prisma/schema.prisma",
+    "migrate": "prisma migrate dev --schema=./prisma/schema.prisma",
+    "studio": "prisma studio --schema=./prisma/schema.prisma"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.14.0"
+  },
+  "devDependencies": {
+    "prisma": "^5.14.0"
+  }
+}

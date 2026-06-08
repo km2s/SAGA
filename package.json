@@ -1,0 +1,17 @@
+{
+  "name": "saga",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "bot": "pnpm --filter bot dev",
+    "web": "pnpm --filter web dev",
+    "dev": "pnpm --parallel --filter bot --filter web dev",
+    "build": "pnpm --recursive build",
+    "db:generate": "pnpm --filter database generate",
+    "db:migrate": "pnpm --filter database migrate",
+    "db:studio": "pnpm --filter database studio"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}

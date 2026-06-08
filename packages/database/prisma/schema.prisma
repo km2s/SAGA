@@ -1,0 +1,225 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Usuário ───────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(cuid())
+  discordId String   @unique
+  username  String
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships CampaignMember[]
+  notes       Note[]
+}
+
+// ─── Campanha ──────────────────────────────────────────────
+
+model Campaign {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  theme       String?
+  systemId    String?
+  guildId     String?  // Discord server ID vinculado
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  system   RPGSystem?      @relation(fields: [systemId], references: [id])
+  members  CampaignMember[]
+  npcs     NPC[]
+  sessions Session[]
+  notes    Note[]
+}
+
+enum MemberRole {
+  GM
+  PLAYER
+}
+
+model CampaignMember {
+  id       String     @id @default(cuid())
+  role     MemberRole
+  joinedAt DateTime   @default(now())
+
+  userId     String
+  campaignId String
+
+  user     User     @relation(fields: [userId], references: [id])
+  campaign Campaign @relation(fields: [campaignId], references: [id])
+
+  character       CharacterSheet?
+  linkedNpcs      NPC[]           @relation("NPCLinkedMember")
+  npcVisibilities NPCVisibility[]
+
+  @@unique([userId, campaignId])
+}
+
+// ─── Sistema de RPG ────────────────────────────────────────
+
+model RPGSystem {
+  id        String   @id @default(cuid())
+  name      String
+  isPreset  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  attributes SystemAttribute[]
+  campaigns  Campaign[]
+}
+
+model SystemAttribute {
+  id          String  @id @default(cuid())
+  name        String
+  defaultDie  String  // "d20", "2d6"
+  description String?
+  systemId    String
+
+  system              RPGSystem            @relation(fields: [systemId], references: [id])
+  characterAttributes CharacterAttribute[]
+  npcAttributes       NPCAttribute[]
+}
+
+// ─── Ficha do Jogador ──────────────────────────────────────
+
+model CharacterSheet {
+  id        String   @id @default(cuid())
+  name      String
+  race      String?
+  class     String?
+  level     Int      @default(1)
+  imageUrl  String?
+  hp        Int      @default(0)
+  maxHp     Int      @default(0)
+  memberId  String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  member     CampaignMember       @relation(fields: [memberId], references: [id])
+  attributes CharacterAttribute[]
+}
+
+model CharacterAttribute {
+  id          String  @id @default(cuid())
+  value       Int     @default(0) // modificador, ex: +4
+  customDie   String?             // sobrescreve o dado padrão do sistema
+  sheetId     String
+  attributeId String
+
+  sheet     CharacterSheet  @relation(fields: [sheetId], references: [id])
+  attribute SystemAttribute @relation(fields: [attributeId], references: [id])
+
+  @@unique([sheetId, attributeId])
+}
+
+// ─── NPC ───────────────────────────────────────────────────
+
+model NPC {
+  id             String   @id @default(cuid())
+  name           String
+  description    String?
+  imageUrl       String?
+  type           String   @default("neutro") // antagonista, aliado, neutro
+  isPublic       Boolean  @default(false)
+  campaignId     String
+  linkedMemberId String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  campaign     Campaign        @relation(fields: [campaignId], references: [id])
+  linkedMember CampaignMember? @relation("NPCLinkedMember", fields: [linkedMemberId], references: [id])
+  attributes   NPCAttribute[]
+  visibilities NPCVisibility[]
+}
+
+model NPCAttribute {
+  id          String  @id @default(cuid())
+  value       Int     @default(0)
+  customDie   String?
+  npcId       String
+  attributeId String
+
+  npc       NPC             @relation(fields: [npcId], references: [id])
+  attribute SystemAttribute @relation(fields: [attributeId], references: [id])
+
+  @@unique([npcId, attributeId])
+}
+
+model NPCVisibility {
+  id       String  @id @default(cuid())
+  canView  Boolean @default(false)
+  npcId    String
+  memberId String
+
+  npc    NPC            @relation(fields: [npcId], references: [id])
+  member CampaignMember @relation(fields: [memberId], references: [id])
+
+  @@unique([npcId, memberId])
+}
+
+// ─── Sessão ────────────────────────────────────────────────
+
+model Session {
+  id         String    @id @default(cuid())
+  name       String?
+  isActive   Boolean   @default(true)
+  startedAt  DateTime  @default(now())
+  endedAt    DateTime?
+  campaignId String
+
+  campaign Campaign        @relation(fields: [campaignId], references: [id])
+  rollLogs RollLog[]
+  summary  SessionSummary?
+}
+
+model RollLog {
+  id         String   @id @default(cuid())
+  expression String
+  rolls      Json
+  modifier   Int      @default(0)
+  total      Int
+  attribute  String?
+  rolledBy   String
+  rolledAt   DateTime @default(now())
+  sessionId  String
+
+  session Session @relation(fields: [sessionId], references: [id])
+}
+
+model SessionSummary {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+  sessionId String   @unique
+
+  session Session @relation(fields: [sessionId], references: [id])
+}
+
+// ─── Notas ─────────────────────────────────────────────────
+
+enum NoteVisibility {
+  PRIVATE
+  CAMPAIGN
+  GM_ONLY
+}
+
+model Note {
+  id         String         @id @default(cuid())
+  title      String?
+  content    String
+  visibility NoteVisibility @default(PRIVATE)
+  authorId   String
+  campaignId String
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  author   User     @relation(fields: [authorId], references: [id])
+  campaign Campaign @relation(fields: [campaignId], references: [id])
+}
