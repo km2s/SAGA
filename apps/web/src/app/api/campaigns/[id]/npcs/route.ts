@@ -13,12 +13,9 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   if (!gmMember) return NextResponse.json({ error: 'GM only' }, { status: 403 })
 
   const body = await req.json() as {
-    name?: string
-    description?: string
-    imageUrl?: string
-    type?: string
-    isPublic?: boolean
-    linkedMemberId?: string
+    name?: string; description?: string; imageUrl?: string; type?: string
+    race?: string; class?: string; level?: number; hp?: number; maxHp?: number
+    isPublic?: boolean; linkedMemberId?: string
   }
 
   if (!body.name?.trim()) return NextResponse.json({ error: 'Nome obrigatório' }, { status: 400 })
@@ -42,7 +39,12 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       name: body.name.trim().slice(0, 100),
       description: body.description?.trim().slice(0, 500) || null,
       imageUrl,
-      type: body.type ?? 'neutro',
+      type: body.type ?? 'NEUTRAL',
+      race: body.race?.trim() || null,
+      class: body.class?.trim() || null,
+      level: body.level ? Math.max(1, body.level) : 1,
+      hp: body.hp ?? 10,
+      maxHp: body.maxHp ?? 10,
       isPublic: body.isPublic ?? false,
       campaignId: params.id,
       linkedMemberId,

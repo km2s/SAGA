@@ -39,6 +39,15 @@ interface Character {
   id: string; name: string; race: string | null; class: string | null
   level: number; hp: number; maxHp: number; imageUrl: string | null
 }
+const CAMPAIGN_COLORS = [
+  'from-[#3b0764] to-[#7c3aed]',
+  'from-[#1e3a5f] to-[#2563eb]',
+  'from-[#064e3b] to-[#059669]',
+  'from-[#7c2d12] to-[#d97706]',
+  'from-[#4a044e] to-[#db2777]',
+  'from-[#0c4a6e] to-[#0891b2]',
+]
+
 interface PlayerMembership {
   id: string; role: string
   character: Character | null
@@ -103,20 +112,29 @@ export function CharactersView({ playerMemberships, gmCampaigns, allCampaigns }:
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {charMemberships.map(m => {
+            {charMemberships.map((m, idx) => {
               const char = m.character!
               const ClassIcon = CLASS_ICONS[char.class ?? ''] ?? User
               const hpPercent = Math.round((char.hp / Math.max(1, char.maxHp)) * 100)
               const hpColor = hpPercent > 60 ? 'bg-saga-success' : hpPercent > 30 ? 'bg-saga-warning' : 'bg-saga-danger'
+              const campaignGradient = CAMPAIGN_COLORS[idx % CAMPAIGN_COLORS.length]!
               return (
                 <Link key={m.id} href={`/characters/${m.id}`}>
                   <div className="bg-surface border border-border rounded-lg overflow-hidden hover:border-border-bright transition-all card-hover">
+                    {/* Campaign badge — topo do card */}
+                    <div className={`bg-gradient-to-r ${campaignGradient} px-3 py-1.5 flex items-center gap-1.5`}>
+                      <BookOpen size={10} className="text-white/70 shrink-0"/>
+                      <span className="text-[10px] font-medium text-white/90 truncate">{m.campaign.name}</span>
+                      {m.campaign.system && (
+                        <span className="text-[9px] text-white/50 shrink-0 ml-auto">{m.campaign.system.name}</span>
+                      )}
+                    </div>
                     {char.imageUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={char.imageUrl} alt={char.name} className="w-full h-40 object-cover object-top"/>
+                      <img src={char.imageUrl} alt={char.name} className="w-full h-36 object-cover object-top"/>
                     ) : (
-                      <div className="w-full h-40 bg-gradient-to-br from-[#1a0533] via-[#4a1080] to-[#7c3aed] flex items-center justify-center text-white/40">
-                        <ClassIcon size={52}/>
+                      <div className="w-full h-36 bg-gradient-to-br from-[#1a0533] via-[#4a1080] to-[#7c3aed] flex items-center justify-center text-white/40">
+                        <ClassIcon size={48}/>
                       </div>
                     )}
                     <div className="p-4">
@@ -134,12 +152,6 @@ export function CharactersView({ playerMemberships, gmCampaigns, allCampaigns }:
                         <div className="h-1.5 bg-surface-2 rounded-full overflow-hidden">
                           <div className={`h-full rounded-full ${hpColor}`} style={{ width: `${hpPercent}%` }}/>
                         </div>
-                      </div>
-                      <div className="mt-3 pt-3 border-t border-border">
-                        <p className="text-[11px] text-saga-muted truncate flex items-center gap-1">
-                          <BookOpen size={11}/> {m.campaign.name}
-                        </p>
-                        {m.campaign.system && <p className="text-[10px] text-saga-dim mt-0.5">{m.campaign.system.name}</p>}
                       </div>
                     </div>
                   </div>

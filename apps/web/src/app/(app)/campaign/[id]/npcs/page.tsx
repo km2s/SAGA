@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from 'database'
 import { notFound, redirect } from 'next/navigation'
+import Link from 'next/link'
 import { Badge } from '@/components/ui/Badge'
 import { GMActions } from '@/components/gm/GMActions'
 import { ShieldAlert, UserCheck, Heart, Wind, User } from 'lucide-react'
@@ -69,7 +70,8 @@ export default async function CampaignNpcsPage({ params }: { params: { id: strin
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {npcs.map(npc => (
-            <div key={npc.id} className="bg-surface border border-border rounded-lg overflow-hidden hover:border-border-bright transition-all card-hover">
+            <Link key={npc.id} href={`/campaign/${params.id}/npcs/${npc.id}`}>
+            <div className="bg-surface border border-border rounded-lg overflow-hidden hover:border-border-bright transition-all card-hover">
               {npc.imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={npc.imageUrl} alt={npc.name} className="w-full h-36 object-cover" />
@@ -102,6 +104,7 @@ export default async function CampaignNpcsPage({ params }: { params: { id: strin
                 )}
               </div>
             </div>
+            </Link>
           ))}
         </div>
       )}
