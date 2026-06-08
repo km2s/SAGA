@@ -22,8 +22,10 @@ export default async function CharactersPage() {
 
   if (!user) redirect('/login')
 
-  // All memberships (player + GM roles) — used for "Criar Personagem" modal options
-  const allCampaigns = user.memberships.map(m => ({ id: m.campaign.id, name: m.campaign.name }))
+  // Only non-GM memberships — GMs cannot create player characters in their own campaign
+  const allCampaigns = user.memberships
+    .filter(m => m.role !== 'GM')
+    .map(m => ({ id: m.campaign.id, name: m.campaign.name }))
 
   // Player memberships — shown in "Jogador" tab (all roles, but only those with a character)
   const playerMemberships = user.memberships

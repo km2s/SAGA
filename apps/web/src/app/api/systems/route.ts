@@ -103,19 +103,47 @@ const PRESET_SYSTEMS: SystemDef[] = [
   {
     name: 'Vampire: The Masquerade V5', category: 'world-of-darkness',
     attributes: [
-      // Physical
+      // ── Atributos ──────────────────────────────────────────────────────────
       { name: 'Força',          defaultDie: 'd10', description: 'Físico — poder bruto e ataques' },
       { name: 'Destreza',       defaultDie: 'd10', description: 'Físico — rapidez e precisão' },
       { name: 'Vigor',          defaultDie: 'd10', description: 'Físico — resistência e durabilidade' },
-      // Social
       { name: 'Carisma',        defaultDie: 'd10', description: 'Social — personalidade e liderança' },
       { name: 'Manipulação',    defaultDie: 'd10', description: 'Social — sutileza e engano' },
       { name: 'Compostura',     defaultDie: 'd10', description: 'Social — autocontrole e presença' },
-      // Mental
       { name: 'Inteligência',   defaultDie: 'd10', description: 'Mental — raciocínio e memória' },
       { name: 'Raciocínio',     defaultDie: 'd10', description: 'Mental — reação e percepção imediata' },
       { name: 'Determinação',   defaultDie: 'd10', description: 'Mental — foco e força de vontade' },
-      // Vampire-specific
+      // ── Habilidades Físicas ────────────────────────────────────────────────
+      { name: 'Atletismo',      defaultDie: 'd10', description: 'Habilidade Física — esportes e acrobacias' },
+      { name: 'Briga',          defaultDie: 'd10', description: 'Habilidade Física — combate sem armas' },
+      { name: 'Artesanato',     defaultDie: 'd10', description: 'Habilidade Física — criar e reparar objetos' },
+      { name: 'Direção',        defaultDie: 'd10', description: 'Habilidade Física — operar veículos' },
+      { name: 'Armas de Fogo',  defaultDie: 'd10', description: 'Habilidade Física — uso de armas de fogo' },
+      { name: 'Ladinagem',      defaultDie: 'd10', description: 'Habilidade Física — furtar e arrombar' },
+      { name: 'Melê',           defaultDie: 'd10', description: 'Habilidade Física — combate com armas brancas' },
+      { name: 'Furtividade',    defaultDie: 'd10', description: 'Habilidade Física — mover-se sem ser detectado' },
+      { name: 'Sobrevivência',  defaultDie: 'd10', description: 'Habilidade Física — sobreviver no ambiente' },
+      // ── Habilidades Sociais ────────────────────────────────────────────────
+      { name: 'Trato Animal',   defaultDie: 'd10', description: 'Habilidade Social — lidar com animais' },
+      { name: 'Etiqueta',       defaultDie: 'd10', description: 'Habilidade Social — protocolo social' },
+      { name: 'Intuição',       defaultDie: 'd10', description: 'Habilidade Social — ler emoções e intenções' },
+      { name: 'Intimidação',    defaultDie: 'd10', description: 'Habilidade Social — impor respeito e medo' },
+      { name: 'Liderança',      defaultDie: 'd10', description: 'Habilidade Social — inspirar e comandar' },
+      { name: 'Performance',    defaultDie: 'd10', description: 'Habilidade Social — atuar e se apresentar' },
+      { name: 'Persuasão',      defaultDie: 'd10', description: 'Habilidade Social — convencer e negociar' },
+      { name: 'Astúcia de Rua', defaultDie: 'd10', description: 'Habilidade Social — navegar o submundo' },
+      { name: 'Subterfúgio',    defaultDie: 'd10', description: 'Habilidade Social — mentir e dissimular' },
+      // ── Habilidades Mentais ────────────────────────────────────────────────
+      { name: 'Acadêmicos',     defaultDie: 'd10', description: 'Habilidade Mental — história e humanidades' },
+      { name: 'Consciência',    defaultDie: 'd10', description: 'Habilidade Mental — percepção do sobrenatural' },
+      { name: 'Finanças',       defaultDie: 'd10', description: 'Habilidade Mental — economia e negócios' },
+      { name: 'Investigação',   defaultDie: 'd10', description: 'Habilidade Mental — análise de evidências' },
+      { name: 'Medicina',       defaultDie: 'd10', description: 'Habilidade Mental — anatomia e tratamentos' },
+      { name: 'Ocultismo',      defaultDie: 'd10', description: 'Habilidade Mental — magia e sobrenatural' },
+      { name: 'Política',       defaultDie: 'd10', description: 'Habilidade Mental — estruturas de poder' },
+      { name: 'Ciências',       defaultDie: 'd10', description: 'Habilidade Mental — ciências naturais' },
+      { name: 'Tecnologia',     defaultDie: 'd10', description: 'Habilidade Mental — eletrônica e sistemas' },
+      // ── Recursos vampíricos ────────────────────────────────────────────────
       { name: 'Potência de Sangue', defaultDie: 'd10', description: 'Nível de poder vampírico (1-10)' },
       { name: 'Humanidade',     defaultDie: 'd10', description: 'Conexão com a natureza humana (0-10)' },
       { name: 'Fome',           defaultDie: 'd10', description: 'Nível atual de fome por sangue (1-5)' },
@@ -124,22 +152,58 @@ const PRESET_SYSTEMS: SystemDef[] = [
   {
     name: 'Vampire: The Masquerade V20', category: 'world-of-darkness',
     attributes: [
-      // Physical
+      // ── Atributos ──────────────────────────────────────────────────────────
       { name: 'Força',          defaultDie: 'd10', description: 'Físico — poder bruto' },
       { name: 'Destreza',       defaultDie: 'd10', description: 'Físico — rapidez e agilidade' },
       { name: 'Vigor',          defaultDie: 'd10', description: 'Físico — saúde e resistência' },
-      // Social
       { name: 'Carisma',        defaultDie: 'd10', description: 'Social — encanto natural' },
       { name: 'Manipulação',    defaultDie: 'd10', description: 'Social — capacidade de influenciar' },
       { name: 'Aparência',      defaultDie: 'd10', description: 'Social — presença física e visual' },
-      // Mental
       { name: 'Percepção',      defaultDie: 'd10', description: 'Mental — consciência do ambiente' },
       { name: 'Inteligência',   defaultDie: 'd10', description: 'Mental — raciocínio e aprendizado' },
       { name: 'Raciocínio',     defaultDie: 'd10', description: 'Mental — reação rápida e improviso' },
-      // Resources
+      // ── Talentos ───────────────────────────────────────────────────────────
+      { name: 'Alerta',         defaultDie: 'd10', description: 'Talento — notar ameaças e emboscadas' },
+      { name: 'Atletismo',      defaultDie: 'd10', description: 'Talento — proezas físicas e acrobacias' },
+      { name: 'Conscientização',defaultDie: 'd10', description: 'Talento — percepção do sobrenatural' },
+      { name: 'Briga',          defaultDie: 'd10', description: 'Talento — combate sem armas' },
+      { name: 'Empatia',        defaultDie: 'd10', description: 'Talento — ler emoções e intenções' },
+      { name: 'Expressão',      defaultDie: 'd10', description: 'Talento — comunicação e arte' },
+      { name: 'Intimidação',    defaultDie: 'd10', description: 'Talento — impor respeito e medo' },
+      { name: 'Liderança',      defaultDie: 'd10', description: 'Talento — inspirar e comandar' },
+      { name: 'Astúcia de Rua', defaultDie: 'd10', description: 'Talento — navegar o submundo' },
+      { name: 'Subterfúgio',    defaultDie: 'd10', description: 'Talento — mentir e dissimular' },
+      // ── Perícias ───────────────────────────────────────────────────────────
+      { name: 'Trato Animal',   defaultDie: 'd10', description: 'Perícia — lidar com animais' },
+      { name: 'Artesanato',     defaultDie: 'd10', description: 'Perícia — criar e reparar objetos' },
+      { name: 'Direção',        defaultDie: 'd10', description: 'Perícia — operar veículos' },
+      { name: 'Etiqueta',       defaultDie: 'd10', description: 'Perícia — protocolo social' },
+      { name: 'Armas de Fogo',  defaultDie: 'd10', description: 'Perícia — uso de armas de fogo' },
+      { name: 'Ladinagem',      defaultDie: 'd10', description: 'Perícia — furtar e arrombar' },
+      { name: 'Melê',           defaultDie: 'd10', description: 'Perícia — combate com armas brancas' },
+      { name: 'Performance',    defaultDie: 'd10', description: 'Perícia — atuar e se apresentar' },
+      { name: 'Furtividade',    defaultDie: 'd10', description: 'Perícia — mover-se sem ser detectado' },
+      { name: 'Sobrevivência',  defaultDie: 'd10', description: 'Perícia — sobreviver no ambiente' },
+      // ── Conhecimentos ──────────────────────────────────────────────────────
+      { name: 'Acadêmicos',     defaultDie: 'd10', description: 'Conhecimento — história e humanidades' },
+      { name: 'Computador',     defaultDie: 'd10', description: 'Conhecimento — tecnologia digital' },
+      { name: 'Finanças',       defaultDie: 'd10', description: 'Conhecimento — economia e negócios' },
+      { name: 'Investigação',   defaultDie: 'd10', description: 'Conhecimento — análise de evidências' },
+      { name: 'Direito',        defaultDie: 'd10', description: 'Conhecimento — sistema legal' },
+      { name: 'Medicina',       defaultDie: 'd10', description: 'Conhecimento — anatomia e tratamentos' },
+      { name: 'Ocultismo',      defaultDie: 'd10', description: 'Conhecimento — magia e sobrenatural' },
+      { name: 'Política',       defaultDie: 'd10', description: 'Conhecimento — estruturas de poder' },
+      { name: 'Ciências',       defaultDie: 'd10', description: 'Conhecimento — ciências naturais' },
+      { name: 'Tecnologia',     defaultDie: 'd10', description: 'Conhecimento — eletrônica e engenharia' },
+      // ── Virtudes ───────────────────────────────────────────────────────────
+      { name: 'Consciência',    defaultDie: 'd10', description: 'Virtude — discernimento moral (1-5)' },
+      { name: 'Autocontrole',   defaultDie: 'd10', description: 'Virtude — controle sobre a Besta (1-5)' },
+      { name: 'Coragem',        defaultDie: 'd10', description: 'Virtude — enfrentar o Rötschreck (1-5)' },
+      // ── Recursos vampíricos ────────────────────────────────────────────────
       { name: 'Força de Vontade', defaultDie: 'd10', description: 'Reserva de vontade (máx 10)' },
       { name: 'Humanidade',     defaultDie: 'd10', description: 'Moralidade e conexão humana (0-10)' },
       { name: 'Geração',        defaultDie: 'd10', description: 'Distância do Caim (geração vampírica)' },
+      { name: 'Sangue',         defaultDie: 'd10', description: 'Reserva de sangue atual (Blood Pool)' },
     ],
   },
   {

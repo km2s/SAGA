@@ -3,6 +3,32 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from 'database'
 
+export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+  const session = await getServerSession(authOptions)
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const sheet = await prisma.characterSheet.findUnique({
+    where: { id: params.id },
+    include: { member: { include: { user: true } } },
+  }).catch(() => null)
+  if (!sheet) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  const isMine = sheet.member.user.discordId === session.user.discordId
+  const isGM = await prisma.campaignMember.findFirst({
+    where: {
+      campaignId: sheet.member.campaignId,
+      user: { discordId: session.user.discordId },
+      role: 'GM',
+    },
+  }).catch(() => null)
+  if (!isMine && !isGM) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+  await prisma.characterAttribute.deleteMany({ where: { sheetId: params.id } }).catch(() => null)
+  await prisma.characterSheet.delete({ where: { id: params.id } }).catch(() => null)
+
+  return NextResponse.json({ success: true })
+}
+
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

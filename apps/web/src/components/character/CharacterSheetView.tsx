@@ -365,17 +365,19 @@ function FantasyCombatTab({ attrs, characterId, canEdit, onDelete, level }: {
 
 // ─── World of Darkness ────────────────────────────────────────────────────────
 
-function WoDAttrRow({ attr, characterId, canEdit, onSaved, max = 5 }: {
-  attr: Attr; characterId: string; canEdit: boolean; onSaved: () => void; max?: number
+function WoDAttrCell({ attr, characterId, canEdit, onSaved }: {
+  attr: Attr; characterId: string; canEdit: boolean; onSaved: () => void
 }) {
   return (
-    <div className="flex items-center gap-4 py-2.5 px-3 rounded hover:bg-white/[0.02] transition-all">
-      <span className="font-almendra text-sm text-saga-text min-w-[130px]">{attr.attribute.name}</span>
+    <div className="py-2 border-b last:border-0" style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
+      <div className="flex items-center justify-between mb-1.5">
+        <span className="font-almendra text-[12px] text-saga-text leading-tight">{attr.attribute.name}</span>
+        <span className="font-cinzel text-[11px] text-gold/70 ml-2 shrink-0">{attr.value}</span>
+      </div>
       <WoDDots
-        value={attr.value} max={max} editable={canEdit}
+        value={attr.value} max={5} editable={canEdit}
         attrId={attr.id} characterId={characterId} onSaved={onSaved}
       />
-      <span className="font-cinzel font-bold text-sm text-gold ml-auto">{attr.value}</span>
     </div>
   )
 }
@@ -384,28 +386,42 @@ function WoDAttrTab({ physical, social, mental, characterId, canEdit, onSaved }:
   physical: Attr[]; social: Attr[]; mental: Attr[]
   characterId: string; canEdit: boolean; onSaved: () => void
 }) {
-  const groups = [
+  const cols = [
     { label: 'Físico', items: physical },
     { label: 'Social', items: social },
     { label: 'Mental', items: mental },
   ]
 
   return (
-    <div className="space-y-5">
-      {groups.map(({ label, items }) => (
-        <div key={label}>
-          <SectionDivider title={label} />
-          {items.length === 0 ? (
-            <p className="text-[11px] text-saga-dim px-3">Nenhum atributo {label.toLowerCase()} encontrado.</p>
-          ) : (
-            <div className="space-y-0.5">
-              {items.map(attr => (
-                <WoDAttrRow key={attr.id} attr={attr} characterId={characterId} canEdit={canEdit} onSaved={onSaved} max={5} />
-              ))}
-            </div>
-          )}
-        </div>
-      ))}
+    <div>
+      {/* Column headers */}
+      <div className="grid grid-cols-3 gap-3 mb-3">
+        {cols.map(({ label }) => (
+          <div key={label} className="text-center">
+            <p className="font-almendra text-[9px] font-bold text-saga-dim uppercase tracking-[0.2em]">{label}</p>
+            <div className="mt-1.5 h-px" style={{ background: 'rgba(201,162,42,0.2)' }} />
+          </div>
+        ))}
+      </div>
+
+      {/* 3-column attribute grid */}
+      <div className="grid grid-cols-3 gap-3">
+        {cols.map(({ label, items }) => (
+          <div
+            key={label}
+            className="rounded-lg px-3 py-1"
+            style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}
+          >
+            {items.length === 0 ? (
+              <p className="text-[10px] text-saga-dim py-3 text-center">—</p>
+            ) : (
+              items.map(attr => (
+                <WoDAttrCell key={attr.id} attr={attr} characterId={characterId} canEdit={canEdit} onSaved={onSaved} />
+              ))
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

@@ -310,7 +310,7 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
     : tokenDrag ? 'cursor-grabbing' : 'cursor-default'
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col overflow-hidden" style={{background:'#080811'}}>
+    <div className="fixed inset-0 z-50 flex flex-col" style={{background:'#080811'}}>
 
       {/* ── Top bar ── */}
       <div className="h-11 flex items-center justify-between px-3 sm:px-4 shrink-0 border-b border-white/5 relative"

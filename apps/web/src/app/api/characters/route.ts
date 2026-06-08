@@ -32,6 +32,7 @@ export async function POST(req: Request) {
     include: { character: true },
   }).catch(() => null)
   if (!member) return NextResponse.json({ error: 'Você não é membro desta campanha' }, { status: 403 })
+  if (member.role === 'GM') return NextResponse.json({ error: 'Mestres não podem criar personagens em sua própria campanha' }, { status: 403 })
   if (member.character) return NextResponse.json({ error: 'Você já tem um personagem nesta campanha' }, { status: 409 })
 
   const imageUrl = body.imageUrl?.trim() || null

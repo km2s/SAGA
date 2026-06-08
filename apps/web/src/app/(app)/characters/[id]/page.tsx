@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/Badge'
 import { HPEditor } from '@/components/character/HPEditor'
 import { CharacterShareToggle } from '@/components/character/CharacterShareToggle'
 import { CharacterSheetView, type SheetCategory } from '@/components/character/CharacterSheetView'
+import { DeleteCharacterButton } from '@/components/character/DeleteCharacterButton'
 import {
   Swords, Sparkles, Shield, Sword, Plus, Axe, Leaf, Music, Target, Dumbbell,
   Wand2, Moon, ScrollText, ClipboardList, Pencil, User,
@@ -25,6 +26,7 @@ const SYSTEM_CATEGORIES: Record<string, SheetCategory> = {
   // World of Darkness
   'Vampire: The Masquerade V5': 'world-of-darkness',
   'Vampire: The Masquerade V20': 'world-of-darkness',
+  'Vampire: The Masquerade': 'world-of-darkness',
   'Werewolf: The Apocalypse': 'world-of-darkness',
   'Mage: The Ascension': 'world-of-darkness',
   'Mage: The Awakening': 'world-of-darkness',
@@ -42,6 +44,24 @@ const SYSTEM_CATEGORIES: Record<string, SheetCategory> = {
   'Blades in the Dark': 'generic', 'Ironsworn': 'generic',
   // Custom
   'Personalizado': 'custom',
+}
+
+function detectCategory(name: string | null | undefined): SheetCategory {
+  if (!name) return 'custom'
+  const exact = SYSTEM_CATEGORIES[name]
+  if (exact) return exact
+  const n = name.toLowerCase()
+  if (n.includes('vampire') || n.includes('werewolf') || n.includes('mage') ||
+      n.includes('hunter') || n.includes('changeling') || n.includes('demon') ||
+      n.includes('geist') || n.includes('masquerade') || n.includes('darkness'))
+    return 'world-of-darkness'
+  if (n.includes('cthulhu') || n.includes('horror') || n.includes('mothership') || n.includes('delta green'))
+    return 'horror'
+  if (n.includes('cyberpunk') || n.includes('starfinder') || n.includes('shadowrun') || n.includes('star wars'))
+    return 'scifi'
+  if (n.includes('d&d') || n.includes('pathfinder') || n.includes('tormenta') || n.includes('dungeon'))
+    return 'fantasy'
+  return 'custom'
 }
 
 const SYSTEM_COLOR: Record<string, string> = {
@@ -91,7 +111,7 @@ export default async function CharacterDetailPage({ params }: { params: { id: st
   const campaign = member.campaign
   const system = campaign.system
 
-  const category: SheetCategory = system ? (SYSTEM_CATEGORIES[system.name] ?? 'custom') : 'custom'
+  const category: SheetCategory = detectCategory(system?.name)
   const ClassIcon = CLASS_ICONS[char.class ?? ''] ?? User
   const SystemIcon = system?.isPreset ? ClipboardList : Pencil
   const systemColor = SYSTEM_COLOR[category] ?? 'text-saga-muted'
@@ -128,6 +148,9 @@ export default async function CharacterDetailPage({ params }: { params: { id: st
             )}
           </div>
         </div>
+        {canEdit && (
+          <DeleteCharacterButton characterId={char.id} characterName={char.name} />
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-[230px_1fr] gap-5">
