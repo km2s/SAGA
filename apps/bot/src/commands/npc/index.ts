@@ -96,7 +96,7 @@ const command: Command = {
         if (!canView) return void await interaction.editReply({ embeds: [errorEmbed('Você não tem permissão para ver este NPC.')] })
       }
 
-      const attrs = npc.attributes.map(a => ({ name: a.attribute.name, value: a.value }))
+      const attrs = npc.attributes.map((a: { value: number; attribute: { name: string } }) => ({ name: a.attribute.name, value: a.value }))
       await interaction.editReply({ embeds: [npcEmbed({ ...npc, attributes: attrs })] })
     }
 
@@ -118,7 +118,7 @@ const command: Command = {
 
       if (!npcs.length) return void await interaction.editReply({ embeds: [infoEmbed('Nenhum NPC visível para você no momento.')] })
 
-      const lista = npcs.map(n => `• **${n.name}** — ${n.type}${n.isPublic ? ' 👁' : ' 🔒'}`).join('\n')
+      const lista = npcs.map((n: { name: string; type: string; isPublic: boolean }) => `• **${n.name}** — ${n.type}${n.isPublic ? ' 👁' : ' 🔒'}`).join('\n')
       await interaction.editReply({ embeds: [infoEmbed(`**NPCs de ${campaign.name}:**\n${lista}`)] })
     }
 

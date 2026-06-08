@@ -41,7 +41,7 @@ const command: Command = {
     if (sub === 'ver') {
       if (!member.character) return void await interaction.editReply({ embeds: [infoEmbed('Você ainda não tem ficha. Use `/ficha criar` para criar.')] })
 
-      const attrs = member.character.attributes.map(a => ({
+      const attrs = member.character.attributes.map((a: { value: number; customDie: string | null; attribute: { name: string; defaultDie: string } }) => ({
         name: a.attribute.name,
         value: a.value,
         defaultDie: a.customDie ?? a.attribute.defaultDie,
@@ -73,12 +73,12 @@ const command: Command = {
       const customDie = interaction.options.getString('dado') ?? undefined
 
       // Busca atributo pelo nome no sistema da campanha
-      const sysAttr = campaign.system?.attributes.find(a =>
+      const sysAttr = campaign.system?.attributes.find((a: { id: string; name: string; defaultDie: string }) =>
         a.name.toLowerCase() === attrName.toLowerCase()
       )
 
       if (!sysAttr) {
-        const available = campaign.system?.attributes.map(a => a.name).join(', ')
+        const available = campaign.system?.attributes.map((a: { name: string }) => a.name).join(', ')
         return void await interaction.editReply({
           embeds: [errorEmbed(`Atributo "${attrName}" não existe no sistema desta campanha.${available ? `\nDisponíveis: ${available}` : ''}`)]
         })

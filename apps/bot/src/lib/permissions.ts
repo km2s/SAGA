@@ -49,7 +49,7 @@ export async function canViewNPC(discordId: string, npcId: string) {
   })
   if (!npc) return false
   if (npc.isPublic) return true
-  return npc.visibilities.some(v => v.member.user.discordId === discordId && v.canView)
+  return npc.visibilities.some((v: { canView: boolean; member: { user: { discordId: string } } }) => v.member.user.discordId === discordId && v.canView)
 }
 
 export function formatDuration(startedAt: Date): string {

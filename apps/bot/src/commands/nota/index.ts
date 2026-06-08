@@ -83,7 +83,7 @@ const command: Command = {
       const embed = new EmbedBuilder()
         .setColor(PURPLE)
         .setTitle(`📝 Suas notas — ${campaign.name}`)
-        .setDescription(notes.map((n, i) =>
+        .setDescription(notes.map((n: { title: string | null; content: string; createdAt: Date }, i: number) =>
           `**${i + 1}. ${n.title ?? 'Sem título'}**\n${n.content}\n*${n.createdAt.toLocaleDateString('pt-BR')}*`
         ).join('\n\n'))
 
@@ -107,7 +107,7 @@ const command: Command = {
       const embed = new EmbedBuilder()
         .setColor(PURPLE)
         .setTitle(`📜 Notas da campanha — ${campaign.name}`)
-        .setDescription(notes.map(n =>
+        .setDescription(notes.map((n: { title: string | null; content: string; author: { username: string } }) =>
           `**${n.title ?? 'Sem título'}** — *${n.author.username}*\n${n.content}`
         ).join('\n\n'))
 

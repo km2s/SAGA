@@ -95,12 +95,12 @@ async function resolveInput(input: string, discordId: string, username: string, 
 
   const normalizedInput = input.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 
-  const attrEntry = member.character.attributes.find(a =>
+  const attrEntry = member.character.attributes.find((a: { customDie: string | null; value: number; attribute: { name: string; defaultDie: string } }) =>
     a.attribute.name.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase() === normalizedInput
   )
 
   if (!attrEntry) {
-    const available = member.character.attributes.map(a => a.attribute.name).join(', ')
+    const available = member.character.attributes.map((a: { attribute: { name: string } }) => a.attribute.name).join(', ')
     throw new Error(`Atributo "${input}" não encontrado. Disponíveis: ${available || 'nenhum'}`)
   }
 
