@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { prisma } from 'database'
 
+export const dynamic = 'force-dynamic'
+
 interface AttrDef { name: string; defaultDie: string; description?: string }
 interface SystemDef { name: string; category: string; attributes: AttrDef[] }
 
