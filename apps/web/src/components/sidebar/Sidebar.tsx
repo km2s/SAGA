@@ -4,23 +4,21 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import Image from 'next/image'
-
-interface NavItem {
-  href: string
-  label: string
-  icon: string
-}
-
-const mainNav: NavItem[] = [
-  { href: '/dashboard', label: 'Dashboard', icon: '🏠' },
-  { href: '/characters', label: 'Meus Personagens', icon: '📋' },
-]
+import {
+  LayoutDashboard,
+  ScrollText,
+  Swords,
+  LogOut,
+  Bot,
+  ChevronRight,
+} from 'lucide-react'
 
 interface SidebarProps {
-  campaigns?: Array<{ id: string; name: string; emoji?: string }>
+  campaigns?: Array<{ id: string; name: string }>
+  discordClientId?: string
 }
 
-export function Sidebar({ campaigns = [] }: SidebarProps) {
+export function Sidebar({ campaigns = [], discordClientId }: SidebarProps) {
   const pathname = usePathname()
   const { data: session } = useSession()
 
@@ -28,8 +26,12 @@ export function Sidebar({ campaigns = [] }: SidebarProps) {
     return pathname === href || pathname.startsWith(href + '/')
   }
 
+  const inviteUrl = discordClientId
+    ? `https://discord.com/oauth2/authorize?client_id=${discordClientId}&permissions=2147485696&scope=bot+applications.commands`
+    : null
+
   return (
-    <nav className="w-[220px] min-w-[220px] h-screen bg-surface border-r border-border flex flex-col pt-0 shrink-0">
+    <nav className="w-[220px] min-w-[220px] h-screen bg-surface border-r border-border flex flex-col shrink-0">
       {/* Logo */}
       <div className="px-5 py-4 border-b border-border">
         <Link href="/dashboard">
@@ -41,16 +43,19 @@ export function Sidebar({ campaigns = [] }: SidebarProps) {
 
       {/* Main nav */}
       <div className="px-3 pt-3 flex flex-col gap-0.5">
-        {mainNav.map(item => (
-          <Link key={item.href} href={item.href}>
+        {[
+          { href: '/dashboard',   label: 'Dashboard',        Icon: LayoutDashboard },
+          { href: '/characters',  label: 'Meus Personagens', Icon: ScrollText },
+        ].map(({ href, label, Icon }) => (
+          <Link key={href} href={href}>
             <div className={`flex items-center gap-2.5 px-3 py-2.5 rounded text-sm transition-all cursor-pointer
-              ${isActive(item.href)
+              ${isActive(href)
                 ? 'bg-gold-dim border border-gold/20 text-gold'
                 : 'text-saga-muted hover:bg-surface-2 hover:text-saga-text'
               }`}
             >
-              <span>{item.icon}</span>
-              {item.label}
+              <Icon size={15} strokeWidth={1.8} />
+              {label}
             </div>
           </Link>
         ))}
@@ -65,14 +70,15 @@ export function Sidebar({ campaigns = [] }: SidebarProps) {
           <div className="flex flex-col gap-0.5">
             {campaigns.map(c => (
               <Link key={c.id} href={`/campaign/${c.id}`}>
-                <div className={`flex items-center gap-2.5 px-3 py-2.5 rounded text-sm transition-all cursor-pointer
+                <div className={`flex items-center gap-2.5 px-3 py-2.5 rounded text-sm transition-all cursor-pointer group
                   ${isActive(`/campaign/${c.id}`)
                     ? 'bg-gold-dim border border-gold/20 text-gold'
                     : 'text-saga-muted hover:bg-surface-2 hover:text-saga-text'
                   }`}
                 >
-                  <span>{c.emoji ?? '🌑'}</span>
-                  <span className="truncate">{c.name}</span>
+                  <Swords size={13} strokeWidth={1.8} className="shrink-0" />
+                  <span className="truncate flex-1">{c.name}</span>
+                  <ChevronRight size={11} className="opacity-0 group-hover:opacity-40 transition-opacity shrink-0" />
                 </div>
               </Link>
             ))}
@@ -80,8 +86,23 @@ export function Sidebar({ campaigns = [] }: SidebarProps) {
         </div>
       )}
 
+      {/* Bot invite */}
+      {inviteUrl && (
+        <div className="px-3 mt-auto mb-2">
+          <a
+            href={inviteUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2.5 px-3 py-2.5 rounded text-sm text-saga-dim hover:text-gold hover:bg-gold-dim border border-transparent hover:border-gold/20 transition-all cursor-pointer"
+          >
+            <Bot size={15} strokeWidth={1.8} className="shrink-0" />
+            <span>Convidar Bot</span>
+          </a>
+        </div>
+      )}
+
       {/* User */}
-      <div className="mt-auto border-t border-border p-3">
+      <div className={`border-t border-border p-3 ${inviteUrl ? '' : 'mt-auto'}`}>
         <div className="flex items-center gap-2.5 p-2 rounded cursor-pointer hover:bg-surface-2 transition-all group">
           {session?.user?.image ? (
             <Image
@@ -100,14 +121,14 @@ export function Sidebar({ campaigns = [] }: SidebarProps) {
             <p className="text-sm font-medium text-saga-text truncate">
               {session?.user?.username ?? 'Carregando...'}
             </p>
-            <p className="text-[11px] text-saga-muted">@{session?.user?.name ?? 'Discord'}</p>
+            <p className="text-[11px] text-saga-muted">Discord</p>
           </div>
           <button
             onClick={() => signOut({ callbackUrl: '/login' })}
-            className="opacity-0 group-hover:opacity-100 text-saga-dim hover:text-saga-danger text-xs transition-all"
+            className="opacity-0 group-hover:opacity-100 text-saga-dim hover:text-saga-danger transition-all"
             title="Sair"
           >
-            ↩
+            <LogOut size={14} />
           </button>
         </div>
       </div>

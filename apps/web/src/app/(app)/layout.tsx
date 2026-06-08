@@ -16,7 +16,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex h-screen overflow-hidden bg-bg">
-      <Sidebar campaigns={campaigns} />
+      <Sidebar campaigns={campaigns} discordClientId={process.env.DISCORD_CLIENT_ID} />
       <main className="flex-1 overflow-y-auto">{children}</main>
     </div>
   )

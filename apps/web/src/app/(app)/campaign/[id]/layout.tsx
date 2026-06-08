@@ -5,6 +5,7 @@ import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { CampaignTabs } from '@/components/campaign/CampaignTabs'
+import { Crown, Map } from 'lucide-react'
 
 export default async function CampaignLayout({
   children,
@@ -48,11 +49,15 @@ export default async function CampaignLayout({
         <div className="absolute top-4 right-6 flex gap-2">
           {isGM && (
             <Link href={`/campaign/${params.id}/gm`}>
-              <Button variant="secondary">⚔️ Painel do Mestre</Button>
+              <Button variant="secondary">
+                <Crown size={14} className="inline mr-1.5 -mt-0.5" />Painel do Mestre
+              </Button>
             </Link>
           )}
           <Link href={`/campaign/${params.id}/mesa`}>
-            <Button variant="primary">🗺️ Abrir Mesa</Button>
+            <Button variant="primary">
+              <Map size={14} className="inline mr-1.5 -mt-0.5" />Abrir Mesa
+            </Button>
           </Link>
         </div>
       </div>

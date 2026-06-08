@@ -2,23 +2,25 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { LayoutGrid, Users, Ghost, CalendarDays, BookOpen } from 'lucide-react'
 
 interface Tab {
   label: string
   href: string
+  Icon: React.ElementType
   exact?: boolean
 }
 
-export function CampaignTabs({ campaignId, isGM }: { campaignId: string; isGM: boolean }) {
+export function CampaignTabs({ campaignId, isGM: _isGM }: { campaignId: string; isGM: boolean }) {
   const pathname = usePathname()
   const base = `/campaign/${campaignId}`
 
   const tabs: Tab[] = [
-    { label: 'Visão Geral', href: base, exact: true },
-    { label: 'Membros',     href: `${base}/members` },
-    { label: 'NPCs',        href: `${base}/npcs` },
-    { label: 'Sessões',     href: `${base}/sessions` },
-    { label: 'Notas',       href: `${base}/notes` },
+    { label: 'Visão Geral', href: base,               Icon: LayoutGrid,   exact: true },
+    { label: 'Membros',     href: `${base}/members`,  Icon: Users },
+    { label: 'NPCs',        href: `${base}/npcs`,     Icon: Ghost },
+    { label: 'Sessões',     href: `${base}/sessions`, Icon: CalendarDays },
+    { label: 'Notas',       href: `${base}/notes`,    Icon: BookOpen },
   ]
 
   function isActive(tab: Tab) {
@@ -30,12 +32,13 @@ export function CampaignTabs({ campaignId, isGM }: { campaignId: string; isGM: b
       {tabs.map(tab => (
         <Link key={tab.href} href={tab.href}>
           <button
-            className={`px-4 py-3.5 text-sm font-medium border-b-2 transition-all whitespace-nowrap
+            className={`flex items-center gap-2 px-4 py-3.5 text-sm font-medium border-b-2 transition-all whitespace-nowrap
               ${isActive(tab)
                 ? 'text-gold border-gold'
                 : 'text-saga-muted border-transparent hover:text-saga-text'
               }`}
           >
+            <tab.Icon size={14} strokeWidth={1.8} />
             {tab.label}
           </button>
         </Link>

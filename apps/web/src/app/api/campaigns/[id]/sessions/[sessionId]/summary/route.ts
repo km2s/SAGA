@@ -15,13 +15,18 @@ export async function POST(
   })
   if (!membership) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
+  const sessionRecord = await prisma.session.findFirst({
+    where: { id: params.sessionId, campaignId: params.id },
+  })
+  if (!sessionRecord) return NextResponse.json({ error: 'Sessão não encontrada' }, { status: 404 })
+
   const body = await req.json() as { content?: string }
   if (!body.content?.trim()) return NextResponse.json({ error: 'Conteúdo obrigatório' }, { status: 400 })
 
   const summary = await prisma.sessionSummary.upsert({
     where: { sessionId: params.sessionId },
-    update: { content: body.content.trim() },
-    create: { sessionId: params.sessionId, content: body.content.trim() },
+    update: { content: body.content.trim().slice(0, 10000) },
+    create: { sessionId: params.sessionId, content: body.content.trim().slice(0, 10000) },
   })
 
   return NextResponse.json(summary)
@@ -38,6 +43,11 @@ export async function DELETE(
     where: { campaignId: params.id, user: { discordId: session.user.discordId }, role: 'GM' },
   })
   if (!membership) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+  const sessionRecord = await prisma.session.findFirst({
+    where: { id: params.sessionId, campaignId: params.id },
+  })
+  if (!sessionRecord) return NextResponse.json({ error: 'Sessão não encontrada' }, { status: 404 })
 
   await prisma.sessionSummary.deleteMany({ where: { sessionId: params.sessionId } })
   return NextResponse.json({ ok: true })

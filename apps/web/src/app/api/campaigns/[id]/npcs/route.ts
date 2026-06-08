@@ -23,15 +23,29 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
   if (!body.name?.trim()) return NextResponse.json({ error: 'Nome obrigatório' }, { status: 400 })
 
+  const imageUrl = body.imageUrl?.trim() || null
+  if (imageUrl && !/^https?:\/\//i.test(imageUrl)) {
+    return NextResponse.json({ error: 'imageUrl inválida' }, { status: 400 })
+  }
+
+  let linkedMemberId: string | null = null
+  if (body.linkedMemberId) {
+    const linked = await prisma.campaignMember.findFirst({
+      where: { id: body.linkedMemberId, campaignId: params.id },
+    }).catch(() => null)
+    if (!linked) return NextResponse.json({ error: 'Membro vinculado não encontrado nesta campanha' }, { status: 400 })
+    linkedMemberId = linked.id
+  }
+
   const npc = await prisma.nPC.create({
     data: {
-      name: body.name.trim(),
-      description: body.description?.trim() || null,
-      imageUrl: body.imageUrl?.trim() || null,
-      type: body.type ?? 'NEUTRAL',
+      name: body.name.trim().slice(0, 100),
+      description: body.description?.trim().slice(0, 500) || null,
+      imageUrl,
+      type: body.type ?? 'neutro',
       isPublic: body.isPublic ?? false,
       campaignId: params.id,
-      linkedMemberId: body.linkedMemberId || null,
+      linkedMemberId,
     },
     include: { linkedMember: { include: { user: true } }, visibilities: true },
   })

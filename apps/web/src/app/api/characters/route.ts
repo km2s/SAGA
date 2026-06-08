@@ -34,16 +34,21 @@ export async function POST(req: Request) {
   if (!member) return NextResponse.json({ error: 'Você não é membro desta campanha' }, { status: 403 })
   if (member.character) return NextResponse.json({ error: 'Você já tem um personagem nesta campanha' }, { status: 409 })
 
+  const imageUrl = body.imageUrl?.trim() || null
+  if (imageUrl && !/^https:\/\//i.test(imageUrl)) {
+    return NextResponse.json({ error: 'imageUrl deve começar com https://' }, { status: 400 })
+  }
+
   const maxHp = Math.max(1, body.maxHp ?? 10)
   const character = await prisma.characterSheet.create({
     data: {
-      name: body.name.trim(),
-      race: body.race?.trim() || null,
-      class: body.class?.trim() || null,
+      name: body.name.trim().slice(0, 100),
+      race: body.race?.trim().slice(0, 60) || null,
+      class: body.class?.trim().slice(0, 60) || null,
       level: Math.max(1, body.level ?? 1),
       hp: Math.max(0, Math.min(maxHp, body.hp ?? maxHp)),
       maxHp,
-      imageUrl: body.imageUrl?.trim() || null,
+      imageUrl,
       memberId: member.id,
     },
   })
