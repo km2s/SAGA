@@ -31,7 +31,10 @@ export default {
         },
       },
       fontFamily: {
+        'cinzel-deco': ['"Cinzel Decorative"', 'serif'],
         cinzel: ['Cinzel', 'serif'],
+        fell: ['"IM Fell English"', 'serif'],
+        almendra: ['"Almendra SC"', 'serif'],
         sans: ['Spectral', 'serif'],
       },
       borderRadius: {
