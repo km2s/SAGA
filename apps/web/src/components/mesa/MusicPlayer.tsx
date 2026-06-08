@@ -1,0 +1,163 @@
+'use client'
+
+import { useState, useRef, useEffect } from 'react'
+
+interface Track {
+  id: string
+  title: string
+  mood: string
+  youtubeId: string
+  icon: string
+}
+
+const PRESETS: Track[] = [
+  { id: 'tavern',   title: 'Taverna Medieval',      mood: 'Relaxante',  youtubeId: 'Wr5RFkh_h5I', icon: '🍺' },
+  { id: 'dungeon',  title: 'Masmorra Sombria',       mood: 'Tenso',      youtubeId: 'wpCbJWFmJRQ', icon: '🏚️' },
+  { id: 'forest',   title: 'Floresta Encantada',     mood: 'Misterioso', youtubeId: 'V4zjSjgfOZY', icon: '🌲' },
+  { id: 'battle',   title: 'Batalha Épica',          mood: 'Intenso',    youtubeId: 'CKU4U6VhEVg', icon: '⚔️' },
+  { id: 'castle',   title: 'Salão do Rei',           mood: 'Grandioso',  youtubeId: 'T2dJ1hJ7f-U', icon: '🏰' },
+  { id: 'mystery',  title: 'Mistério Arcano',        mood: 'Sombrio',    youtubeId: 'XLg7SiXzjl0', icon: '🔮' },
+]
+
+interface MusicPlayerProps {
+  open: boolean
+  onClose: () => void
+}
+
+export function MusicPlayer({ open, onClose }: MusicPlayerProps) {
+  const [current, setCurrent] = useState<Track | null>(null)
+  const [volume, setVolume] = useState(50)
+  const [playing, setPlaying] = useState(false)
+  const [customUrl, setCustomUrl] = useState('')
+  const iframeRef = useRef<HTMLIFrameElement>(null)
+
+  useEffect(() => {
+    if (!open) { setPlaying(false); setCurrent(null) }
+  }, [open])
+
+  function extractYouTubeId(url: string): string | null {
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+    ]
+    for (const p of patterns) {
+      const m = url.match(p)
+      if (m?.[1]) return m[1]
+    }
+    return null
+  }
+
+  function playTrack(track: Track) {
+    setCurrent(track)
+    setPlaying(true)
+    setCustomUrl('')
+  }
+
+  function playCustom() {
+    const ytId = extractYouTubeId(customUrl)
+    if (ytId) {
+      const track: Track = { id: 'custom', title: 'Personalizado', mood: 'Custom', youtubeId: ytId, icon: '🎵' }
+      setCurrent(track)
+      setPlaying(true)
+    }
+  }
+
+  if (!open) return null
+
+  const embedSrc = current
+    ? `https://www.youtube.com/embed/${current.youtubeId}?autoplay=1&loop=1&playlist=${current.youtubeId}&controls=0&disablekb=1&modestbranding=1`
+    : null
+
+  return (
+    <div className="fixed inset-0 z-[200] flex items-end justify-center pb-8" onClick={e => { if (e.target === e.currentTarget) onClose() }}>
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+
+      <div className="relative z-10 w-full max-w-lg mx-4 rounded-xl border border-border shadow-2xl overflow-hidden"
+           style={{ background: 'rgba(13,13,26,0.98)' }}>
+        {/* Header */}
+        <div className="px-5 py-4 border-b border-white/6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className={`w-2 h-2 rounded-full transition-all ${playing ? 'bg-saga-success animate-pulse' : 'bg-saga-dim'}`} />
+            <span className="font-cinzel text-sm font-semibold">
+              {current ? current.icon + ' ' + current.title : '🎵 Música Ambiente'}
+            </span>
+          </div>
+          <button onClick={onClose} className="text-saga-dim hover:text-saga-text transition-colors text-lg">✕</button>
+        </div>
+
+        {/* Hidden YouTube iframe */}
+        {embedSrc && (
+          <iframe
+            ref={iframeRef}
+            src={embedSrc}
+            allow="autoplay"
+            className="w-0 h-0 absolute opacity-0 pointer-events-none"
+            title="music"
+          />
+        )}
+
+        {/* Now playing strip */}
+        {current && (
+          <div className="px-5 py-3 border-b border-white/6 flex items-center gap-3"
+               style={{ background: 'rgba(201,162,42,0.05)' }}>
+            <span className="text-2xl">{current.icon}</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-saga-text truncate">{current.title}</p>
+              <p className="text-[11px] text-saga-muted">{current.mood}</p>
+            </div>
+            <button onClick={() => { setCurrent(null); setPlaying(false) }}
+              className="px-2.5 py-1 rounded text-[11px] text-saga-danger border border-saga-danger/30 hover:bg-saga-danger/10 transition-colors">
+              ⏹ Parar
+            </button>
+          </div>
+        )}
+
+        {/* Presets grid */}
+        <div className="p-4">
+          <p className="text-[10px] font-bold text-saga-dim uppercase tracking-widest mb-3">Ambientes</p>
+          <div className="grid grid-cols-3 gap-2">
+            {PRESETS.map(track => (
+              <button key={track.id} onClick={() => playTrack(track)}
+                className={`flex flex-col items-center gap-2 p-3 rounded-lg border transition-all ${
+                  current?.id === track.id
+                    ? 'border-gold/50 bg-gold/10 text-gold'
+                    : 'border-white/8 hover:border-white/16 hover:bg-white/4 text-saga-muted hover:text-saga-text'
+                }`}>
+                <span className="text-2xl">{track.icon}</span>
+                <div className="text-center">
+                  <p className="text-[11px] font-medium leading-tight">{track.title}</p>
+                  <p className="text-[9px] opacity-60 mt-0.5">{track.mood}</p>
+                </div>
+                {current?.id === track.id && (
+                  <div className="flex gap-0.5">
+                    {[1,2,3].map(i => (
+                      <div key={i} className="w-0.5 bg-gold rounded-full animate-bounce"
+                           style={{ height: `${8 + i * 3}px`, animationDelay: `${i * 0.15}s` }} />
+                    ))}
+                  </div>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Custom URL */}
+        <div className="px-4 pb-4 border-t border-white/6 pt-4">
+          <p className="text-[10px] font-bold text-saga-dim uppercase tracking-widest mb-2">URL do YouTube</p>
+          <div className="flex gap-2">
+            <input value={customUrl} onChange={e => setCustomUrl(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && playCustom()}
+              placeholder="https://youtube.com/watch?v=..."
+              className="flex-1 px-3 py-2 rounded text-[12px] text-saga-text placeholder:text-saga-dim focus:outline-none"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)' }} />
+            <button onClick={playCustom} disabled={!customUrl.trim()}
+              className="px-3 py-2 rounded text-[11px] font-bold text-bg disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{ background: 'linear-gradient(135deg, #c9a22a, #f0d060)' }}>
+              ▶
+            </button>
+          </div>
+          <p className="text-[9px] text-saga-dim mt-1.5">Cole um link do YouTube (trilha, ambient, lofi, etc.)</p>
+        </div>
+      </div>
+    </div>
+  )
+}

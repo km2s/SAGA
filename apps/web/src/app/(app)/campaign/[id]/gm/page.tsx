@@ -3,13 +3,10 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from 'database'
 import { notFound, redirect } from 'next/navigation'
 import { Badge } from '@/components/ui/Badge'
-import { Button } from '@/components/ui/Button'
 import Link from 'next/link'
-
-const NPC_TYPE_LABELS: Record<string, string> = {
-  VILLAIN: 'Vilão', ALLY: 'Aliado', MERCHANT: 'Mercador',
-  FAMILIAR: 'Familiar', MOUNT: 'Montaria', SERVANT: 'Servo', NEUTRAL: 'Neutro', OTHER: 'Outro',
-}
+import { NPCVisibilityRow } from '@/components/gm/NPCVisibilityRow'
+import { SessionControls } from '@/components/gm/SessionControls'
+import { GMActions } from '@/components/gm/GMActions'
 
 export default async function GmPanelPage({ params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
@@ -29,18 +26,13 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
   if (!campaign) notFound()
 
   const myMembership = campaign.members.find(m => m.user.discordId === session.user.discordId)
-  if (!myMembership || myMembership.role !== 'GM') {
-    redirect(`/campaign/${params.id}`)
-  }
+  if (!myMembership || myMembership.role !== 'GM') redirect(`/campaign/${params.id}`)
 
   const activeSession = campaign.sessions[0] ?? null
 
   const npcs = await prisma.nPC.findMany({
     where: { campaignId: params.id },
-    include: {
-      linkedMember: { include: { user: true } },
-      visibilities: true,
-    },
+    include: { linkedMember: { include: { user: true } }, visibilities: true },
     orderBy: { name: 'asc' },
   }).catch(() => [])
 
@@ -50,7 +42,10 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
     <div className="p-8 pt-5 space-y-7">
       {/* Session control */}
       <section>
-        <h2 className="font-cinzel text-base font-semibold mb-3">Controle de Sessão</h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-cinzel text-base font-semibold">Controle de Sessão</h2>
+          <SessionControls campaignId={params.id} hasActiveSession={!!activeSession} />
+        </div>
         <div className="bg-surface border border-border rounded-lg p-5">
           {activeSession ? (
             <div className="flex items-center justify-between">
@@ -63,84 +58,34 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
                   </p>
                 </div>
               </div>
-              <p className="text-[12px] text-saga-muted text-right max-w-xs">
-                Use <code className="font-mono text-gold">/sessao encerrar</code> no Discord para encerrar a sessão e gerar o resumo automático.
-              </p>
+              <Link href={`/campaign/${params.id}/mesa`}>
+                <div className="px-3 py-1.5 rounded text-sm font-medium bg-purple-dim border border-purple/30 text-purple-bright hover:bg-purple/20 transition-colors cursor-pointer">
+                  🗺️ Abrir Mesa
+                </div>
+              </Link>
             </div>
           ) : (
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-saga-muted">Nenhuma sessão ativa</p>
-                <p className="text-[12px] text-saga-muted mt-0.5">Inicie uma sessão para os jogadores poderem entrar na mesa.</p>
-              </div>
-              <p className="text-[12px] text-saga-muted text-right max-w-xs">
-                Use <code className="font-mono text-gold">/sessao iniciar [nome]</code> no Discord para começar.
-              </p>
+            <div className="text-center py-4">
+              <p className="text-saga-muted text-sm">Nenhuma sessão ativa. Clique em &quot;Iniciar Sessão&quot; para começar.</p>
             </div>
           )}
         </div>
       </section>
 
-      {/* NPC visibility */}
+      {/* NPC section */}
       <section>
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-cinzel text-base font-semibold">NPCs · Visibilidade</h2>
-          <p className="text-[11px] text-saga-muted">
-            Use <code className="font-mono text-gold">/npc liberar</code> no Discord para controlar visibilidade por jogador
-          </p>
+          <GMActions campaignId={params.id} players={players} />
         </div>
         {npcs.length === 0 ? (
           <div className="text-sm text-saga-muted bg-surface border border-border rounded-lg px-4 py-8 text-center">
-            Nenhum NPC criado. Use <code className="font-mono text-gold">/npc criar</code> no Discord.
+            Nenhum NPC criado. Clique em &quot;+ Criar NPC&quot; acima para adicionar o primeiro.
           </div>
         ) : (
           <div className="space-y-2">
             {npcs.map(npc => (
-              <div key={npc.id} className="flex items-center justify-between bg-surface border border-border rounded-lg px-4 py-3 hover:border-border-bright transition-all">
-                <div className="flex items-center gap-3">
-                  {npc.imageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={npc.imageUrl} alt={npc.name} className="w-8 h-8 rounded-full object-cover shrink-0" />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-surface-2 border border-border flex items-center justify-center text-sm shrink-0">
-                      {npc.type === 'VILLAIN' ? '👹' : npc.type === 'ALLY' ? '🧝' : '🗿'}
-                    </div>
-                  )}
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <p className="font-medium text-sm">{npc.name}</p>
-                      <Badge variant="purple">{NPC_TYPE_LABELS[npc.type] ?? npc.type}</Badge>
-                    </div>
-                    {npc.linkedMember && (
-                      <p className="text-[11px] text-saga-muted">Ligado a {npc.linkedMember.user.username}</p>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Badge variant={npc.isPublic ? 'success' : 'muted'}>
-                    {npc.isPublic ? 'Público' : 'Restrito'}
-                  </Badge>
-                  <div className="flex -space-x-1">
-                    {players.map(player => {
-                      const vis = npc.visibilities.find((v: { memberId: string; canView: boolean }) => v.memberId === player.id)
-                      const canView = npc.isPublic || (vis?.canView ?? false)
-                      return (
-                        <div
-                          key={player.id}
-                          title={`${player.user.username}: ${canView ? 'pode ver' : 'não pode ver'}`}
-                          className={`w-5 h-5 rounded-full border-2 flex items-center justify-center text-[9px] font-bold
-                            ${canView
-                              ? 'bg-saga-success border-bg text-white'
-                              : 'bg-surface-2 border-bg text-saga-dim'
-                            }`}
-                        >
-                          {player.user.username[0]?.toUpperCase()}
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              </div>
+              <NPCVisibilityRow key={npc.id} npc={npc} players={players} campaignId={params.id} />
             ))}
           </div>
         )}
@@ -178,6 +123,11 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
               </div>
             </div>
           ))}
+          {players.length === 0 && (
+            <div className="col-span-2 text-sm text-saga-muted bg-surface border border-border rounded-lg px-4 py-8 text-center">
+              Nenhum jogador ainda. Compartilhe o ID da campanha: <code className="font-mono text-gold">{params.id}</code>
+            </div>
+          )}
         </div>
       </section>
 

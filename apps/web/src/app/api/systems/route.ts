@@ -1,0 +1,519 @@
+import { NextResponse } from 'next/server'
+import { prisma } from 'database'
+
+interface AttrDef { name: string; defaultDie: string; description?: string }
+interface SystemDef { name: string; category: string; attributes: AttrDef[] }
+
+const PRESET_SYSTEMS: SystemDef[] = [
+  // ─── Família D20 ───────────────────────────────────────────────────────────
+  {
+    name: 'D&D 5e', category: 'fantasy',
+    attributes: [
+      { name: 'Força',        defaultDie: 'd20', description: 'Potência física e ataques corpo-a-corpo' },
+      { name: 'Destreza',     defaultDie: 'd20', description: 'Agilidade, reflexos e furtividade' },
+      { name: 'Constituição', defaultDie: 'd20', description: 'Resistência e vigor' },
+      { name: 'Inteligência', defaultDie: 'd20', description: 'Memória, raciocínio e magia' },
+      { name: 'Sabedoria',    defaultDie: 'd20', description: 'Percepção e intuição' },
+      { name: 'Carisma',      defaultDie: 'd20', description: 'Força de personalidade e liderança' },
+    ],
+  },
+  {
+    name: 'D&D 3.5e', category: 'fantasy',
+    attributes: [
+      { name: 'Força',        defaultDie: 'd20', description: 'Potência física' },
+      { name: 'Destreza',     defaultDie: 'd20', description: 'Agilidade e coordenação' },
+      { name: 'Constituição', defaultDie: 'd20', description: 'Saúde e resistência' },
+      { name: 'Inteligência', defaultDie: 'd20', description: 'Raciocínio e conhecimento' },
+      { name: 'Sabedoria',    defaultDie: 'd20', description: 'Percepção e poder divino' },
+      { name: 'Carisma',      defaultDie: 'd20', description: 'Magnetismo pessoal' },
+    ],
+  },
+  {
+    name: 'Pathfinder 2e', category: 'fantasy',
+    attributes: [
+      { name: 'Força',        defaultDie: 'd20', description: 'Potência física e carregamento' },
+      { name: 'Destreza',     defaultDie: 'd20', description: 'Reflexos e esquiva' },
+      { name: 'Constituição', defaultDie: 'd20', description: 'Saúde e resistência a dano' },
+      { name: 'Inteligência', defaultDie: 'd20', description: 'Número de habilidades treinadas' },
+      { name: 'Sabedoria',    defaultDie: 'd20', description: 'Percepção e magias divinas' },
+      { name: 'Carisma',      defaultDie: 'd20', description: 'Presença e social' },
+      { name: 'Percepção',    defaultDie: 'd20', description: 'Sentidos e iniciativa' },
+    ],
+  },
+  {
+    name: 'Pathfinder 1e', category: 'fantasy',
+    attributes: [
+      { name: 'Força',        defaultDie: 'd20', description: 'Poder físico bruto' },
+      { name: 'Destreza',     defaultDie: 'd20', description: 'Agilidade e precisão' },
+      { name: 'Constituição', defaultDie: 'd20', description: 'Vigor e PV' },
+      { name: 'Inteligência', defaultDie: 'd20', description: 'Conhecimento e habilidades de mago' },
+      { name: 'Sabedoria',    defaultDie: 'd20', description: 'Vontade e habilidades de clérigo' },
+      { name: 'Carisma',      defaultDie: 'd20', description: 'Liderança e magias de bardo' },
+    ],
+  },
+  {
+    name: 'Tormenta20', category: 'fantasy',
+    attributes: [
+      { name: 'Força',          defaultDie: 'd20', description: 'Potência física' },
+      { name: 'Destreza',       defaultDie: 'd20', description: 'Agilidade e reflexos' },
+      { name: 'Constituição',   defaultDie: 'd20', description: 'Saúde e resistência' },
+      { name: 'Inteligência',   defaultDie: 'd20', description: 'Raciocínio e memória' },
+      { name: 'Sabedoria',      defaultDie: 'd20', description: 'Percepção e força de vontade' },
+      { name: 'Carisma',        defaultDie: 'd20', description: 'Magnetismo e persuasão' },
+      { name: 'Pontos de Mana', defaultDie: 'd6',  description: 'Energia mágica disponível' },
+    ],
+  },
+  {
+    name: 'Old Dragon 2', category: 'fantasy',
+    attributes: [
+      { name: 'Força',        defaultDie: 'd20', description: 'Poder físico e combate corpo-a-corpo' },
+      { name: 'Destreza',     defaultDie: 'd20', description: 'Agilidade, esquiva e armas à distância' },
+      { name: 'Constituição', defaultDie: 'd20', description: 'Vitalidade e resistência' },
+      { name: 'Inteligência', defaultDie: 'd20', description: 'Aprendizado e conjuração arcana' },
+      { name: 'Sabedoria',    defaultDie: 'd20', description: 'Percepção e conjuração divina' },
+      { name: 'Carisma',      defaultDie: 'd20', description: 'Liderança e interação social' },
+    ],
+  },
+  {
+    name: 'Dungeon World', category: 'fantasy',
+    attributes: [
+      { name: 'Força',        defaultDie: 'd6+d6', description: 'Hack-and-slash, defier of danger com força' },
+      { name: 'Destreza',     defaultDie: 'd6+d6', description: 'Volley, defier of danger com agilidade' },
+      { name: 'Constituição', defaultDie: 'd6+d6', description: 'Resistência física e PV' },
+      { name: 'Inteligência', defaultDie: 'd6+d6', description: 'Discern realities, spell moves' },
+      { name: 'Sabedoria',    defaultDie: 'd6+d6', description: 'Parley, conexão divina' },
+      { name: 'Carisma',      defaultDie: 'd6+d6', description: 'Parley, liderança social' },
+    ],
+  },
+  {
+    name: '13th Age', category: 'fantasy',
+    attributes: [
+      { name: 'Força',        defaultDie: 'd20', description: 'Combate corpo-a-corpo e escalada' },
+      { name: 'Constituição', defaultDie: 'd20', description: 'PV, resistência e recuperações' },
+      { name: 'Destreza',     defaultDie: 'd20', description: 'Furtividade, ranged e iniciativa' },
+      { name: 'Inteligência', defaultDie: 'd20', description: 'Arcano e habilidades mentais' },
+      { name: 'Sabedoria',    defaultDie: 'd20', description: 'Cura, magia sagrada e percepção' },
+      { name: 'Carisma',      defaultDie: 'd20', description: 'Social, liderança e magia de bardo' },
+    ],
+  },
+
+  // ─── World of Darkness ────────────────────────────────────────────────────
+  {
+    name: 'Vampire: The Masquerade V5', category: 'world-of-darkness',
+    attributes: [
+      // Physical
+      { name: 'Força',          defaultDie: 'd10', description: 'Físico — poder bruto e ataques' },
+      { name: 'Destreza',       defaultDie: 'd10', description: 'Físico — rapidez e precisão' },
+      { name: 'Vigor',          defaultDie: 'd10', description: 'Físico — resistência e durabilidade' },
+      // Social
+      { name: 'Carisma',        defaultDie: 'd10', description: 'Social — personalidade e liderança' },
+      { name: 'Manipulação',    defaultDie: 'd10', description: 'Social — sutileza e engano' },
+      { name: 'Compostura',     defaultDie: 'd10', description: 'Social — autocontrole e presença' },
+      // Mental
+      { name: 'Inteligência',   defaultDie: 'd10', description: 'Mental — raciocínio e memória' },
+      { name: 'Raciocínio',     defaultDie: 'd10', description: 'Mental — reação e percepção imediata' },
+      { name: 'Determinação',   defaultDie: 'd10', description: 'Mental — foco e força de vontade' },
+      // Vampire-specific
+      { name: 'Potência de Sangue', defaultDie: 'd10', description: 'Nível de poder vampírico (1-10)' },
+      { name: 'Humanidade',     defaultDie: 'd10', description: 'Conexão com a natureza humana (0-10)' },
+      { name: 'Fome',           defaultDie: 'd10', description: 'Nível atual de fome por sangue (1-5)' },
+    ],
+  },
+  {
+    name: 'Vampire: The Masquerade V20', category: 'world-of-darkness',
+    attributes: [
+      // Physical
+      { name: 'Força',          defaultDie: 'd10', description: 'Físico — poder bruto' },
+      { name: 'Destreza',       defaultDie: 'd10', description: 'Físico — rapidez e agilidade' },
+      { name: 'Vigor',          defaultDie: 'd10', description: 'Físico — saúde e resistência' },
+      // Social
+      { name: 'Carisma',        defaultDie: 'd10', description: 'Social — encanto natural' },
+      { name: 'Manipulação',    defaultDie: 'd10', description: 'Social — capacidade de influenciar' },
+      { name: 'Aparência',      defaultDie: 'd10', description: 'Social — presença física e visual' },
+      // Mental
+      { name: 'Percepção',      defaultDie: 'd10', description: 'Mental — consciência do ambiente' },
+      { name: 'Inteligência',   defaultDie: 'd10', description: 'Mental — raciocínio e aprendizado' },
+      { name: 'Raciocínio',     defaultDie: 'd10', description: 'Mental — reação rápida e improviso' },
+      // Resources
+      { name: 'Força de Vontade', defaultDie: 'd10', description: 'Reserva de vontade (máx 10)' },
+      { name: 'Humanidade',     defaultDie: 'd10', description: 'Moralidade e conexão humana (0-10)' },
+      { name: 'Geração',        defaultDie: 'd10', description: 'Distância do Caim (geração vampírica)' },
+    ],
+  },
+  {
+    name: 'Werewolf: The Apocalypse', category: 'world-of-darkness',
+    attributes: [
+      { name: 'Força',          defaultDie: 'd10', description: 'Físico — poder em todas as formas' },
+      { name: 'Destreza',       defaultDie: 'd10', description: 'Físico — agilidade e precisão' },
+      { name: 'Vigor',          defaultDie: 'd10', description: 'Físico — resistência e saúde' },
+      { name: 'Carisma',        defaultDie: 'd10', description: 'Social — liderança na matilha' },
+      { name: 'Manipulação',    defaultDie: 'd10', description: 'Social — engano e persuasão' },
+      { name: 'Aparência',      defaultDie: 'd10', description: 'Social — presença física' },
+      { name: 'Percepção',      defaultDie: 'd10', description: 'Mental — sentidos aguçados de lobisomem' },
+      { name: 'Inteligência',   defaultDie: 'd10', description: 'Mental — raciocínio e conhecimento espiritual' },
+      { name: 'Raciocínio',     defaultDie: 'd10', description: 'Mental — reação e instinto' },
+      // Garou-specific
+      { name: 'Raiva',          defaultDie: 'd10', description: 'Reserva de fúria sagrada (Rage)' },
+      { name: 'Gnosis',         defaultDie: 'd10', description: 'Conexão com o mundo espiritual' },
+      { name: 'Força de Vontade', defaultDie: 'd10', description: 'Reserva de vontade e autocontrole' },
+      { name: 'Glória',         defaultDie: 'd10', description: 'Renome — feitos heroicos em batalha' },
+      { name: 'Honra',          defaultDie: 'd10', description: 'Renome — cumprimento do código Garou' },
+      { name: 'Sabedoria',      defaultDie: 'd10', description: 'Renome — conhecimento e julgamento' },
+    ],
+  },
+  {
+    name: 'Mage: The Ascension', category: 'world-of-darkness',
+    attributes: [
+      { name: 'Força',          defaultDie: 'd10', description: 'Físico' },
+      { name: 'Destreza',       defaultDie: 'd10', description: 'Físico' },
+      { name: 'Vigor',          defaultDie: 'd10', description: 'Físico' },
+      { name: 'Carisma',        defaultDie: 'd10', description: 'Social' },
+      { name: 'Manipulação',    defaultDie: 'd10', description: 'Social' },
+      { name: 'Aparência',      defaultDie: 'd10', description: 'Social' },
+      { name: 'Percepção',      defaultDie: 'd10', description: 'Mental' },
+      { name: 'Inteligência',   defaultDie: 'd10', description: 'Mental' },
+      { name: 'Raciocínio',     defaultDie: 'd10', description: 'Mental' },
+      // Spheres
+      { name: 'Correspondência',defaultDie: 'd10', description: 'Esfera — espaço e conexões' },
+      { name: 'Entropia',       defaultDie: 'd10', description: 'Esfera — caos, ordem e destino' },
+      { name: 'Forças',         defaultDie: 'd10', description: 'Esfera — energias físicas (fogo, raio)' },
+      { name: 'Vida',           defaultDie: 'd10', description: 'Esfera — cura, transformação biológica' },
+      { name: 'Matéria',        defaultDie: 'd10', description: 'Esfera — substâncias inanimadas' },
+      { name: 'Mente',          defaultDie: 'd10', description: 'Esfera — consciência e pensamento' },
+      { name: 'Primo',          defaultDie: 'd10', description: 'Esfera — essência mágica pura' },
+      { name: 'Espírito',       defaultDie: 'd10', description: 'Esfera — Umbra e seres espirituais' },
+      { name: 'Tempo',          defaultDie: 'd10', description: 'Esfera — percepção e manipulação do tempo' },
+      // Resources
+      { name: 'Arete',          defaultDie: 'd10', description: 'Potencial mágico máximo (1-10)' },
+      { name: 'Quintessência',  defaultDie: 'd10', description: 'Reserva de energia mágica' },
+      { name: 'Paradoxo',       defaultDie: 'd10', description: 'Acumulação de backlash mágico' },
+      { name: 'Força de Vontade', defaultDie: 'd10', description: 'Reserva de vontade' },
+    ],
+  },
+  {
+    name: 'Mage: The Awakening', category: 'world-of-darkness',
+    attributes: [
+      { name: 'Inteligência',   defaultDie: 'd10', description: 'Mental — raciocínio' },
+      { name: 'Raciocínio',     defaultDie: 'd10', description: 'Mental — percepção rápida' },
+      { name: 'Determinação',   defaultDie: 'd10', description: 'Mental — foco e perseverança' },
+      { name: 'Força',          defaultDie: 'd10', description: 'Físico' },
+      { name: 'Destreza',       defaultDie: 'd10', description: 'Físico' },
+      { name: 'Vigor',          defaultDie: 'd10', description: 'Físico' },
+      { name: 'Presença',       defaultDie: 'd10', description: 'Social — impacto imediato' },
+      { name: 'Manipulação',    defaultDie: 'd10', description: 'Social — influência sutil' },
+      { name: 'Compostura',     defaultDie: 'd10', description: 'Social — equilíbrio emocional' },
+      // Arcana
+      { name: 'Acácia',         defaultDie: 'd10', description: 'Arcano — fogo e transformação' },
+      { name: 'Morte',          defaultDie: 'd10', description: 'Arcano — espectros e entropia' },
+      { name: 'Destino',        defaultDie: 'd10', description: 'Arcano — probabilidade e laços' },
+      { name: 'Forças',         defaultDie: 'd10', description: 'Arcano — energias físicas' },
+      { name: 'Vida',           defaultDie: 'd10', description: 'Arcano — biologia e cura' },
+      { name: 'Matéria',        defaultDie: 'd10', description: 'Arcano — minerais e manufaturados' },
+      { name: 'Mente',          defaultDie: 'd10', description: 'Arcano — cognição e sonhos' },
+      { name: 'Primo',          defaultDie: 'd10', description: 'Arcano — mana e ley lines' },
+      { name: 'Espaço',         defaultDie: 'd10', description: 'Arcano — distância e portais' },
+      { name: 'Espírito',       defaultDie: 'd10', description: 'Arcano — Shadow e espíritos' },
+      { name: 'Tempo',          defaultDie: 'd10', description: 'Arcano — passado e futuro' },
+      { name: 'Gnose',          defaultDie: 'd10', description: 'Poder mágico total (Gnosis)' },
+      { name: 'Mana',           defaultDie: 'd10', description: 'Reserva de energia mágica' },
+      { name: 'Sabedoria',      defaultDie: 'd10', description: 'Equilíbrio moral do mago (Wisdom)' },
+    ],
+  },
+  {
+    name: 'Hunter: The Reckoning', category: 'world-of-darkness',
+    attributes: [
+      { name: 'Força',          defaultDie: 'd10', description: 'Físico' },
+      { name: 'Destreza',       defaultDie: 'd10', description: 'Físico' },
+      { name: 'Vigor',          defaultDie: 'd10', description: 'Físico' },
+      { name: 'Carisma',        defaultDie: 'd10', description: 'Social' },
+      { name: 'Manipulação',    defaultDie: 'd10', description: 'Social' },
+      { name: 'Aparência',      defaultDie: 'd10', description: 'Social' },
+      { name: 'Percepção',      defaultDie: 'd10', description: 'Mental' },
+      { name: 'Inteligência',   defaultDie: 'd10', description: 'Mental' },
+      { name: 'Raciocínio',     defaultDie: 'd10', description: 'Mental' },
+      { name: 'Força de Vontade', defaultDie: 'd10', description: 'Reserva de vontade' },
+      { name: 'Convicção',      defaultDie: 'd10', description: 'Devoção à missão de caçador' },
+      { name: 'Zeal',           defaultDie: 'd10', description: 'Nível de devoção atual' },
+    ],
+  },
+  {
+    name: 'Changeling: The Lost', category: 'world-of-darkness',
+    attributes: [
+      { name: 'Inteligência',   defaultDie: 'd10', description: 'Mental' },
+      { name: 'Raciocínio',     defaultDie: 'd10', description: 'Mental' },
+      { name: 'Determinação',   defaultDie: 'd10', description: 'Mental' },
+      { name: 'Força',          defaultDie: 'd10', description: 'Físico' },
+      { name: 'Destreza',       defaultDie: 'd10', description: 'Físico' },
+      { name: 'Vigor',          defaultDie: 'd10', description: 'Físico' },
+      { name: 'Presença',       defaultDie: 'd10', description: 'Social' },
+      { name: 'Manipulação',    defaultDie: 'd10', description: 'Social' },
+      { name: 'Compostura',     defaultDie: 'd10', description: 'Social' },
+      { name: 'Glamour',        defaultDie: 'd10', description: 'Energia fae — alimenta Contratos' },
+      { name: 'Escuridão',      defaultDie: 'd10', description: 'Ligação com a Arcádia (Wyrd)' },
+      { name: 'Sanidade',       defaultDie: 'd10', description: 'Saúde mental e resistência ao trauma' },
+    ],
+  },
+  {
+    name: 'Demon: The Descent', category: 'world-of-darkness',
+    attributes: [
+      { name: 'Inteligência',   defaultDie: 'd10', description: 'Mental' },
+      { name: 'Raciocínio',     defaultDie: 'd10', description: 'Mental' },
+      { name: 'Determinação',   defaultDie: 'd10', description: 'Mental' },
+      { name: 'Força',          defaultDie: 'd10', description: 'Físico' },
+      { name: 'Destreza',       defaultDie: 'd10', description: 'Físico' },
+      { name: 'Vigor',          defaultDie: 'd10', description: 'Físico' },
+      { name: 'Presença',       defaultDie: 'd10', description: 'Social' },
+      { name: 'Manipulação',    defaultDie: 'd10', description: 'Social' },
+      { name: 'Compostura',     defaultDie: 'd10', description: 'Social' },
+      { name: 'Aether',         defaultDie: 'd10', description: 'Energia divina para usar Embeds e Exploits' },
+      { name: 'Cobertura',      defaultDie: 'd10', description: 'Profundidade da identidade mortal' },
+      { name: 'Glória',         defaultDie: 'd10', description: 'Nível de Forma Demoníaca revelada' },
+    ],
+  },
+  {
+    name: 'Geist: The Sin-Eaters', category: 'world-of-darkness',
+    attributes: [
+      { name: 'Inteligência',   defaultDie: 'd10', description: 'Mental' },
+      { name: 'Raciocínio',     defaultDie: 'd10', description: 'Mental' },
+      { name: 'Determinação',   defaultDie: 'd10', description: 'Mental' },
+      { name: 'Força',          defaultDie: 'd10', description: 'Físico' },
+      { name: 'Destreza',       defaultDie: 'd10', description: 'Físico' },
+      { name: 'Vigor',          defaultDie: 'd10', description: 'Físico' },
+      { name: 'Presença',       defaultDie: 'd10', description: 'Social' },
+      { name: 'Manipulação',    defaultDie: 'd10', description: 'Social' },
+      { name: 'Compostura',     defaultDie: 'd10', description: 'Social' },
+      { name: 'Plasm',          defaultDie: 'd10', description: 'Energia espectral para usar Manifestações' },
+      { name: 'Synergy',        defaultDie: 'd10', description: 'Integração com o Geist' },
+    ],
+  },
+
+  // ─── Horror ───────────────────────────────────────────────────────────────
+  {
+    name: 'Call of Cthulhu 7e', category: 'horror',
+    attributes: [
+      { name: 'Força',          defaultDie: 'd100', description: 'Poder físico bruto' },
+      { name: 'Constituição',   defaultDie: 'd100', description: 'Saúde e resistência ao dano' },
+      { name: 'Tamanho',        defaultDie: 'd100', description: 'Massa corporal' },
+      { name: 'Destreza',       defaultDie: 'd100', description: 'Velocidade e coordenação motora' },
+      { name: 'Aparência',      defaultDie: 'd100', description: 'Atratividade e presença física' },
+      { name: 'Inteligência',   defaultDie: 'd100', description: 'Poder intelectual e memória' },
+      { name: 'Poder',          defaultDie: 'd100', description: 'Força da alma e resistência ao mito' },
+      { name: 'Educação',       defaultDie: 'd100', description: 'Conhecimento formal acumulado' },
+      { name: 'Sorte',          defaultDie: 'd100', description: 'Fado — determinado no início da campanha' },
+      { name: 'Pontos de Vida', defaultDie: 'd6',   description: 'Saúde atual' },
+      { name: 'Sanidade',       defaultDie: 'd100', description: 'Estabilidade mental (começa = Poder)' },
+      { name: 'Magia',          defaultDie: 'd10',  description: 'Pontos de magia disponíveis' },
+    ],
+  },
+  {
+    name: 'Delta Green', category: 'horror',
+    attributes: [
+      { name: 'Força',          defaultDie: 'd100', description: 'Capacidade física de carregar e combater' },
+      { name: 'Constituição',   defaultDie: 'd100', description: 'Saúde, resistência a ferimentos' },
+      { name: 'Destreza',       defaultDie: 'd100', description: 'Agilidade e ataques finos' },
+      { name: 'Inteligência',   defaultDie: 'd100', description: 'Análise e resolução de problemas' },
+      { name: 'Poder',          defaultDie: 'd100', description: 'Sanidade máxima e magia' },
+      { name: 'Carisma',        defaultDie: 'd100', description: 'Persuasão e credibilidade de agente' },
+      { name: 'Educação',       defaultDie: 'd100', description: 'Conhecimento acumulado' },
+      { name: 'Sanidade',       defaultDie: 'd100', description: 'Estabilidade mental atual' },
+      { name: 'Pontos de Ruptura', defaultDie: 'd10', description: 'Limite de dano de sanidade por evento' },
+    ],
+  },
+  {
+    name: 'Mothership', category: 'horror',
+    attributes: [
+      { name: 'Força',          defaultDie: 'd10', description: 'Força bruta e carregamento' },
+      { name: 'Velocidade',     defaultDie: 'd10', description: 'Rapidez e combate' },
+      { name: 'Intelecto',      defaultDie: 'd10', description: 'Raciocínio e aprendizado' },
+      { name: 'Combate',        defaultDie: 'd10', description: 'Habilidade em conflito armado' },
+      { name: 'Instinto',       defaultDie: 'd10', description: 'Percepção e sobrevivência' },
+      { name: 'Sanidade',       defaultDie: 'd10', description: 'Saúde mental — vai a 0 = colapso' },
+      { name: 'Estresse',       defaultDie: 'd10', description: 'Acumulação de pavor (stress)' },
+    ],
+  },
+
+  // ─── Sci-Fi / Cyberpunk ───────────────────────────────────────────────────
+  {
+    name: 'Cyberpunk Red', category: 'scifi',
+    attributes: [
+      { name: 'Inteligência',   defaultDie: 'd10', description: 'INT — memória, resolução de problemas' },
+      { name: 'Reflexos',       defaultDie: 'd10', description: 'REF — coordenação e combate' },
+      { name: 'Destreza',       defaultDie: 'd10', description: 'DEX — habilidades físicas finas' },
+      { name: 'Habilidade Técnica', defaultDie: 'd10', description: 'TECH — hardware, veículos, armas' },
+      { name: 'Cool',           defaultDie: 'd10', description: 'COOL — compostura sob pressão' },
+      { name: 'Força de Vontade', defaultDie: 'd10', description: 'WILL — perseverança mental' },
+      { name: 'Sorte',          defaultDie: 'd10', description: 'LUCK — reserva de pontos de sorte' },
+      { name: 'Movimento',      defaultDie: 'd10', description: 'MOVE — velocidade e atletismo' },
+      { name: 'Corpo',          defaultDie: 'd10', description: 'BODY — força bruta e saúde' },
+      { name: 'Empatia',        defaultDie: 'd10', description: 'EMP — intuição social (reduz com implantes)' },
+      { name: 'Humanidade',     defaultDie: 'd10', description: 'EMPx10 menos cyberware instalado' },
+    ],
+  },
+  {
+    name: 'Starfinder', category: 'scifi',
+    attributes: [
+      { name: 'Força',          defaultDie: 'd20', description: 'Poder físico e carregamento' },
+      { name: 'Destreza',       defaultDie: 'd20', description: 'Reflexos e armas ranged' },
+      { name: 'Constituição',   defaultDie: 'd20', description: 'PV e resistência ambiental' },
+      { name: 'Inteligência',   defaultDie: 'd20', description: 'Ciência, tecnologia e magias de technomancer' },
+      { name: 'Sabedoria',      defaultDie: 'd20', description: 'Percepção e magias de mystic' },
+      { name: 'Carisma',        defaultDie: 'd20', description: 'Social e Resolve Points máximo' },
+      { name: 'Resolve Points', defaultDie: 'd6',  description: 'Recurso especial para habilidades de classe' },
+    ],
+  },
+  {
+    name: 'Shadowrun 6e', category: 'scifi',
+    attributes: [
+      { name: 'Corpo',          defaultDie: 'd6', description: 'Físico — saúde e resistência a dano' },
+      { name: 'Agilidade',      defaultDie: 'd6', description: 'Físico — coordenação e combate' },
+      { name: 'Reação',         defaultDie: 'd6', description: 'Físico — reflexos e iniciativa' },
+      { name: 'Força',          defaultDie: 'd6', description: 'Físico — musculatura e carregamento' },
+      { name: 'Vontade',        defaultDie: 'd6', description: 'Mental — perseverança e resistência mental' },
+      { name: 'Lógica',         defaultDie: 'd6', description: 'Mental — razão e hacking' },
+      { name: 'Intuição',       defaultDie: 'd6', description: 'Mental — percepção e iniciativa astral' },
+      { name: 'Carisma',        defaultDie: 'd6', description: 'Social — persuasão e conjuração' },
+      { name: 'Essência',       defaultDie: 'd6', description: 'Custo de cyberware instalado (começa em 6)' },
+      { name: 'Magia',          defaultDie: 'd6', description: 'Potencial mágico (somente magos/adeptos)' },
+      { name: 'Resonância',     defaultDie: 'd6', description: 'Potencial de matrix (somente technomancers)' },
+      { name: 'Edge',           defaultDie: 'd6', description: 'Recurso de vantagem situacional' },
+    ],
+  },
+  {
+    name: 'Star Wars: Edge of the Empire', category: 'scifi',
+    attributes: [
+      { name: 'Vigor',          defaultDie: 'd12', description: 'Brawn — força bruta e saúde' },
+      { name: 'Agilidade',      defaultDie: 'd12', description: 'Agility — velocidade e precisão' },
+      { name: 'Intelecto',      defaultDie: 'd12', description: 'Intellect — razão e tecnologia' },
+      { name: 'Astúcia',        defaultDie: 'd12', description: 'Cunning — percepção e improvisação' },
+      { name: 'Força de Vontade', defaultDie: 'd12', description: 'Willpower — disciplina e Força' },
+      { name: 'Presença',       defaultDie: 'd12', description: 'Presence — carisma e liderança' },
+      { name: 'Ferimento Limiar',  defaultDie: 'd6', description: 'Pontos de vida físicos' },
+      { name: 'Tensão Limiar',     defaultDie: 'd6', description: 'Saúde mental e esgotamento' },
+    ],
+  },
+
+  // ─── Genérico / Indie ─────────────────────────────────────────────────────
+  {
+    name: 'GURPS 4e', category: 'generic',
+    attributes: [
+      { name: 'Força',          defaultDie: 'd6+d6', description: 'ST — carregar, dano corpo-a-corpo, HP base' },
+      { name: 'Destreza',       defaultDie: 'd6+d6', description: 'DX — coordenação, ataques e defesas' },
+      { name: 'Inteligência',   defaultDie: 'd6+d6', description: 'IQ — razão, Percepção e Vontade base' },
+      { name: 'Saúde',          defaultDie: 'd6+d6', description: 'HT — resistência física e FP base' },
+      { name: 'Pontos de Vida', defaultDie: 'd6',   description: 'HP — saúde total (= ST por padrão)' },
+      { name: 'Vontade',        defaultDie: 'd6',   description: 'Will — resistência mental (= IQ por padrão)' },
+      { name: 'Percepção',      defaultDie: 'd6',   description: 'Per — acuidade sensorial (= IQ por padrão)' },
+      { name: 'Fadiga',         defaultDie: 'd6',   description: 'FP — reserva de energia (= HT por padrão)' },
+    ],
+  },
+  {
+    name: 'Fate Core', category: 'generic',
+    attributes: [
+      { name: 'Atletismo',      defaultDie: 'd6+d6', description: 'Movimento, acrobacias e defesa física' },
+      { name: 'Combate',        defaultDie: 'd6+d6', description: 'Luta corpo-a-corpo' },
+      { name: 'Atirar',         defaultDie: 'd6+d6', description: 'Ataques à distância' },
+      { name: 'Furtividade',    defaultDie: 'd6+d6', description: 'Movimento silencioso e se esconder' },
+      { name: 'Percepção',      defaultDie: 'd6+d6', description: 'Notar e investigar o ambiente' },
+      { name: 'Investigação',   defaultDie: 'd6+d6', description: 'Pesquisa e resolução de mistérios' },
+      { name: 'Provocar',       defaultDie: 'd6+d6', description: 'Intimidar e manipular emoções' },
+      { name: 'Relacionar-se',  defaultDie: 'd6+d6', description: 'Interações sociais amistosas' },
+      { name: 'Enganar',        defaultDie: 'd6+d6', description: 'Mentir e ludibriar' },
+      { name: 'Recurso',        defaultDie: 'd6+d6', description: 'Acesso a dinheiro e equipamentos' },
+      { name: 'Vontade',        defaultDie: 'd6+d6', description: 'Resistência mental e disciplina' },
+      { name: 'Ofício',         defaultDie: 'd6+d6', description: 'Criar e reparar itens' },
+    ],
+  },
+  {
+    name: 'Savage Worlds', category: 'generic',
+    attributes: [
+      { name: 'Agilidade',      defaultDie: 'd6',  description: 'Velocidade, furtividade e ataques' },
+      { name: 'Astúcia',        defaultDie: 'd6',  description: 'Mente, perícias acadêmicas e mágicas' },
+      { name: 'Espírito',       defaultDie: 'd6',  description: 'Força de vontade e resistência a medo' },
+      { name: 'Força',          defaultDie: 'd6',  description: 'Físico bruto, carregamento e dano corpo-a-corpo' },
+      { name: 'Vigor',          defaultDie: 'd6',  description: 'Saúde, resistência a dano e exaustão' },
+      { name: 'Bênção (Wild Die)', defaultDie: 'd6', description: 'Wild Cards sempre rolam este dado adicional' },
+    ],
+  },
+  {
+    name: 'Blades in the Dark', category: 'generic',
+    attributes: [
+      { name: 'Insight — Estudar',  defaultDie: 'd6', description: 'Observar e pesquisar' },
+      { name: 'Insight — Sondar',   defaultDie: 'd6', description: 'Ler pessoas e situações' },
+      { name: 'Insight — Agir',     defaultDie: 'd6', description: 'Usar tecnologia, alquimia e artefatos' },
+      { name: 'Prowess — Fineza',   defaultDie: 'd6', description: 'Habilidades físicas refinadas' },
+      { name: 'Prowess — Aguar',    defaultDie: 'd6', description: 'Esconder-se e mover-se silenciosamente' },
+      { name: 'Prowess — Lutar',    defaultDie: 'd6', description: 'Combate corpo-a-corpo' },
+      { name: 'Prowess — Mover',    defaultDie: 'd6', description: 'Atletismo e fuga' },
+      { name: 'Resolve — Conversar',defaultDie: 'd6', description: 'Persuadir e negociar' },
+      { name: 'Resolve — Comandar', defaultDie: 'd6', description: 'Liderar e intimidar' },
+      { name: 'Resolve — Focar',    defaultDie: 'd6', description: 'Concentração e rituais ocultos' },
+      { name: 'Resolve — Recrutar', defaultDie: 'd6', description: 'Contratar e gerenciar contatos' },
+      { name: 'Stress',             defaultDie: 'd6', description: 'Nível atual de esgotamento (0-9)' },
+      { name: 'Trauma',             defaultDie: 'd6', description: 'Cicatrizes permanentes acumuladas' },
+    ],
+  },
+  {
+    name: 'Ironsworn', category: 'generic',
+    attributes: [
+      { name: 'Edge',    defaultDie: 'd6', description: 'Combate à distância, rapidez e furtividade' },
+      { name: 'Heart',   defaultDie: 'd6', description: 'Interação social, cura e vínculo com NPCs' },
+      { name: 'Iron',    defaultDie: 'd6', description: 'Combate corpo-a-corpo e resistência física' },
+      { name: 'Shadow',  defaultDie: 'd6', description: 'Engano, furtividade e corruição' },
+      { name: 'Wits',    defaultDie: 'd6', description: 'Sobrevivência, navegação e sabedoria' },
+      { name: 'Momentum',defaultDie: 'd6', description: 'Recurso dinâmico (−6 a +10)' },
+      { name: 'Health',  defaultDie: 'd6', description: 'Saúde (0-5)' },
+      { name: 'Spirit',  defaultDie: 'd6', description: 'Morale e saúde mental (0-5)' },
+      { name: 'Supply',  defaultDie: 'd6', description: 'Recursos e provisões da viagem (0-5)' },
+    ],
+  },
+
+  // ─── Personalizado ────────────────────────────────────────────────────────
+  {
+    name: 'Personalizado', category: 'custom',
+    attributes: [],
+  },
+]
+
+async function seedAndGetSystems() {
+  for (const preset of PRESET_SYSTEMS) {
+    const existing = await prisma.rPGSystem.findFirst({
+      where: { name: preset.name, isPreset: true },
+    })
+    if (!existing) {
+      const system = await prisma.rPGSystem.create({
+        data: { name: preset.name, isPreset: true },
+      })
+      if (preset.attributes.length > 0) {
+        await prisma.systemAttribute.createMany({
+          data: preset.attributes.map(a => ({
+            name: a.name,
+            defaultDie: a.defaultDie,
+            description: a.description ?? null,
+            systemId: system.id,
+          })),
+        })
+      }
+    }
+  }
+
+  const systems = await prisma.rPGSystem.findMany({
+    include: { attributes: { orderBy: { name: 'asc' } } },
+    orderBy: [{ isPreset: 'desc' }, { name: 'asc' }],
+  })
+
+  // Attach category metadata (not in DB, injected here)
+  return systems.map(s => ({
+    ...s,
+    category: PRESET_SYSTEMS.find(p => p.name === s.name)?.category ?? 'custom',
+  }))
+}
+
+export async function GET() {
+  try {
+    const systems = await seedAndGetSystems()
+    return NextResponse.json(systems)
+  } catch (e) {
+    console.error(e)
+    return NextResponse.json({ error: 'Erro ao buscar sistemas' }, { status: 500 })
+  }
+}

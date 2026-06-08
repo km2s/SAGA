@@ -4,6 +4,7 @@ import { prisma } from 'database'
 import { redirect } from 'next/navigation'
 import { Badge } from '@/components/ui/Badge'
 import Link from 'next/link'
+import { CharactersActions } from '@/components/character/CharactersActions'
 
 const CLASS_ICONS: Record<string, string> = {
   Guerreiro: '⚔️', Mago: '🔮', Paladino: '🛡️', Ladino: '🗡️', Clérigo: '✝️',
@@ -17,7 +18,7 @@ export default async function CharactersPage() {
   const user = await prisma.user.findUnique({
     where: { discordId: session.user.discordId },
     include: {
-      members: {
+      memberships: {
         include: {
           campaign: { include: { system: true } },
           character: true,
@@ -28,7 +29,8 @@ export default async function CharactersPage() {
 
   if (!user) redirect('/login')
 
-  const memberships = user.members.filter(m => m.character !== null)
+  const memberships = user.memberships.filter(m => m.character !== null)
+  const allCampaigns = user.memberships.map(m => ({ id: m.campaign.id, name: m.campaign.name }))
 
   return (
     <div className="p-8">
@@ -37,9 +39,7 @@ export default async function CharactersPage() {
           <h1 className="font-cinzel text-2xl font-bold">Meus Personagens</h1>
           <p className="text-sm text-saga-muted mt-1">Fichas dos seus personagens em todas as campanhas</p>
         </div>
-        <p className="text-[12px] text-saga-muted">
-          Use <code className="font-mono text-gold">/ficha criar</code> no Discord para criar um personagem
-        </p>
+        <CharactersActions campaigns={allCampaigns} />
       </div>
 
       {memberships.length === 0 ? (
@@ -47,19 +47,19 @@ export default async function CharactersPage() {
           <div className="text-6xl mb-4">🧙</div>
           <p className="font-cinzel text-lg text-saga-muted">Nenhum personagem ainda</p>
           <p className="text-sm text-saga-muted mt-1 max-w-sm">
-            Entre em uma campanha e use <code className="font-mono text-gold">/ficha criar</code> no Discord para criar seu primeiro personagem.
+            Clique em &quot;+ Criar Personagem&quot; acima para criar seu primeiro personagem.
           </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {memberships.map(m => {
             const char = m.character!
-            const classIcon = CLASS_ICONS[char.class] ?? '🧙'
+            const classIcon = CLASS_ICONS[char.class ?? ''] ?? '🧙'
             const hpPercent = Math.round((char.hp / char.maxHp) * 100)
             const hpColor = hpPercent > 60 ? 'bg-saga-success' : hpPercent > 30 ? 'bg-saga-warning' : 'bg-saga-danger'
 
             return (
-              <Link key={m.id} href={`/campaign/${m.campaignId}`}>
+              <Link key={m.id} href={`/characters/${m.id}`}>
                 <div className="bg-surface border border-border rounded-lg overflow-hidden hover:border-border-bright transition-all card-hover">
                   {char.imageUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
