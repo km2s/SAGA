@@ -6,6 +6,13 @@ const nextConfig = {
   experimental: {
     outputFileTracingRoot: path.join(__dirname, '../../'),
   },
+  outputFileTracingIncludes: {
+    '**': [
+      '../../node_modules/.pnpm/**/node_modules/.prisma/client/**',
+      '../../node_modules/.pnpm/**/node_modules/@prisma/client/**',
+      '../../packages/database/node_modules/.prisma/client/**',
+    ],
+  },
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'cdn.discordapp.com' },
