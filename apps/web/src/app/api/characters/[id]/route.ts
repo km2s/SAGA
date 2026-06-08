@@ -24,7 +24,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   })
   if (!isMine && !isGM) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const body = await req.json() as { hp?: number; maxHp?: number; level?: number }
+  const body = await req.json() as { hp?: number; maxHp?: number; level?: number; isPublic?: boolean }
+
+  // Only the character owner can change visibility
+  if (body.isPublic !== undefined && !isMine) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
 
   const updated = await prisma.characterSheet.update({
     where: { id: params.id },
@@ -32,6 +37,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       ...(body.hp !== undefined && { hp: Math.min(sheet.maxHp, Math.max(0, body.hp)) }),
       ...(body.maxHp !== undefined && { maxHp: Math.max(1, body.maxHp) }),
       ...(body.level !== undefined && { level: Math.min(20, Math.max(1, body.level)) }),
+      ...(body.isPublic !== undefined && { isPublic: body.isPublic }),
     },
   })
   return NextResponse.json(updated)

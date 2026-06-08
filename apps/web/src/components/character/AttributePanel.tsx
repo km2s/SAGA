@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { AddAttributeModal } from './AddAttributeModal'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
+import { Dumbbell, Zap, Heart, BookOpen, Leaf, Sparkles, Swords, X } from 'lucide-react'
 
 interface Attribute {
   id: string
@@ -12,9 +13,9 @@ interface Attribute {
   attribute: { name: string; defaultDie: string }
 }
 
-const ATTRIBUTE_ICONS: Record<string, string> = {
-  Força: '💪', Destreza: '🏃', Constituição: '❤️',
-  Inteligência: '📚', Sabedoria: '🌿', Carisma: '✨',
+const ATTRIBUTE_ICONS: Record<string, React.ElementType> = {
+  Força: Dumbbell, Destreza: Zap, Constituição: Heart,
+  Inteligência: BookOpen, Sabedoria: Leaf, Carisma: Sparkles,
 }
 
 function getModifier(value: number): string {
@@ -69,14 +70,14 @@ export function AttributePanel({ characterId, attributes, canEdit }: {
       ) : (
         <div className="divide-y divide-border">
           {attributes.map(attr => {
-            const icon = ATTRIBUTE_ICONS[attr.attribute.name] ?? '⚔️'
+            const AttrIcon = ATTRIBUTE_ICONS[attr.attribute.name] ?? Swords
             const mod = getModifier(attr.value)
             const isPositive = !mod.startsWith('-')
 
             return (
               <div key={attr.id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-surface-2 transition-all group">
-                <div className="w-10 h-10 rounded-lg bg-surface-3 border border-border flex items-center justify-center text-xl shrink-0">
-                  {icon}
+                <div className="w-10 h-10 rounded-lg bg-surface-3 border border-border flex items-center justify-center text-saga-muted shrink-0">
+                  <AttrIcon size={18} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium">{attr.attribute.name}</p>
@@ -91,9 +92,9 @@ export function AttributePanel({ characterId, attributes, canEdit }: {
                   <button
                     onClick={() => setDeleteTarget(attr.id)}
                     disabled={deleting === attr.id}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity px-2 py-1 rounded text-[11px] text-saga-danger border border-saga-danger/30 hover:bg-saga-danger/10 disabled:opacity-50"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity px-1.5 py-1 rounded text-saga-danger border border-saga-danger/30 hover:bg-saga-danger/10 disabled:opacity-50"
                   >
-                    {deleting === attr.id ? '...' : '✕'}
+                    {deleting === attr.id ? '...' : <X size={10} />}
                   </button>
                 )}
               </div>

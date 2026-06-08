@@ -36,13 +36,13 @@ export default async function NotesPage({ params }: { params: { id: string } }) 
   }).catch(() => [])
 
   const visLabel: Record<string, { label: string; variant: 'muted' | 'purple' | 'gold' }> = {
-    PRIVATE:  { label: '🔒 Privada', variant: 'muted' },
-    CAMPAIGN: { label: '📜 Campanha', variant: 'purple' },
-    GM_ONLY:  { label: '⚔️ Só Mestre', variant: 'gold' },
+    PRIVATE:  { label: 'Privada',    variant: 'muted' },
+    CAMPAIGN: { label: 'Campanha',   variant: 'purple' },
+    GM_ONLY:  { label: 'Só Mestre', variant: 'gold' },
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="font-cinzel text-xl font-semibold">Notas</h1>

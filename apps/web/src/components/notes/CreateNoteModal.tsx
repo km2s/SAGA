@@ -88,9 +88,9 @@ export function CreateNoteModal({ open, onClose, campaignId, isGM }: Props) {
             onChange={handleChange}
             className="w-full bg-surface-2 border border-border rounded px-3 py-2.5 text-sm text-saga-text focus:outline-none focus:border-gold/60 transition-colors"
           >
-            <option value="PRIVATE">🔒 Privada — só você</option>
-            <option value="CAMPAIGN">📜 Campanha — todos os jogadores</option>
-            {isGM && <option value="GM_ONLY">⚔️ Só Mestre</option>}
+            <option value="PRIVATE">Privada — só você</option>
+            <option value="CAMPAIGN">Campanha — todos os jogadores</option>
+            {isGM && <option value="GM_ONLY">Só Mestre</option>}
           </select>
         </div>
 

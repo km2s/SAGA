@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
+import { Square } from 'lucide-react'
 
 export function EndSessionButton({ campaignId, compact }: { campaignId: string; compact?: boolean }) {
   const [loading, setLoading] = useState(false)
@@ -43,7 +44,7 @@ export function EndSessionButton({ campaignId, compact }: { campaignId: string; 
     }
   }
 
-  const label = loading ? 'Encerrando...' : '⏹ Encerrar'
+  const label = loading ? 'Encerrando...' : <span className="flex items-center gap-1.5"><Square size={12} />Encerrar</span>
 
   return (
     <>
@@ -57,7 +58,7 @@ export function EndSessionButton({ campaignId, compact }: { campaignId: string; 
         </button>
       ) : (
         <Button variant="danger" disabled={loading} onClick={() => setConfirmOpen(true)}>
-          {loading ? 'Encerrando...' : '⏹ Encerrar Sessão'}
+          {loading ? 'Encerrando...' : <span className="flex items-center gap-1.5"><Square size={14} />Encerrar Sessão</span>}
         </Button>
       )}
 
@@ -66,7 +67,7 @@ export function EndSessionButton({ campaignId, compact }: { campaignId: string; 
         variant="danger"
         title="Encerrar sessão?"
         description={error || "Todos os jogadores perderão acesso à mesa. Você poderá escrever o resumo da sessão em seguida."}
-        confirmLabel={loading ? 'Encerrando...' : '⏹ Encerrar e ir ao resumo'}
+        confirmLabel={loading ? 'Encerrando...' : 'Encerrar e ir ao resumo'}
         cancelLabel="Continuar jogando"
         onConfirm={() => { void handleEnd() }}
         onCancel={() => { setConfirmOpen(false); setError('') }}

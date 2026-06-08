@@ -37,7 +37,7 @@ export default async function CampaignSessionsPage({ params }: { params: { id: s
   const pastSessions = sessions.filter(s => !s.isActive)
 
   return (
-    <div className="p-8 pt-5">
+    <div className="p-4 sm:p-8 sm:pt-5">
       <h2 className="font-cinzel text-lg font-semibold mb-4">Sessões</h2>
 
       {/* Active session */}
@@ -102,7 +102,7 @@ export default async function CampaignSessionsPage({ params }: { params: { id: s
                       <p className="text-[11px] text-saga-muted">rolagens</p>
                     </div>
                     {s.summary ? (
-                      <Badge variant="purple">📜 Resumo</Badge>
+                      <Badge variant="purple">Resumo</Badge>
                     ) : (
                       <Badge variant="muted">Sem resumo</Badge>
                     )}

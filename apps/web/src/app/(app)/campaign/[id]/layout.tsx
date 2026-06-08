@@ -39,31 +39,37 @@ export default async function CampaignLayout({
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Banner */}
-      <div className="h-36 bg-gradient-to-br from-[#1a0533] via-[#4a1080] to-[#7c3aed] relative flex items-end px-8 pb-5 shrink-0">
-        <div>
-          <h1 className="font-cinzel text-2xl font-bold drop-shadow-lg">{campaign.name}</h1>
-          <p className="text-sm text-white/60 mt-1">
+      <div className="bg-gradient-to-br from-[#1a0533] via-[#4a1080] to-[#7c3aed] relative flex flex-col sm:flex-row sm:items-end px-5 sm:px-8 pt-5 pb-4 sm:pb-5 gap-3 shrink-0">
+        <div className="flex-1 min-w-0">
+          <h1 className="font-cinzel text-xl sm:text-2xl font-bold drop-shadow-lg truncate">{campaign.name}</h1>
+          <p className="text-xs sm:text-sm text-white/60 mt-1">
             {campaign.system?.name ?? 'Sistema personalizado'} · {campaign._count.members} jogadores · {campaign._count.sessions} sessões
           </p>
         </div>
-        <div className="absolute top-4 right-6 flex gap-2">
+        <div className="flex gap-2 shrink-0">
           {isGM && (
             <Link href={`/campaign/${params.id}/gm`}>
               <Button variant="secondary">
-                <Crown size={14} className="inline mr-1.5 -mt-0.5" />Painel do Mestre
+                <Crown size={14} className="inline mr-1.5 -mt-0.5" />
+                <span className="hidden sm:inline">Painel do Mestre</span>
+                <span className="sm:hidden">Mestre</span>
               </Button>
             </Link>
           )}
           <Link href={`/campaign/${params.id}/mesa`}>
             <Button variant="primary">
-              <Map size={14} className="inline mr-1.5 -mt-0.5" />Abrir Mesa
+              <Map size={14} className="inline mr-1.5 -mt-0.5" />
+              <span className="hidden sm:inline">Abrir Mesa</span>
+              <span className="sm:hidden">Mesa</span>
             </Button>
           </Link>
         </div>
       </div>
 
-      {/* Tabs */}
-      <CampaignTabs campaignId={params.id} isGM={isGM} />
+      {/* Tabs — scrollable on mobile */}
+      <div className="overflow-x-auto scrollbar-none shrink-0">
+        <CampaignTabs campaignId={params.id} isGM={isGM} />
+      </div>
 
       {/* Page content */}
       <div className="flex-1 overflow-y-auto">

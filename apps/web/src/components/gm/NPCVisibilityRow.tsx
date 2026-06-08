@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Badge } from '@/components/ui/Badge'
+import { ShieldAlert, UserCheck, User } from 'lucide-react'
 
 interface Player {
   id: string
@@ -87,8 +88,8 @@ export function NPCVisibilityRow({
           // eslint-disable-next-line @next/next/no-img-element
           <img src={npc.imageUrl} alt={npc.name} className="w-8 h-8 rounded-full object-cover shrink-0" />
         ) : (
-          <div className="w-8 h-8 rounded-full bg-surface-2 border border-border flex items-center justify-center text-sm shrink-0">
-            {npc.type === 'VILLAIN' ? '👹' : npc.type === 'ALLY' ? '🧝' : '🗿'}
+          <div className="w-8 h-8 rounded-full bg-surface-2 border border-border flex items-center justify-center shrink-0 text-saga-dim">
+            {npc.type === 'VILLAIN' ? <ShieldAlert size={15} /> : npc.type === 'ALLY' ? <UserCheck size={15} /> : <User size={15} />}
           </div>
         )}
         <div>

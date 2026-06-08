@@ -1,22 +1,23 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { Coffee, Skull, Leaf, Swords, Crown, Sparkles, Music, X, Square, Play } from 'lucide-react'
 
 interface Track {
   id: string
   title: string
   mood: string
   youtubeId: string
-  icon: string
+  Icon: React.ElementType
 }
 
 const PRESETS: Track[] = [
-  { id: 'tavern',   title: 'Taverna Medieval',      mood: 'Relaxante',  youtubeId: 'Wr5RFkh_h5I', icon: '🍺' },
-  { id: 'dungeon',  title: 'Masmorra Sombria',       mood: 'Tenso',      youtubeId: 'wpCbJWFmJRQ', icon: '🏚️' },
-  { id: 'forest',   title: 'Floresta Encantada',     mood: 'Misterioso', youtubeId: 'V4zjSjgfOZY', icon: '🌲' },
-  { id: 'battle',   title: 'Batalha Épica',          mood: 'Intenso',    youtubeId: 'CKU4U6VhEVg', icon: '⚔️' },
-  { id: 'castle',   title: 'Salão do Rei',           mood: 'Grandioso',  youtubeId: 'T2dJ1hJ7f-U', icon: '🏰' },
-  { id: 'mystery',  title: 'Mistério Arcano',        mood: 'Sombrio',    youtubeId: 'XLg7SiXzjl0', icon: '🔮' },
+  { id: 'tavern',   title: 'Taverna Medieval',      mood: 'Relaxante',  youtubeId: 'Wr5RFkh_h5I', Icon: Coffee  },
+  { id: 'dungeon',  title: 'Masmorra Sombria',       mood: 'Tenso',      youtubeId: 'wpCbJWFmJRQ', Icon: Skull   },
+  { id: 'forest',   title: 'Floresta Encantada',     mood: 'Misterioso', youtubeId: 'V4zjSjgfOZY', Icon: Leaf    },
+  { id: 'battle',   title: 'Batalha Épica',          mood: 'Intenso',    youtubeId: 'CKU4U6VhEVg', Icon: Swords  },
+  { id: 'castle',   title: 'Salão do Rei',           mood: 'Grandioso',  youtubeId: 'T2dJ1hJ7f-U', Icon: Crown   },
+  { id: 'mystery',  title: 'Mistério Arcano',        mood: 'Sombrio',    youtubeId: 'XLg7SiXzjl0', Icon: Sparkles},
 ]
 
 interface MusicPlayerProps {
@@ -55,7 +56,7 @@ export function MusicPlayer({ open, onClose }: MusicPlayerProps) {
   function playCustom() {
     const ytId = extractYouTubeId(customUrl)
     if (ytId) {
-      const track: Track = { id: 'custom', title: 'Personalizado', mood: 'Custom', youtubeId: ytId, icon: '🎵' }
+      const track: Track = { id: 'custom', title: 'Personalizado', mood: 'Custom', youtubeId: ytId, Icon: Music }
       setCurrent(track)
       setPlaying(true)
     }
@@ -77,11 +78,13 @@ export function MusicPlayer({ open, onClose }: MusicPlayerProps) {
         <div className="px-5 py-4 border-b border-white/6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className={`w-2 h-2 rounded-full transition-all ${playing ? 'bg-saga-success animate-pulse' : 'bg-saga-dim'}`} />
-            <span className="font-cinzel text-sm font-semibold">
-              {current ? current.icon + ' ' + current.title : '🎵 Música Ambiente'}
+            <span className="font-cinzel text-sm font-semibold flex items-center gap-2">
+              {current ? <><current.Icon size={14} />{current.title}</> : <><Music size={14} />Música Ambiente</>}
             </span>
           </div>
-          <button onClick={onClose} className="text-saga-dim hover:text-saga-text transition-colors text-lg">✕</button>
+          <button onClick={onClose} className="text-saga-dim hover:text-saga-text transition-colors">
+            <X size={16} />
+          </button>
         </div>
 
         {/* Hidden YouTube iframe */}
@@ -99,14 +102,14 @@ export function MusicPlayer({ open, onClose }: MusicPlayerProps) {
         {current && (
           <div className="px-5 py-3 border-b border-white/6 flex items-center gap-3"
                style={{ background: 'rgba(201,162,42,0.05)' }}>
-            <span className="text-2xl">{current.icon}</span>
+            <current.Icon size={22} className="text-saga-muted shrink-0" />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-saga-text truncate">{current.title}</p>
               <p className="text-[11px] text-saga-muted">{current.mood}</p>
             </div>
             <button onClick={() => { setCurrent(null); setPlaying(false) }}
-              className="px-2.5 py-1 rounded text-[11px] text-saga-danger border border-saga-danger/30 hover:bg-saga-danger/10 transition-colors">
-              ⏹ Parar
+              className="px-2.5 py-1 rounded text-[11px] text-saga-danger border border-saga-danger/30 hover:bg-saga-danger/10 transition-colors flex items-center gap-1">
+              <Square size={10} />Parar
             </button>
           </div>
         )}
@@ -122,7 +125,7 @@ export function MusicPlayer({ open, onClose }: MusicPlayerProps) {
                     ? 'border-gold/50 bg-gold/10 text-gold'
                     : 'border-white/8 hover:border-white/16 hover:bg-white/4 text-saga-muted hover:text-saga-text'
                 }`}>
-                <span className="text-2xl">{track.icon}</span>
+                <track.Icon size={22} />
                 <div className="text-center">
                   <p className="text-[11px] font-medium leading-tight">{track.title}</p>
                   <p className="text-[9px] opacity-60 mt-0.5">{track.mood}</p>
@@ -150,9 +153,9 @@ export function MusicPlayer({ open, onClose }: MusicPlayerProps) {
               className="flex-1 px-3 py-2 rounded text-[12px] text-saga-text placeholder:text-saga-dim focus:outline-none"
               style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)' }} />
             <button onClick={playCustom} disabled={!customUrl.trim()}
-              className="px-3 py-2 rounded text-[11px] font-bold text-bg disabled:opacity-40 disabled:cursor-not-allowed"
+              className="px-3 py-2 rounded text-[11px] font-bold text-bg disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center"
               style={{ background: 'linear-gradient(135deg, #c9a22a, #f0d060)' }}>
-              ▶
+              <Play size={12} />
             </button>
           </div>
           <p className="text-[9px] text-saga-dim mt-1.5">Cole um link do YouTube (trilha, ambient, lofi, etc.)</p>

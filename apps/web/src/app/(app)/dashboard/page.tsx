@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/Badge'
 import { DashboardActions } from '@/components/campaign/DashboardActions'
+import { Swords } from 'lucide-react'
 
 const COVER_GRADIENTS = [
   'from-[#1a0533] via-[#4a1080] to-[#7c3aed]',
@@ -34,7 +35,7 @@ export default async function DashboardPage() {
   const activeSessionCount = memberships.filter(m => m.campaign.sessions.length > 0).length
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       {/* Header */}
       <div className="flex items-start justify-between mb-8">
         <div>
@@ -94,7 +95,7 @@ export default async function DashboardPage() {
         {/* New campaign placeholder card */}
         {memberships.length === 0 && (
           <div className="col-span-full flex flex-col items-center justify-center py-20 text-center">
-            <div className="text-6xl mb-4">⚔️</div>
+            <Swords size={48} className="text-saga-muted/30 mb-4" />
             <p className="font-cinzel text-lg text-saga-muted">Nenhuma campanha ainda</p>
             <p className="text-sm text-saga-muted mt-1 max-w-sm">
               Crie sua primeira campanha ou peça ao Mestre para te adicionar via{' '}

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { AddAttributeModal } from './AddAttributeModal'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
+import { X } from 'lucide-react'
 
 interface Attribute {
   id: string
@@ -180,8 +181,8 @@ export function PresetAttributeGrid({ characterId, attributes, canEdit }: {
                     </p>
                     {canEdit && (
                       <button onClick={() => setDeleteTarget(attr.id)}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity px-2 py-1 rounded text-[10px] text-saga-danger border border-saga-danger/30 hover:bg-saga-danger/10">
-                        ✕
+                        className="opacity-0 group-hover:opacity-100 transition-opacity px-1.5 py-1 rounded text-saga-danger border border-saga-danger/30 hover:bg-saga-danger/10">
+                        <X size={10} />
                       </button>
                     )}
                   </div>

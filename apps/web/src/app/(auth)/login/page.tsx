@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import LoginButton from './LoginButton'
+import { Dice6, Map, ScrollText, Swords, Music } from 'lucide-react'
 
 export default async function LoginPage() {
   const session = await getServerSession(authOptions)
@@ -18,7 +19,7 @@ export default async function LoginPage() {
       </p>
 
       {/* Card */}
-      <div className="bg-surface border border-border rounded-lg p-10 w-[380px] flex flex-col items-center gap-4">
+      <div className="bg-surface border border-border rounded-lg p-8 sm:p-10 w-[calc(100%-2rem)] sm:w-[380px] flex flex-col items-center gap-4">
         <h2 className="font-cinzel text-lg font-semibold text-saga-text">Entrar no SAGA</h2>
         <p className="text-[13px] text-saga-muted text-center leading-relaxed">
           Conecte sua conta do Discord para acessar suas campanhas, fichas e mesas virtuais.
@@ -27,17 +28,17 @@ export default async function LoginPage() {
       </div>
 
       {/* Features */}
-      <div className="flex gap-6 mt-10">
+      <div className="flex flex-wrap justify-center gap-4 sm:gap-6 mt-10 px-4">
         {[
-          { icon: '🎲', label: 'Rolagem inteligente' },
-          { icon: '🗺️', label: 'Mesa virtual' },
-          { icon: '📜', label: 'Fichas completas' },
-          { icon: '⚔️', label: 'Gestão de NPCs' },
-          { icon: '🎵', label: 'Trilha sonora' },
+          { Icon: Dice6,     label: 'Rolagem inteligente' },
+          { Icon: Map,       label: 'Mesa virtual' },
+          { Icon: ScrollText,label: 'Fichas completas' },
+          { Icon: Swords,    label: 'Gestão de NPCs' },
+          { Icon: Music,     label: 'Trilha sonora' },
         ].map(f => (
           <div key={f.label} className="flex flex-col items-center gap-2 text-saga-muted text-[11px]">
-            <div className="w-10 h-10 rounded bg-surface-2 border border-border flex items-center justify-center text-lg">
-              {f.icon}
+            <div className="w-10 h-10 rounded bg-surface-2 border border-border flex items-center justify-center">
+              <f.Icon size={18} />
             </div>
             {f.label}
           </div>

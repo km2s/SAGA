@@ -4,34 +4,39 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
+import {
+  Swords, Moon, Skull, Rocket, Dice6, Pencil,
+  Sword, Flame, Globe, Castle, Sparkles, Target, Leaf, Zap, Ghost, Eye, Shield, Cpu, Monitor, Compass,
+  BookOpen, Star, Key, ShieldCheck, Check, ChevronRight, ChevronLeft, Music
+} from 'lucide-react'
 
 interface Campaign { id: string; name: string }
 interface SystemAttr { id: string; name: string; defaultDie: string; description?: string | null }
 interface RPGSystem { id: string; name: string; isPreset: boolean; category: string; attributes: SystemAttr[] }
 
-const CATEGORIES: { id: string; label: string; icon: string }[] = [
-  { id: 'fantasy',         label: 'Fantasia',        icon: '⚔️' },
-  { id: 'world-of-darkness', label: 'Mundo das Trevas', icon: '🧛' },
-  { id: 'horror',          label: 'Horror',          icon: '🦑' },
-  { id: 'scifi',           label: 'Sci-Fi',          icon: '🚀' },
-  { id: 'generic',         label: 'Genérico',        icon: '🎲' },
-  { id: 'custom',          label: 'Personalizado',   icon: '✏️' },
+const CATEGORIES: { id: string; label: string; Icon: React.ElementType }[] = [
+  { id: 'fantasy',           label: 'Fantasia',        Icon: Swords  },
+  { id: 'world-of-darkness', label: 'Mundo das Trevas', Icon: Moon   },
+  { id: 'horror',            label: 'Horror',           Icon: Skull  },
+  { id: 'scifi',             label: 'Sci-Fi',           Icon: Rocket },
+  { id: 'generic',           label: 'Genérico',         Icon: Dice6  },
+  { id: 'custom',            label: 'Personalizado',    Icon: Pencil },
 ]
 
-const SYSTEM_ICONS: Record<string, string> = {
-  'D&D 5e': '⚔️', 'D&D 3.5e': '⚔️', 'Pathfinder 2e': '🗡️', 'Pathfinder 1e': '🗡️',
-  'Tormenta20': '🐉', 'Old Dragon 2': '🐉', 'Dungeon World': '🌍', '13th Age': '🏰',
-  'Vampire: The Masquerade V5': '🧛', 'Vampire: The Masquerade V20': '🧛',
-  'Werewolf: The Apocalypse': '🐺', 'Mage: The Ascension': '✨',
-  'Mage: The Awakening': '🌑', 'Hunter: The Reckoning': '🏹',
-  'Changeling: The Lost': '🌸', 'Demon: The Descent': '😈',
-  'Geist: The Sin-Eaters': '💀',
-  'Call of Cthulhu 7e': '🦑', 'Delta Green': '🔦', 'Mothership': '👾',
-  'Cyberpunk Red': '🦾', 'Starfinder': '🚀', 'Shadowrun 6e': '💻',
-  'Star Wars: Edge of the Empire': '🌌',
-  'GURPS 4e': '📊', 'Fate Core': '⭐', 'Savage Worlds': '🎯',
-  'Blades in the Dark': '🗝️', 'Ironsworn': '🛡️',
-  'Personalizado': '✏️',
+const SYSTEM_ICONS: Record<string, React.ElementType> = {
+  'D&D 5e': Swords, 'D&D 3.5e': Swords, 'Pathfinder 2e': Sword, 'Pathfinder 1e': Sword,
+  'Tormenta20': Flame, 'Old Dragon 2': Flame, 'Dungeon World': Globe, '13th Age': Castle,
+  'Vampire: The Masquerade V5': Moon, 'Vampire: The Masquerade V20': Moon,
+  'Werewolf: The Apocalypse': Skull, 'Mage: The Ascension': Sparkles,
+  'Mage: The Awakening': Sparkles, 'Hunter: The Reckoning': Target,
+  'Changeling: The Lost': Leaf, 'Demon: The Descent': Zap,
+  'Geist: The Sin-Eaters': Ghost,
+  'Call of Cthulhu 7e': Eye, 'Delta Green': Shield, 'Mothership': Rocket,
+  'Cyberpunk Red': Cpu, 'Starfinder': Rocket, 'Shadowrun 6e': Monitor,
+  'Star Wars: Edge of the Empire': Compass,
+  'GURPS 4e': BookOpen, 'Fate Core': Star, 'Savage Worlds': Target,
+  'Blades in the Dark': Key, 'Ironsworn': ShieldCheck,
+  'Personalizado': Pencil,
 }
 
 export function CreateCharacterModal({ campaigns, open, onClose }: {
@@ -112,12 +117,12 @@ export function CreateCharacterModal({ campaigns, open, onClose }: {
           <div className="flex gap-1 mb-3 flex-wrap">
             {CATEGORIES.map(cat => (
               <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
-                className={`px-2.5 py-1 rounded text-[11px] font-medium transition-all flex items-center gap-1 ${
+                className={`px-2.5 py-1 rounded text-[11px] font-medium transition-all flex items-center gap-1.5 ${
                   activeCategory === cat.id
                     ? 'bg-gold/15 text-gold border border-gold/30'
                     : 'bg-surface-2 text-saga-muted border border-border hover:border-border-bright'
                 }`}>
-                {cat.icon} {cat.label}
+                <cat.Icon size={11} /> {cat.label}
               </button>
             ))}
           </div>
@@ -131,7 +136,7 @@ export function CreateCharacterModal({ campaigns, open, onClose }: {
             <div className="flex-1 overflow-y-auto pr-1" style={{ maxHeight: 340 }}>
               <div className="grid grid-cols-2 gap-2">
                 {categorySystems.map(sys => {
-                  const icon = SYSTEM_ICONS[sys.name] ?? '🎲'
+                  const SysIcon = SYSTEM_ICONS[sys.name] ?? Dice6
                   const isSelected = selectedSystem?.id === sys.id
                   return (
                     <button key={sys.id} onClick={() => setSelectedSystem(sys)}
@@ -139,11 +144,11 @@ export function CreateCharacterModal({ campaigns, open, onClose }: {
                         isSelected ? 'border-gold/50 bg-gold/8' : 'border-border hover:border-border-bright hover:bg-surface-2'
                       }`}>
                       <div className="flex items-center gap-2 w-full">
-                        <span className="text-lg">{icon}</span>
+                        <SysIcon size={15} className="text-saga-muted shrink-0" />
                         <div className="flex-1 min-w-0">
                           <p className={`text-xs font-medium leading-tight ${isSelected ? 'text-gold' : 'text-saga-text'}`}>{sys.name}</p>
                         </div>
-                        {isSelected && <span className="text-gold text-xs shrink-0">✓</span>}
+                        {isSelected && <Check size={12} className="text-gold shrink-0" />}
                       </div>
                       {sys.attributes.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
@@ -172,7 +177,7 @@ export function CreateCharacterModal({ campaigns, open, onClose }: {
           <div className="flex justify-end gap-2 pt-4 border-t border-border mt-4">
             <Button variant="secondary" type="button" onClick={onClose}>Cancelar</Button>
             <Button variant="primary" type="button" disabled={!selectedSystem} onClick={() => setStep('info')}>
-              Próximo →
+              <span className="flex items-center gap-1.5">Próximo <ChevronRight size={14} /></span>
             </Button>
           </div>
         </div>
@@ -180,7 +185,7 @@ export function CreateCharacterModal({ campaigns, open, onClose }: {
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           {/* System badge */}
           <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gold/20 bg-gold/6">
-            <span className="text-base">{SYSTEM_ICONS[selectedSystem?.name ?? ''] ?? '🎲'}</span>
+            {(() => { const SelIcon = SYSTEM_ICONS[selectedSystem?.name ?? ''] ?? Dice6; return <SelIcon size={16} className="text-saga-muted shrink-0" /> })()}
             <div className="flex-1 min-w-0">
               <p className="text-xs font-medium text-gold truncate">{selectedSystem?.name}</p>
               <p className="text-[10px] text-saga-muted">
@@ -240,7 +245,9 @@ export function CreateCharacterModal({ campaigns, open, onClose }: {
 
           {error && <p className="text-sm text-saga-danger">{error}</p>}
           <div className="flex justify-between gap-2 pt-1">
-            <Button variant="secondary" type="button" onClick={() => setStep('system')}>← Voltar</Button>
+            <Button variant="secondary" type="button" onClick={() => setStep('system')}>
+              <span className="flex items-center gap-1.5"><ChevronLeft size={14} />Voltar</span>
+            </Button>
             <Button variant="primary" type="submit" disabled={loading}>
               {loading ? 'Criando...' : 'Criar Personagem'}
             </Button>

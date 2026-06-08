@@ -30,7 +30,7 @@ export default async function CampaignMembersPage({ params }: { params: { id: st
   const players = campaign.members.filter(m => m.role !== 'GM')
 
   return (
-    <div className="p-8 pt-5">
+    <div className="p-4 sm:p-8 sm:pt-5">
       <h2 className="font-cinzel text-lg font-semibold mb-4">Membros da Campanha</h2>
 
       {/* GM */}

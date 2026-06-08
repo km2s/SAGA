@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { NPCVisibilityRow } from '@/components/gm/NPCVisibilityRow'
 import { SessionControls } from '@/components/gm/SessionControls'
 import { GMActions } from '@/components/gm/GMActions'
+import { Map, Users, ScrollText, FileText } from 'lucide-react'
 
 export default async function GmPanelPage({ params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
@@ -39,7 +40,7 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
   const players = campaign.members.filter(m => m.role !== 'GM')
 
   return (
-    <div className="p-8 pt-5 space-y-7">
+    <div className="p-4 sm:p-8 sm:pt-5 space-y-7">
       {/* Session control */}
       <section>
         <div className="flex items-center justify-between mb-3">
@@ -59,8 +60,9 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
                 </div>
               </div>
               <Link href={`/campaign/${params.id}/mesa`}>
-                <div className="px-3 py-1.5 rounded text-sm font-medium bg-purple-dim border border-purple/30 text-purple-bright hover:bg-purple/20 transition-colors cursor-pointer">
-                  🗺️ Abrir Mesa
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded text-sm font-medium bg-purple-dim border border-purple/30 text-purple-bright hover:bg-purple/20 transition-colors cursor-pointer">
+                  <Map size={14} />
+                  Abrir Mesa
                 </div>
               </Link>
             </div>
@@ -136,14 +138,16 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
         <h2 className="font-cinzel text-base font-semibold mb-3">Atalhos</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { href: `/campaign/${params.id}/npcs`, label: 'Ver NPCs', icon: '🗿' },
-            { href: `/campaign/${params.id}/sessions`, label: 'Sessões', icon: '📜' },
-            { href: `/campaign/${params.id}/notes`, label: 'Notas', icon: '📝' },
-            { href: `/campaign/${params.id}/mesa`, label: 'Mesa Virtual', icon: '🗺️' },
+            { href: `/campaign/${params.id}/npcs`,     label: 'Ver NPCs',     Icon: Users },
+            { href: `/campaign/${params.id}/sessions`, label: 'Sessões',      Icon: ScrollText },
+            { href: `/campaign/${params.id}/notes`,    label: 'Notas',        Icon: FileText },
+            { href: `/campaign/${params.id}/mesa`,     label: 'Mesa Virtual', Icon: Map },
           ].map(link => (
             <Link key={link.href} href={link.href}>
               <div className="bg-surface border border-border rounded-lg p-4 hover:border-gold/40 hover:bg-surface-2 transition-all cursor-pointer text-center">
-                <p className="text-2xl mb-1">{link.icon}</p>
+                <div className="flex justify-center mb-2">
+                  <link.Icon size={22} className="text-saga-muted" />
+                </div>
                 <p className="text-sm font-medium">{link.label}</p>
               </div>
             </Link>

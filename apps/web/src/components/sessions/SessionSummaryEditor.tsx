@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Save } from 'lucide-react'
 
 interface Props {
   campaignId: string
@@ -70,7 +71,7 @@ export function SessionSummaryEditor({ campaignId, sessionId, initialContent, is
             <button onClick={() => void save()} disabled={saving}
               className="px-4 py-1.5 rounded text-sm font-medium text-bg disabled:opacity-50"
               style={{ background: 'linear-gradient(135deg, #c9a22a, #f0d060)' }}>
-              {saving ? 'Salvando...' : '💾 Salvar Resumo'}
+              {saving ? 'Salvando...' : <span className="flex items-center gap-1.5"><Save size={13} />Salvar Resumo</span>}
             </button>
           </div>
         </div>

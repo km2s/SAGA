@@ -3,6 +3,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from 'database'
 import { notFound, redirect } from 'next/navigation'
 import { Badge } from '@/components/ui/Badge'
+import { ShieldAlert, UserCheck, Heart, Wind, User } from 'lucide-react'
 
 const NPC_TYPE_LABELS: Record<string, string> = {
   VILLAIN: 'Vilão',
@@ -51,7 +52,7 @@ export default async function CampaignNpcsPage({ params }: { params: { id: strin
       }).catch(() => [])
 
   return (
-    <div className="p-8 pt-5">
+    <div className="p-4 sm:p-8 sm:pt-5">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-cinzel text-lg font-semibold">NPCs</h2>
         {isGM && (
@@ -75,8 +76,12 @@ export default async function CampaignNpcsPage({ params }: { params: { id: strin
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={npc.imageUrl} alt={npc.name} className="w-full h-36 object-cover" />
               ) : (
-                <div className="w-full h-36 bg-surface-2 flex items-center justify-center text-4xl">
-                  {npc.type === 'VILLAIN' ? '👹' : npc.type === 'ALLY' ? '🧝' : npc.type === 'FAMILIAR' ? '🐺' : npc.type === 'MOUNT' ? '🐴' : '🗿'}
+                <div className="w-full h-36 bg-surface-2 flex items-center justify-center text-saga-muted/40">
+                  {npc.type === 'VILLAIN' ? <ShieldAlert size={40} /> :
+                   npc.type === 'ALLY'    ? <UserCheck size={40} /> :
+                   npc.type === 'FAMILIAR'? <Heart size={40} /> :
+                   npc.type === 'MOUNT'   ? <Wind size={40} /> :
+                   <User size={40} />}
                 </div>
               )}
               <div className="p-4">

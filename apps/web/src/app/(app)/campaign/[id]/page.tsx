@@ -37,7 +37,7 @@ export default async function CampaignOverviewPage({ params }: { params: { id: s
     : []
 
   return (
-    <div className="p-8 pt-5">
+    <div className="p-4 sm:p-8 sm:pt-5">
       {/* Active session banner */}
       {activeSession && (
         <div className="flex items-center justify-between bg-success-dim border border-saga-success/20 rounded-lg px-5 py-3.5 mb-5">
@@ -61,7 +61,7 @@ export default async function CampaignOverviewPage({ params }: { params: { id: s
         </div>
       )}
 
-      <div className="grid grid-cols-[1fr_260px] gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_260px] gap-5">
         {/* Roll log */}
         <div className="bg-surface border border-border rounded-lg overflow-hidden">
           <div className="px-4 py-3 border-b border-border text-[11px] font-bold text-saga-muted uppercase tracking-widest">

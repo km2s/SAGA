@@ -5,6 +5,7 @@ import { notFound, redirect } from 'next/navigation'
 import { Badge } from '@/components/ui/Badge'
 import Link from 'next/link'
 import { SessionSummaryEditor } from '@/components/sessions/SessionSummaryEditor'
+import { Dice6, Sparkles, Trophy, Users } from 'lucide-react'
 
 function formatDuration(startedAt: Date, endedAt: Date | null) {
   const end = endedAt ?? new Date()
@@ -62,7 +63,7 @@ export default async function SessionDetailPage({
   }).length
 
   return (
-    <div className="p-8 pt-5">
+    <div className="p-4 sm:p-8 sm:pt-5">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-saga-muted mb-5">
         <Link href={`/campaign/${params.id}/sessions`} className="hover:text-gold transition-colors">
@@ -92,13 +93,13 @@ export default async function SessionDetailPage({
       {/* Stats grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         {[
-          { label: 'Rolagens', value: gameSession._count.rollLogs, icon: '🎲', color: 'text-gold' },
-          { label: 'Críticos', value: critCount, icon: '✨', color: 'text-saga-success' },
-          { label: 'Maior total', value: highestRoll?.total ?? '—', icon: '🏆', color: 'text-purple-bright' },
-          { label: 'Jogadores', value: campaign.members.length, icon: '👥', color: 'text-saga-muted' },
+          { label: 'Rolagens',   value: gameSession._count.rollLogs, Icon: Dice6,    color: 'text-gold' },
+          { label: 'Críticos',   value: critCount,                   Icon: Sparkles, color: 'text-saga-success' },
+          { label: 'Maior total',value: highestRoll?.total ?? '—',   Icon: Trophy,   color: 'text-purple-bright' },
+          { label: 'Jogadores',  value: campaign.members.length,     Icon: Users,    color: 'text-saga-muted' },
         ].map(stat => (
           <div key={stat.label} className="bg-surface border border-border rounded-lg p-4 text-center">
-            <p className="text-2xl mb-1">{stat.icon}</p>
+            <div className="flex justify-center mb-1 text-saga-muted/50"><stat.Icon size={20} /></div>
             <p className={`font-cinzel text-2xl font-bold ${stat.color}`}>{stat.value}</p>
             <p className="text-[11px] text-saga-muted mt-0.5">{stat.label}</p>
           </div>
@@ -118,7 +119,7 @@ export default async function SessionDetailPage({
           {/* Highlights */}
           {highestRoll && (
             <div className="bg-surface border border-border rounded-lg p-5">
-              <h3 className="font-cinzel text-sm font-semibold mb-3">🏆 Destaque da Sessão</h3>
+              <h3 className="font-cinzel text-sm font-semibold mb-3 flex items-center gap-2"><Trophy size={14} className="text-gold" /> Destaque da Sessão</h3>
               <div className="flex items-center gap-4 p-3 rounded-lg bg-gold/6 border border-gold/20">
                 <p className="font-cinzel text-4xl font-bold text-gold">{highestRoll.total}</p>
                 <div>
@@ -174,7 +175,7 @@ export default async function SessionDetailPage({
                         <p className="text-[11px] text-saga-muted truncate">{roll.rolledBy}</p>
                         <p className="text-[10px] text-saga-dim font-mono">{roll.expression}</p>
                       </div>
-                      {isCrit && <span className="text-[9px] text-gold">★</span>}
+                      {isCrit && <Sparkles size={10} className="text-gold shrink-0" />}
                     </div>
                   )
                 })

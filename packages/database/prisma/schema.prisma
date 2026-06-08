@@ -100,6 +100,7 @@ model CharacterSheet {
   imageUrl  String?
   hp        Int      @default(0)
   maxHp     Int      @default(0)
+  isPublic  Boolean  @default(false)
   memberId  String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

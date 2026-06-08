@@ -32,7 +32,7 @@ export default {
       },
       fontFamily: {
         cinzel: ['Cinzel', 'serif'],
-        sans: ['Inter', 'sans-serif'],
+        sans: ['Spectral', 'serif'],
       },
       borderRadius: {
         sm: '6px',

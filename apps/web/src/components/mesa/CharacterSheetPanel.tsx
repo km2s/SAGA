@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Swords, Sparkles, Shield, Sword, Plus, Axe, Leaf, Music, Target, Dumbbell, Moon, ScrollText, User, ClipboardList, X, FileText, ChevronRight } from 'lucide-react'
 
 interface CharAttr {
   id: string
@@ -36,10 +37,10 @@ interface Props {
   systemName: string | null
 }
 
-const CLASS_ICONS: Record<string, string> = {
-  Guerreiro: '⚔️', Mago: '🔮', Paladino: '🛡️', Ladino: '🗡️', Clérigo: '✝️',
-  Bárbaro: '🪓', Druida: '🌿', Bardo: '🎵', Ranger: '🏹', Monge: '👊',
-  Feiticeiro: '✨', Bruxo: '🌙', Arcanista: '📜',
+const CLASS_ICONS: Record<string, React.ElementType> = {
+  Guerreiro: Swords, Mago: Sparkles, Paladino: Shield, Ladino: Sword, Clérigo: Plus,
+  Bárbaro: Axe, Druida: Leaf, Bardo: Music, Ranger: Target, Monge: Dumbbell,
+  Feiticeiro: Sparkles, Bruxo: Moon, Arcanista: ScrollText,
 }
 
 const CORE_NAMES = new Set(['Força', 'Destreza', 'Constituição', 'Inteligência', 'Sabedoria', 'Carisma'])
@@ -62,7 +63,7 @@ export function CharacterSheetPanel({ onClose, members, currentMemberId, isGM, c
 
   const selected = members.find(m => m.id === selectedId)
   const char = selected?.character
-  const classIcon = CLASS_ICONS[char?.class ?? ''] ?? '🧙'
+  const ClassIcon = CLASS_ICONS[char?.class ?? ''] ?? User
   const membersWithChar = members.filter(m => m.character)
 
   const coreAttrs = char?.attributes.filter(a => CORE_NAMES.has(a.name)) ?? []
@@ -100,16 +101,16 @@ export function CharacterSheetPanel({ onClose, members, currentMemberId, isGM, c
         {/* Header */}
         <div className="px-4 py-3 border-b border-white/6 shrink-0 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-sm">📋</span>
+            <ClipboardList size={14} className="text-saga-dim" />
             <span className="font-cinzel text-[11px] font-bold text-saga-muted uppercase tracking-widest">
               Fichas de Personagem
             </span>
           </div>
           <button
             onClick={onClose}
-            className="w-6 h-6 flex items-center justify-center rounded text-saga-dim hover:text-saga-text hover:bg-white/8 transition-all text-sm"
+            className="w-6 h-6 flex items-center justify-center rounded text-saga-dim hover:text-saga-text hover:bg-white/8 transition-all"
           >
-            ✕
+            <X size={13} />
           </button>
         </div>
 
@@ -152,7 +153,7 @@ export function CharacterSheetPanel({ onClose, members, currentMemberId, isGM, c
         <div className="flex-1 overflow-y-auto">
           {!char ? (
             <div className="flex flex-col items-center justify-center h-48 gap-3">
-              <p className="text-5xl opacity-20">📋</p>
+              <ClipboardList size={40} className="opacity-20 text-saga-muted" />
               <p className="text-sm text-saga-dim text-center px-4">
                 {selected
                   ? `${selected.user.username} não tem personagem.`
@@ -164,14 +165,14 @@ export function CharacterSheetPanel({ onClose, members, currentMemberId, isGM, c
               {/* Identity header */}
               <div className="flex items-start gap-4">
                 <div
-                  className="w-16 h-16 rounded-xl flex items-center justify-center text-3xl shrink-0"
+                  className="w-16 h-16 rounded-xl flex items-center justify-center text-white/40 shrink-0"
                   style={{
                     background: 'linear-gradient(135deg, #1a0533, #4a1080)',
                     border: '1px solid rgba(124,58,237,0.35)',
                     boxShadow: '0 4px 16px rgba(124,58,237,0.2)',
                   }}
                 >
-                  {classIcon}
+                  <ClassIcon size={32} />
                 </div>
                 <div className="flex-1 min-w-0 pt-0.5">
                   <h2 className="font-cinzel font-bold text-base text-saga-text truncate leading-tight">
@@ -289,8 +290,9 @@ export function CharacterSheetPanel({ onClose, members, currentMemberId, isGM, c
                 className="flex items-center justify-center gap-2 w-full py-2.5 rounded text-[11px] font-medium text-saga-muted hover:text-gold transition-colors mt-1"
                 style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
               >
-                <span>📝</span>
-                <span>Ver e editar ficha completa →</span>
+                <FileText size={12} />
+                <span>Ver e editar ficha completa</span>
+                <ChevronRight size={11} />
               </a>
             </div>
           )}

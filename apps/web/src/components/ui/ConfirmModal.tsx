@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { AlertTriangle, Flame, HelpCircle } from 'lucide-react'
 
 interface ConfirmModalProps {
   open: boolean
@@ -14,10 +15,16 @@ interface ConfirmModalProps {
   variant?: 'danger' | 'warning' | 'default'
 }
 
-const icons = {
-  danger:  '⚠️',
-  warning: '🕯️',
-  default: '❓',
+const ICONS = {
+  danger:  AlertTriangle,
+  warning: Flame,
+  default: HelpCircle,
+}
+
+const ICON_COLORS = {
+  danger:  'text-saga-danger',
+  warning: 'text-gold',
+  default: 'text-purple-bright',
 }
 
 const confirmStyles = {
@@ -72,7 +79,7 @@ export function ConfirmModal({
         <div className="p-6">
           {/* Icon + title */}
           <div className="flex items-start gap-4 mb-4">
-            <div className={`text-2xl shrink-0 mt-0.5`}>{icons[variant]}</div>
+            {(() => { const Icon = ICONS[variant]; return <Icon size={22} className={`shrink-0 mt-0.5 ${ICON_COLORS[variant]}`} /> })()}
             <div>
               <h2 className="font-cinzel text-base font-semibold text-saga-text">{title}</h2>
               {description && (

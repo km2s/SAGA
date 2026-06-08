@@ -6,6 +6,7 @@ import { StartSessionModal } from '@/components/gm/StartSessionModal'
 import { EndSessionButton } from '@/components/gm/EndSessionButton'
 import { MusicPlayer } from './MusicPlayer'
 import { CharacterSheetPanel } from './CharacterSheetPanel'
+import { MousePointer, Hand, Coins, MapPin, Ruler, Cloud, Eye, ClipboardList, Music, Map, Play, X, Dice6, Sparkles, Skull } from 'lucide-react'
 
 type Tool = 'select' | 'move' | 'token' | 'marker' | 'measure' | 'fog' | 'reveal'
 
@@ -112,6 +113,10 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
   const [newTokenType, setNewTokenType] = useState<'player' | 'enemy' | 'npc'>('player')
   const [rollingDie, setRollingDie] = useState<string | null>(null)
   const [lastRollId, setLastRollId] = useState<string | null>(null)
+  const [measureAnchor, setMeasureAnchor] = useState<{x: number; y: number} | null>(null)
+  const [pointerWorld, setPointerWorld] = useState<{x: number; y: number}>({x: 0, y: 0})
+  const [fogRects, setFogRects] = useState<{id: string; x: number; y: number; w: number; h: number}[]>([])
+  const [fogDraw, setFogDraw] = useState<{startX: number; startY: number; endX: number; endY: number} | null>(null)
   const [startSessionOpen, setStartSessionOpen] = useState(false)
   const [musicOpen, setMusicOpen] = useState(false)
   const [sheetsOpen, setSheetsOpen] = useState(false)
@@ -174,12 +179,29 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
     } else if (tool === 'marker') {
       const world = toWorld(e.clientX, e.clientY)
       const id = crypto.randomUUID()
-      const color = '#f59e0b'
-      setMarkers(prev => [...prev, { id, x: world.x, y: world.y, color, createdAt: Date.now() }])
+      setMarkers(prev => [...prev, { id, x: world.x, y: world.y, color: '#f59e0b', createdAt: Date.now() }])
+    } else if (tool === 'measure') {
+      const world = toWorld(e.clientX, e.clientY)
+      if (measureAnchor) {
+        setMeasureAnchor(null)
+      } else {
+        setMeasureAnchor(world)
+      }
+    } else if (tool === 'fog') {
+      const world = toWorld(e.clientX, e.clientY)
+      setFogDraw({ startX: world.x, startY: world.y, endX: world.x, endY: world.y })
+    } else if (tool === 'reveal') {
+      const world = toWorld(e.clientX, e.clientY)
+      setFogRects(prev => prev.filter(r => !(world.x >= r.x && world.x <= r.x + r.w && world.y >= r.y && world.y <= r.y + r.h)))
     }
-  }, [tool, pan, toWorld, tokens.length])
+  }, [tool, pan, toWorld, tokens.length, measureAnchor])
 
   const onCanvasMove = useCallback((e: React.MouseEvent) => {
+    if (tool === 'measure' || fogDraw) {
+      const world = toWorld(e.clientX, e.clientY)
+      if (tool === 'measure') setPointerWorld(world)
+      if (fogDraw) setFogDraw(prev => prev ? { ...prev, endX: world.x, endY: world.y } : null)
+    }
     if (panDrag) {
       setPan({ x: panDrag.startPanX + e.clientX - panDrag.startMouseX, y: panDrag.startPanY + e.clientY - panDrag.startMouseY })
     } else if (tokenDrag) {
@@ -191,15 +213,25 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
           : t
       ))
     }
-  }, [panDrag, tokenDrag, zoom])
+  }, [tool, panDrag, tokenDrag, fogDraw, zoom, toWorld])
 
   const onCanvasUp = useCallback(() => {
+    if (fogDraw) {
+      const x = Math.min(fogDraw.startX, fogDraw.endX)
+      const y = Math.min(fogDraw.startY, fogDraw.endY)
+      const w = Math.abs(fogDraw.endX - fogDraw.startX)
+      const h = Math.abs(fogDraw.endY - fogDraw.startY)
+      if (w > 8 && h > 8) {
+        setFogRects(prev => [...prev, { id: crypto.randomUUID(), x, y, w, h }])
+      }
+      setFogDraw(null)
+    }
     if (tokenDrag) {
       setTokens(prev => prev.map(t => t.id === tokenDrag.tokenId ? { ...t, x: snap(t.x), y: snap(t.y) } : t))
     }
     setPanDrag(null)
     setTokenDrag(null)
-  }, [tokenDrag])
+  }, [tokenDrag, fogDraw])
 
   // Zoom with wheel (zoom toward mouse position)
   const onWheel = useCallback((e: React.WheelEvent) => {
@@ -261,22 +293,21 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
     setTimeout(() => setLastRollId(null), 2000)
   }
 
-  const tools: { t: Tool; icon: string; label: string }[] = [
-    { t: 'select', icon: '↖', label: 'Selecionar / Mover token' },
-    { t: 'move',   icon: '✋', label: 'Mover câmera (pan)' },
-    { t: 'token',  icon: '🪙', label: 'Colocar token no mapa' },
-    { t: 'marker', icon: '📍', label: 'Pingar localização' },
-    { t: 'measure',icon: '📏', label: 'Medir distância' },
-    { t: 'fog',    icon: '🌫',  label: 'Névoa de guerra' },
-    { t: 'reveal', icon: '👁',  label: 'Revelar área' },
+  const tools: { t: Tool; Icon: React.ElementType; label: string }[] = [
+    { t: 'select', Icon: MousePointer, label: 'Selecionar / Mover token' },
+    { t: 'move',   Icon: Hand,         label: 'Mover câmera (pan)' },
+    { t: 'token',  Icon: Coins,        label: 'Colocar token no mapa' },
+    { t: 'marker', Icon: MapPin,       label: 'Pingar localização' },
+    { t: 'measure',Icon: Ruler,        label: 'Medir distância' },
+    { t: 'fog',    Icon: Cloud,        label: 'Névoa de guerra' },
+    { t: 'reveal', Icon: Eye,          label: 'Revelar área' },
   ]
 
   // Cursor per tool
   const cursor = panDrag
     ? 'cursor-grabbing'
     : tool === 'move' ? 'cursor-grab'
-    : tool === 'token' || tool === 'marker' ? 'cursor-crosshair'
-    : tool === 'measure' ? 'cursor-crosshair'
+    : tool === 'token' || tool === 'marker' || tool === 'measure' || tool === 'fog' || tool === 'reveal' ? 'cursor-crosshair'
     : tokenDrag ? 'cursor-grabbing'
     : 'cursor-default'
 
@@ -320,17 +351,17 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
           <div className="h-4 w-px bg-white/10" />
           <button
             onClick={() => setSheetsOpen(o => !o)}
-            className={`px-3 h-7 rounded text-[11px] font-medium border transition-all ${
+            className={`px-3 h-7 rounded text-[11px] font-medium border transition-all flex items-center gap-1.5 ${
               sheetsOpen
                 ? 'text-gold border-gold/50 bg-gold/10'
                 : 'text-saga-muted border-white/10 hover:border-gold/40 hover:text-gold'
             }`}
           >
-            📋 Fichas
+            <ClipboardList size={13} />Fichas
           </button>
           <button onClick={() => setMusicOpen(true)}
-            className="px-3 h-7 rounded text-[11px] font-medium border transition-all text-saga-muted border-white/10 hover:border-gold/40 hover:text-gold">
-            🎵 Música
+            className="px-3 h-7 rounded text-[11px] font-medium border transition-all text-saga-muted border-white/10 hover:border-gold/40 hover:text-gold flex items-center gap-1.5">
+            <Music size={13} />Música
           </button>
           {isGM && activeSession && <EndSessionButton campaignId={campaign.id} compact />}
         </div>
@@ -342,11 +373,11 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
         {/* ── Left toolbar ── */}
         <div className="w-12 flex flex-col items-center py-2 gap-0.5 shrink-0 border-r border-white/5"
              style={{ background: 'rgba(10,10,20,0.92)' }}>
-          {tools.map(({ t, icon, label }) => (
-            <button key={t} onClick={() => { setTool(t); setAddToken(null) }} title={label}
-              className={`w-8 h-8 rounded flex items-center justify-center text-sm transition-all relative group
+          {tools.map(({ t, Icon, label }) => (
+            <button key={t} onClick={() => { setTool(t); setAddToken(null); if (t !== 'measure') setMeasureAnchor(null) }} title={label}
+              className={`w-8 h-8 rounded flex items-center justify-center transition-all relative group
                 ${tool === t ? 'bg-gold/20 text-gold ring-1 ring-gold/40' : 'text-saga-dim hover:text-saga-text hover:bg-white/6'}`}>
-              {icon}
+              <Icon size={15} />
               {/* Tooltip */}
               <span className="absolute left-full ml-2 px-2 py-1 rounded bg-surface border border-border text-[10px] text-saga-text whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 shadow-lg">
                 {label}
@@ -449,21 +480,50 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
                 </div>
               )
             })}
+
+            {/* Fog of war rectangles (world space) */}
+            {fogRects.map(rect => (
+              <div key={rect.id} className="absolute pointer-events-none"
+                style={{ left: rect.x, top: rect.y, width: rect.w, height: rect.h, background: 'rgba(0,0,0,0.88)', border: '1px solid rgba(255,255,255,0.04)' }}
+              />
+            ))}
+            {fogDraw && (() => {
+              const x = Math.min(fogDraw.startX, fogDraw.endX)
+              const y = Math.min(fogDraw.startY, fogDraw.endY)
+              const w = Math.abs(fogDraw.endX - fogDraw.startX)
+              const h = Math.abs(fogDraw.endY - fogDraw.startY)
+              return (
+                <div className="absolute pointer-events-none"
+                  style={{ left: x, top: y, width: w, height: h, background: 'rgba(0,0,0,0.5)', border: '2px dashed rgba(201,162,42,0.6)' }}
+                />
+              )
+            })()}
           </div>
 
-          {/* ── Fog overlay (screen space, not world) ── */}
-          {activeSession && (
-            <div className="absolute right-0 top-0 bottom-0 w-[38%] pointer-events-none"
-                 style={{
-                   background: 'linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.8) 12%, rgba(0,0,0,0.93) 100%)',
-                   borderLeft: '1px solid rgba(255,255,255,0.05)',
-                 }}>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <p className="text-[9px] text-white/12 tracking-[0.4em] uppercase rotate-90 select-none">
-                  Névoa de Guerra
-                </p>
-              </div>
-            </div>
+          {/* ── Measure overlay (screen space SVG) ── */}
+          {tool === 'measure' && measureAnchor && (
+            <svg className="absolute inset-0 pointer-events-none z-20" style={{ width: '100%', height: '100%' }}>
+              {(() => {
+                const ax = measureAnchor.x * zoom + pan.x
+                const ay = measureAnchor.y * zoom + pan.y
+                const bx = pointerWorld.x * zoom + pan.x
+                const by = pointerWorld.y * zoom + pan.y
+                const dx = (pointerWorld.x - measureAnchor.x) / GRID
+                const dy = (pointerWorld.y - measureAnchor.y) / GRID
+                const dist = Math.sqrt(dx * dx + dy * dy)
+                const mx = (ax + bx) / 2
+                const my = (ay + by) / 2
+                return (
+                  <>
+                    <line x1={ax} y1={ay} x2={bx} y2={by} stroke="rgba(240,208,96,0.8)" strokeWidth="2" strokeDasharray="6,3" />
+                    <circle cx={ax} cy={ay} r="4" fill="#f0d060" />
+                    <circle cx={bx} cy={by} r="4" fill="#f0d060" />
+                    <rect x={mx - 26} y={my - 11} width="52" height="22" rx="4" fill="rgba(0,0,0,0.8)" />
+                    <text x={mx} y={my + 4} textAnchor="middle" fill="#f0d060" fontSize="11" fontFamily="monospace">{dist.toFixed(1)}u</text>
+                  </>
+                )
+              })()}
+            </svg>
           )}
 
           {/* ── No session overlay ── */}
@@ -471,7 +531,7 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 z-30"
                  style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}>
               <div className="text-center">
-                <p className="text-4xl mb-3">🗺️</p>
+                <Map size={44} className="text-saga-muted/30 mb-3 mx-auto" />
                 <p className="font-cinzel text-lg font-semibold text-saga-muted">Mesa sem sessão ativa</p>
                 <p className="text-sm text-saga-dim mt-1">
                   {isGM ? 'Inicie uma sessão para abrir a mesa.' : 'Aguardando o Mestre iniciar a sessão.'}
@@ -479,9 +539,9 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
               </div>
               {isGM && (
                 <button onClick={() => setStartSessionOpen(true)}
-                  className="px-7 py-2.5 rounded font-cinzel font-semibold text-sm text-bg"
+                  className="px-7 py-2.5 rounded font-cinzel font-semibold text-sm text-bg flex items-center gap-2"
                   style={{ background: 'linear-gradient(135deg, #c9a22a, #f0d060)', boxShadow: '0 0 24px rgba(201,162,42,0.35)' }}>
-                  ▶ Iniciar Sessão
+                  <Play size={14} />Iniciar Sessão
                 </button>
               )}
             </div>
@@ -514,7 +574,7 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
             >
               <div className="px-3 py-2.5 border-b border-white/6 flex items-center justify-between">
                 <span className="font-cinzel text-[11px] font-bold text-saga-muted uppercase tracking-widest">Novo Token</span>
-                <button onClick={() => setAddToken(null)} className="text-saga-dim hover:text-saga-text text-sm">✕</button>
+                <button onClick={() => setAddToken(null)} className="text-saga-dim hover:text-saga-text"><X size={14} /></button>
               </div>
               <div className="p-3 flex flex-col gap-3">
                 {/* Label */}
@@ -591,7 +651,7 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
           <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2">
             {rolls.length === 0 && (
               <div className="flex flex-col items-center justify-center h-32 gap-2 opacity-50">
-                <p className="text-3xl">🎲</p>
+                <Dice6 size={28} className="text-saga-dim" />
                 <p className="text-[11px] text-saga-dim text-center">
                   {activeSession ? 'Nenhuma rolagem ainda.' : 'Inicie uma sessão.'}
                 </p>
@@ -615,9 +675,9 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
                     boxShadow: isCrit ? '0 0 14px rgba(201,162,42,0.12)' : 'none',
                   }}>
                   {(isCrit || isFail) && (
-                    <div className={`px-3 py-1 text-[10px] font-bold uppercase tracking-widest font-cinzel text-center
+                    <div className={`px-3 py-1 text-[10px] font-bold uppercase tracking-widest font-cinzel text-center flex items-center justify-center gap-1
                       ${isCrit ? 'bg-gold/12 text-gold' : 'bg-saga-danger/12 text-saga-danger'}`}>
-                      {isCrit ? '✨ Crítico!' : '💀 Falha Crítica'}
+                      {isCrit ? <><Sparkles size={10} />Crítico!</> : <><Skull size={10} />Falha Crítica</>}
                     </div>
                   )}
                   <div className="p-3">
@@ -653,15 +713,14 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
             <div ref={chatEndRef} />
           </div>
 
-          {/* Input */}
-          <div className="border-t border-white/6 px-3 py-2 shrink-0">
-            <input value="" readOnly disabled={!activeSession} placeholder="Escreva uma mensagem..."
-              className="w-full rounded px-3 py-2 text-[12px] text-saga-text placeholder:text-saga-dim focus:outline-none disabled:opacity-40"
-              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }} />
-          </div>
-
-          {/* Dice bar */}
-          <div className="border-t border-white/6 px-3 py-2.5 shrink-0">
+          {/* Input + Dice bar */}
+          <div className="shrink-0" style={{ borderTop: '1px solid rgba(255,255,255,0.07)', background: 'rgba(0,0,0,0.25)' }}>
+            <div className="px-3 pt-2.5 pb-1">
+              <input value="" readOnly disabled={!activeSession} placeholder="Escreva uma mensagem..."
+                className="w-full rounded px-3 py-2 text-[12px] text-saga-text placeholder:text-saga-dim focus:outline-none disabled:opacity-40"
+                style={{ background: 'rgba(255,255,255,0.05)' }} />
+            </div>
+          <div className="px-3 pb-2.5 pt-1">
             <p className="text-[9px] text-saga-dim uppercase tracking-widest mb-2 font-bold">Rolar Dado</p>
             <div className="grid grid-cols-7 gap-1">
               {DICE.map(die => {
@@ -677,12 +736,13 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
                       background: rolling ? 'rgba(201,162,42,0.15)' : 'rgba(255,255,255,0.04)',
                       border: rolling ? '1px solid rgba(201,162,42,0.45)' : '1px solid rgba(255,255,255,0.08)',
                     }}>
-                    <span className="text-[8px] text-saga-dim leading-none">🎲</span>
+                    <Dice6 size={9} className="text-saga-dim" />
                     <span className="text-[10px] font-cinzel font-bold text-gold leading-none">{die}</span>
                   </button>
                 )
               })}
             </div>
+          </div>
           </div>
         </div>
       </div>
