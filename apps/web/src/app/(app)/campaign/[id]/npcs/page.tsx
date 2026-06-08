@@ -3,6 +3,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from 'database'
 import { notFound, redirect } from 'next/navigation'
 import { Badge } from '@/components/ui/Badge'
+import { GMActions } from '@/components/gm/GMActions'
 import { ShieldAlert, UserCheck, Heart, Wind, User } from 'lucide-react'
 
 const NPC_TYPE_LABELS: Record<string, string> = {
@@ -31,6 +32,7 @@ export default async function CampaignNpcsPage({ params }: { params: { id: strin
   if (!myMembership) notFound()
 
   const isGM = myMembership.role === 'GM'
+  const players = campaign.members.filter(m => m.role !== 'GM')
 
   // GMs see all NPCs; players see only public or explicitly visible ones
   const npcs = isGM
@@ -55,17 +57,13 @@ export default async function CampaignNpcsPage({ params }: { params: { id: strin
     <div className="p-4 sm:p-8 sm:pt-5">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-cinzel text-lg font-semibold">NPCs</h2>
-        {isGM && (
-          <p className="text-[11px] text-saga-muted">
-            Use <code className="font-mono text-gold">/npc criar</code> no Discord para adicionar NPCs
-          </p>
-        )}
+        {isGM && <GMActions campaignId={params.id} players={players} />}
       </div>
 
       {npcs.length === 0 ? (
         <div className="text-sm text-saga-muted bg-surface border border-border rounded-lg px-4 py-10 text-center">
           {isGM
-            ? 'Nenhum NPC criado ainda. Use /npc criar no Discord.'
+            ? 'Nenhum NPC criado ainda. Clique em "+ Criar NPC" para adicionar o primeiro.'
             : 'Nenhum NPC visível para você no momento.'}
         </div>
       ) : (

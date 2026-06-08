@@ -6,39 +6,24 @@ import { StartSessionModal } from '@/components/gm/StartSessionModal'
 import { EndSessionButton } from '@/components/gm/EndSessionButton'
 import { MusicPlayer } from './MusicPlayer'
 import { CharacterSheetPanel } from './CharacterSheetPanel'
-import { MousePointer, Hand, Coins, MapPin, Ruler, Cloud, Eye, ClipboardList, Music, Map, Play, X, Dice6, Sparkles, Skull } from 'lucide-react'
+import {
+  MousePointer, Hand, Coins, MapPin, Ruler, Cloud, Eye,
+  ClipboardList, Music, Map, Play, X, Dice6, Sparkles, Skull,
+  MessageSquare, Image as ImageIcon, Minus, Plus,
+} from 'lucide-react'
 
 type Tool = 'select' | 'move' | 'token' | 'marker' | 'measure' | 'fog' | 'reveal'
 
 interface Token {
-  id: string
-  label: string
-  initial: string
-  x: number
-  y: number
-  type: 'player' | 'enemy' | 'npc'
-  color: string
+  id: string; label: string; initial: string
+  x: number; y: number
+  type: 'player' | 'enemy' | 'npc'; color: string
 }
-
-interface Marker {
-  id: string
-  x: number
-  y: number
-  color: string
-  createdAt: number
-}
-
+interface Marker { id: string; x: number; y: number; color: string; createdAt: number }
 interface RollLogEntry {
-  id: string
-  expression: string
-  rolls: number[]
-  modifier: number
-  total: number
-  attribute: string | null
-  rolledBy: string
-  rolledAt: string
+  id: string; expression: string; rolls: number[]; modifier: number
+  total: number; attribute: string | null; rolledBy: string; rolledAt: string
 }
-
 interface CharAttr { id: string; value: number; name: string; defaultDie: string }
 interface CharData {
   id: string; name: string; race: string | null; class: string | null
@@ -47,21 +32,16 @@ interface CharData {
 interface Member { id: string; role: string; user: { username: string }; character: CharData | null }
 interface Campaign { id: string; name: string }
 interface ActiveSession { id: string; name: string | null; isActive: boolean }
-
 interface VirtualTableProps {
-  campaign: Campaign
-  activeSession: ActiveSession | null
-  members: Member[]
-  initialRolls: RollLogEntry[]
-  isGM: boolean
-  currentMemberId: string
-  systemName: string | null
+  campaign: Campaign; activeSession: ActiveSession | null
+  members: Member[]; initialRolls: RollLogEntry[]
+  isGM: boolean; currentMemberId: string; systemName: string | null
 }
 
 const GRID = 40
-const PLAYER_COLORS = ['#7c3aed', '#2563eb', '#0891b2', '#059669', '#d97706', '#db2777', '#9333ea']
-const TOKEN_COLORS = ['#7c3aed', '#ef4444', '#22c55e', '#f59e0b', '#06b6d4', '#ec4899', '#c9a22a']
-const DICE = ['d4', 'd6', 'd8', 'd10', 'd12', 'd20', 'd100']
+const PLAYER_COLORS = ['#7c3aed','#2563eb','#0891b2','#059669','#d97706','#db2777','#9333ea']
+const TOKEN_COLORS  = ['#7c3aed','#ef4444','#22c55e','#f59e0b','#06b6d4','#ec4899','#c9a22a']
+const DICE = ['d4','d6','d8','d10','d12','d20','d100']
 
 function snap(v: number) { return Math.round(v / GRID) * GRID }
 
@@ -70,8 +50,7 @@ function initTokens(members: Member[]): Token[] {
     id: m.id,
     label: m.character?.name ?? m.user.username,
     initial: (m.character?.name ?? m.user.username)[0]?.toUpperCase() ?? '?',
-    x: ((i % 8) + 1) * GRID,
-    y: (Math.floor(i / 8) + 1) * GRID,
+    x: ((i % 8) + 1) * GRID, y: (Math.floor(i / 8) + 1) * GRID,
     type: m.role === 'GM' ? 'npc' : 'player',
     color: m.role === 'GM' ? '#c9a22a' : (PLAYER_COLORS[i % PLAYER_COLORS.length] ?? '#7c3aed'),
   }))
@@ -81,22 +60,13 @@ function timeAgo(iso: string) {
   const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000)
   if (s < 60) return 'agora'
   const m = Math.floor(s / 60)
-  return m < 60 ? `${m}m atrás` : `${Math.floor(m / 60)}h atrás`
+  return m < 60 ? `${m}m` : `${Math.floor(m / 60)}h`
 }
 
-interface TokenDrag {
-  tokenId: string
-  startMouseX: number; startMouseY: number
-  startTokenX: number; startTokenY: number
-}
-interface PanDrag {
-  startMouseX: number; startMouseY: number
-  startPanX: number; startPanY: number
-}
-interface AddTokenState {
-  screenX: number; screenY: number
-  worldX: number; worldY: number
-}
+interface TokenDrag { tokenId: string; startMouseX: number; startMouseY: number; startTokenX: number; startTokenY: number }
+interface PanDrag   { startMouseX: number; startMouseY: number; startPanX: number; startPanY: number }
+interface AddTokenState { screenX: number; screenY: number; worldX: number; worldY: number }
+interface PinchState { dist: number; zoom: number; panX: number; panY: number; midX: number; midY: number }
 
 export function VirtualTable({ campaign, activeSession, members, initialRolls, isGM, currentMemberId, systemName }: VirtualTableProps) {
   const [tool, setTool] = useState<Tool>('select')
@@ -113,284 +83,366 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
   const [newTokenType, setNewTokenType] = useState<'player' | 'enemy' | 'npc'>('player')
   const [rollingDie, setRollingDie] = useState<string | null>(null)
   const [lastRollId, setLastRollId] = useState<string | null>(null)
-  const [measureAnchor, setMeasureAnchor] = useState<{x: number; y: number} | null>(null)
-  const [pointerWorld, setPointerWorld] = useState<{x: number; y: number}>({x: 0, y: 0})
-  const [fogRects, setFogRects] = useState<{id: string; x: number; y: number; w: number; h: number}[]>([])
-  const [fogDraw, setFogDraw] = useState<{startX: number; startY: number; endX: number; endY: number} | null>(null)
+  const [rollModifier, setRollModifier] = useState(0)
+  const [measureAnchor, setMeasureAnchor] = useState<{x:number;y:number}|null>(null)
+  const [pointerWorld, setPointerWorld] = useState<{x:number;y:number}>({x:0,y:0})
+  const [fogRects, setFogRects] = useState<{id:string;x:number;y:number;w:number;h:number}[]>([])
+  const [fogDraw, setFogDraw] = useState<{startX:number;startY:number;endX:number;endY:number}|null>(null)
+  const [mapUrl, setMapUrl] = useState<string|null>(null)
+  const [mapInputOpen, setMapInputOpen] = useState(false)
+  const [mapInputValue, setMapInputValue] = useState('')
+  const [chatOpen, setChatOpen] = useState(false)
   const [startSessionOpen, setStartSessionOpen] = useState(false)
   const [musicOpen, setMusicOpen] = useState(false)
   const [sheetsOpen, setSheetsOpen] = useState(false)
-  const canvasRef = useRef<HTMLDivElement>(null)
+
+  const canvasRef  = useRef<HTMLDivElement>(null)
   const chatEndRef = useRef<HTMLDivElement>(null)
-  const sinceRef = useRef(initialRolls[0]?.rolledAt ?? new Date(0).toISOString())
+  const pinchRef   = useRef<PinchState | null>(null)
+  const sinceRef   = useRef(initialRolls[0]?.rolledAt ?? new Date(0).toISOString())
 
-  // Auto-scroll chat
+  // ── Effects ──
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [rolls])
-
-  // Fade out markers
   useEffect(() => {
-    const t = setInterval(() => {
-      const cutoff = Date.now() - 3500
-      setMarkers(prev => prev.filter(m => m.createdAt > cutoff))
-    }, 500)
+    const t = setInterval(() => { const c = Date.now()-3500; setMarkers(p=>p.filter(m=>m.createdAt>c)) }, 500)
     return () => clearInterval(t)
   }, [])
-
-  // Poll rolls
   useEffect(() => {
     if (!activeSession) return
     const iv = setInterval(async () => {
-      const res = await fetch(`/api/campaigns/${campaign.id}/rolls?since=${encodeURIComponent(sinceRef.current)}`).catch(() => null)
+      const res = await fetch(`/api/campaigns/${campaign.id}/rolls?since=${encodeURIComponent(sinceRef.current)}`).catch(()=>null)
       if (!res?.ok) return
-      const fresh: RollLogEntry[] = await res.json().catch(() => [])
+      const fresh: RollLogEntry[] = await res.json().catch(()=>[])
       if (!fresh.length) return
       sinceRef.current = fresh[0]!.rolledAt
       setRolls(prev => {
-        const ids = new Set(prev.map(r => r.id))
-        const news = fresh.filter(r => !ids.has(r.id))
+        const ids = new Set(prev.map(r=>r.id))
+        const news = fresh.filter(r=>!ids.has(r.id))
         return news.length ? [...news.reverse(), ...prev] : prev
       })
     }, 3000)
     return () => clearInterval(iv)
   }, [campaign.id, activeSession])
 
-  // Screen → world conversion
-  const toWorld = useCallback((screenX: number, screenY: number) => {
+  // ── Coord helpers ──
+  const toWorld = useCallback((sx: number, sy: number) => {
     const rect = canvasRef.current?.getBoundingClientRect()
-    if (!rect) return { x: 0, y: 0 }
-    return {
-      x: (screenX - rect.left - pan.x) / zoom,
-      y: (screenY - rect.top - pan.y) / zoom,
-    }
+    if (!rect) return {x:0,y:0}
+    return { x:(sx-rect.left-pan.x)/zoom, y:(sy-rect.top-pan.y)/zoom }
   }, [pan, zoom])
 
-  // ── Canvas-level mouse ──
-  const onCanvasDown = useCallback((e: React.MouseEvent) => {
-    if (e.button !== 0) return
-    if (tool === 'move') {
-      setPanDrag({ startMouseX: e.clientX, startMouseY: e.clientY, startPanX: pan.x, startPanY: pan.y })
+  // ── Shared press logic ──
+  const handlePress = useCallback((clientX: number, clientY: number, targetEl: Element|null) => {
+    const tokenEl = targetEl?.closest('[data-token-id]') as HTMLElement|null
+    const tokenId = tokenEl?.dataset.tokenId
+
+    if (tool === 'select' && tokenId) {
+      const t = tokens.find(tok=>tok.id===tokenId)
+      if (t) setTokenDrag({ tokenId, startMouseX:clientX, startMouseY:clientY, startTokenX:t.x, startTokenY:t.y })
+      return
+    }
+    if (tool === 'move' || tool === 'select') {
+      setPanDrag({ startMouseX:clientX, startMouseY:clientY, startPanX:pan.x, startPanY:pan.y })
     } else if (tool === 'token') {
       const rect = canvasRef.current?.getBoundingClientRect()
       if (!rect) return
-      const world = toWorld(e.clientX, e.clientY)
-      setAddToken({ screenX: e.clientX - rect.left, screenY: e.clientY - rect.top, worldX: world.x, worldY: world.y })
+      const world = toWorld(clientX, clientY)
+      setAddToken({ screenX:clientX-rect.left, screenY:clientY-rect.top, worldX:world.x, worldY:world.y })
       setNewTokenLabel('')
       setNewTokenColor(TOKEN_COLORS[tokens.length % TOKEN_COLORS.length] ?? TOKEN_COLORS[0]!)
     } else if (tool === 'marker') {
-      const world = toWorld(e.clientX, e.clientY)
-      const id = crypto.randomUUID()
-      setMarkers(prev => [...prev, { id, x: world.x, y: world.y, color: '#f59e0b', createdAt: Date.now() }])
+      const w = toWorld(clientX, clientY)
+      setMarkers(prev=>[...prev,{id:crypto.randomUUID(),x:w.x,y:w.y,color:'#f59e0b',createdAt:Date.now()}])
     } else if (tool === 'measure') {
-      const world = toWorld(e.clientX, e.clientY)
-      if (measureAnchor) {
-        setMeasureAnchor(null)
-      } else {
-        setMeasureAnchor(world)
-      }
+      const w = toWorld(clientX, clientY)
+      setMeasureAnchor(prev=>prev?null:w)
     } else if (tool === 'fog') {
-      const world = toWorld(e.clientX, e.clientY)
-      setFogDraw({ startX: world.x, startY: world.y, endX: world.x, endY: world.y })
+      const w = toWorld(clientX, clientY)
+      setFogDraw({startX:w.x,startY:w.y,endX:w.x,endY:w.y})
     } else if (tool === 'reveal') {
-      const world = toWorld(e.clientX, e.clientY)
-      setFogRects(prev => prev.filter(r => !(world.x >= r.x && world.x <= r.x + r.w && world.y >= r.y && world.y <= r.y + r.h)))
+      const w = toWorld(clientX, clientY)
+      setFogRects(prev=>prev.filter(r=>!(w.x>=r.x&&w.x<=r.x+r.w&&w.y>=r.y&&w.y<=r.y+r.h)))
     }
-  }, [tool, pan, toWorld, tokens.length, measureAnchor])
+  }, [tool, pan, toWorld, tokens])
 
-  const onCanvasMove = useCallback((e: React.MouseEvent) => {
-    if (tool === 'measure' || fogDraw) {
-      const world = toWorld(e.clientX, e.clientY)
-      if (tool === 'measure') setPointerWorld(world)
-      if (fogDraw) setFogDraw(prev => prev ? { ...prev, endX: world.x, endY: world.y } : null)
+  const handleMove = useCallback((clientX: number, clientY: number) => {
+    if (tool==='measure'||fogDraw) {
+      const w = toWorld(clientX, clientY)
+      if (tool==='measure') setPointerWorld(w)
+      if (fogDraw) setFogDraw(prev=>prev?{...prev,endX:w.x,endY:w.y}:null)
     }
     if (panDrag) {
-      setPan({ x: panDrag.startPanX + e.clientX - panDrag.startMouseX, y: panDrag.startPanY + e.clientY - panDrag.startMouseY })
+      setPan({x:panDrag.startPanX+clientX-panDrag.startMouseX, y:panDrag.startPanY+clientY-panDrag.startMouseY})
     } else if (tokenDrag) {
-      const dx = (e.clientX - tokenDrag.startMouseX) / zoom
-      const dy = (e.clientY - tokenDrag.startMouseY) / zoom
-      setTokens(prev => prev.map(t =>
-        t.id === tokenDrag.tokenId
-          ? { ...t, x: Math.max(GRID / 2, tokenDrag.startTokenX + dx), y: Math.max(GRID / 2, tokenDrag.startTokenY + dy) }
-          : t
-      ))
+      const dx=(clientX-tokenDrag.startMouseX)/zoom, dy=(clientY-tokenDrag.startMouseY)/zoom
+      setTokens(prev=>prev.map(t=>t.id===tokenDrag.tokenId
+        ?{...t,x:Math.max(GRID/2,tokenDrag.startTokenX+dx),y:Math.max(GRID/2,tokenDrag.startTokenY+dy)}:t))
     }
   }, [tool, panDrag, tokenDrag, fogDraw, zoom, toWorld])
 
-  const onCanvasUp = useCallback(() => {
+  const handleRelease = useCallback(() => {
     if (fogDraw) {
-      const x = Math.min(fogDraw.startX, fogDraw.endX)
-      const y = Math.min(fogDraw.startY, fogDraw.endY)
-      const w = Math.abs(fogDraw.endX - fogDraw.startX)
-      const h = Math.abs(fogDraw.endY - fogDraw.startY)
-      if (w > 8 && h > 8) {
-        setFogRects(prev => [...prev, { id: crypto.randomUUID(), x, y, w, h }])
-      }
+      const x=Math.min(fogDraw.startX,fogDraw.endX), y=Math.min(fogDraw.startY,fogDraw.endY)
+      const w=Math.abs(fogDraw.endX-fogDraw.startX), h=Math.abs(fogDraw.endY-fogDraw.startY)
+      if (w>8&&h>8) setFogRects(prev=>[...prev,{id:crypto.randomUUID(),x,y,w,h}])
       setFogDraw(null)
     }
-    if (tokenDrag) {
-      setTokens(prev => prev.map(t => t.id === tokenDrag.tokenId ? { ...t, x: snap(t.x), y: snap(t.y) } : t))
-    }
-    setPanDrag(null)
-    setTokenDrag(null)
+    if (tokenDrag) setTokens(prev=>prev.map(t=>t.id===tokenDrag.tokenId?{...t,x:snap(t.x),y:snap(t.y)}:t))
+    setPanDrag(null); setTokenDrag(null)
   }, [tokenDrag, fogDraw])
 
-  // Zoom with wheel (zoom toward mouse position)
+  // ── Mouse handlers ──
+  const onCanvasDown  = useCallback((e: React.MouseEvent) => { if(e.button!==0)return; handlePress(e.clientX,e.clientY,e.target as Element) }, [handlePress])
+  const onCanvasMove  = useCallback((e: React.MouseEvent) => handleMove(e.clientX,e.clientY), [handleMove])
+  const onCanvasUp    = useCallback(() => handleRelease(), [handleRelease])
+
   const onWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault()
     const rect = canvasRef.current!.getBoundingClientRect()
-    const mx = e.clientX - rect.left
-    const my = e.clientY - rect.top
-    const factor = e.deltaY < 0 ? 1.12 : 0.89
-    setZoom(prev => {
-      const next = Math.min(4, Math.max(0.25, prev * factor))
-      setPan(p => ({
-        x: mx - (mx - p.x) * (next / prev),
-        y: my - (my - p.y) * (next / prev),
-      }))
+    const mx=e.clientX-rect.left, my=e.clientY-rect.top
+    const factor = e.deltaY<0?1.12:0.89
+    setZoom(prev=>{
+      const next=Math.min(4,Math.max(0.25,prev*factor))
+      setPan(p=>({x:mx-(mx-p.x)*(next/prev),y:my-(my-p.y)*(next/prev)}))
       return next
     })
   }, [])
 
-  // ── Token-level mouse ──
-  const onTokenDown = useCallback((e: React.MouseEvent, tokenId: string) => {
-    if (tool !== 'select') return
-    e.stopPropagation()
-    const t = tokens.find(t => t.id === tokenId)
-    if (!t) return
-    setTokenDrag({ tokenId, startMouseX: e.clientX, startMouseY: e.clientY, startTokenX: t.x, startTokenY: t.y })
-  }, [tool, tokens])
+  // ── Touch handlers ──
+  const onCanvasTouchStart = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length===2) {
+      const [t1,t2]=[e.touches[0]!,e.touches[1]!]
+      const dist=Math.hypot(t2.clientX-t1.clientX,t2.clientY-t1.clientY)
+      const rect=canvasRef.current?.getBoundingClientRect()
+      if (!rect) return
+      const midX=(t1.clientX+t2.clientX)/2-rect.left
+      const midY=(t1.clientY+t2.clientY)/2-rect.top
+      pinchRef.current={dist,zoom,panX:pan.x,panY:pan.y,midX,midY}
+      setPanDrag(null); setTokenDrag(null)
+      return
+    }
+    const touch=e.touches[0]!
+    handlePress(touch.clientX,touch.clientY,e.target as Element)
+  }, [handlePress, zoom, pan])
 
+  const onCanvasTouchMove = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length===2&&pinchRef.current) {
+      const [t1,t2]=[e.touches[0]!,e.touches[1]!]
+      const newDist=Math.hypot(t2.clientX-t1.clientX,t2.clientY-t1.clientY)
+      const scale=newDist/pinchRef.current.dist
+      const newZoom=Math.min(4,Math.max(0.25,pinchRef.current.zoom*scale))
+      const {midX,midY,panX,panY,zoom:initZ}=pinchRef.current
+      setZoom(newZoom)
+      setPan({x:midX-(midX-panX)*(newZoom/initZ),y:midY-(midY-panY)*(newZoom/initZ)})
+      return
+    }
+    const touch=e.touches[0]!
+    handleMove(touch.clientX,touch.clientY)
+  }, [handleMove])
+
+  const onCanvasTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length<2) pinchRef.current=null
+    handleRelease()
+  }, [handleRelease])
+
+  // ── Token mouse ──
+  const onTokenDown = useCallback((e: React.MouseEvent, tokenId: string) => {
+    if (tool!=='select') return
+    e.stopPropagation()
+    const t=tokens.find(t=>t.id===tokenId)
+    if (!t) return
+    setTokenDrag({tokenId,startMouseX:e.clientX,startMouseY:e.clientY,startTokenX:t.x,startTokenY:t.y})
+  }, [tool,tokens])
+
+  // ── Actions ──
   function addNewToken() {
     if (!addToken) return
-    const label = newTokenLabel.trim() || 'Token'
-    const id = crypto.randomUUID()
-    setTokens(prev => [...prev, {
-      id, label, initial: label[0]?.toUpperCase() ?? '?',
-      x: snap(addToken.worldX), y: snap(addToken.worldY),
-      type: newTokenType, color: newTokenColor,
+    const label=newTokenLabel.trim()||'Token'
+    setTokens(prev=>[...prev,{
+      id:crypto.randomUUID(),label,initial:label[0]?.toUpperCase()?? '?',
+      x:snap(addToken.worldX),y:snap(addToken.worldY),
+      type:newTokenType,color:newTokenColor,
     }])
     setAddToken(null)
   }
 
-  function removeToken(id: string) {
-    setTokens(prev => prev.filter(t => t.id !== id))
-  }
+  function removeToken(id: string) { setTokens(prev=>prev.filter(t=>t.id!==id)) }
 
   async function rollDie(die: string) {
-    if (!activeSession || rollingDie) return
+    if (!activeSession||rollingDie) return
     setRollingDie(die)
-    const res = await fetch(`/api/campaigns/${campaign.id}/rolls`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ expression: `1${die}` }),
-    }).catch(() => null)
+    const expr = rollModifier!==0
+      ? `1${die}${rollModifier>0?'+':''}${rollModifier}`
+      : `1${die}`
+    const res = await fetch(`/api/campaigns/${campaign.id}/rolls`,{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({expression:expr}),
+    }).catch(()=>null)
     setRollingDie(null)
     if (!res?.ok) return
-    const roll: RollLogEntry = await res.json().catch(() => null)
+    const roll:RollLogEntry=await res.json().catch(()=>null)
     if (!roll) return
-    sinceRef.current = roll.rolledAt
+    sinceRef.current=roll.rolledAt
     setLastRollId(roll.id)
-    setRolls(prev => [roll, ...prev])
-    setTimeout(() => setLastRollId(null), 2000)
+    setRolls(prev=>[roll,...prev])
+    setTimeout(()=>setLastRollId(null),2000)
   }
 
-  const tools: { t: Tool; Icon: React.ElementType; label: string }[] = [
-    { t: 'select', Icon: MousePointer, label: 'Selecionar / Mover token' },
-    { t: 'move',   Icon: Hand,         label: 'Mover câmera (pan)' },
-    { t: 'token',  Icon: Coins,        label: 'Colocar token no mapa' },
-    { t: 'marker', Icon: MapPin,       label: 'Pingar localização' },
-    { t: 'measure',Icon: Ruler,        label: 'Medir distância' },
-    { t: 'fog',    Icon: Cloud,        label: 'Névoa de guerra' },
-    { t: 'reveal', Icon: Eye,          label: 'Revelar área' },
+  function applyMap() {
+    const url=mapInputValue.trim()
+    setMapUrl(url||null)
+    setMapInputOpen(false)
+  }
+
+  const tools:[Tool,React.ElementType,string][] = [
+    ['select',  MousePointer, 'Selecionar / Mover token'],
+    ['move',    Hand,         'Mover câmera (pan)'],
+    ['token',   Coins,        'Colocar token'],
+    ['marker',  MapPin,       'Pingar localização'],
+    ['measure', Ruler,        'Medir distância'],
+    ['fog',     Cloud,        'Névoa de guerra'],
+    ['reveal',  Eye,          'Revelar área'],
   ]
 
-  // Cursor per tool
   const cursor = panDrag
-    ? 'cursor-grabbing'
-    : tool === 'move' ? 'cursor-grab'
-    : tool === 'token' || tool === 'marker' || tool === 'measure' || tool === 'fog' || tool === 'reveal' ? 'cursor-crosshair'
-    : tokenDrag ? 'cursor-grabbing'
-    : 'cursor-default'
+    ? 'cursor-grabbing' : tool==='move' ? 'cursor-grab'
+    : ['token','marker','measure','fog','reveal'].includes(tool) ? 'cursor-crosshair'
+    : tokenDrag ? 'cursor-grabbing' : 'cursor-default'
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col overflow-hidden" style={{ background: '#080811' }}>
+    <div className="fixed inset-0 z-50 flex flex-col overflow-hidden" style={{background:'#080811'}}>
 
       {/* ── Top bar ── */}
-      <div className="h-11 flex items-center justify-between px-4 shrink-0 border-b border-white/5"
-           style={{ background: 'rgba(13,13,26,0.97)', backdropFilter: 'blur(8px)' }}>
-        <div className="flex items-center gap-5">
+      <div className="h-11 flex items-center justify-between px-3 sm:px-4 shrink-0 border-b border-white/5 relative"
+           style={{background:'rgba(13,13,26,0.97)',backdropFilter:'blur(8px)'}}>
+
+        {/* Left */}
+        <div className="flex items-center gap-2 sm:gap-5 min-w-0">
           <Link href={`/campaign/${campaign.id}`}
-                className="flex items-center gap-2 text-saga-muted hover:text-gold transition-colors group">
+                className="flex items-center gap-1.5 sm:gap-2 text-saga-muted hover:text-gold transition-colors group shrink-0">
             <svg className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M17 10a.75.75 0 0 1-.75.75H5.612l4.158 3.96a.75.75 0 1 1-1.04 1.08l-5.5-5.25a.75.75 0 0 1 0-1.08l5.5-5.25a.75.75 0 1 1 1.04 1.08L4.862 9.25H16.25A.75.75 0 0 1 17 10Z" clipRule="evenodd" />
+              <path fillRule="evenodd" d="M17 10a.75.75 0 0 1-.75.75H5.612l4.158 3.96a.75.75 0 1 1-1.04 1.08l-5.5-5.25a.75.75 0 0 1 0-1.08l5.5-5.25a.75.75 0 1 1 1.04 1.08L4.862 9.25H16.25A.75.75 0 0 1 17 10Z" clipRule="evenodd"/>
             </svg>
-            <span className="font-cinzel text-[13px] font-semibold text-gold/90 group-hover:text-gold">{campaign.name}</span>
+            <span className="font-cinzel text-[13px] font-semibold text-gold/90 group-hover:text-gold truncate max-w-[100px] sm:max-w-none">{campaign.name}</span>
           </Link>
-          <div className="h-4 w-px bg-white/10" />
+          <div className="hidden sm:block h-4 w-px bg-white/10"/>
           {activeSession ? (
-            <div className="flex items-center gap-2">
-              <div className="pulse-dot scale-75" />
-              <span className="text-[12px] text-saga-muted">{activeSession.name ?? 'Sessão ativa'}</span>
+            <div className="hidden sm:flex items-center gap-2">
+              <div className="pulse-dot scale-75"/>
+              <span className="text-[12px] text-saga-muted">{activeSession.name?? 'Sessão ativa'}</span>
             </div>
           ) : (
-            <span className="text-[12px] text-saga-dim">Mesa sem sessão</span>
+            <span className="hidden sm:inline text-[12px] text-saga-dim">Mesa sem sessão</span>
           )}
+          {activeSession && <div className="sm:hidden pulse-dot scale-75 shrink-0"/>}
         </div>
-        <div className="flex items-center gap-3">
-          {/* Zoom display */}
-          <div className="flex items-center gap-1">
-            <button onClick={() => setZoom(z => Math.max(0.25, +(z * 0.85).toFixed(2)))}
+
+        {/* Right */}
+        <div className="flex items-center gap-1 sm:gap-3 shrink-0">
+          {/* Zoom — desktop only */}
+          <div className="hidden sm:flex items-center gap-1">
+            <button onClick={()=>setZoom(z=>Math.max(0.25,+(z*0.85).toFixed(2)))}
               className="w-6 h-6 rounded text-xs font-bold text-saga-muted hover:text-saga-text hover:bg-white/8 transition-all flex items-center justify-center">−</button>
-            <span className="text-[11px] text-saga-dim w-10 text-center font-mono">{Math.round(zoom * 100)}%</span>
-            <button onClick={() => setZoom(z => Math.min(4, +(z * 1.18).toFixed(2)))}
+            <span className="text-[11px] text-saga-dim w-10 text-center font-mono">{Math.round(zoom*100)}%</span>
+            <button onClick={()=>setZoom(z=>Math.min(4,+(z*1.18).toFixed(2)))}
               className="w-6 h-6 rounded text-xs font-bold text-saga-muted hover:text-saga-text hover:bg-white/8 transition-all flex items-center justify-center">+</button>
           </div>
-          <button onClick={() => { setPan({ x: 80, y: 60 }); setZoom(1) }}
-            className="px-2 h-6 rounded text-[10px] text-saga-dim hover:text-saga-text hover:bg-white/8 transition-all">
+          <button onClick={()=>{setPan({x:80,y:60});setZoom(1)}}
+            className="hidden sm:block px-2 h-6 rounded text-[10px] text-saga-dim hover:text-saga-text hover:bg-white/8 transition-all">
             Reset
           </button>
-          <div className="h-4 w-px bg-white/10" />
-          <button
-            onClick={() => setSheetsOpen(o => !o)}
-            className={`px-3 h-7 rounded text-[11px] font-medium border transition-all flex items-center gap-1.5 ${
-              sheetsOpen
-                ? 'text-gold border-gold/50 bg-gold/10'
-                : 'text-saga-muted border-white/10 hover:border-gold/40 hover:text-gold'
-            }`}
-          >
-            <ClipboardList size={13} />Fichas
+          <div className="hidden sm:block h-4 w-px bg-white/10"/>
+
+          {/* Mapa button */}
+          <div className="relative">
+            <button onClick={()=>setMapInputOpen(o=>!o)}
+              className={`px-2 sm:px-3 h-7 rounded text-[11px] font-medium border transition-all flex items-center gap-1.5 ${
+                mapUrl?'text-gold border-gold/50 bg-gold/10':'text-saga-muted border-white/10 hover:border-gold/40 hover:text-gold'
+              }`}>
+              <ImageIcon size={13}/>
+              <span className="hidden sm:inline">Mapa</span>
+            </button>
+            {mapInputOpen && (
+              <div className="absolute top-full right-0 mt-1.5 z-[60] w-72 rounded-xl border border-border shadow-2xl overflow-hidden"
+                   style={{background:'rgba(15,15,28,0.98)',backdropFilter:'blur(12px)'}}>
+                <div className="px-3 py-2.5 border-b border-white/6 flex items-center justify-between">
+                  <span className="font-cinzel text-[11px] font-bold text-saga-muted uppercase tracking-widest">Imagem do Mapa</span>
+                  <button onClick={()=>setMapInputOpen(false)} className="text-saga-dim hover:text-saga-text"><X size={13}/></button>
+                </div>
+                <div className="p-3 flex flex-col gap-2">
+                  <input
+                    autoFocus
+                    value={mapInputValue}
+                    onChange={e=>setMapInputValue(e.target.value)}
+                    onKeyDown={e=>{if(e.key==='Enter')applyMap();if(e.key==='Escape')setMapInputOpen(false)}}
+                    placeholder="https://... URL da imagem"
+                    className="w-full px-3 py-2 rounded text-[12px] text-saga-text placeholder:text-saga-dim focus:outline-none"
+                    style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)'}}
+                  />
+                  <div className="flex gap-2">
+                    <button onClick={applyMap}
+                      className="flex-1 py-1.5 rounded text-[11px] font-bold text-bg font-cinzel"
+                      style={{background:'linear-gradient(135deg,#c9a22a,#f0d060)'}}>
+                      Aplicar
+                    </button>
+                    {mapUrl && (
+                      <button onClick={()=>{setMapUrl(null);setMapInputValue('');setMapInputOpen(false)}}
+                        className="px-3 py-1.5 rounded text-[11px] text-saga-danger border border-saga-danger/30 hover:bg-saga-danger/10 transition-colors">
+                        Limpar
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-[9px] text-saga-dim text-center">A imagem é renderizada na origem do mapa (0,0)</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <button onClick={()=>setSheetsOpen(o=>!o)}
+            className={`px-2 sm:px-3 h-7 rounded text-[11px] font-medium border transition-all flex items-center gap-1.5 ${
+              sheetsOpen?'text-gold border-gold/50 bg-gold/10':'text-saga-muted border-white/10 hover:border-gold/40 hover:text-gold'
+            }`}>
+            <ClipboardList size={13}/>
+            <span className="hidden sm:inline">Fichas</span>
           </button>
-          <button onClick={() => setMusicOpen(true)}
-            className="px-3 h-7 rounded text-[11px] font-medium border transition-all text-saga-muted border-white/10 hover:border-gold/40 hover:text-gold flex items-center gap-1.5">
-            <Music size={13} />Música
+          <button onClick={()=>setMusicOpen(true)}
+            className="px-2 sm:px-3 h-7 rounded text-[11px] font-medium border transition-all text-saga-muted border-white/10 hover:border-gold/40 hover:text-gold flex items-center gap-1.5">
+            <Music size={13}/>
+            <span className="hidden sm:inline">Música</span>
           </button>
-          {isGM && activeSession && <EndSessionButton campaignId={campaign.id} compact />}
+          {/* Chat toggle — mobile only */}
+          <button onClick={()=>setChatOpen(o=>!o)}
+            className={`sm:hidden px-2 h-7 rounded border transition-all flex items-center ${
+              chatOpen?'text-gold border-gold/50 bg-gold/10':'text-saga-muted border-white/10'
+            }`}>
+            <MessageSquare size={13}/>
+          </button>
+          {isGM&&activeSession&&<EndSessionButton campaignId={campaign.id} compact/>}
         </div>
       </div>
 
       {/* ── Main ── */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden relative">
 
         {/* ── Left toolbar ── */}
-        <div className="w-12 flex flex-col items-center py-2 gap-0.5 shrink-0 border-r border-white/5"
-             style={{ background: 'rgba(10,10,20,0.92)' }}>
-          {tools.map(({ t, Icon, label }) => (
-            <button key={t} onClick={() => { setTool(t); setAddToken(null); if (t !== 'measure') setMeasureAnchor(null) }} title={label}
+        <div className="w-12 flex flex-col items-center py-2 gap-0.5 shrink-0 border-r border-white/5 z-10"
+             style={{background:'rgba(10,10,20,0.92)'}}>
+          {tools.map(([t,Icon,label])=>(
+            <button key={t}
+              onClick={()=>{setTool(t);setAddToken(null);if(t!=='measure')setMeasureAnchor(null)}}
+              title={label}
               className={`w-8 h-8 rounded flex items-center justify-center transition-all relative group
-                ${tool === t ? 'bg-gold/20 text-gold ring-1 ring-gold/40' : 'text-saga-dim hover:text-saga-text hover:bg-white/6'}`}>
-              <Icon size={15} />
-              {/* Tooltip */}
-              <span className="absolute left-full ml-2 px-2 py-1 rounded bg-surface border border-border text-[10px] text-saga-text whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 shadow-lg">
+                ${tool===t?'bg-gold/20 text-gold ring-1 ring-gold/40':'text-saga-dim hover:text-saga-text hover:bg-white/6'}`}>
+              <Icon size={15}/>
+              <span className="absolute left-full ml-2 px-2 py-1 rounded bg-surface border border-border text-[10px] text-saga-text whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 shadow-lg hidden sm:block">
                 {label}
               </span>
             </button>
           ))}
-
-          <div className="w-5 h-px bg-white/8 my-1" />
-
-          {/* Tool hint */}
+          <div className="w-5 h-px bg-white/8 my-1"/>
           <div className="w-8 h-8 flex items-center justify-center">
             <span className="text-[8px] text-saga-dim text-center leading-tight uppercase tracking-wider">
-              {tool === 'select' ? 'Drag\nToken' : tool === 'move' ? 'Pan\nMap' : tool === 'token' ? 'Click\nMap' : tool === 'marker' ? 'Click\nPing' : tool.slice(0,6)}
+              {tool==='select'?'Drag\nToken':tool==='move'?'Pan\nMap':tool==='token'?'Tap\nMap':tool.slice(0,6)}
             </span>
           </div>
         </div>
@@ -400,126 +452,116 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
           ref={canvasRef}
           className={`flex-1 relative overflow-hidden ${cursor}`}
           style={{
-            backgroundImage: `
-              linear-gradient(rgba(80,80,120,0.18) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(80,80,120,0.18) 1px, transparent 1px)
-            `,
-            backgroundSize: `${GRID * zoom}px ${GRID * zoom}px`,
-            backgroundPosition: `${pan.x % (GRID * zoom)}px ${pan.y % (GRID * zoom)}px`,
-            backgroundColor: '#0a0a18',
+            backgroundImage:`linear-gradient(rgba(80,80,120,0.18) 1px,transparent 1px),linear-gradient(90deg,rgba(80,80,120,0.18) 1px,transparent 1px)`,
+            backgroundSize:`${GRID*zoom}px ${GRID*zoom}px`,
+            backgroundPosition:`${pan.x%(GRID*zoom)}px ${pan.y%(GRID*zoom)}px`,
+            backgroundColor:'#0a0a18',
+            touchAction:'none',
           }}
           onMouseDown={onCanvasDown}
           onMouseMove={onCanvasMove}
           onMouseUp={onCanvasUp}
           onMouseLeave={onCanvasUp}
           onWheel={onWheel}
+          onTouchStart={onCanvasTouchStart}
+          onTouchMove={onCanvasTouchMove}
+          onTouchEnd={onCanvasTouchEnd}
+          onTouchCancel={onCanvasTouchEnd}
         >
-          {/* ── World container (panned + zoomed) ── */}
-          <div
-            className="absolute"
-            style={{
-              transformOrigin: '0 0',
-              transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-            }}
-          >
+          {/* ── World container ── */}
+          <div className="absolute" style={{transformOrigin:'0 0',transform:`translate(${pan.x}px,${pan.y}px) scale(${zoom})`}}>
+
+            {/* Map background image */}
+            {mapUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={mapUrl} alt="mapa"
+                className="absolute top-0 left-0 select-none pointer-events-none"
+                style={{maxWidth:'none',opacity:0.9}}
+                draggable={false}
+              />
+            )}
+
             {/* Tokens */}
-            {tokens.map(t => {
-              const isDragging = tokenDrag?.tokenId === t.id
+            {tokens.map(t=>{
+              const isDragging=tokenDrag?.tokenId===t.id
               return (
                 <div key={t.id}
+                  data-token-id={t.id}
                   className="absolute flex flex-col items-center gap-1.5 select-none"
-                  style={{
-                    left: t.x, top: t.y,
-                    transform: 'translate(-50%, -50%)',
-                    cursor: tool === 'select' ? (isDragging ? 'grabbing' : 'grab') : 'default',
-                    zIndex: isDragging ? 100 : 10,
-                  }}
-                  onMouseDown={e => onTokenDown(e, t.id)}
-                  onContextMenu={e => { e.preventDefault(); if (tool === 'select') removeToken(t.id) }}
+                  style={{left:t.x,top:t.y,transform:'translate(-50%,-50%)',
+                    cursor:tool==='select'?(isDragging?'grabbing':'grab'):'default',
+                    zIndex:isDragging?100:10}}
+                  onMouseDown={e=>onTokenDown(e,t.id)}
+                  onContextMenu={e=>{e.preventDefault();if(tool==='select')removeToken(t.id)}}
                 >
                   <div className="relative w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white"
                     style={{
-                      background: t.type === 'enemy'
-                        ? 'radial-gradient(circle at 35% 35%, #f87171, #dc2626)'
-                        : t.type === 'npc'
-                          ? `radial-gradient(circle at 35% 35%, ${t.color}cc, ${t.color}88)`
-                          : `radial-gradient(circle at 35% 35%, ${t.color}dd, ${t.color})`,
-                      boxShadow: isDragging
-                        ? `0 0 0 2px white, 0 0 0 4px ${t.color}, 0 8px 24px ${t.color}66`
-                        : `0 0 0 1.5px ${t.color}88, 0 2px 8px rgba(0,0,0,0.6)`,
-                    }}
-                  >
+                      background:t.type==='enemy'
+                        ?'radial-gradient(circle at 35% 35%,#f87171,#dc2626)'
+                        :t.type==='npc'
+                          ?`radial-gradient(circle at 35% 35%,${t.color}cc,${t.color}88)`
+                          :`radial-gradient(circle at 35% 35%,${t.color}dd,${t.color})`,
+                      boxShadow:isDragging
+                        ?`0 0 0 2px white,0 0 0 4px ${t.color},0 8px 24px ${t.color}66`
+                        :`0 0 0 1.5px ${t.color}88,0 2px 8px rgba(0,0,0,0.6)`,
+                    }}>
                     {t.initial}
-                    {isDragging && (
-                      <div className="absolute inset-0 rounded-full animate-ping opacity-30"
-                           style={{ background: t.color }} />
-                    )}
+                    {isDragging&&<div className="absolute inset-0 rounded-full animate-ping opacity-30" style={{background:t.color}}/>}
                   </div>
                   <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-sm whitespace-nowrap max-w-[80px] truncate"
-                    style={{ background: 'rgba(0,0,0,0.7)', color: t.color, border: `1px solid ${t.color}44`, backdropFilter: 'blur(4px)' }}>
+                    style={{background:'rgba(0,0,0,0.7)',color:t.color,border:`1px solid ${t.color}44`,backdropFilter:'blur(4px)'}}>
                     {t.label}
                   </span>
                 </div>
               )
             })}
 
-            {/* Markers (pings) */}
-            {markers.map(m => {
-              const age = (Date.now() - m.createdAt) / 3500
-              const opacity = Math.max(0, 1 - age)
+            {/* Markers */}
+            {markers.map(m=>{
+              const age=(Date.now()-m.createdAt)/3500
+              const opacity=Math.max(0,1-age)
               return (
                 <div key={m.id} className="absolute pointer-events-none"
-                  style={{ left: m.x, top: m.y, transform: 'translate(-50%,-50%)', opacity, zIndex: 30 }}>
-                  <div className="w-6 h-6 rounded-full border-2 animate-ping"
-                       style={{ borderColor: m.color, animationDuration: '0.8s' }} />
-                  <div className="absolute inset-0 rounded-full"
-                       style={{ background: m.color, opacity: 0.4 }} />
+                  style={{left:m.x,top:m.y,transform:'translate(-50%,-50%)',opacity,zIndex:30}}>
+                  <div className="w-6 h-6 rounded-full border-2 animate-ping" style={{borderColor:m.color,animationDuration:'0.8s'}}/>
+                  <div className="absolute inset-0 rounded-full" style={{background:m.color,opacity:0.4}}/>
                   <div className="absolute -bottom-4 left-1/2 -translate-x-1/2">
-                    <div className="w-0.5 h-4 mx-auto" style={{ background: m.color, opacity: 0.8 }} />
+                    <div className="w-0.5 h-4 mx-auto" style={{background:m.color,opacity:0.8}}/>
                   </div>
                 </div>
               )
             })}
 
-            {/* Fog of war rectangles (world space) */}
-            {fogRects.map(rect => (
+            {/* Fog */}
+            {fogRects.map(rect=>(
               <div key={rect.id} className="absolute pointer-events-none"
-                style={{ left: rect.x, top: rect.y, width: rect.w, height: rect.h, background: 'rgba(0,0,0,0.88)', border: '1px solid rgba(255,255,255,0.04)' }}
-              />
+                style={{left:rect.x,top:rect.y,width:rect.w,height:rect.h,background:'rgba(0,0,0,0.88)',border:'1px solid rgba(255,255,255,0.04)'}}/>
             ))}
-            {fogDraw && (() => {
-              const x = Math.min(fogDraw.startX, fogDraw.endX)
-              const y = Math.min(fogDraw.startY, fogDraw.endY)
-              const w = Math.abs(fogDraw.endX - fogDraw.startX)
-              const h = Math.abs(fogDraw.endY - fogDraw.startY)
-              return (
-                <div className="absolute pointer-events-none"
-                  style={{ left: x, top: y, width: w, height: h, background: 'rgba(0,0,0,0.5)', border: '2px dashed rgba(201,162,42,0.6)' }}
-                />
-              )
+            {fogDraw&&(()=>{
+              const x=Math.min(fogDraw.startX,fogDraw.endX),y=Math.min(fogDraw.startY,fogDraw.endY)
+              const w=Math.abs(fogDraw.endX-fogDraw.startX),h=Math.abs(fogDraw.endY-fogDraw.startY)
+              return <div className="absolute pointer-events-none"
+                style={{left:x,top:y,width:w,height:h,background:'rgba(0,0,0,0.5)',border:'2px dashed rgba(201,162,42,0.6)'}}/>
             })()}
           </div>
 
-          {/* ── Measure overlay (screen space SVG) ── */}
-          {tool === 'measure' && measureAnchor && (
-            <svg className="absolute inset-0 pointer-events-none z-20" style={{ width: '100%', height: '100%' }}>
-              {(() => {
-                const ax = measureAnchor.x * zoom + pan.x
-                const ay = measureAnchor.y * zoom + pan.y
-                const bx = pointerWorld.x * zoom + pan.x
-                const by = pointerWorld.y * zoom + pan.y
-                const dx = (pointerWorld.x - measureAnchor.x) / GRID
-                const dy = (pointerWorld.y - measureAnchor.y) / GRID
-                const dist = Math.sqrt(dx * dx + dy * dy)
-                const mx = (ax + bx) / 2
-                const my = (ay + by) / 2
+          {/* ── Measure overlay (screen space) ── */}
+          {tool==='measure'&&measureAnchor&&(
+            <svg className="absolute inset-0 pointer-events-none z-20" style={{width:'100%',height:'100%'}}>
+              {(()=>{
+                const ax=measureAnchor.x*zoom+pan.x, ay=measureAnchor.y*zoom+pan.y
+                const bx=pointerWorld.x*zoom+pan.x, by=pointerWorld.y*zoom+pan.y
+                const dx=(pointerWorld.x-measureAnchor.x)/GRID, dy=(pointerWorld.y-measureAnchor.y)/GRID
+                const dist=Math.sqrt(dx*dx+dy*dy)
+                const mx=(ax+bx)/2, my=(ay+by)/2
                 return (
                   <>
-                    <line x1={ax} y1={ay} x2={bx} y2={by} stroke="rgba(240,208,96,0.8)" strokeWidth="2" strokeDasharray="6,3" />
-                    <circle cx={ax} cy={ay} r="4" fill="#f0d060" />
-                    <circle cx={bx} cy={by} r="4" fill="#f0d060" />
-                    <rect x={mx - 26} y={my - 11} width="52" height="22" rx="4" fill="rgba(0,0,0,0.8)" />
-                    <text x={mx} y={my + 4} textAnchor="middle" fill="#f0d060" fontSize="11" fontFamily="monospace">{dist.toFixed(1)}u</text>
+                    <line x1={ax} y1={ay} x2={bx} y2={by} stroke="rgba(240,208,96,0.8)" strokeWidth="2" strokeDasharray="6,3"/>
+                    <circle cx={ax} cy={ay} r="4" fill="#f0d060"/>
+                    <circle cx={bx} cy={by} r="4" fill="#f0d060"/>
+                    <rect x={mx-26} y={my-11} width="52" height="22" rx="4" fill="rgba(0,0,0,0.8)"/>
+                    <text x={mx} y={my+4} textAnchor="middle" fill="#f0d060" fontSize="11" fontFamily="monospace">{dist.toFixed(1)}u</text>
                   </>
                 )
               })()}
@@ -527,106 +569,84 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
           )}
 
           {/* ── No session overlay ── */}
-          {!activeSession && (
+          {!activeSession&&(
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 z-30"
-                 style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}>
+                 style={{background:'rgba(0,0,0,0.75)',backdropFilter:'blur(6px)'}}>
               <div className="text-center">
-                <Map size={44} className="text-saga-muted/30 mb-3 mx-auto" />
+                <Map size={44} className="text-saga-muted/30 mb-3 mx-auto"/>
                 <p className="font-cinzel text-lg font-semibold text-saga-muted">Mesa sem sessão ativa</p>
                 <p className="text-sm text-saga-dim mt-1">
-                  {isGM ? 'Inicie uma sessão para abrir a mesa.' : 'Aguardando o Mestre iniciar a sessão.'}
+                  {isGM?'Inicie uma sessão para abrir a mesa.':'Aguardando o Mestre iniciar a sessão.'}
                 </p>
               </div>
-              {isGM && (
-                <button onClick={() => setStartSessionOpen(true)}
+              {isGM&&(
+                <button onClick={()=>setStartSessionOpen(true)}
                   className="px-7 py-2.5 rounded font-cinzel font-semibold text-sm text-bg flex items-center gap-2"
-                  style={{ background: 'linear-gradient(135deg, #c9a22a, #f0d060)', boxShadow: '0 0 24px rgba(201,162,42,0.35)' }}>
-                  <Play size={14} />Iniciar Sessão
+                  style={{background:'linear-gradient(135deg,#c9a22a,#f0d060)',boxShadow:'0 0 24px rgba(201,162,42,0.35)'}}>
+                  <Play size={14}/>Iniciar Sessão
                 </button>
               )}
             </div>
           )}
 
-          {/* ── Character sheet panel ── */}
-          {sheetsOpen && (
+          {/* ── Sheets panel ── */}
+          {sheetsOpen&&(
             <CharacterSheetPanel
-              onClose={() => setSheetsOpen(false)}
-              members={members}
-              currentMemberId={currentMemberId}
-              isGM={isGM}
-              campaignId={campaign.id}
-              systemName={systemName}
+              onClose={()=>setSheetsOpen(false)}
+              members={members} currentMemberId={currentMemberId}
+              isGM={isGM} campaignId={campaign.id} systemName={systemName}
             />
           )}
 
           {/* ── Add-token popover ── */}
-          {addToken && (
-            <div
-              className="absolute z-50 rounded-xl border border-border shadow-2xl overflow-hidden"
+          {addToken&&(
+            <div className="absolute z-50 rounded-xl border border-border shadow-2xl overflow-hidden"
               style={{
-                left: Math.min(addToken.screenX + 8, (canvasRef.current?.offsetWidth ?? 600) - 240),
-                top: Math.min(addToken.screenY + 8, (canvasRef.current?.offsetHeight ?? 400) - 260),
-                width: 232,
-                background: 'rgba(15,15,28,0.97)',
-                backdropFilter: 'blur(12px)',
+                left:Math.min(addToken.screenX+8,(canvasRef.current?.offsetWidth??600)-240),
+                top:Math.min(addToken.screenY+8,(canvasRef.current?.offsetHeight??400)-260),
+                width:232,background:'rgba(15,15,28,0.97)',backdropFilter:'blur(12px)',
               }}
-              onMouseDown={e => e.stopPropagation()}
-            >
+              onMouseDown={e=>e.stopPropagation()}>
               <div className="px-3 py-2.5 border-b border-white/6 flex items-center justify-between">
                 <span className="font-cinzel text-[11px] font-bold text-saga-muted uppercase tracking-widest">Novo Token</span>
-                <button onClick={() => setAddToken(null)} className="text-saga-dim hover:text-saga-text"><X size={14} /></button>
+                <button onClick={()=>setAddToken(null)} className="text-saga-dim hover:text-saga-text"><X size={14}/></button>
               </div>
               <div className="p-3 flex flex-col gap-3">
-                {/* Label */}
-                <input
-                  autoFocus
-                  value={newTokenLabel}
-                  onChange={e => setNewTokenLabel(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') addNewToken(); if (e.key === 'Escape') setAddToken(null) }}
+                <input autoFocus value={newTokenLabel} onChange={e=>setNewTokenLabel(e.target.value)}
+                  onKeyDown={e=>{if(e.key==='Enter')addNewToken();if(e.key==='Escape')setAddToken(null)}}
                   placeholder="Nome do token..."
                   className="w-full px-3 py-2 rounded text-sm text-saga-text placeholder:text-saga-dim focus:outline-none"
-                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
-                />
-                {/* Type */}
+                  style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)'}}/>
                 <div className="flex gap-1.5">
-                  {(['player', 'enemy', 'npc'] as const).map(tp => (
-                    <button key={tp} onClick={() => setNewTokenType(tp)}
-                      className={`flex-1 py-1.5 rounded text-[10px] font-medium uppercase transition-all ${
-                        newTokenType === tp ? 'text-white' : 'text-saga-dim'
-                      }`}
+                  {(['player','enemy','npc'] as const).map(tp=>(
+                    <button key={tp} onClick={()=>setNewTokenType(tp)}
+                      className={`flex-1 py-1.5 rounded text-[10px] font-medium uppercase transition-all ${newTokenType===tp?'text-white':'text-saga-dim'}`}
                       style={{
-                        background: newTokenType === tp
-                          ? tp === 'player' ? 'rgba(124,58,237,0.4)' : tp === 'enemy' ? 'rgba(239,68,68,0.4)' : 'rgba(201,162,42,0.3)'
-                          : 'rgba(255,255,255,0.04)',
-                        border: newTokenType === tp
-                          ? `1px solid ${tp === 'player' ? 'rgba(124,58,237,0.6)' : tp === 'enemy' ? 'rgba(239,68,68,0.5)' : 'rgba(201,162,42,0.5)'}`
-                          : '1px solid rgba(255,255,255,0.08)',
+                        background:newTokenType===tp
+                          ?tp==='player'?'rgba(124,58,237,0.4)':tp==='enemy'?'rgba(239,68,68,0.4)':'rgba(201,162,42,0.3)'
+                          :'rgba(255,255,255,0.04)',
+                        border:newTokenType===tp
+                          ?`1px solid ${tp==='player'?'rgba(124,58,237,0.6)':tp==='enemy'?'rgba(239,68,68,0.5)':'rgba(201,162,42,0.5)'}`
+                          :'1px solid rgba(255,255,255,0.08)',
                       }}>
-                      {tp === 'player' ? 'Jogador' : tp === 'enemy' ? 'Inimigo' : 'NPC'}
+                      {tp==='player'?'Jogador':tp==='enemy'?'Inimigo':'NPC'}
                     </button>
                   ))}
                 </div>
-                {/* Color swatches */}
                 <div className="flex gap-1.5 flex-wrap">
-                  {TOKEN_COLORS.map(c => (
-                    <button key={c} onClick={() => setNewTokenColor(c)}
+                  {TOKEN_COLORS.map(c=>(
+                    <button key={c} onClick={()=>setNewTokenColor(c)}
                       className="w-5 h-5 rounded-full transition-all"
-                      style={{
-                        background: c,
-                        boxShadow: newTokenColor === c ? `0 0 0 2px rgba(255,255,255,0.9)` : 'none',
-                        transform: newTokenColor === c ? 'scale(1.2)' : 'scale(1)',
-                      }} />
+                      style={{background:c,boxShadow:newTokenColor===c?'0 0 0 2px rgba(255,255,255,0.9)':'none',transform:newTokenColor===c?'scale(1.2)':'scale(1)'}}/>
                   ))}
                 </div>
-                {/* Preview + confirm */}
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0"
-                    style={{ background: newTokenColor }}>
-                    {(newTokenLabel[0] ?? '?').toUpperCase()}
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style={{background:newTokenColor}}>
+                    {(newTokenLabel[0]??'?').toUpperCase()}
                   </div>
                   <button onClick={addNewToken}
                     className="flex-1 py-1.5 rounded text-[11px] font-bold text-bg font-cinzel"
-                    style={{ background: 'linear-gradient(135deg, #c9a22a, #f0d060)' }}>
+                    style={{background:'linear-gradient(135deg,#c9a22a,#f0d060)'}}>
                     Colocar no Mapa
                   </button>
                 </div>
@@ -637,47 +657,51 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
         </div>
 
         {/* ── Chat panel ── */}
-        <div className="w-[300px] flex flex-col shrink-0 border-l border-white/5"
-             style={{ background: 'rgba(10,10,22,0.96)' }}>
+        {chatOpen&&<div className="sm:hidden fixed inset-0 bg-black/50 z-40" onClick={()=>setChatOpen(false)}/>}
+        <div className={`
+          absolute sm:relative inset-y-0 right-0 z-50 sm:z-auto
+          w-[300px] flex flex-col shrink-0 border-l border-white/5
+          transition-transform duration-300
+          ${chatOpen?'translate-x-0':'-translate-x-0 sm:translate-x-0'}
+          hidden sm:flex ${chatOpen?'!flex':''}
+        `} style={{background:'rgba(10,10,22,0.96)'}}>
 
           <div className="px-4 py-3 border-b border-white/6 shrink-0 flex items-center justify-between">
             <span className="font-cinzel text-[11px] font-bold text-saga-muted uppercase tracking-widest">Chat da Sessão</span>
-            <div className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-saga-success" />
-              <span className="text-[10px] text-saga-success font-medium">{members.length} online</span>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-saga-success"/>
+                <span className="text-[10px] text-saga-success font-medium">{members.length} online</span>
+              </div>
+              <button onClick={()=>setChatOpen(false)} className="sm:hidden text-saga-dim hover:text-saga-text ml-1">
+                <X size={14}/>
+              </button>
             </div>
           </div>
 
           <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2">
-            {rolls.length === 0 && (
+            {rolls.length===0&&(
               <div className="flex flex-col items-center justify-center h-32 gap-2 opacity-50">
-                <Dice6 size={28} className="text-saga-dim" />
-                <p className="text-[11px] text-saga-dim text-center">
-                  {activeSession ? 'Nenhuma rolagem ainda.' : 'Inicie uma sessão.'}
-                </p>
+                <Dice6 size={28} className="text-saga-dim"/>
+                <p className="text-[11px] text-saga-dim text-center">{activeSession?'Nenhuma rolagem ainda.':'Inicie uma sessão.'}</p>
               </div>
             )}
-            {rolls.map(roll => {
-              const arr = Array.isArray(roll.rolls) ? (roll.rolls as number[]) : []
-              const isCrit = arr.length === 1 && arr[0] === 20 && roll.expression.includes('d20')
-              const isFail = arr.length === 1 && arr[0] === 1 && roll.expression.includes('d20')
-              const isNew = roll.id === lastRollId
+            {rolls.map(roll=>{
+              const arr=Array.isArray(roll.rolls)?(roll.rolls as number[]):[]
+              const isCrit=arr.length===1&&arr[0]===20&&roll.expression.includes('d20')
+              const isFail=arr.length===1&&arr[0]===1&&roll.expression.includes('d20')
+              const isNew=roll.id===lastRollId
               return (
                 <div key={roll.id}
-                  className={`rounded-lg overflow-hidden transition-all duration-300 ${isNew ? 'scale-[1.02]' : 'scale-100'}`}
+                  className={`rounded-lg overflow-hidden transition-all duration-300 ${isNew?'scale-[1.02]':'scale-100'}`}
                   style={{
-                    background: isCrit
-                      ? 'linear-gradient(135deg, rgba(201,162,42,0.12), rgba(201,162,42,0.04))'
-                      : isFail
-                        ? 'linear-gradient(135deg, rgba(239,68,68,0.12), rgba(239,68,68,0.04))'
-                        : 'rgba(255,255,255,0.03)',
-                    border: isCrit ? '1px solid rgba(201,162,42,0.3)' : isFail ? '1px solid rgba(239,68,68,0.25)' : '1px solid rgba(255,255,255,0.06)',
-                    boxShadow: isCrit ? '0 0 14px rgba(201,162,42,0.12)' : 'none',
+                    background:isCrit?'linear-gradient(135deg,rgba(201,162,42,0.12),rgba(201,162,42,0.04))':isFail?'linear-gradient(135deg,rgba(239,68,68,0.12),rgba(239,68,68,0.04))':'rgba(255,255,255,0.03)',
+                    border:isCrit?'1px solid rgba(201,162,42,0.3)':isFail?'1px solid rgba(239,68,68,0.25)':'1px solid rgba(255,255,255,0.06)',
+                    boxShadow:isCrit?'0 0 14px rgba(201,162,42,0.12)':'none',
                   }}>
-                  {(isCrit || isFail) && (
-                    <div className={`px-3 py-1 text-[10px] font-bold uppercase tracking-widest font-cinzel text-center flex items-center justify-center gap-1
-                      ${isCrit ? 'bg-gold/12 text-gold' : 'bg-saga-danger/12 text-saga-danger'}`}>
-                      {isCrit ? <><Sparkles size={10} />Crítico!</> : <><Skull size={10} />Falha Crítica</>}
+                  {(isCrit||isFail)&&(
+                    <div className={`px-3 py-1 text-[10px] font-bold uppercase tracking-widest font-cinzel text-center flex items-center justify-center gap-1 ${isCrit?'bg-gold/12 text-gold':'bg-saga-danger/12 text-saga-danger'}`}>
+                      {isCrit?<><Sparkles size={10}/>Crítico!</>:<><Skull size={10}/>Falha Crítica</>}
                     </div>
                   )}
                   <div className="p-3">
@@ -691,66 +715,82 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
                       <span className="text-[9px] text-saga-dim">{timeAgo(roll.rolledAt)}</span>
                     </div>
                     <div className="flex items-baseline gap-2 mb-1.5">
-                      <p className={`font-cinzel text-4xl font-bold leading-none ${isCrit ? 'text-gold' : isFail ? 'text-saga-danger' : 'text-saga-text'}`}
-                         style={isCrit ? { textShadow: '0 0 20px rgba(201,162,42,0.5)' } : undefined}>
+                      <p className={`font-cinzel text-4xl font-bold leading-none ${isCrit?'text-gold':isFail?'text-saga-danger':'text-saga-text'}`}
+                         style={isCrit?{textShadow:'0 0 20px rgba(201,162,42,0.5)'}:undefined}>
                         {roll.total}
                       </p>
-                      {roll.attribute && (
-                        <span className="text-[10px] text-purple-bright bg-purple-dim border border-purple/20 px-1.5 py-0.5 rounded">
-                          {roll.attribute}
-                        </span>
+                      {roll.attribute&&(
+                        <span className="text-[10px] text-purple-bright bg-purple-dim border border-purple/20 px-1.5 py-0.5 rounded">{roll.attribute}</span>
                       )}
                     </div>
                     <p className="text-[10px] text-saga-dim font-mono">
-                      {roll.expression} → [<span className={isCrit ? 'text-gold' : isFail ? 'text-saga-danger' : 'text-saga-muted'}>
-                        {arr.join(', ')}
-                      </span>]{roll.modifier !== 0 ? ` ${roll.modifier > 0 ? '+' : ''}${roll.modifier}` : ''}
+                      {roll.expression} → [<span className={isCrit?'text-gold':isFail?'text-saga-danger':'text-saga-muted'}>{arr.join(', ')}</span>]
+                      {roll.modifier!==0?` ${roll.modifier>0?'+':''}${roll.modifier}`:''}
                     </p>
                   </div>
                 </div>
               )
             })}
-            <div ref={chatEndRef} />
+            <div ref={chatEndRef}/>
           </div>
 
           {/* Input + Dice bar */}
-          <div className="shrink-0" style={{ borderTop: '1px solid rgba(255,255,255,0.07)', background: 'rgba(0,0,0,0.25)' }}>
+          <div className="shrink-0" style={{borderTop:'1px solid rgba(255,255,255,0.07)',background:'rgba(0,0,0,0.25)'}}>
             <div className="px-3 pt-2.5 pb-1">
               <input value="" readOnly disabled={!activeSession} placeholder="Escreva uma mensagem..."
                 className="w-full rounded px-3 py-2 text-[12px] text-saga-text placeholder:text-saga-dim focus:outline-none disabled:opacity-40"
-                style={{ background: 'rgba(255,255,255,0.05)' }} />
+                style={{background:'rgba(255,255,255,0.05)'}}/>
             </div>
-          <div className="px-3 pb-2.5 pt-1">
-            <p className="text-[9px] text-saga-dim uppercase tracking-widest mb-2 font-bold">Rolar Dado</p>
-            <div className="grid grid-cols-7 gap-1">
-              {DICE.map(die => {
-                const rolling = rollingDie === die
-                return (
-                  <button key={die} onClick={() => void rollDie(die)}
-                    disabled={!activeSession || !!rollingDie}
-                    title={`Rolar 1${die}`}
-                    className={`h-9 rounded flex flex-col items-center justify-center gap-0.5 transition-all select-none
-                      ${!activeSession || rollingDie ? 'opacity-30 cursor-not-allowed' : 'hover:scale-105 active:scale-95'}
-                      ${rolling ? 'ring-1 ring-gold/60' : ''}`}
-                    style={{
-                      background: rolling ? 'rgba(201,162,42,0.15)' : 'rgba(255,255,255,0.04)',
-                      border: rolling ? '1px solid rgba(201,162,42,0.45)' : '1px solid rgba(255,255,255,0.08)',
-                    }}>
-                    <Dice6 size={9} className="text-saga-dim" />
-                    <span className="text-[10px] font-cinzel font-bold text-gold leading-none">{die}</span>
+            <div className="px-3 pb-2.5 pt-1">
+              {/* Modifier row */}
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[9px] text-saga-dim uppercase tracking-widest font-bold">Rolar Dado</p>
+                <div className="flex items-center gap-1">
+                  <span className="text-[9px] text-saga-dim">Mod</span>
+                  <button onClick={()=>setRollModifier(m=>m-1)}
+                    className="w-4 h-4 rounded flex items-center justify-center text-saga-dim hover:text-saga-text hover:bg-white/8 transition-all">
+                    <Minus size={9}/>
                   </button>
-                )
-              })}
+                  <span className={`text-[10px] font-mono font-bold w-7 text-center ${rollModifier>0?'text-saga-success':rollModifier<0?'text-saga-danger':'text-saga-dim'}`}>
+                    {rollModifier>=0?'+':''}{rollModifier}
+                  </span>
+                  <button onClick={()=>setRollModifier(m=>m+1)}
+                    className="w-4 h-4 rounded flex items-center justify-center text-saga-dim hover:text-saga-text hover:bg-white/8 transition-all">
+                    <Plus size={9}/>
+                  </button>
+                  {rollModifier!==0&&(
+                    <button onClick={()=>setRollModifier(0)}
+                      className="text-[8px] text-saga-dim hover:text-saga-danger transition-colors ml-0.5">✕</button>
+                  )}
+                </div>
+              </div>
+              <div className="grid grid-cols-7 gap-1">
+                {DICE.map(die=>{
+                  const rolling=rollingDie===die
+                  return (
+                    <button key={die} onClick={()=>void rollDie(die)}
+                      disabled={!activeSession||!!rollingDie}
+                      title={`Rolar 1${die}${rollModifier!==0?(rollModifier>0?'+':'')+rollModifier:''}`}
+                      className={`h-9 rounded flex flex-col items-center justify-center gap-0.5 transition-all select-none
+                        ${!activeSession||rollingDie?'opacity-30 cursor-not-allowed':'hover:scale-105 active:scale-95'}
+                        ${rolling?'ring-1 ring-gold/60':''}`}
+                      style={{
+                        background:rolling?'rgba(201,162,42,0.15)':'rgba(255,255,255,0.04)',
+                        border:rolling?'1px solid rgba(201,162,42,0.45)':'1px solid rgba(255,255,255,0.08)',
+                      }}>
+                      <Dice6 size={9} className="text-saga-dim"/>
+                      <span className="text-[10px] font-cinzel font-bold text-gold leading-none">{die}</span>
+                    </button>
+                  )
+                })}
+              </div>
             </div>
-          </div>
           </div>
         </div>
       </div>
 
-      {isGM && (
-        <StartSessionModal campaignId={campaign.id} open={startSessionOpen} onClose={() => setStartSessionOpen(false)} />
-      )}
-      <MusicPlayer open={musicOpen} onClose={() => setMusicOpen(false)} />
+      {isGM&&<StartSessionModal campaignId={campaign.id} open={startSessionOpen} onClose={()=>setStartSessionOpen(false)}/>}
+      <MusicPlayer open={musicOpen} onClose={()=>setMusicOpen(false)}/>
     </div>
   )
 }
