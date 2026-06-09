@@ -1,14 +1,9 @@
-import { NextResponse } from 'next/server'
 import { prisma } from 'database'
-import { seedAndGetSystems } from '@/lib/systems-seed'
 
-export const dynamic = 'force-dynamic'
-
-// kept for POST handler reference only
 interface AttrDef { name: string; defaultDie: string; description?: string }
 interface SystemDef { name: string; category: string; attributes: AttrDef[] }
 
-const PRESET_SYSTEMS: SystemDef[] = [
+export const PRESET_SYSTEMS: SystemDef[] = [
   // ─── Família D20 ───────────────────────────────────────────────────────────
   {
     name: 'D&D 5e', category: 'fantasy',
@@ -105,7 +100,6 @@ const PRESET_SYSTEMS: SystemDef[] = [
   {
     name: 'Vampire: The Masquerade V5', category: 'world-of-darkness',
     attributes: [
-      // ── Atributos ──────────────────────────────────────────────────────────
       { name: 'Força',          defaultDie: 'd10', description: 'Físico — poder bruto e ataques' },
       { name: 'Destreza',       defaultDie: 'd10', description: 'Físico — rapidez e precisão' },
       { name: 'Vigor',          defaultDie: 'd10', description: 'Físico — resistência e durabilidade' },
@@ -115,7 +109,6 @@ const PRESET_SYSTEMS: SystemDef[] = [
       { name: 'Inteligência',   defaultDie: 'd10', description: 'Mental — raciocínio e memória' },
       { name: 'Raciocínio',     defaultDie: 'd10', description: 'Mental — reação e percepção imediata' },
       { name: 'Determinação',   defaultDie: 'd10', description: 'Mental — foco e força de vontade' },
-      // ── Habilidades Físicas ────────────────────────────────────────────────
       { name: 'Atletismo',      defaultDie: 'd10', description: 'Habilidade Física — esportes e acrobacias' },
       { name: 'Briga',          defaultDie: 'd10', description: 'Habilidade Física — combate sem armas' },
       { name: 'Artesanato',     defaultDie: 'd10', description: 'Habilidade Física — criar e reparar objetos' },
@@ -125,7 +118,6 @@ const PRESET_SYSTEMS: SystemDef[] = [
       { name: 'Melê',           defaultDie: 'd10', description: 'Habilidade Física — combate com armas brancas' },
       { name: 'Furtividade',    defaultDie: 'd10', description: 'Habilidade Física — mover-se sem ser detectado' },
       { name: 'Sobrevivência',  defaultDie: 'd10', description: 'Habilidade Física — sobreviver no ambiente' },
-      // ── Habilidades Sociais ────────────────────────────────────────────────
       { name: 'Trato Animal',   defaultDie: 'd10', description: 'Habilidade Social — lidar com animais' },
       { name: 'Etiqueta',       defaultDie: 'd10', description: 'Habilidade Social — protocolo social' },
       { name: 'Intuição',       defaultDie: 'd10', description: 'Habilidade Social — ler emoções e intenções' },
@@ -135,7 +127,6 @@ const PRESET_SYSTEMS: SystemDef[] = [
       { name: 'Persuasão',      defaultDie: 'd10', description: 'Habilidade Social — convencer e negociar' },
       { name: 'Astúcia de Rua', defaultDie: 'd10', description: 'Habilidade Social — navegar o submundo' },
       { name: 'Subterfúgio',    defaultDie: 'd10', description: 'Habilidade Social — mentir e dissimular' },
-      // ── Habilidades Mentais ────────────────────────────────────────────────
       { name: 'Acadêmicos',     defaultDie: 'd10', description: 'Habilidade Mental — história e humanidades' },
       { name: 'Consciência',    defaultDie: 'd10', description: 'Habilidade Mental — percepção do sobrenatural' },
       { name: 'Finanças',       defaultDie: 'd10', description: 'Habilidade Mental — economia e negócios' },
@@ -145,7 +136,6 @@ const PRESET_SYSTEMS: SystemDef[] = [
       { name: 'Política',       defaultDie: 'd10', description: 'Habilidade Mental — estruturas de poder' },
       { name: 'Ciências',       defaultDie: 'd10', description: 'Habilidade Mental — ciências naturais' },
       { name: 'Tecnologia',     defaultDie: 'd10', description: 'Habilidade Mental — eletrônica e sistemas' },
-      // ── Recursos vampíricos ────────────────────────────────────────────────
       { name: 'Potência de Sangue', defaultDie: 'd10', description: 'Nível de poder vampírico (1-10)' },
       { name: 'Humanidade',     defaultDie: 'd10', description: 'Conexão com a natureza humana (0-10)' },
       { name: 'Fome',           defaultDie: 'd10', description: 'Nível atual de fome por sangue (1-5)' },
@@ -154,7 +144,6 @@ const PRESET_SYSTEMS: SystemDef[] = [
   {
     name: 'Vampire: The Masquerade V20', category: 'world-of-darkness',
     attributes: [
-      // ── Atributos ──────────────────────────────────────────────────────────
       { name: 'Força',          defaultDie: 'd10', description: 'Físico — poder bruto' },
       { name: 'Destreza',       defaultDie: 'd10', description: 'Físico — rapidez e agilidade' },
       { name: 'Vigor',          defaultDie: 'd10', description: 'Físico — saúde e resistência' },
@@ -164,7 +153,6 @@ const PRESET_SYSTEMS: SystemDef[] = [
       { name: 'Percepção',      defaultDie: 'd10', description: 'Mental — consciência do ambiente' },
       { name: 'Inteligência',   defaultDie: 'd10', description: 'Mental — raciocínio e aprendizado' },
       { name: 'Raciocínio',     defaultDie: 'd10', description: 'Mental — reação rápida e improviso' },
-      // ── Talentos ───────────────────────────────────────────────────────────
       { name: 'Alerta',         defaultDie: 'd10', description: 'Talento — notar ameaças e emboscadas' },
       { name: 'Atletismo',      defaultDie: 'd10', description: 'Talento — proezas físicas e acrobacias' },
       { name: 'Conscientização',defaultDie: 'd10', description: 'Talento — percepção do sobrenatural' },
@@ -175,7 +163,6 @@ const PRESET_SYSTEMS: SystemDef[] = [
       { name: 'Liderança',      defaultDie: 'd10', description: 'Talento — inspirar e comandar' },
       { name: 'Astúcia de Rua', defaultDie: 'd10', description: 'Talento — navegar o submundo' },
       { name: 'Subterfúgio',    defaultDie: 'd10', description: 'Talento — mentir e dissimular' },
-      // ── Perícias ───────────────────────────────────────────────────────────
       { name: 'Trato Animal',   defaultDie: 'd10', description: 'Perícia — lidar com animais' },
       { name: 'Artesanato',     defaultDie: 'd10', description: 'Perícia — criar e reparar objetos' },
       { name: 'Direção',        defaultDie: 'd10', description: 'Perícia — operar veículos' },
@@ -186,7 +173,6 @@ const PRESET_SYSTEMS: SystemDef[] = [
       { name: 'Performance',    defaultDie: 'd10', description: 'Perícia — atuar e se apresentar' },
       { name: 'Furtividade',    defaultDie: 'd10', description: 'Perícia — mover-se sem ser detectado' },
       { name: 'Sobrevivência',  defaultDie: 'd10', description: 'Perícia — sobreviver no ambiente' },
-      // ── Conhecimentos ──────────────────────────────────────────────────────
       { name: 'Acadêmicos',     defaultDie: 'd10', description: 'Conhecimento — história e humanidades' },
       { name: 'Computador',     defaultDie: 'd10', description: 'Conhecimento — tecnologia digital' },
       { name: 'Finanças',       defaultDie: 'd10', description: 'Conhecimento — economia e negócios' },
@@ -197,11 +183,9 @@ const PRESET_SYSTEMS: SystemDef[] = [
       { name: 'Política',       defaultDie: 'd10', description: 'Conhecimento — estruturas de poder' },
       { name: 'Ciências',       defaultDie: 'd10', description: 'Conhecimento — ciências naturais' },
       { name: 'Tecnologia',     defaultDie: 'd10', description: 'Conhecimento — eletrônica e engenharia' },
-      // ── Virtudes ───────────────────────────────────────────────────────────
       { name: 'Consciência',    defaultDie: 'd10', description: 'Virtude — discernimento moral (1-5)' },
       { name: 'Autocontrole',   defaultDie: 'd10', description: 'Virtude — controle sobre a Besta (1-5)' },
       { name: 'Coragem',        defaultDie: 'd10', description: 'Virtude — enfrentar o Rötschreck (1-5)' },
-      // ── Recursos vampíricos ────────────────────────────────────────────────
       { name: 'Força de Vontade', defaultDie: 'd10', description: 'Reserva de vontade (máx 10)' },
       { name: 'Humanidade',     defaultDie: 'd10', description: 'Moralidade e conexão humana (0-10)' },
       { name: 'Geração',        defaultDie: 'd10', description: 'Distância do Caim (geração vampírica)' },
@@ -220,7 +204,6 @@ const PRESET_SYSTEMS: SystemDef[] = [
       { name: 'Percepção',      defaultDie: 'd10', description: 'Mental — sentidos aguçados de lobisomem' },
       { name: 'Inteligência',   defaultDie: 'd10', description: 'Mental — raciocínio e conhecimento espiritual' },
       { name: 'Raciocínio',     defaultDie: 'd10', description: 'Mental — reação e instinto' },
-      // Garou-specific
       { name: 'Raiva',          defaultDie: 'd10', description: 'Reserva de fúria sagrada (Rage)' },
       { name: 'Gnosis',         defaultDie: 'd10', description: 'Conexão com o mundo espiritual' },
       { name: 'Força de Vontade', defaultDie: 'd10', description: 'Reserva de vontade e autocontrole' },
@@ -241,7 +224,6 @@ const PRESET_SYSTEMS: SystemDef[] = [
       { name: 'Percepção',      defaultDie: 'd10', description: 'Mental' },
       { name: 'Inteligência',   defaultDie: 'd10', description: 'Mental' },
       { name: 'Raciocínio',     defaultDie: 'd10', description: 'Mental' },
-      // Spheres
       { name: 'Correspondência',defaultDie: 'd10', description: 'Esfera — espaço e conexões' },
       { name: 'Entropia',       defaultDie: 'd10', description: 'Esfera — caos, ordem e destino' },
       { name: 'Forças',         defaultDie: 'd10', description: 'Esfera — energias físicas (fogo, raio)' },
@@ -251,7 +233,6 @@ const PRESET_SYSTEMS: SystemDef[] = [
       { name: 'Primo',          defaultDie: 'd10', description: 'Esfera — essência mágica pura' },
       { name: 'Espírito',       defaultDie: 'd10', description: 'Esfera — Umbra e seres espirituais' },
       { name: 'Tempo',          defaultDie: 'd10', description: 'Esfera — percepção e manipulação do tempo' },
-      // Resources
       { name: 'Arete',          defaultDie: 'd10', description: 'Potencial mágico máximo (1-10)' },
       { name: 'Quintessência',  defaultDie: 'd10', description: 'Reserva de energia mágica' },
       { name: 'Paradoxo',       defaultDie: 'd10', description: 'Acumulação de backlash mágico' },
@@ -270,7 +251,6 @@ const PRESET_SYSTEMS: SystemDef[] = [
       { name: 'Presença',       defaultDie: 'd10', description: 'Social — impacto imediato' },
       { name: 'Manipulação',    defaultDie: 'd10', description: 'Social — influência sutil' },
       { name: 'Compostura',     defaultDie: 'd10', description: 'Social — equilíbrio emocional' },
-      // Arcana
       { name: 'Acácia',         defaultDie: 'd10', description: 'Arcano — fogo e transformação' },
       { name: 'Morte',          defaultDie: 'd10', description: 'Arcano — espectros e entropia' },
       { name: 'Destino',        defaultDie: 'd10', description: 'Arcano — probabilidade e laços' },
@@ -536,55 +516,60 @@ const PRESET_SYSTEMS: SystemDef[] = [
   },
 
   // ─── Personalizado ────────────────────────────────────────────────────────
-  {
-    name: 'Personalizado', category: 'custom',
-    attributes: [],
-  },
+  { name: 'Personalizado', category: 'custom', attributes: [] },
 ]
 
-export async function GET() {
-  try {
-    const systems = await seedAndGetSystems()
-    return NextResponse.json(systems)
-  } catch (e) {
-    console.error(e)
-    return NextResponse.json({ error: 'Erro ao buscar sistemas' }, { status: 500 })
+export async function seedAndGetSystems() {
+  for (const preset of PRESET_SYSTEMS) {
+    const existing = await prisma.rPGSystem.findFirst({
+      where: { name: preset.name, isPreset: true },
+      include: { attributes: true },
+    })
+    if (!existing) {
+      const system = await prisma.rPGSystem.create({
+        data: { name: preset.name, isPreset: true, category: preset.category },
+      })
+      if (preset.attributes.length > 0) {
+        await prisma.systemAttribute.createMany({
+          data: preset.attributes.map(a => ({
+            name: a.name, defaultDie: a.defaultDie,
+            description: a.description ?? null, systemId: system.id,
+          })),
+        })
+      }
+    } else {
+      if (existing.category === 'custom' && preset.category !== 'custom') {
+        await prisma.rPGSystem.update({
+          where: { id: existing.id },
+          data: { category: preset.category },
+        }).catch(() => null)
+      }
+      const existingNames = new Set(existing.attributes.map(a => a.name))
+      const newAttrs = preset.attributes.filter(a => !existingNames.has(a.name))
+      if (newAttrs.length > 0) {
+        await prisma.systemAttribute.createMany({
+          data: newAttrs.map(a => ({
+            name: a.name, defaultDie: a.defaultDie,
+            description: a.description ?? null, systemId: existing.id,
+          })),
+          skipDuplicates: true,
+        }).catch(() => null)
+      }
+    }
   }
-}
 
-export async function POST(req: Request) {
-  const { getServerSession } = await import('next-auth')
-  const { authOptions } = await import('@/lib/auth')
-
-  const session = await getServerSession(authOptions)
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  const body = await req.json() as {
-    name?: string; description?: string; imageUrl?: string; category?: string
-  }
-  if (!body.name?.trim()) return NextResponse.json({ error: 'Nome obrigatório' }, { status: 400 })
-
-  const user = await prisma.user.findUnique({
-    where: { discordId: session.user.discordId },
-  }).catch(() => null)
-  if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
-
-  const imageUrl = body.imageUrl?.trim() || null
-  if (imageUrl && !/^https:\/\//i.test(imageUrl)) {
-    return NextResponse.json({ error: 'imageUrl deve começar com https://' }, { status: 400 })
-  }
-
-  const system = await prisma.rPGSystem.create({
-    data: {
-      name: body.name.trim().slice(0, 100),
-      description: body.description?.trim().slice(0, 500) || null,
-      imageUrl,
-      category: body.category ?? 'custom',
-      isPreset: false,
-      creatorId: user.id,
+  // Only return preset systems OR systems explicitly created by a user
+  return prisma.rPGSystem.findMany({
+    where: {
+      OR: [
+        { isPreset: true },
+        { isPreset: false, creatorId: { not: null } },
+      ],
     },
-    include: { creator: { select: { username: true } }, attributes: true },
+    include: {
+      attributes: { orderBy: { name: 'asc' } },
+      creator: { select: { username: true, discordId: true } },
+    },
+    orderBy: [{ isPreset: 'desc' }, { name: 'asc' }],
   })
-
-  return NextResponse.json(system, { status: 201 })
 }

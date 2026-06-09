@@ -27,6 +27,9 @@ export async function POST(req: Request) {
     maxHp?: number
     imageUrl?: string
     systemId?: string | null
+    // import flow
+    systemName?: string
+    importedAttributes?: { name: string; value: number }[]
   }
 
   if (!body.campaignId) return NextResponse.json({ error: 'campaignId obrigatório' }, { status: 400 })
@@ -64,8 +67,71 @@ export async function POST(req: Request) {
     },
   })
 
-  // Auto-seed attributes from preset system
-  if (body.systemId) {
+  if (body.importedAttributes && body.importedAttributes.length > 0) {
+    // ── Imported attributes: find or create a user system to hold them ──────
+    const imported = body.importedAttributes.filter(a => a.name.trim())
+    const sysName = body.systemName?.trim().slice(0, 100) || 'Ficha Importada'
+
+    // Look for an existing user-owned system with this name
+    let targetSystem = await prisma.rPGSystem.findFirst({
+      where: { name: sysName, creatorId: user.id, isPreset: false },
+      include: { attributes: true },
+    }).catch(() => null)
+
+    if (!targetSystem) {
+      // Try matching a preset system by name to copy its category
+      const preset = await prisma.rPGSystem.findFirst({
+        where: { name: sysName, isPreset: true },
+        select: { category: true },
+      }).catch(() => null)
+
+      targetSystem = await prisma.rPGSystem.create({
+        data: {
+          name: sysName,
+          category: preset?.category ?? 'custom',
+          isPreset: false,
+          creatorId: user.id,
+        },
+        include: { attributes: true },
+      })
+    }
+
+    // Match imported attr names to existing system attributes (case-insensitive)
+    const existingByName = new Map(
+      targetSystem.attributes.map(a => [a.name.toLowerCase(), a.id])
+    )
+
+    const toCreate = imported.filter(a => !existingByName.has(a.name.toLowerCase()))
+    if (toCreate.length > 0) {
+      await prisma.systemAttribute.createMany({
+        data: toCreate.map(a => ({
+          name: a.name.trim().slice(0, 80),
+          defaultDie: 'd20',
+          systemId: targetSystem!.id,
+        })),
+        skipDuplicates: true,
+      })
+    }
+
+    // Re-fetch all attributes for this system to get their IDs
+    const allAttrs = await prisma.systemAttribute.findMany({
+      where: { systemId: targetSystem.id },
+    })
+    const attrIdByName = new Map(allAttrs.map(a => [a.name.toLowerCase(), a.id]))
+
+    await prisma.characterAttribute.createMany({
+      data: imported
+        .map(a => ({
+          sheetId: character.id,
+          attributeId: attrIdByName.get(a.name.toLowerCase()) ?? '',
+          value: a.value ?? 0,
+        }))
+        .filter(a => a.attributeId),
+      skipDuplicates: true,
+    }).catch(() => null)
+
+  } else if (body.systemId) {
+    // ── Normal flow: seed from preset system ─────────────────────────────────
     const systemAttrs = await prisma.systemAttribute.findMany({
       where: { systemId: body.systemId },
     }).catch(() => [])
