@@ -21,6 +21,7 @@ model User {
 
   memberships CampaignMember[]
   notes       Note[]
+  systems     RPGSystem[]
 }
 
 // ─── Campanha ──────────────────────────────────────────────
@@ -68,13 +69,19 @@ model CampaignMember {
 // ─── Sistema de RPG ────────────────────────────────────────
 
 model RPGSystem {
-  id        String   @id @default(cuid())
-  name      String
-  isPreset  Boolean  @default(false)
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  imageUrl    String?
+  category    String   @default("custom")
+  isPreset    Boolean  @default(false)
+  createdAt   DateTime @default(now())
 
-  attributes SystemAttribute[]
-  campaigns  Campaign[]
+  creatorId   String?
+  creator     User?    @relation(fields: [creatorId], references: [id])
+
+  attributes  SystemAttribute[]
+  campaigns   Campaign[]
 }
 
 model SystemAttribute {

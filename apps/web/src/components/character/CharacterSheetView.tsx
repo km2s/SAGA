@@ -52,16 +52,38 @@ function isPercentile(attr: Attr) {
 
 function categorizeWoD(attrs: Attr[]) {
   const physical: Attr[] = [], social: Attr[] = [], mental: Attr[] = []
+  // V20-style abilities
+  const talents: Attr[] = [], skills: Attr[] = [], knowledges: Attr[] = []
+  // V5-style skills (by attribute category)
+  const physSkills: Attr[] = [], socSkills: Attr[] = [], menSkills: Attr[] = []
+  // Common advantages
+  const disciplines: Attr[] = [], backgrounds: Attr[] = [], virtues: Attr[] = []
   const powers: Attr[] = [], resources: Attr[] = []
+
   for (const a of attrs) {
     const d = a.attribute.description ?? ''
-    if (d.startsWith('Físico')) physical.push(a)
-    else if (d.startsWith('Social')) social.push(a)
-    else if (d.startsWith('Mental')) mental.push(a)
+    if (d.startsWith('Habilidade Física'))      physSkills.push(a)
+    else if (d.startsWith('Habilidade Social')) socSkills.push(a)
+    else if (d.startsWith('Habilidade Mental')) menSkills.push(a)
+    else if (d.startsWith('Físico'))            physical.push(a)
+    else if (d.startsWith('Social'))            social.push(a)
+    else if (d.startsWith('Mental'))            mental.push(a)
+    else if (d.startsWith('Talento'))           talents.push(a)
+    else if (d.startsWith('Perícia'))           skills.push(a)
+    else if (d.startsWith('Conhecimento'))      knowledges.push(a)
+    else if (d.startsWith('Disciplina'))        disciplines.push(a)
+    else if (d.startsWith('Antecedente'))       backgrounds.push(a)
+    else if (d.startsWith('Virtude'))           virtues.push(a)
     else if (d.startsWith('Esfera') || d.startsWith('Arcano')) powers.push(a)
     else resources.push(a)
   }
-  return { physical, social, mental, powers, resources }
+  return {
+    physical, social, mental,
+    talents, skills, knowledges,
+    physSkills, socSkills, menSkills,
+    disciplines, backgrounds, virtues,
+    powers, resources,
+  }
 }
 
 function groupByPrefix(attrs: Attr[]) {
@@ -365,100 +387,141 @@ function FantasyCombatTab({ attrs, characterId, canEdit, onDelete, level }: {
 
 // ─── World of Darkness ────────────────────────────────────────────────────────
 
-function WoDAttrCell({ attr, characterId, canEdit, onSaved }: {
+function WoDAttrCell({ attr, characterId, canEdit, onSaved, onDelete, max = 5 }: {
   attr: Attr; characterId: string; canEdit: boolean; onSaved: () => void
+  onDelete?: (id: string) => void; max?: number
 }) {
   return (
-    <div className="py-2 border-b last:border-0" style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
+    <div className="py-2 border-b last:border-0 group" style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
       <div className="flex items-center justify-between mb-1.5">
-        <span className="font-almendra text-[12px] text-saga-text leading-tight">{attr.attribute.name}</span>
-        <span className="font-cinzel text-[11px] text-gold/70 ml-2 shrink-0">{attr.value}</span>
+        <span className="font-almendra text-[11px] text-saga-text leading-tight truncate" title={attr.attribute.name}>
+          {attr.attribute.name}
+        </span>
+        <div className="flex items-center gap-1 shrink-0 ml-1">
+          {canEdit && onDelete && (
+            <button onClick={() => onDelete(attr.id)}
+              className="opacity-0 group-hover:opacity-100 transition-opacity text-saga-danger/60 hover:text-saga-danger">
+              <X size={9} />
+            </button>
+          )}
+          <span className="font-cinzel text-[11px] text-gold/70">{attr.value}</span>
+        </div>
       </div>
-      <WoDDots
-        value={attr.value} max={5} editable={canEdit}
-        attrId={attr.id} characterId={characterId} onSaved={onSaved}
-      />
+      <WoDDots value={attr.value} max={max} editable={canEdit}
+        attrId={attr.id} characterId={characterId} onSaved={onSaved} />
     </div>
   )
 }
 
-function WoDAttrTab({ physical, social, mental, characterId, canEdit, onSaved }: {
-  physical: Attr[]; social: Attr[]; mental: Attr[]
-  characterId: string; canEdit: boolean; onSaved: () => void
+// Shared 3-column grid used for Attributes, Abilities, and Advantages
+function WoDThreeColGrid({ cols, children }: {
+  cols: { label: string; hint?: string }[]
+  children: React.ReactNode
 }) {
-  const cols = [
-    { label: 'Físico', items: physical },
-    { label: 'Social', items: social },
-    { label: 'Mental', items: mental },
-  ]
-
   return (
     <div>
-      {/* Column headers */}
       <div className="grid grid-cols-3 gap-3 mb-3">
-        {cols.map(({ label }) => (
+        {cols.map(({ label, hint }) => (
           <div key={label} className="text-center">
             <p className="font-almendra text-[9px] font-bold text-saga-dim uppercase tracking-[0.2em]">{label}</p>
+            {hint && <p className="text-[8px] text-saga-dim/50 mt-0.5">{hint}</p>}
             <div className="mt-1.5 h-px" style={{ background: 'rgba(201,162,42,0.2)' }} />
           </div>
         ))}
       </div>
-
-      {/* 3-column attribute grid */}
-      <div className="grid grid-cols-3 gap-3">
-        {cols.map(({ label, items }) => (
-          <div
-            key={label}
-            className="rounded-lg px-3 py-1"
-            style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}
-          >
-            {items.length === 0 ? (
-              <p className="text-[10px] text-saga-dim py-3 text-center">—</p>
-            ) : (
-              items.map(attr => (
-                <WoDAttrCell key={attr.id} attr={attr} characterId={characterId} canEdit={canEdit} onSaved={onSaved} />
-              ))
-            )}
-          </div>
-        ))}
-      </div>
+      <div className="grid grid-cols-3 gap-3">{children}</div>
     </div>
   )
 }
 
-function WoDPowersTab({ powers, characterId, canEdit, onSaved, systemName }: {
-  powers: Attr[]; characterId: string; canEdit: boolean; onSaved: () => void; systemName: string | null
+function WoDCol({ items, characterId, canEdit, onSaved, onDelete, emptyHint }: {
+  items: Attr[]; characterId: string; canEdit: boolean; onSaved: () => void
+  onDelete?: (id: string) => void; emptyHint?: string
 }) {
-  const label =
-    systemName?.includes('Ascension') ? 'Esferas' :
-    systemName?.includes('Awakening') ? 'Arcanos' :
-    'Poderes'
-
   return (
-    <div>
-      <SectionDivider title={label} />
-      {powers.length === 0 ? (
-        <p className="text-sm text-saga-dim text-center py-6">Nenhum poder registrado.</p>
+    <div className="rounded-lg px-3 py-1 min-h-[60px]"
+      style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+      {items.length === 0 ? (
+        <p className="text-[10px] text-saga-dim py-4 text-center italic">{emptyHint ?? '—'}</p>
       ) : (
-        <div className="space-y-0.5">
-          {powers.map(attr => {
-            const cleanDesc = (attr.attribute.description ?? '').replace(/^[^—]+—\s*/, '')
-            return (
-              <div key={attr.id} className="flex items-start gap-4 py-3 px-3 rounded hover:bg-white/[0.02] transition-all">
-                <div className="flex-1 min-w-0">
-                  <span className="font-almendra text-sm text-saga-text">{attr.attribute.name}</span>
-                  {cleanDesc && <p className="text-[10px] text-saga-dim truncate mt-0.5">{cleanDesc}</p>}
-                </div>
-                <WoDDots value={attr.value} max={5} editable={canEdit} attrId={attr.id} characterId={characterId} onSaved={onSaved} />
-                <span className="font-cinzel font-bold text-sm text-gold">{attr.value}</span>
-              </div>
-            )
-          })}
+        items.map(attr => (
+          <WoDAttrCell key={attr.id} attr={attr} characterId={characterId}
+            canEdit={canEdit} onSaved={onSaved} onDelete={onDelete} />
+        ))
+      )}
+    </div>
+  )
+}
+
+function WoDAttrTab({ physical, social, mental, characterId, canEdit, onSaved, onDelete }: {
+  physical: Attr[]; social: Attr[]; mental: Attr[]
+  characterId: string; canEdit: boolean; onSaved: () => void; onDelete: (id: string) => void
+}) {
+  return (
+    <WoDThreeColGrid cols={[{ label: 'Físico' }, { label: 'Social' }, { label: 'Mental' }]}>
+      <WoDCol items={physical} characterId={characterId} canEdit={canEdit} onSaved={onSaved} onDelete={onDelete} />
+      <WoDCol items={social}   characterId={characterId} canEdit={canEdit} onSaved={onSaved} onDelete={onDelete} />
+      <WoDCol items={mental}   characterId={characterId} canEdit={canEdit} onSaved={onSaved} onDelete={onDelete} />
+    </WoDThreeColGrid>
+  )
+}
+
+function WoDAbilitiesTab({ col1, col2, col3, col1Label, col2Label, col3Label, characterId, canEdit, onSaved, onAdd, onDelete }: {
+  col1: Attr[]; col2: Attr[]; col3: Attr[]
+  col1Label: string; col2Label: string; col3Label: string
+  characterId: string; canEdit: boolean; onSaved: () => void
+  onAdd: () => void; onDelete: (id: string) => void
+}) {
+  return (
+    <div className="space-y-4">
+      <WoDThreeColGrid cols={[{ label: col1Label }, { label: col2Label }, { label: col3Label }]}>
+        <WoDCol items={col1} characterId={characterId} canEdit={canEdit} onSaved={onSaved} onDelete={onDelete} emptyHint="—" />
+        <WoDCol items={col2} characterId={characterId} canEdit={canEdit} onSaved={onSaved} onDelete={onDelete} emptyHint="—" />
+        <WoDCol items={col3} characterId={characterId} canEdit={canEdit} onSaved={onSaved} onDelete={onDelete} emptyHint="—" />
+      </WoDThreeColGrid>
+      {canEdit && (
+        <div className="flex justify-end">
+          <AddBtn onClick={onAdd} />
         </div>
       )}
     </div>
   )
 }
+
+function WoDAdvantagesTab({ disciplines, backgrounds, virtues, powers, characterId, canEdit, onSaved, onAdd, onDelete, systemName }: {
+  disciplines: Attr[]; backgrounds: Attr[]; virtues: Attr[]; powers: Attr[]
+  characterId: string; canEdit: boolean; onSaved: () => void
+  onAdd: () => void; onDelete: (id: string) => void; systemName: string | null
+}) {
+  const rightLabel =
+    virtues.length > 0 ? 'Virtudes' :
+    systemName?.includes('Ascension') ? 'Esferas' :
+    systemName?.includes('Awakening') ? 'Arcanos' : 'Poderes'
+  const rightItems = virtues.length > 0 ? [...virtues, ...powers] : powers
+
+  return (
+    <div className="space-y-4">
+      <WoDThreeColGrid cols={[
+        { label: 'Disciplinas', hint: canEdit ? 'prefixo: Disciplina —' : undefined },
+        { label: 'Antecedentes', hint: canEdit ? 'prefixo: Antecedente —' : undefined },
+        { label: rightLabel },
+      ]}>
+        <WoDCol items={disciplines} characterId={characterId} canEdit={canEdit} onSaved={onSaved}
+          onDelete={onDelete} emptyHint={canEdit ? 'Adicione via botão abaixo' : '—'} />
+        <WoDCol items={backgrounds} characterId={characterId} canEdit={canEdit} onSaved={onSaved}
+          onDelete={onDelete} emptyHint={canEdit ? 'Adicione via botão abaixo' : '—'} />
+        <WoDCol items={rightItems} characterId={characterId} canEdit={canEdit} onSaved={onSaved}
+          onDelete={virtues.length === 0 ? onDelete : undefined} />
+      </WoDThreeColGrid>
+      {canEdit && (
+        <div className="flex justify-end">
+          <AddBtn onClick={onAdd} />
+        </div>
+      )}
+    </div>
+  )
+}
+
 
 function WoDResourcesTab({ resources, characterId, canEdit, onSaved }: {
   resources: Attr[]; characterId: string; canEdit: boolean; onSaved: () => void
@@ -656,8 +719,19 @@ export function CharacterSheetView({ characterId, characterLevel, attributes, ca
     tabs.push({ id: 'combate', label: 'Combate' })
   } else if (category === 'world-of-darkness') {
     tabs.push({ id: 'atributos', label: 'Atributos' })
-    if (wod && wod.powers.length > 0) tabs.push({ id: 'poderes', label: 'Poderes' })
-    if (wod && wod.resources.length > 0) tabs.push({ id: 'recursos', label: 'Recursos' })
+    if (wod) {
+      const hasAbilities =
+        wod.talents.length + wod.skills.length + wod.knowledges.length +
+        wod.physSkills.length + wod.socSkills.length + wod.menSkills.length > 0
+      if (hasAbilities) tabs.push({ id: 'habilidades', label: 'Habilidades' })
+
+      const hasAdvantages =
+        wod.disciplines.length + wod.backgrounds.length +
+        wod.virtues.length + wod.powers.length > 0
+      if (hasAdvantages) tabs.push({ id: 'vantagens', label: 'Vantagens' })
+
+      if (wod.resources.length > 0) tabs.push({ id: 'recursos', label: 'Recursos' })
+    }
   } else if (category === 'horror') {
     tabs.push({ id: 'caracteristicas', label: 'Características' })
   } else {
@@ -735,13 +809,37 @@ export function CharacterSheetView({ characterId, characterLevel, attributes, ca
           <WoDAttrTab
             physical={wod.physical} social={wod.social} mental={wod.mental}
             characterId={characterId} canEdit={canEdit} onSaved={() => router.refresh()}
+            onDelete={id => setDeleteTarget(id)}
           />
         )}
 
-        {currentTab === 'poderes' && category === 'world-of-darkness' && wod && (
-          <WoDPowersTab
-            powers={wod.powers} characterId={characterId} canEdit={canEdit}
-            onSaved={() => router.refresh()} systemName={systemName}
+        {currentTab === 'habilidades' && category === 'world-of-darkness' && wod && (() => {
+          const useV20 = wod.talents.length + wod.skills.length + wod.knowledges.length > 0
+          return (
+            <WoDAbilitiesTab
+              col1={useV20 ? wod.talents   : wod.physSkills}
+              col2={useV20 ? wod.skills    : wod.socSkills}
+              col3={useV20 ? wod.knowledges: wod.menSkills}
+              col1Label={useV20 ? 'Talentos'     : 'Físicas'}
+              col2Label={useV20 ? 'Perícias'     : 'Sociais'}
+              col3Label={useV20 ? 'Conhecimentos': 'Mentais'}
+              characterId={characterId} canEdit={canEdit}
+              onSaved={() => router.refresh()}
+              onAdd={() => setAddOpen(true)}
+              onDelete={id => setDeleteTarget(id)}
+            />
+          )
+        })()}
+
+        {currentTab === 'vantagens' && category === 'world-of-darkness' && wod && (
+          <WoDAdvantagesTab
+            disciplines={wod.disciplines} backgrounds={wod.backgrounds}
+            virtues={wod.virtues} powers={wod.powers}
+            characterId={characterId} canEdit={canEdit}
+            onSaved={() => router.refresh()}
+            onAdd={() => setAddOpen(true)}
+            onDelete={id => setDeleteTarget(id)}
+            systemName={systemName}
           />
         )}
 

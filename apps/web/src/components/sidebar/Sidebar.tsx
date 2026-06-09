@@ -14,6 +14,7 @@ import {
   ChevronRight,
   Menu,
   X,
+  Library,
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -85,6 +86,7 @@ export function Sidebar({ campaigns = [], discordClientId }: SidebarProps) {
           {[
             { href: '/dashboard',   label: 'Dashboard',        Icon: LayoutDashboard },
             { href: '/characters',  label: 'Meus Personagens', Icon: ScrollText },
+            { href: '/systems',     label: 'Sistemas',         Icon: Library },
           ].map(({ href, label, Icon }) => (
             <Link key={href} href={href} onClick={() => setMobileOpen(false)}>
               <div className={`flex items-center gap-2.5 px-3 py-2.5 rounded text-sm transition-all cursor-pointer

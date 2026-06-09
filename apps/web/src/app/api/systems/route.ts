@@ -544,34 +544,50 @@ async function seedAndGetSystems() {
   for (const preset of PRESET_SYSTEMS) {
     const existing = await prisma.rPGSystem.findFirst({
       where: { name: preset.name, isPreset: true },
+      include: { attributes: true },
     })
     if (!existing) {
       const system = await prisma.rPGSystem.create({
-        data: { name: preset.name, isPreset: true },
+        data: { name: preset.name, isPreset: true, category: preset.category },
       })
       if (preset.attributes.length > 0) {
         await prisma.systemAttribute.createMany({
           data: preset.attributes.map(a => ({
-            name: a.name,
-            defaultDie: a.defaultDie,
-            description: a.description ?? null,
-            systemId: system.id,
+            name: a.name, defaultDie: a.defaultDie,
+            description: a.description ?? null, systemId: system.id,
           })),
         })
+      }
+    } else {
+      // Patch category if it was seeded before this field existed
+      if (existing.category === 'custom' && preset.category !== 'custom') {
+        await prisma.rPGSystem.update({
+          where: { id: existing.id },
+          data: { category: preset.category },
+        }).catch(() => null)
+      }
+      // Add any attributes missing from the DB
+      const existingNames = new Set(existing.attributes.map(a => a.name))
+      const newAttrs = preset.attributes.filter(a => !existingNames.has(a.name))
+      if (newAttrs.length > 0) {
+        await prisma.systemAttribute.createMany({
+          data: newAttrs.map(a => ({
+            name: a.name, defaultDie: a.defaultDie,
+            description: a.description ?? null, systemId: existing.id,
+          })),
+          skipDuplicates: true,
+        }).catch(() => null)
       }
     }
   }
 
-  const systems = await prisma.rPGSystem.findMany({
-    include: { attributes: { orderBy: { name: 'asc' } } },
+  return prisma.rPGSystem.findMany({
+    include: {
+      attributes: { orderBy: { name: 'asc' } },
+      creator: { select: { username: true } },
+    },
     orderBy: [{ isPreset: 'desc' }, { name: 'asc' }],
   })
-
-  // Attach category metadata (not in DB, injected here)
-  return systems.map(s => ({
-    ...s,
-    category: PRESET_SYSTEMS.find(p => p.name === s.name)?.category ?? 'custom',
-  }))
 }
 
 export async function GET() {
@@ -582,4 +598,41 @@ export async function GET() {
     console.error(e)
     return NextResponse.json({ error: 'Erro ao buscar sistemas' }, { status: 500 })
   }
+}
+
+export async function POST(req: Request) {
+  const { getServerSession } = await import('next-auth')
+  const { authOptions } = await import('@/lib/auth')
+
+  const session = await getServerSession(authOptions)
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const body = await req.json() as {
+    name?: string; description?: string; imageUrl?: string; category?: string
+  }
+  if (!body.name?.trim()) return NextResponse.json({ error: 'Nome obrigatório' }, { status: 400 })
+
+  const user = await prisma.user.findUnique({
+    where: { discordId: session.user.discordId },
+  }).catch(() => null)
+  if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+
+  const imageUrl = body.imageUrl?.trim() || null
+  if (imageUrl && !/^https:\/\//i.test(imageUrl)) {
+    return NextResponse.json({ error: 'imageUrl deve começar com https://' }, { status: 400 })
+  }
+
+  const system = await prisma.rPGSystem.create({
+    data: {
+      name: body.name.trim().slice(0, 100),
+      description: body.description?.trim().slice(0, 500) || null,
+      imageUrl,
+      category: body.category ?? 'custom',
+      isPreset: false,
+      creatorId: user.id,
+    },
+    include: { creator: { select: { username: true } }, attributes: true },
+  })
+
+  return NextResponse.json(system, { status: 201 })
 }

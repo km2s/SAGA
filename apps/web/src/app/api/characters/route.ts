@@ -3,6 +3,16 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from 'database'
 import { NextResponse } from 'next/server'
 
+function wodAttrDefault(description: string | null): number {
+  const d = description?.trim() ?? ''
+  if (
+    d.startsWith('Talento') || d.startsWith('Perícia') || d.startsWith('Conhecimento') ||
+    d.startsWith('Habilidade') || d.startsWith('Disciplina') || d.startsWith('Antecedente')
+  ) return 0
+  if (d.startsWith('Virtude')) return 1
+  return 1
+}
+
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -65,7 +75,7 @@ export async function POST(req: Request) {
         data: systemAttrs.map(a => ({
           sheetId: character.id,
           attributeId: a.id,
-          value: 10,
+          value: wodAttrDefault(a.description),
         })),
         skipDuplicates: true,
       }).catch(() => null)
