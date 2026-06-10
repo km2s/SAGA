@@ -31,7 +31,8 @@ interface CharData {
 }
 interface Member { id: string; role: string; user: { username: string }; character: CharData | null }
 interface Campaign { id: string; name: string }
-interface ActiveSession { id: string; name: string | null; isActive: boolean }
+interface SessionState { tokensJson: string | null; musicYoutubeId: string | null; musicVolume: number; mapImageUrl: string | null }
+interface ActiveSession { id: string; name: string | null; isActive: boolean; tokensJson?: string | null; musicYoutubeId?: string | null; musicVolume?: number; mapImageUrl?: string | null }
 interface VirtualTableProps {
   campaign: Campaign; activeSession: ActiveSession | null
   members: Member[]; initialRolls: RollLogEntry[]
@@ -70,9 +71,18 @@ interface PinchState { dist: number; zoom: number; panX: number; panY: number; m
 
 export function VirtualTable({ campaign, activeSession, members, initialRolls, isGM, currentMemberId, systemName }: VirtualTableProps) {
   const [tool, setTool] = useState<Tool>('select')
-  const [tokens, setTokens] = useState<Token[]>(() => initTokens(members))
+  const [tokens, setTokens] = useState<Token[]>(() => {
+    if (activeSession?.tokensJson) {
+      try { return JSON.parse(activeSession.tokensJson) as Token[] } catch {}
+    }
+    return initTokens(members)
+  })
   const [markers, setMarkers] = useState<Marker[]>([])
   const [rolls, setRolls] = useState<RollLogEntry[]>(initialRolls)
+  const [sessionMusic, setSessionMusic] = useState<{ youtubeId: string | null; volume: number }>({
+    youtubeId: activeSession?.musicYoutubeId ?? null,
+    volume: activeSession?.musicVolume ?? 50,
+  })
   const [pan, setPan] = useState({ x: 80, y: 60 })
   const [zoom, setZoom] = useState(1)
   const [tokenDrag, setTokenDrag] = useState<TokenDrag | null>(null)
@@ -88,7 +98,7 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
   const [pointerWorld, setPointerWorld] = useState<{x:number;y:number}>({x:0,y:0})
   const [fogRects, setFogRects] = useState<{id:string;x:number;y:number;w:number;h:number}[]>([])
   const [fogDraw, setFogDraw] = useState<{startX:number;startY:number;endX:number;endY:number}|null>(null)
-  const [mapUrl, setMapUrl] = useState<string|null>(null)
+  const [mapUrl, setMapUrl] = useState<string|null>(activeSession?.mapImageUrl ?? null)
   const [mapInputOpen, setMapInputOpen] = useState(false)
   const [mapInputValue, setMapInputValue] = useState('')
   const [chatOpen, setChatOpen] = useState(false)
@@ -107,22 +117,42 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
     const t = setInterval(() => { const c = Date.now()-3500; setMarkers(p=>p.filter(m=>m.createdAt>c)) }, 500)
     return () => clearInterval(t)
   }, [])
+  const syncTokens = useCallback((next: Token[]) => {
+    if (!activeSession) return
+    fetch(`/api/campaigns/${campaign.id}/sessions/state`, {
+      method: 'PATCH',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ tokensJson: JSON.stringify(next) }),
+    }).catch(() => {})
+  }, [activeSession, campaign.id])
+
   useEffect(() => {
     if (!activeSession) return
     const iv = setInterval(async () => {
       const res = await fetch(`/api/campaigns/${campaign.id}/rolls?since=${encodeURIComponent(sinceRef.current)}`).catch(()=>null)
       if (!res?.ok) return
-      const fresh: RollLogEntry[] = await res.json().catch(()=>[])
-      if (!fresh.length) return
-      sinceRef.current = fresh[0]!.rolledAt
-      setRolls(prev => {
-        const ids = new Set(prev.map(r=>r.id))
-        const news = fresh.filter(r=>!ids.has(r.id))
-        return news.length ? [...news.reverse(), ...prev] : prev
-      })
+      const data: { rolls: RollLogEntry[]; sessionState: SessionState | null } = await res.json().catch(()=>({ rolls: [], sessionState: null }))
+      const fresh = data.rolls ?? []
+      const st = data.sessionState
+      if (fresh.length) {
+        sinceRef.current = fresh[0]!.rolledAt
+        setRolls(prev => {
+          const ids = new Set(prev.map(r=>r.id))
+          const news = fresh.filter(r=>!ids.has(r.id))
+          return news.length ? [...news.reverse(), ...prev].slice(0, 50) : prev
+        })
+      }
+      // Apply session state for non-GM clients (GM is source of truth)
+      if (st && !isGM) {
+        if (st.tokensJson !== null) {
+          try { setTokens(JSON.parse(st.tokensJson)) } catch {}
+        }
+        setMapUrl(st.mapImageUrl)
+        setSessionMusic({ youtubeId: st.musicYoutubeId, volume: st.musicVolume })
+      }
     }, 3000)
     return () => clearInterval(iv)
-  }, [campaign.id, activeSession])
+  }, [campaign.id, activeSession, isGM])
 
   // ── Coord helpers ──
   const toWorld = useCallback((sx: number, sy: number) => {
@@ -187,9 +217,16 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
       if (w>8&&h>8) setFogRects(prev=>[...prev,{id:crypto.randomUUID(),x,y,w,h}])
       setFogDraw(null)
     }
-    if (tokenDrag) setTokens(prev=>prev.map(t=>t.id===tokenDrag.tokenId?{...t,x:snap(t.x),y:snap(t.y)}:t))
+    if (tokenDrag) {
+      let snapped: Token[] = []
+      setTokens(prev => {
+        snapped = prev.map(t=>t.id===tokenDrag.tokenId?{...t,x:snap(t.x),y:snap(t.y)}:t)
+        return snapped
+      })
+      syncTokens(snapped)
+    }
     setPanDrag(null); setTokenDrag(null)
-  }, [tokenDrag, fogDraw])
+  }, [tokenDrag, fogDraw, syncTokens])
 
   // ── Mouse handlers ──
   const onCanvasDown  = useCallback((e: React.MouseEvent) => { if(e.button!==0)return; handlePress(e.clientX,e.clientY,e.target as Element) }, [handlePress])
@@ -258,15 +295,18 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
   function addNewToken() {
     if (!addToken) return
     const label=newTokenLabel.trim()||'Token'
-    setTokens(prev=>[...prev,{
-      id:crypto.randomUUID(),label,initial:label[0]?.toUpperCase()?? '?',
-      x:snap(addToken.worldX),y:snap(addToken.worldY),
-      type:newTokenType,color:newTokenColor,
-    }])
+    const newToken: Token = { id:crypto.randomUUID(), label, initial:label[0]?.toUpperCase()?? '?', x:snap(addToken.worldX), y:snap(addToken.worldY), type:newTokenType, color:newTokenColor }
+    const next=[...tokens,newToken]
+    setTokens(next)
     setAddToken(null)
+    syncTokens(next)
   }
 
-  function removeToken(id: string) { setTokens(prev=>prev.filter(t=>t.id!==id)) }
+  function removeToken(id: string) {
+    const next=tokens.filter(t=>t.id!==id)
+    setTokens(next)
+    syncTokens(next)
+  }
 
   async function rollDie(die: string) {
     if (!activeSession||rollingDie) return
@@ -284,14 +324,21 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
     if (!roll) return
     sinceRef.current=roll.rolledAt
     setLastRollId(roll.id)
-    setRolls(prev=>[roll,...prev])
+    setRolls(prev=>[roll,...prev].slice(0, 50))
     setTimeout(()=>setLastRollId(null),2000)
   }
 
   function applyMap() {
-    const url=mapInputValue.trim()
-    setMapUrl(url||null)
+    const url=mapInputValue.trim()||null
+    setMapUrl(url)
     setMapInputOpen(false)
+    if (isGM && activeSession) {
+      fetch(`/api/campaigns/${campaign.id}/sessions/state`, {
+        method: 'PATCH',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ mapImageUrl: url }),
+      }).catch(()=>{})
+    }
   }
 
   const tools:[Tool,React.ElementType,string][] = [
@@ -355,6 +402,7 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
 
           {/* Mapa button */}
           <div className="relative">
+            {mapInputOpen && <div className="fixed inset-0 z-[55]" onClick={()=>setMapInputOpen(false)}/>}
             <button onClick={()=>setMapInputOpen(o=>!o)}
               className={`px-2 sm:px-3 h-7 rounded text-[11px] font-medium border transition-all flex items-center gap-1.5 ${
                 mapUrl?'text-gold border-gold/50 bg-gold/10':'text-saga-muted border-white/10 hover:border-gold/40 hover:text-gold'
@@ -363,7 +411,7 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
               <span className="hidden sm:inline">Mapa</span>
             </button>
             {mapInputOpen && (
-              <div className="absolute top-full right-0 mt-1.5 z-[60] w-72 rounded-xl border border-border shadow-2xl overflow-hidden"
+              <div className="absolute top-full right-0 mt-1.5 z-[56] w-72 rounded-xl border border-border shadow-2xl overflow-hidden"
                    style={{background:'rgba(15,15,28,0.98)',backdropFilter:'blur(12px)'}}>
                 <div className="px-3 py-2.5 border-b border-white/6 flex items-center justify-between">
                   <span className="font-cinzel text-[11px] font-bold text-saga-muted uppercase tracking-widest">Imagem do Mapa</span>
@@ -386,7 +434,10 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
                       Aplicar
                     </button>
                     {mapUrl && (
-                      <button onClick={()=>{setMapUrl(null);setMapInputValue('');setMapInputOpen(false)}}
+                      <button onClick={()=>{
+                        setMapUrl(null);setMapInputValue('');setMapInputOpen(false)
+                        if(isGM&&activeSession){fetch(`/api/campaigns/${campaign.id}/sessions/state`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({mapImageUrl:null})}).catch(()=>{})}
+                      }}
                         className="px-3 py-1.5 rounded text-[11px] text-saga-danger border border-saga-danger/30 hover:bg-saga-danger/10 transition-colors">
                         Limpar
                       </button>
@@ -405,11 +456,13 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
             <ClipboardList size={13}/>
             <span className="hidden sm:inline">Fichas</span>
           </button>
-          <button onClick={()=>setMusicOpen(true)}
-            className="px-2 sm:px-3 h-7 rounded text-[11px] font-medium border transition-all text-saga-muted border-white/10 hover:border-gold/40 hover:text-gold flex items-center gap-1.5">
-            <Music size={13}/>
-            <span className="hidden sm:inline">Música</span>
-          </button>
+          {isGM && (
+            <button onClick={()=>setMusicOpen(true)}
+              className="px-2 sm:px-3 h-7 rounded text-[11px] font-medium border transition-all text-saga-muted border-white/10 hover:border-gold/40 hover:text-gold flex items-center gap-1.5">
+              <Music size={13}/>
+              <span className="hidden sm:inline">Música</span>
+            </button>
+          )}
           {/* Chat toggle — mobile only */}
           <button onClick={()=>setChatOpen(o=>!o)}
             className={`sm:hidden px-2 h-7 rounded border transition-all flex items-center ${
@@ -670,8 +723,7 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
             <span className="font-cinzel text-[11px] font-bold text-saga-muted uppercase tracking-widest">Chat da Sessão</span>
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-saga-success"/>
-                <span className="text-[10px] text-saga-success font-medium">{members.length} online</span>
+                <span className="text-[10px] text-saga-dim font-medium">{members.length} membros</span>
               </div>
               <button onClick={()=>setChatOpen(false)} className="sm:hidden text-saga-dim hover:text-saga-text ml-1">
                 <X size={14}/>
@@ -686,7 +738,7 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
                 <p className="text-[11px] text-saga-dim text-center">{activeSession?'Nenhuma rolagem ainda.':'Inicie uma sessão.'}</p>
               </div>
             )}
-            {rolls.map(roll=>{
+            {[...rolls].reverse().map(roll=>{
               const arr=Array.isArray(roll.rolls)?(roll.rolls as number[]):[]
               const isCrit=arr.length===1&&arr[0]===20&&roll.expression.includes('d20')
               const isFail=arr.length===1&&arr[0]===1&&roll.expression.includes('d20')
@@ -789,8 +841,29 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
         </div>
       </div>
 
+      {/* Hidden music iframe for non-GM players — plays whatever GM set */}
+      {!isGM && sessionMusic.youtubeId && (
+        <iframe
+          key={sessionMusic.youtubeId}
+          src={`https://www.youtube.com/embed/${sessionMusic.youtubeId}?autoplay=1&loop=1&playlist=${sessionMusic.youtubeId}&controls=0&disablekb=1&modestbranding=1`}
+          allow="autoplay"
+          className="w-0 h-0 fixed opacity-0 pointer-events-none"
+          title="session-music"
+        />
+      )}
       {isGM&&<StartSessionModal campaignId={campaign.id} open={startSessionOpen} onClose={()=>setStartSessionOpen(false)}/>}
-      <MusicPlayer open={musicOpen} onClose={()=>setMusicOpen(false)}/>
+      {isGM&&<MusicPlayer
+        open={musicOpen}
+        onClose={()=>setMusicOpen(false)}
+        onMusicChange={(youtubeId, volume) => {
+          setSessionMusic({ youtubeId, volume })
+          fetch(`/api/campaigns/${campaign.id}/sessions/state`, {
+            method: 'PATCH',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ musicYoutubeId: youtubeId, musicVolume: volume }),
+          }).catch(()=>{})
+        }}
+      />}
     </div>
   )
 }

@@ -182,12 +182,16 @@ model NPCVisibility {
 // ─── Sessão ────────────────────────────────────────────────
 
 model Session {
-  id         String    @id @default(cuid())
-  name       String?
-  isActive   Boolean   @default(true)
-  startedAt  DateTime  @default(now())
-  endedAt    DateTime?
-  campaignId String
+  id             String    @id @default(cuid())
+  name           String?
+  isActive       Boolean   @default(true)
+  startedAt      DateTime  @default(now())
+  endedAt        DateTime?
+  campaignId     String
+  tokensJson     String?
+  musicYoutubeId String?
+  musicVolume    Int       @default(50)
+  mapImageUrl    String?
 
   campaign Campaign        @relation(fields: [campaignId], references: [id])
   rollLogs RollLog[]

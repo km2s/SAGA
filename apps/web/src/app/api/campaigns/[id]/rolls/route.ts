@@ -27,9 +27,10 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   const activeSession = await prisma.session.findFirst({
     where: { campaignId: params.id, isActive: true },
     orderBy: { startedAt: 'desc' },
+    select: { id: true, tokensJson: true, musicYoutubeId: true, musicVolume: true, mapImageUrl: true },
   }).catch(() => null)
 
-  if (!activeSession) return NextResponse.json([])
+  if (!activeSession) return NextResponse.json({ rolls: [], sessionState: null })
 
   const url = new URL(req.url)
   const since = url.searchParams.get('since')
@@ -43,7 +44,15 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     take: 30,
   }).catch(() => [])
 
-  return NextResponse.json(rolls)
+  return NextResponse.json({
+    rolls,
+    sessionState: {
+      tokensJson: activeSession.tokensJson,
+      musicYoutubeId: activeSession.musicYoutubeId,
+      musicVolume: activeSession.musicVolume,
+      mapImageUrl: activeSession.mapImageUrl,
+    },
+  })
 }
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {

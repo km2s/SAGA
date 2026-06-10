@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState } from 'react'
 import { Coffee, Skull, Leaf, Swords, Crown, Sparkles, Music, X, Square, Play } from 'lucide-react'
 
 interface Track {
@@ -23,18 +23,14 @@ const PRESETS: Track[] = [
 interface MusicPlayerProps {
   open: boolean
   onClose: () => void
+  onMusicChange: (youtubeId: string | null, volume: number) => void
 }
 
-export function MusicPlayer({ open, onClose }: MusicPlayerProps) {
+export function MusicPlayer({ open, onClose, onMusicChange }: MusicPlayerProps) {
   const [current, setCurrent] = useState<Track | null>(null)
   const [volume, setVolume] = useState(50)
   const [playing, setPlaying] = useState(false)
   const [customUrl, setCustomUrl] = useState('')
-  const iframeRef = useRef<HTMLIFrameElement>(null)
-
-  useEffect(() => {
-    if (!open) { setPlaying(false); setCurrent(null) }
-  }, [open])
 
   function extractYouTubeId(url: string): string | null {
     const patterns = [
@@ -51,6 +47,7 @@ export function MusicPlayer({ open, onClose }: MusicPlayerProps) {
     setCurrent(track)
     setPlaying(true)
     setCustomUrl('')
+    onMusicChange(track.youtubeId, volume)
   }
 
   function playCustom() {
@@ -59,16 +56,33 @@ export function MusicPlayer({ open, onClose }: MusicPlayerProps) {
       const track: Track = { id: 'custom', title: 'Personalizado', mood: 'Custom', youtubeId: ytId, Icon: Music }
       setCurrent(track)
       setPlaying(true)
+      onMusicChange(ytId, volume)
     }
   }
 
-  if (!open) return null
+  function stopMusic() {
+    setCurrent(null)
+    setPlaying(false)
+    onMusicChange(null, volume)
+  }
 
   const embedSrc = current
     ? `https://www.youtube.com/embed/${current.youtubeId}?autoplay=1&loop=1&playlist=${current.youtubeId}&controls=0&disablekb=1&modestbranding=1`
     : null
 
   return (
+    <>
+      {/* Iframe persists even when modal is closed so music keeps playing */}
+      {embedSrc && (
+        <iframe
+          key={embedSrc}
+          src={embedSrc}
+          allow="autoplay"
+          className="w-0 h-0 fixed opacity-0 pointer-events-none"
+          title="music"
+        />
+      )}
+      {!open ? null : (
     <div className="fixed inset-0 z-[200] flex items-end justify-center pb-8" onClick={e => { if (e.target === e.currentTarget) onClose() }}>
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
@@ -87,17 +101,6 @@ export function MusicPlayer({ open, onClose }: MusicPlayerProps) {
           </button>
         </div>
 
-        {/* Hidden YouTube iframe */}
-        {embedSrc && (
-          <iframe
-            ref={iframeRef}
-            src={embedSrc}
-            allow="autoplay"
-            className="w-0 h-0 absolute opacity-0 pointer-events-none"
-            title="music"
-          />
-        )}
-
         {/* Now playing strip */}
         {current && (
           <div className="px-5 py-3 border-b border-white/6 flex items-center gap-3"
@@ -107,7 +110,7 @@ export function MusicPlayer({ open, onClose }: MusicPlayerProps) {
               <p className="text-sm font-medium text-saga-text truncate">{current.title}</p>
               <p className="text-[11px] text-saga-muted">{current.mood}</p>
             </div>
-            <button onClick={() => { setCurrent(null); setPlaying(false) }}
+            <button onClick={stopMusic}
               className="px-2.5 py-1 rounded text-[11px] text-saga-danger border border-saga-danger/30 hover:bg-saga-danger/10 transition-colors flex items-center gap-1">
               <Square size={10} />Parar
             </button>
@@ -162,5 +165,7 @@ export function MusicPlayer({ open, onClose }: MusicPlayerProps) {
         </div>
       </div>
     </div>
+      )}
+    </>
   )
 }

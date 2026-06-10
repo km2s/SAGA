@@ -22,9 +22,9 @@ export default async function CharactersPage() {
 
   if (!user) redirect('/login')
 
-  // Only non-GM memberships — GMs cannot create player characters in their own campaign
+  // Only non-GM memberships without an existing character
   const allCampaigns = user.memberships
-    .filter(m => m.role !== 'GM')
+    .filter(m => m.role !== 'GM' && !m.character)
     .map(m => ({ id: m.campaign.id, name: m.campaign.name }))
 
   // Player memberships — shown in "Jogador" tab (all roles, but only those with a character)

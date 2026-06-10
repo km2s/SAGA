@@ -56,7 +56,7 @@ export default async function VirtualTablePage({ params }: { params: { id: strin
   const activeSession = await prisma.session.findFirst({
     where: { campaignId: params.id, isActive: true },
     orderBy: { startedAt: 'desc' },
-    select: { id: true, name: true, isActive: true },
+    select: { id: true, name: true, isActive: true, tokensJson: true, musicYoutubeId: true, musicVolume: true, mapImageUrl: true },
   }).catch(() => null)
 
   const initialRolls = activeSession
