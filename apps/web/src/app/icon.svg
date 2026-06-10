@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#f5e070"/>
+      <stop offset="100%" stop-color="#c9a22a"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2.5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="100" height="100" rx="20" fill="#080811"/>
+
+  <!-- Subtle gold radial glow behind the die -->
+  <radialGradient id="bg-glow" cx="50%" cy="50%" r="50%">
+    <stop offset="0%" stop-color="rgba(201,162,42,0.12)"/>
+    <stop offset="100%" stop-color="rgba(201,162,42,0)"/>
+  </radialGradient>
+  <rect width="100" height="100" rx="20" fill="url(#bg-glow)"/>
+
+  <!-- Outer pentagon (d20 silhouette) -->
+  <polygon
+    points="50,7 91,34 76,85 24,85 9,34"
+    fill="rgba(201,162,42,0.08)"
+    stroke="url(#gold)"
+    stroke-width="3"
+    stroke-linejoin="round"
+    filter="url(#glow)"
+  />
+
+  <!-- Front face — downward triangle (highlighted face) -->
+  <polygon
+    points="27,34 73,34 50,76"
+    fill="rgba(201,162,42,0.22)"
+    stroke="url(#gold)"
+    stroke-width="2.5"
+    stroke-linejoin="round"
+  />
+
+  <!-- Internal lines: top vertex to inner triangle top corners -->
+  <line x1="50" y1="7"  x2="27" y2="34" stroke="#d4a830" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="50" y1="7"  x2="73" y2="34" stroke="#d4a830" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- Internal lines: lower pentagon vertices to triangle bottom vertex -->
+  <line x1="24" y1="85" x2="50" y2="76" stroke="#d4a830" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="76" y1="85" x2="50" y2="76" stroke="#d4a830" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- Equatorial band segments (side pentagon vertices to triangle top corners) -->
+  <line x1="9"  y1="34" x2="27" y2="34" stroke="#d4a830" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="73" y1="34" x2="91" y2="34" stroke="#d4a830" stroke-width="2.5" stroke-linecap="round"/>
+</svg>
