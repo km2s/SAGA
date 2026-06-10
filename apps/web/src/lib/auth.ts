@@ -42,12 +42,18 @@ export const authOptions: NextAuthOptions = {
           ? `https://cdn.discordapp.com/avatars/${p.id}/${p.avatar}.png`
           : undefined
       }
+      // Remove campos sensíveis que o NextAuth copia automaticamente do perfil OAuth
+      delete token.email
+      delete token.name
       return token
     },
     async session({ session, token }) {
       session.user.discordId = token.discordId as string
       session.user.username = token.username as string
       if (token.avatar) session.user.image = token.avatar as string
+      // Garante que email e name nunca sejam expostos ao browser
+      session.user.email = undefined as unknown as string
+      session.user.name = undefined as unknown as string
       return session
     },
   },
