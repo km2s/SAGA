@@ -23,13 +23,26 @@ export async function PATCH(
   })
   if (!isMine && !isGM) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const body = await req.json() as { value?: number; customDie?: string }
+  const body = await req.json().catch(() => ({})) as { value?: number; customDie?: string }
+
+  const data: Record<string, unknown> = {}
+  if (body.value !== undefined) {
+    if (typeof body.value !== 'number' || !isFinite(body.value)) {
+      return NextResponse.json({ error: 'value inválido' }, { status: 400 })
+    }
+    data.value = Math.max(-999, Math.min(999, Math.round(body.value)))
+  }
+  if (body.customDie !== undefined) {
+    data.customDie = body.customDie === null ? null : String(body.customDie).slice(0, 20) || null
+  }
+
+  if (Object.keys(data).length === 0) {
+    return NextResponse.json({ error: 'Nenhum campo para atualizar' }, { status: 400 })
+  }
+
   const updated = await prisma.characterAttribute.update({
     where: { id: params.attrId },
-    data: {
-      ...(body.value !== undefined && { value: body.value }),
-      ...(body.customDie !== undefined && { customDie: body.customDie }),
-    },
+    data,
     include: { attribute: true },
   })
   return NextResponse.json(updated)

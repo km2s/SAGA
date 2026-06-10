@@ -49,9 +49,10 @@ enum MemberRole {
 }
 
 model CampaignMember {
-  id       String     @id @default(cuid())
-  role     MemberRole
-  joinedAt DateTime   @default(now())
+  id          String     @id @default(cuid())
+  role        MemberRole
+  joinedAt    DateTime   @default(now())
+  lastSeenAt  DateTime?
 
   userId     String
   campaignId String
