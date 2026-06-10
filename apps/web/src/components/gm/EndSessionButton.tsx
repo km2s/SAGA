@@ -31,13 +31,11 @@ export function EndSessionButton({ campaignId, compact }: { campaignId: string; 
       const data = await res.json() as { id?: string } | null
       const sessionId = data?.id
 
-      if (sessionId) {
-        // Redirect to session summary so GM can write the recap
-        router.push(`/campaign/${campaignId}/sessions/${sessionId}`)
-      } else {
-        setLoading(false)
-        setError('Erro inesperado. Tente novamente.')
-      }
+      router.push(
+        sessionId
+          ? `/campaign/${campaignId}/sessions/${sessionId}`
+          : `/campaign/${campaignId}/sessions`
+      )
     } catch (err) {
       setLoading(false)
       setError('Erro de conexão. Verifique sua conexão e tente novamente.')
