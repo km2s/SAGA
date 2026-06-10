@@ -412,7 +412,7 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
           <div className="hidden sm:block h-4 w-px bg-white/10"/>
 
           {/* Mapa button */}
-          <div className="relative" ref={mapDropRef}>
+          {isGM && <div className="relative" ref={mapDropRef}>
             <button onClick={()=>setMapInputOpen(o=>!o)}
               className={`px-2 sm:px-3 h-7 rounded text-[11px] font-medium border transition-all flex items-center gap-1.5 ${
                 mapUrl?'text-gold border-gold/50 bg-gold/10':'text-saga-muted border-white/10 hover:border-gold/40 hover:text-gold'
@@ -457,7 +457,7 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
                 </div>
               </div>
             )}
-          </div>
+          </div>}
 
           <button onClick={()=>setSheetsOpen(o=>!o)}
             className={`px-2 sm:px-3 h-7 rounded text-[11px] font-medium border transition-all flex items-center gap-1.5 ${
