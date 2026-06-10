@@ -5,6 +5,7 @@ import { notFound, redirect } from 'next/navigation'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import Link from 'next/link'
+import { MembersOnlineStatus } from '@/components/campaign/MembersOnlineStatus'
 
 export default async function CampaignOverviewPage({ params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
@@ -97,29 +98,15 @@ export default async function CampaignOverviewPage({ params }: { params: { id: s
         </div>
 
         {/* Members */}
-        <div className="bg-surface border border-border rounded-lg overflow-hidden">
-          <div className="px-4 py-3 border-b border-border text-[11px] font-bold text-saga-muted uppercase tracking-widest flex items-center justify-between">
-            Jogadores
-            <Badge variant="success">{campaign.members.length} membros</Badge>
-          </div>
-          {campaign.members.map(m => (
-            <div key={m.id} className="flex items-center gap-2.5 px-4 py-3 border-b border-border last:border-0 hover:bg-surface-2 transition-all cursor-pointer">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple to-gold flex items-center justify-center text-xs font-bold shrink-0">
-                {m.user.username[0]?.toUpperCase()}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <p className="text-sm font-medium truncate">{m.user.username}</p>
-                  {m.role === 'GM' && <Badge variant="gold">Mestre</Badge>}
-                </div>
-                <p className="text-[11px] text-saga-muted truncate">
-                  {m.character ? `${m.character.name} · Nv.${m.character.level}` : 'Sem personagem'}
-                </p>
-              </div>
-              <div className="w-2 h-2 rounded-full bg-saga-dim shrink-0" />
-            </div>
-          ))}
-        </div>
+        <MembersOnlineStatus
+          campaignId={params.id}
+          members={campaign.members.map(m => ({
+            id: m.id,
+            role: m.role,
+            user: { username: m.user.username },
+            character: m.character ? { name: m.character.name, level: m.character.level } : null,
+          }))}
+        />
       </div>
     </div>
   )

@@ -77,6 +77,8 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
     }
     return initTokens(members)
   })
+  const tokensRef = useRef(tokens)
+  tokensRef.current = tokens
   const [markers, setMarkers] = useState<Marker[]>([])
   const [rolls, setRolls] = useState<RollLogEntry[]>(initialRolls)
   const [sessionMusic, setSessionMusic] = useState<{ youtubeId: string | null; volume: number }>({
@@ -230,11 +232,8 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
       setFogDraw(null)
     }
     if (tokenDrag) {
-      let snapped: Token[] = []
-      setTokens(prev => {
-        snapped = prev.map(t=>t.id===tokenDrag.tokenId?{...t,x:snap(t.x),y:snap(t.y)}:t)
-        return snapped
-      })
+      const snapped = tokensRef.current.map(t=>t.id===tokenDrag.tokenId?{...t,x:snap(t.x),y:snap(t.y)}:t)
+      setTokens(snapped)
       syncTokens(snapped)
     }
     setPanDrag(null); setTokenDrag(null)
@@ -372,7 +371,7 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
     <div className="fixed inset-0 z-50 flex flex-col" style={{background:'#080811'}}>
 
       {/* ── Top bar ── */}
-      <div className="h-11 flex items-center justify-between px-3 sm:px-4 shrink-0 border-b border-white/5 relative"
+      <div className="h-11 flex items-center justify-between px-3 sm:px-4 shrink-0 border-b border-white/5 relative z-10"
            style={{background:'rgba(13,13,26,0.97)',backdropFilter:'blur(8px)'}}>
 
         {/* Left */}
