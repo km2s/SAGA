@@ -19,11 +19,19 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
   const body = await req.json().catch(() => ({})) as { name?: string }
 
+  const lastSession = await prisma.session.findFirst({
+    where: { campaignId: params.id, isActive: false },
+    orderBy: { endedAt: 'desc' },
+    select: { tokensJson: true, mapImageUrl: true },
+  }).catch(() => null)
+
   const newSession = await prisma.session.create({
     data: {
       name: body.name?.trim() || null,
       campaignId: params.id,
       isActive: true,
+      tokensJson: lastSession?.tokensJson ?? null,
+      mapImageUrl: lastSession?.mapImageUrl ?? null,
     },
   })
 
