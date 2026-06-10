@@ -106,10 +106,11 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
   const [musicOpen, setMusicOpen] = useState(false)
   const [sheetsOpen, setSheetsOpen] = useState(false)
 
-  const canvasRef  = useRef<HTMLDivElement>(null)
-  const chatEndRef = useRef<HTMLDivElement>(null)
-  const pinchRef   = useRef<PinchState | null>(null)
-  const sinceRef   = useRef(initialRolls[0]?.rolledAt ?? new Date(0).toISOString())
+  const canvasRef    = useRef<HTMLDivElement>(null)
+  const chatEndRef   = useRef<HTMLDivElement>(null)
+  const pinchRef     = useRef<PinchState | null>(null)
+  const sinceRef     = useRef(initialRolls[0]?.rolledAt ?? new Date(0).toISOString())
+  const mapDropRef   = useRef<HTMLDivElement>(null)
 
   // ── Effects ──
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [rolls])
@@ -117,6 +118,17 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
     const t = setInterval(() => { const c = Date.now()-3500; setMarkers(p=>p.filter(m=>m.createdAt>c)) }, 500)
     return () => clearInterval(t)
   }, [])
+  // Close map dropdown on click outside (no backdrop overlay needed)
+  useEffect(() => {
+    if (!mapInputOpen) return
+    function onDown(e: MouseEvent) {
+      if (mapDropRef.current && !mapDropRef.current.contains(e.target as Node)) {
+        setMapInputOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onDown)
+    return () => document.removeEventListener('mousedown', onDown)
+  }, [mapInputOpen])
   const syncTokens = useCallback((next: Token[]) => {
     if (!activeSession) return
     fetch(`/api/campaigns/${campaign.id}/sessions/state`, {
@@ -401,8 +413,7 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
           <div className="hidden sm:block h-4 w-px bg-white/10"/>
 
           {/* Mapa button */}
-          <div className="relative">
-            {mapInputOpen && <div className="fixed inset-0 z-[55]" onClick={()=>setMapInputOpen(false)}/>}
+          <div className="relative" ref={mapDropRef}>
             <button onClick={()=>setMapInputOpen(o=>!o)}
               className={`px-2 sm:px-3 h-7 rounded text-[11px] font-medium border transition-all flex items-center gap-1.5 ${
                 mapUrl?'text-gold border-gold/50 bg-gold/10':'text-saga-muted border-white/10 hover:border-gold/40 hover:text-gold'
@@ -411,7 +422,7 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
               <span className="hidden sm:inline">Mapa</span>
             </button>
             {mapInputOpen && (
-              <div className="absolute top-full right-0 mt-1.5 z-[56] w-72 rounded-xl border border-border shadow-2xl overflow-hidden"
+              <div className="absolute top-full right-0 mt-1.5 z-[60] w-72 rounded-xl border border-border shadow-2xl overflow-hidden"
                    style={{background:'rgba(15,15,28,0.98)',backdropFilter:'blur(12px)'}}>
                 <div className="px-3 py-2.5 border-b border-white/6 flex items-center justify-between">
                   <span className="font-cinzel text-[11px] font-bold text-saga-muted uppercase tracking-widest">Imagem do Mapa</span>

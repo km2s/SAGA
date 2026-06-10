@@ -116,7 +116,7 @@ export default async function CampaignOverviewPage({ params }: { params: { id: s
                   {m.character ? `${m.character.name} · Nv.${m.character.level}` : 'Sem personagem'}
                 </p>
               </div>
-              <div className="w-2 h-2 rounded-full bg-saga-success shrink-0" />
+              <div className="w-2 h-2 rounded-full bg-saga-dim shrink-0" />
             </div>
           ))}
         </div>
