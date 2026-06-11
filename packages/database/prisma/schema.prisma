@@ -42,6 +42,7 @@ model Campaign {
   npcs     NPC[]
   sessions Session[]
   notes    Note[]
+  handouts Handout[]
 }
 
 enum MemberRole {
@@ -64,8 +65,12 @@ model CampaignMember {
   character       CharacterSheet?
   linkedNpcs      NPC[]           @relation("NPCLinkedMember")
   npcVisibilities NPCVisibility[]
+  handoutsShared  Handout[]
+  handoutViews    HandoutView[]
 
   @@unique([userId, campaignId])
+  @@index([campaignId])
+  @@index([userId])
 }
 
 // ─── Sistema de RPG ────────────────────────────────────────
@@ -154,6 +159,8 @@ model NPC {
   linkedMember CampaignMember? @relation("NPCLinkedMember", fields: [linkedMemberId], references: [id])
   attributes   NPCAttribute[]
   visibilities NPCVisibility[]
+
+  @@index([campaignId])
 }
 
 model NPCAttribute {
@@ -198,6 +205,8 @@ model Session {
   campaign Campaign        @relation(fields: [campaignId], references: [id])
   rollLogs RollLog[]
   summary  SessionSummary?
+
+  @@index([campaignId, isActive])
 }
 
 model RollLog {
@@ -212,6 +221,8 @@ model RollLog {
   sessionId  String
 
   session Session @relation(fields: [sessionId], references: [id])
+
+  @@index([sessionId, rolledAt(sort: Desc)])
 }
 
 model SessionSummary {
@@ -221,6 +232,36 @@ model SessionSummary {
   sessionId String   @unique
 
   session Session @relation(fields: [sessionId], references: [id])
+}
+
+// ─── Handouts ──────────────────────────────────────────────
+
+model Handout {
+  id          String   @id @default(cuid())
+  title       String?
+  content     String?
+  imageUrl    String?
+  campaignId  String
+  sharedById  String
+  createdAt   DateTime @default(now())
+
+  campaign Campaign        @relation(fields: [campaignId], references: [id])
+  sharedBy CampaignMember  @relation(fields: [sharedById], references: [id])
+  seenBy   HandoutView[]
+
+  @@index([campaignId])
+}
+
+model HandoutView {
+  id         String   @id @default(cuid())
+  handoutId  String
+  memberId   String
+  seenAt     DateTime @default(now())
+
+  handout Handout        @relation(fields: [handoutId], references: [id])
+  member  CampaignMember @relation(fields: [memberId], references: [id])
+
+  @@unique([handoutId, memberId])
 }
 
 // ─── Notas ─────────────────────────────────────────────────
@@ -243,4 +284,6 @@ model Note {
 
   author   User     @relation(fields: [authorId], references: [id])
   campaign Campaign @relation(fields: [campaignId], references: [id])
+
+  @@index([campaignId, visibility])
 }

@@ -6,11 +6,13 @@ import { StartSessionModal } from '@/components/gm/StartSessionModal'
 import { EndSessionButton } from '@/components/gm/EndSessionButton'
 import { MusicPlayer } from './MusicPlayer'
 import { CharacterSheetPanel } from './CharacterSheetPanel'
+import { HandoutsPanel } from './HandoutsPanel'
 import {
   MousePointer, Hand, Coins, MapPin, Ruler, Cloud, Eye,
   ClipboardList, Music, Map, Play, X, Dice6, Sparkles, Skull,
-  MessageSquare, Image as ImageIcon, Minus, Plus,
+  MessageSquare, Image as ImageIcon, Minus, Plus, Swords, ChevronRight, BookOpen,
 } from 'lucide-react'
+import { safeImageUrl } from '@/lib/safe-url'
 
 type Tool = 'select' | 'move' | 'token' | 'marker' | 'measure' | 'fog' | 'reveal'
 
@@ -18,6 +20,12 @@ interface Token {
   id: string; label: string; initial: string
   x: number; y: number
   type: 'player' | 'enemy' | 'npc'; color: string
+  hp?: number; maxHp?: number
+}
+
+interface InitiativeEntry {
+  tokenId: string; label: string; color: string; type: string
+  initiative: number; hp?: number; maxHp?: number
 }
 interface Marker { id: string; x: number; y: number; color: string; createdAt: number }
 interface RollLogEntry {
@@ -54,6 +62,8 @@ function initTokens(members: Member[]): Token[] {
     x: ((i % 8) + 1) * GRID, y: (Math.floor(i / 8) + 1) * GRID,
     type: m.role === 'GM' ? 'npc' : 'player',
     color: m.role === 'GM' ? '#c9a22a' : (PLAYER_COLORS[i % PLAYER_COLORS.length] ?? '#7c3aed'),
+    hp: m.character?.hp,
+    maxHp: m.character?.maxHp,
   }))
 }
 
@@ -107,6 +117,10 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
   const [startSessionOpen, setStartSessionOpen] = useState(false)
   const [musicOpen, setMusicOpen] = useState(false)
   const [sheetsOpen, setSheetsOpen] = useState(false)
+  const [initiativeOpen, setInitiativeOpen] = useState(false)
+  const [initiativeOrder, setInitiativeOrder] = useState<InitiativeEntry[]>([])
+  const [currentTurnIdx, setCurrentTurnIdx] = useState(0)
+  const [handoutsOpen, setHandoutsOpen] = useState(false)
 
   const canvasRef    = useRef<HTMLDivElement>(null)
   const chatEndRef   = useRef<HTMLDivElement>(null)
@@ -319,6 +333,25 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
     syncTokens(next)
   }
 
+  function rollInitiative() {
+    const rolled: InitiativeEntry[] = tokens.map(t => ({
+      tokenId: t.id,
+      label: t.label,
+      color: t.color,
+      type: t.type,
+      initiative: Math.floor(Math.random() * 20) + 1,
+      hp: t.hp,
+      maxHp: t.maxHp,
+    })).sort((a, b) => b.initiative - a.initiative)
+    setInitiativeOrder(rolled)
+    setCurrentTurnIdx(0)
+    setInitiativeOpen(true)
+  }
+
+  function nextTurn() {
+    setCurrentTurnIdx(i => (i + 1) % Math.max(1, initiativeOrder.length))
+  }
+
   async function rollDie(die: string) {
     if (!activeSession||rollingDie) return
     setRollingDie(die)
@@ -340,7 +373,7 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
   }
 
   function applyMap() {
-    const url=mapInputValue.trim()||null
+    const url=safeImageUrl(mapInputValue.trim())
     setMapUrl(url)
     setMapInputOpen(false)
     if (isGM && activeSession) {
@@ -466,6 +499,26 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
             <ClipboardList size={13}/>
             <span className="hidden sm:inline">Fichas</span>
           </button>
+          {activeSession && (
+            <button onClick={()=>setInitiativeOpen(o=>!o)}
+              title="Tracker de Iniciativa"
+              className={`px-2 sm:px-3 h-7 rounded text-[11px] font-medium border transition-all flex items-center gap-1.5 ${
+                initiativeOpen?'text-gold border-gold/50 bg-gold/10':'text-saga-muted border-white/10 hover:border-gold/40 hover:text-gold'
+              }`}>
+              <Swords size={13}/>
+              <span className="hidden sm:inline">Iniciativa</span>
+            </button>
+          )}
+          {activeSession && (
+            <button onClick={()=>setHandoutsOpen(o=>!o)}
+              title="Handouts"
+              className={`px-2 sm:px-3 h-7 rounded text-[11px] font-medium border transition-all flex items-center gap-1.5 ${
+                handoutsOpen?'text-gold border-gold/50 bg-gold/10':'text-saga-muted border-white/10 hover:border-gold/40 hover:text-gold'
+              }`}>
+              <BookOpen size={13}/>
+              <span className="hidden sm:inline">Handouts</span>
+            </button>
+          )}
           {isGM && (
             <button onClick={()=>setMusicOpen(true)}
               className="px-2 sm:px-3 h-7 rounded text-[11px] font-medium border transition-all text-saga-muted border-white/10 hover:border-gold/40 hover:text-gold flex items-center gap-1.5">
@@ -535,10 +588,10 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
           <div className="absolute" style={{transformOrigin:'0 0',transform:`translate(${pan.x}px,${pan.y}px) scale(${zoom})`}}>
 
             {/* Map background image */}
-            {mapUrl && (
+            {safeImageUrl(mapUrl) && (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={mapUrl} alt="mapa"
+                src={safeImageUrl(mapUrl)!} alt="mapa"
                 className="absolute top-0 left-0 select-none pointer-events-none"
                 style={{maxWidth:'none',opacity:0.9}}
                 draggable={false}
@@ -548,10 +601,13 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
             {/* Tokens */}
             {tokens.map(t=>{
               const isDragging=tokenDrag?.tokenId===t.id
+              const isCurrentTurn=initiativeOrder[currentTurnIdx]?.tokenId===t.id && initiativeOpen
+              const hpPct = t.hp !== undefined && t.maxHp && t.maxHp > 0
+                ? Math.max(0, Math.min(100, (t.hp / t.maxHp) * 100)) : null
               return (
                 <div key={t.id}
                   data-token-id={t.id}
-                  className="absolute flex flex-col items-center gap-1.5 select-none"
+                  className="absolute flex flex-col items-center gap-1 select-none"
                   style={{left:t.x,top:t.y,transform:'translate(-50%,-50%)',
                     cursor:tool==='select'?(isDragging?'grabbing':'grab'):'default',
                     zIndex:isDragging?100:10}}
@@ -567,15 +623,30 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
                           :`radial-gradient(circle at 35% 35%,${t.color}dd,${t.color})`,
                       boxShadow:isDragging
                         ?`0 0 0 2px white,0 0 0 4px ${t.color},0 8px 24px ${t.color}66`
-                        :`0 0 0 1.5px ${t.color}88,0 2px 8px rgba(0,0,0,0.6)`,
+                        :isCurrentTurn
+                          ?`0 0 0 2px #f0d060,0 0 0 4px rgba(240,208,96,0.4),0 4px 16px rgba(240,208,96,0.5)`
+                          :`0 0 0 1.5px ${t.color}88,0 2px 8px rgba(0,0,0,0.6)`,
                     }}>
                     {t.initial}
                     {isDragging&&<div className="absolute inset-0 rounded-full animate-ping opacity-30" style={{background:t.color}}/>}
+                    {isCurrentTurn&&<div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-yellow-300 border border-yellow-500 flex items-center justify-center">
+                      <span className="text-[5px] font-black text-yellow-900">▶</span>
+                    </div>}
                   </div>
                   <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-sm whitespace-nowrap max-w-[80px] truncate"
                     style={{background:'rgba(0,0,0,0.7)',color:t.color,border:`1px solid ${t.color}44`,backdropFilter:'blur(4px)'}}>
                     {t.label}
                   </span>
+                  {/* HP bar */}
+                  {hpPct !== null && (
+                    <div className="w-10 h-[3px] rounded-full overflow-hidden" style={{background:'rgba(0,0,0,0.6)'}}>
+                      <div className="h-full rounded-full transition-all duration-300"
+                        style={{
+                          width:`${hpPct}%`,
+                          background: hpPct > 50 ? '#22c55e' : hpPct > 25 ? '#f59e0b' : '#ef4444',
+                        }} />
+                    </div>
+                  )}
                 </div>
               )
             })}
@@ -658,6 +729,110 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
               onClose={()=>setSheetsOpen(false)}
               members={members} currentMemberId={currentMemberId}
               isGM={isGM} campaignId={campaign.id} systemName={systemName}
+            />
+          )}
+
+          {/* ── Initiative Tracker ── */}
+          {initiativeOpen&&(
+            <div className="absolute top-3 left-1/2 -translate-x-1/2 z-40 w-72 rounded-xl overflow-hidden shadow-2xl"
+              style={{background:'rgba(10,10,22,0.97)',border:'1px solid rgba(201,162,42,0.25)',backdropFilter:'blur(12px)'}}>
+              <div className="px-4 py-2.5 border-b flex items-center justify-between"
+                style={{borderColor:'rgba(201,162,42,0.2)',background:'rgba(201,162,42,0.06)'}}>
+                <div className="flex items-center gap-2">
+                  <Swords size={12} className="text-gold"/>
+                  <span className="font-cinzel text-[11px] font-bold text-gold uppercase tracking-widest">Iniciativa</span>
+                  {initiativeOrder.length>0&&(
+                    <span className="text-[9px] text-saga-dim">
+                      Turno {(currentTurnIdx%Math.max(1,initiativeOrder.length))+1}/{initiativeOrder.length}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {isGM&&(
+                    <button onClick={rollInitiative}
+                      className="px-2 py-0.5 rounded text-[9px] font-bold font-cinzel transition-all"
+                      style={{background:'rgba(201,162,42,0.15)',color:'#c9a22a',border:'1px solid rgba(201,162,42,0.3)'}}>
+                      Rolar
+                    </button>
+                  )}
+                  {initiativeOrder.length>0&&isGM&&(
+                    <button onClick={nextTurn}
+                      className="px-2 py-0.5 rounded text-[9px] font-bold font-cinzel flex items-center gap-1 transition-all"
+                      style={{background:'rgba(255,255,255,0.06)',color:'#a0a0c0',border:'1px solid rgba(255,255,255,0.1)'}}>
+                      <ChevronRight size={10}/>Próximo
+                    </button>
+                  )}
+                  <button onClick={()=>setInitiativeOpen(false)} className="text-saga-dim hover:text-saga-text ml-1">
+                    <X size={13}/>
+                  </button>
+                </div>
+              </div>
+              <div className="max-h-60 overflow-y-auto">
+                {initiativeOrder.length===0?(
+                  <div className="py-6 text-center">
+                    <p className="text-[11px] text-saga-dim">Nenhuma ordem de iniciativa.</p>
+                    {isGM&&<p className="text-[10px] text-saga-dim/60 mt-1">Clique em "Rolar" para sortear.</p>}
+                  </div>
+                ):initiativeOrder.map((entry,i)=>{
+                  const isCurrent=i===currentTurnIdx%initiativeOrder.length
+                  const hpPct = entry.hp !== undefined && entry.maxHp && entry.maxHp > 0
+                    ? Math.max(0, Math.min(100, (entry.hp / entry.maxHp) * 100)) : null
+                  return (
+                    <div key={entry.tokenId}
+                      className="px-4 py-2.5 border-b last:border-0 transition-all"
+                      style={{
+                        borderColor:'rgba(255,255,255,0.04)',
+                        background:isCurrent?'rgba(201,162,42,0.08)':'transparent',
+                      }}>
+                      <div className="flex items-center gap-3">
+                        {/* Initiative badge */}
+                        <div className="w-7 h-7 rounded-full flex items-center justify-center font-cinzel font-bold text-sm shrink-0"
+                          style={{
+                            background:isCurrent?`${entry.color}30`:'rgba(255,255,255,0.05)',
+                            border:`1.5px solid ${isCurrent?entry.color:'rgba(255,255,255,0.1)'}`,
+                            color:isCurrent?entry.color:'#7878a0',
+                          }}>
+                          {entry.initiative}
+                        </div>
+                        {/* Name */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            {isCurrent&&<span className="text-[8px] text-yellow-300 font-bold">▶</span>}
+                            <span className={`text-[12px] font-medium truncate ${isCurrent?'text-saga-text':'text-saga-muted'}`}>
+                              {entry.label}
+                            </span>
+                          </div>
+                          {hpPct !== null && (
+                            <div className="mt-1 w-full h-[3px] rounded-full overflow-hidden" style={{background:'rgba(255,255,255,0.08)'}}>
+                              <div className="h-full rounded-full"
+                                style={{
+                                  width:`${hpPct}%`,
+                                  background: hpPct > 50 ? '#22c55e' : hpPct > 25 ? '#f59e0b' : '#ef4444',
+                                }} />
+                            </div>
+                          )}
+                        </div>
+                        {/* HP text */}
+                        {entry.hp !== undefined && entry.maxHp !== undefined && (
+                          <span className="text-[9px] font-mono shrink-0"
+                            style={{color:hpPct && hpPct > 50 ? '#4ade80' : hpPct && hpPct > 25 ? '#fbbf24' : '#f87171'}}>
+                            {entry.hp}/{entry.maxHp}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ── Handouts Panel ── */}
+          {handoutsOpen && (
+            <HandoutsPanel
+              campaignId={campaign.id}
+              isGM={isGM}
+              onClose={() => setHandoutsOpen(false)}
             />
           )}
 

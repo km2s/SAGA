@@ -7,6 +7,7 @@ import { HPEditor } from '@/components/character/HPEditor'
 import { CharacterShareToggle } from '@/components/character/CharacterShareToggle'
 import { CharacterSheetView, type SheetCategory } from '@/components/character/CharacterSheetView'
 import { DeleteCharacterButton } from '@/components/character/DeleteCharacterButton'
+import { safeImageUrl } from '@/lib/safe-url'
 import {
   Swords, Sparkles, Shield, Sword, Plus, Axe, Leaf, Music, Target, Dumbbell,
   Wand2, Moon, ScrollText, ClipboardList, Pencil, User,
@@ -158,9 +159,9 @@ export default async function CharacterDetailPage({ params }: { params: { id: st
         <div className="space-y-4">
           {/* Portrait card */}
           <div className="bg-surface border border-border rounded-lg overflow-hidden">
-            {char.imageUrl ? (
+            {safeImageUrl(char.imageUrl) ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={char.imageUrl} alt={char.name} className="w-full h-52 object-cover object-top" />
+              <img src={safeImageUrl(char.imageUrl)!} alt={char.name} className="w-full h-52 object-cover object-top" />
             ) : (
               <div className="w-full h-52 bg-gradient-to-br from-[#1a0533] via-[#4a1080] to-[#7c3aed] flex items-center justify-center">
                 <ClassIcon size={72} className="text-white/50" />

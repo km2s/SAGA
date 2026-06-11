@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Badge } from '@/components/ui/Badge'
 import { GMActions } from '@/components/gm/GMActions'
 import { ShieldAlert, UserCheck, Heart, Wind, User } from 'lucide-react'
+import { safeImageUrl } from '@/lib/safe-url'
 
 const NPC_TYPE_LABELS: Record<string, string> = {
   VILLAIN: 'Vilão',
@@ -72,9 +73,9 @@ export default async function CampaignNpcsPage({ params }: { params: { id: strin
           {npcs.map(npc => (
             <Link key={npc.id} href={`/campaign/${params.id}/npcs/${npc.id}`}>
             <div className="bg-surface border border-border rounded-lg overflow-hidden hover:border-border-bright transition-all card-hover">
-              {npc.imageUrl ? (
+              {safeImageUrl(npc.imageUrl) ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={npc.imageUrl} alt={npc.name} className="w-full h-36 object-cover" />
+                <img src={safeImageUrl(npc.imageUrl)!} alt={npc.name} className="w-full h-36 object-cover" />
               ) : (
                 <div className="w-full h-36 bg-surface-2 flex items-center justify-center text-saga-muted/40">
                   {npc.type === 'VILLAIN' ? <ShieldAlert size={40} /> :

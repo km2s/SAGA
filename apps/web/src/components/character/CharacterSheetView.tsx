@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { AddAttributeModal } from './AddAttributeModal'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
-import { X, Plus } from 'lucide-react'
+import { X, Plus, Shield } from 'lucide-react'
 
 export type SheetCategory = 'fantasy' | 'world-of-darkness' | 'horror' | 'scifi' | 'generic' | 'custom'
 
@@ -41,22 +41,102 @@ const COMBAT_NAMES = new Set([
   'Bônus de Proficiência', 'Ataque', 'Dano', 'Alcance',
 ])
 
+// D&D 5e description prefixes (from seed)
+const DND_SKILL_ATTR_MAP: Record<string, string> = {
+  FOR: 'Força', DES: 'Destreza', CON: 'Constituição',
+  INT: 'Inteligência', SAB: 'Sabedoria', CAR: 'Carisma',
+}
+
+// CoC category lookup by name
+const COC_COMBAT_SKILLS = new Set([
+  'Artes Marciais', 'Luta (Soco)', 'Armas de Fogo (Pistola)', 'Armas de Fogo (Rifle)', 'Arremessar', 'Esquivar',
+])
+const COC_EXPLORATION_SKILLS = new Set([
+  'Escalar', 'Natação', 'Saltar', 'Furtividade', 'Disfarce', 'Dirigir Auto', 'Navegação',
+])
+const COC_TECHNICAL_SKILLS = new Set([
+  'Primeiros Socorros', 'Medicina', 'Reparar Elétrica', 'Reparar Mecânica', 'Usar Computador', 'Fotografar',
+])
+const COC_KNOWLEDGE_SKILLS = new Set([
+  'Pesquisa em Biblioteca', 'Ocultismo', 'Mitos de Cthulhu', 'História',
+  'Ciências (Biologia)', 'Ciências (Física)', 'Direito', 'Contabilidade',
+])
+const COC_SOCIAL_SKILLS = new Set([
+  'Charme', 'Intimidação', 'Lábia', 'Persuasão', 'Psicologia', 'Idioma Próprio', 'Idioma Estrangeiro',
+])
+const COC_PERCEPTION_SKILLS = new Set(['Detectar', 'Ouvir', 'Rastrear', 'Arte e Ofício (Pintura)'])
+
 function dndMod(value: number) {
   const m = Math.floor((value - 10) / 2)
   return m >= 0 ? `+${m}` : `${m}`
+}
+
+function signedVal(v: number) {
+  return v >= 0 ? `+${v}` : `${v}`
 }
 
 function isPercentile(attr: Attr) {
   return (attr.customDie ?? attr.attribute.defaultDie) === 'd100'
 }
 
+// ─── D&D 5e grouping ─────────────────────────────────────────────────────────
+
+function groupDnD5e(attrs: Attr[]) {
+  const core: Attr[] = [], saves: Attr[] = [], skills: Attr[] = [], combat: Attr[] = [], extras: Attr[] = []
+
+  for (const a of attrs) {
+    const desc = a.attribute.description ?? ''
+    if (desc.startsWith('Atributo —'))     core.push(a)
+    else if (desc.startsWith('Salvaguarda —')) saves.push(a)
+    else if (desc.startsWith('Perícia ('))    skills.push(a)
+    else if (desc.startsWith('Combate —'))    combat.push(a)
+    else if (!FANTASY_CORE.includes(a.attribute.name) && !COMBAT_NAMES.has(a.attribute.name))
+      extras.push(a)
+  }
+
+  // Group skills by their attribute abbreviation
+  const byAttr: Record<string, Attr[]> = {}
+  for (const s of skills) {
+    const match = s.attribute.description?.match(/Perícia \((\w+)\)/)
+    const key = match?.[1] ?? 'Outros'
+    if (!byAttr[key]) byAttr[key] = []
+    byAttr[key]!.push(s)
+  }
+
+  return { core, saves, skills, byAttr, combat, extras }
+}
+
+// ─── CoC grouping ─────────────────────────────────────────────────────────────
+
+function groupCoC(attrs: Attr[]) {
+  const characteristics: Attr[] = [], derived: Attr[] = []
+  const combat: Attr[] = [], exploration: Attr[] = [], technical: Attr[] = []
+  const knowledge: Attr[] = [], social: Attr[] = [], perception: Attr[] = [], other: Attr[] = []
+
+  for (const a of attrs) {
+    const desc = a.attribute.description ?? ''
+    const name = a.attribute.name
+
+    if (desc.startsWith('Característica —'))    characteristics.push(a)
+    else if (desc.startsWith('Derivado —'))     derived.push(a)
+    else if (COC_COMBAT_SKILLS.has(name))       combat.push(a)
+    else if (COC_EXPLORATION_SKILLS.has(name))  exploration.push(a)
+    else if (COC_TECHNICAL_SKILLS.has(name))    technical.push(a)
+    else if (COC_KNOWLEDGE_SKILLS.has(name))    knowledge.push(a)
+    else if (COC_SOCIAL_SKILLS.has(name))       social.push(a)
+    else if (COC_PERCEPTION_SKILLS.has(name))   perception.push(a)
+    else                                        other.push(a)
+  }
+
+  return { characteristics, derived, combat, exploration, technical, knowledge, social, perception, other }
+}
+
+// ─── WoD grouping ─────────────────────────────────────────────────────────────
+
 function categorizeWoD(attrs: Attr[]) {
   const physical: Attr[] = [], social: Attr[] = [], mental: Attr[] = []
-  // V20-style abilities
   const talents: Attr[] = [], skills: Attr[] = [], knowledges: Attr[] = []
-  // V5-style skills (by attribute category)
   const physSkills: Attr[] = [], socSkills: Attr[] = [], menSkills: Attr[] = []
-  // Common advantages
   const disciplines: Attr[] = [], backgrounds: Attr[] = [], virtues: Attr[] = []
   const powers: Attr[] = [], resources: Attr[] = []
 
@@ -77,13 +157,7 @@ function categorizeWoD(attrs: Attr[]) {
     else if (d.startsWith('Esfera') || d.startsWith('Arcano')) powers.push(a)
     else resources.push(a)
   }
-  return {
-    physical, social, mental,
-    talents, skills, knowledges,
-    physSkills, socSkills, menSkills,
-    disciplines, backgrounds, virtues,
-    powers, resources,
-  }
+  return { physical, social, mental, talents, skills, knowledges, physSkills, socSkills, menSkills, disciplines, backgrounds, virtues, powers, resources }
 }
 
 function groupByPrefix(attrs: Attr[]) {
@@ -211,7 +285,255 @@ function AddBtn({ onClick }: { onClick: () => void }) {
   )
 }
 
-// ─── Fantasy ─────────────────────────────────────────────────────────────────
+// ─── D&D 5e ──────────────────────────────────────────────────────────────────
+
+function DnD5eAttrTab({ dnd, characterId, canEdit, level, onAdd, onDelete }: {
+  dnd: ReturnType<typeof groupDnD5e>; characterId: string; canEdit: boolean
+  level: number; onAdd: () => void; onDelete: (id: string) => void
+}) {
+  const router = useRouter()
+  const profBonus = Math.ceil(level / 4) + 1
+
+  return (
+    <div className="space-y-7">
+      {/* Core 6 attributes */}
+      {dnd.core.length > 0 && (
+        <div>
+          <SectionDivider title="Atributos" />
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+            {dnd.core.map(attr => {
+              const mod = dndMod(attr.value)
+              const pos = !mod.startsWith('-')
+              return (
+                <div key={attr.id}
+                  className="flex flex-col items-center gap-2 py-5 px-1 rounded-lg border group transition-all hover:border-gold/25"
+                  style={{ background: 'rgba(255,255,255,0.025)', borderColor: 'rgba(255,255,255,0.07)' }}
+                >
+                  <span className={`font-cinzel text-3xl font-bold leading-none ${pos ? 'text-gold' : 'text-saga-danger'}`}>
+                    {mod}
+                  </span>
+                  <div className="w-8 h-px" style={{ background: 'rgba(201,162,42,0.2)' }} />
+                  {canEdit ? (
+                    <EditableVal attrId={attr.id} value={attr.value} characterId={characterId}
+                      onSaved={() => router.refresh()} className="text-sm text-saga-muted w-10 text-center" />
+                  ) : (
+                    <span className="text-sm text-saga-muted">{attr.value}</span>
+                  )}
+                  <span className="font-almendra text-[9px] text-saga-dim uppercase tracking-widest">
+                    {ATTR_ABBREV[attr.attribute.name] ?? attr.attribute.name.slice(0, 3).toUpperCase()}
+                  </span>
+                  {canEdit && (
+                    <button onClick={() => onDelete(attr.id)}
+                      className="hidden group-hover:block text-[8px] text-saga-danger/50 hover:text-saga-danger transition-colors">
+                      remover
+                    </button>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Saving throws */}
+      {dnd.saves.length > 0 && (
+        <div>
+          <SectionDivider title="Salvaguardas" />
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+            {dnd.saves.map(attr => {
+              const pos = attr.value >= 0
+              return (
+                <div key={attr.id}
+                  className="flex items-center gap-2.5 py-2.5 px-3 rounded group hover:bg-white/[0.02] transition-all"
+                  style={{ border: '1px solid rgba(255,255,255,0.05)' }}
+                >
+                  <Shield size={10} className="text-saga-dim shrink-0" />
+                  <span className="flex-1 text-[11px] text-saga-muted truncate">
+                    {attr.attribute.name.replace('Salv. ', '')}
+                  </span>
+                  {canEdit ? (
+                    <EditableVal attrId={attr.id} value={attr.value} characterId={characterId}
+                      onSaved={() => router.refresh()}
+                      className={`font-cinzel font-bold text-sm w-8 text-right ${pos ? 'text-gold' : 'text-saga-danger'}`} />
+                  ) : (
+                    <span className={`font-cinzel font-bold text-sm ${pos ? 'text-gold' : 'text-saga-danger'}`}>
+                      {signedVal(attr.value)}
+                    </span>
+                  )}
+                  {canEdit && <DeleteBtn onClick={() => onDelete(attr.id)} />}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Extras */}
+      {(dnd.extras.length > 0 || canEdit) && (
+        <div>
+          <div className="flex items-center gap-3 mb-3">
+            <p className="font-almendra text-[9px] font-bold text-saga-dim uppercase tracking-[0.2em] whitespace-nowrap">Outros</p>
+            <div className="flex-1 h-px" style={{ background: 'rgba(201,162,42,0.2)' }} />
+            {canEdit && <AddBtn onClick={onAdd} />}
+          </div>
+          {dnd.extras.map(attr => (
+            <div key={attr.id} className="flex items-center gap-3 py-2.5 px-2 rounded group hover:bg-white/[0.015] transition-all">
+              <span className="flex-1 text-sm">{attr.attribute.name}</span>
+              {canEdit ? (
+                <EditableVal attrId={attr.id} value={attr.value} characterId={characterId}
+                  onSaved={() => router.refresh()} className="text-sm text-saga-muted w-10 text-center" />
+              ) : (
+                <span className="text-sm text-saga-muted">{attr.value}</span>
+              )}
+              {canEdit && <DeleteBtn onClick={() => onDelete(attr.id)} />}
+            </div>
+          ))}
+          {dnd.extras.length === 0 && canEdit && (
+            <button onClick={onAdd}
+              className="w-full py-3 rounded border border-dashed text-xs text-saga-dim hover:text-saga-muted transition-colors"
+              style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+              + Adicionar campo extra
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Proficiency badge */}
+      <div className="flex justify-end">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px]"
+          style={{ background: 'rgba(201,162,42,0.08)', border: '1px solid rgba(201,162,42,0.2)' }}>
+          <span className="text-saga-dim">Bônus de Proficiência</span>
+          <span className="font-cinzel font-bold text-gold">+{profBonus}</span>
+          <span className="text-saga-dim/50">nível {level}</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function DnD5eSkillsTab({ dnd, characterId, canEdit, onDelete }: {
+  dnd: ReturnType<typeof groupDnD5e>; characterId: string; canEdit: boolean; onDelete: (id: string) => void
+}) {
+  const router = useRouter()
+
+  const attrOrder = ['FOR', 'DES', 'CON', 'INT', 'SAB', 'CAR']
+  const attrColors: Record<string, string> = {
+    FOR: '#ef4444', DES: '#22c55e', CON: '#f97316',
+    INT: '#3b82f6', SAB: '#8b5cf6', CAR: '#ec4899',
+  }
+
+  return (
+    <div className="space-y-5">
+      {attrOrder.map(abbrev => {
+        const skills = dnd.byAttr[abbrev] ?? []
+        if (skills.length === 0) return null
+        const attrName = DND_SKILL_ATTR_MAP[abbrev] ?? abbrev
+        const color = attrColors[abbrev] ?? '#c9a22a'
+        return (
+          <div key={abbrev}>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="font-cinzel text-[10px] font-bold px-2 py-0.5 rounded"
+                style={{ background: `${color}18`, color, border: `1px solid ${color}30` }}>
+                {abbrev}
+              </span>
+              <span className="text-[10px] text-saga-dim">{attrName}</span>
+              <div className="flex-1 h-px" style={{ background: `${color}20` }} />
+            </div>
+            <div className="space-y-0.5">
+              {skills.map(attr => {
+                const pos = attr.value >= 0
+                return (
+                  <div key={attr.id} className="flex items-center gap-3 py-2 px-2 rounded group hover:bg-white/[0.015] transition-all">
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm text-saga-text">{attr.attribute.name}</span>
+                    </div>
+                    {canEdit ? (
+                      <EditableVal attrId={attr.id} value={attr.value} characterId={characterId}
+                        onSaved={() => router.refresh()}
+                        className={`font-cinzel font-bold text-base w-8 text-right ${pos ? 'text-gold' : 'text-saga-danger'}`} />
+                    ) : (
+                      <span className={`font-cinzel font-bold text-base ${pos ? 'text-gold' : 'text-saga-danger'}`}>
+                        {signedVal(attr.value)}
+                      </span>
+                    )}
+                    {canEdit && <DeleteBtn onClick={() => onDelete(attr.id)} />}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )
+      })}
+      {Object.keys(dnd.byAttr).length === 0 && (
+        <p className="text-sm text-saga-dim text-center py-8">
+          Nenhuma perícia adicionada. Use o botão "Adicionar" na aba Atributos.
+        </p>
+      )}
+    </div>
+  )
+}
+
+function DnD5eCombatTab({ dnd, characterId, canEdit, level, onDelete }: {
+  dnd: ReturnType<typeof groupDnD5e>; characterId: string; canEdit: boolean
+  level: number; onDelete: (id: string) => void
+}) {
+  const router = useRouter()
+  const dex = dnd.core.find(a => a.attribute.name === 'Destreza')
+  const dexMod = dex ? Math.floor((dex.value - 10) / 2) : null
+  const iniciativa = dexMod !== null ? signedVal(dexMod) : '—'
+  const profBonus = `+${Math.ceil(level / 4) + 1}`
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <SectionDivider title="Valores Calculados" />
+        <div className="grid grid-cols-2 gap-3">
+          <div className="text-center py-5 rounded-lg"
+            style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)' }}>
+            <p className="font-cinzel text-3xl font-bold text-gold">{iniciativa}</p>
+            <p className="font-almendra text-[9px] text-saga-dim uppercase tracking-widest mt-2">Iniciativa</p>
+            {dex && <p className="text-[9px] text-saga-dim/50 mt-0.5">de Destreza {dex.value}</p>}
+          </div>
+          <div className="text-center py-5 rounded-lg"
+            style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)' }}>
+            <p className="font-cinzel text-3xl font-bold text-gold">{profBonus}</p>
+            <p className="font-almendra text-[9px] text-saga-dim uppercase tracking-widest mt-2">Proficiência</p>
+            <p className="text-[9px] text-saga-dim/50 mt-0.5">nível {level}</p>
+          </div>
+        </div>
+      </div>
+
+      {dnd.combat.length > 0 && (
+        <div>
+          <SectionDivider title="Atributos de Combate" />
+          <div className="space-y-1">
+            {dnd.combat.map(attr => (
+              <div key={attr.id} className="flex items-center gap-3 py-3 px-2 rounded group hover:bg-white/[0.015] transition-all">
+                <span className="flex-1 text-sm">{attr.attribute.name}</span>
+                {canEdit ? (
+                  <EditableVal attrId={attr.id} value={attr.value} characterId={characterId}
+                    onSaved={() => router.refresh()}
+                    className="font-cinzel font-bold text-lg text-gold w-10 text-center" />
+                ) : (
+                  <span className="font-cinzel font-bold text-lg text-gold">{attr.value}</span>
+                )}
+                {canEdit && <DeleteBtn onClick={() => onDelete(attr.id)} />}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {dnd.combat.length === 0 && (
+        <p className="text-[11px] text-saga-dim text-center py-2 leading-relaxed">
+          Adicione atributos como "Classe de Armadura" ou "Velocidade" na aba Atributos.
+        </p>
+      )}
+    </div>
+  )
+}
+
+// ─── Fantasy (genérico) ───────────────────────────────────────────────────────
 
 function FantasyAttrTab({ attrs, characterId, canEdit, onAdd, onDelete }: {
   attrs: Attr[]; characterId: string; canEdit: boolean; onAdd: () => void; onDelete: (id: string) => void
@@ -230,21 +552,15 @@ function FantasyAttrTab({ attrs, characterId, canEdit, onAdd, onDelete }: {
               const mod = dndMod(attr.value)
               const pos = !mod.startsWith('-')
               return (
-                <div
-                  key={attr.id}
+                <div key={attr.id}
                   className="flex flex-col items-center gap-2 py-5 px-1 rounded-lg border group transition-all hover:border-gold/25"
                   style={{ background: 'rgba(255,255,255,0.025)', borderColor: 'rgba(255,255,255,0.07)' }}
                 >
-                  <span className={`font-cinzel text-3xl font-bold leading-none ${pos ? 'text-gold' : 'text-saga-danger'}`}>
-                    {mod}
-                  </span>
+                  <span className={`font-cinzel text-3xl font-bold leading-none ${pos ? 'text-gold' : 'text-saga-danger'}`}>{mod}</span>
                   <div className="w-8 h-px" style={{ background: 'rgba(201,162,42,0.2)' }} />
                   {canEdit ? (
-                    <EditableVal
-                      attrId={attr.id} value={attr.value} characterId={characterId}
-                      onSaved={() => router.refresh()}
-                      className="text-sm text-saga-muted w-10 text-center"
-                    />
+                    <EditableVal attrId={attr.id} value={attr.value} characterId={characterId}
+                      onSaved={() => router.refresh()} className="text-sm text-saga-muted w-10 text-center" />
                   ) : (
                     <span className="text-sm text-saga-muted">{attr.value}</span>
                   )}
@@ -252,10 +568,10 @@ function FantasyAttrTab({ attrs, characterId, canEdit, onAdd, onDelete }: {
                     {ATTR_ABBREV[attr.attribute.name] ?? attr.attribute.name.slice(0, 3).toUpperCase()}
                   </span>
                   {canEdit && (
-                    <button
-                      onClick={() => onDelete(attr.id)}
-                      className="hidden group-hover:block text-[8px] text-saga-danger/50 hover:text-saga-danger transition-colors"
-                    >remover</button>
+                    <button onClick={() => onDelete(attr.id)}
+                      className="hidden group-hover:block text-[8px] text-saga-danger/50 hover:text-saga-danger transition-colors">
+                      remover
+                    </button>
                   )}
                 </div>
               )
@@ -275,11 +591,9 @@ function FantasyAttrTab({ attrs, characterId, canEdit, onAdd, onDelete }: {
 
         {extras.length === 0 ? (
           canEdit ? (
-            <button
-              onClick={onAdd}
+            <button onClick={onAdd}
               className="w-full py-4 rounded border border-dashed text-sm text-saga-dim hover:text-saga-muted transition-colors"
-              style={{ borderColor: 'rgba(255,255,255,0.08)' }}
-            >
+              style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
               + Adicionar atributo extra
             </button>
           ) : core.length > 0 ? null : (
@@ -299,11 +613,8 @@ function FantasyAttrTab({ attrs, characterId, canEdit, onAdd, onDelete }: {
                     )}
                   </div>
                   {canEdit ? (
-                    <EditableVal
-                      attrId={attr.id} value={attr.value} characterId={characterId}
-                      onSaved={() => router.refresh()}
-                      className="text-sm text-saga-muted w-10 text-center"
-                    />
+                    <EditableVal attrId={attr.id} value={attr.value} characterId={characterId}
+                      onSaved={() => router.refresh()} className="text-sm text-saga-muted w-10 text-center" />
                   ) : (
                     <span className="text-sm text-saga-muted">{attr.value}</span>
                   )}
@@ -326,7 +637,7 @@ function FantasyCombatTab({ attrs, characterId, canEdit, onDelete, level }: {
   const combatAttrs = attrs.filter(a => COMBAT_NAMES.has(a.attribute.name))
   const dex = attrs.find(a => a.attribute.name === 'Destreza')
   const dexMod = dex ? Math.floor((dex.value - 10) / 2) : null
-  const iniciativa = dexMod !== null ? (dexMod >= 0 ? `+${dexMod}` : `${dexMod}`) : '—'
+  const iniciativa = dexMod !== null ? signedVal(dexMod) : '—'
   const profBonus = `+${Math.ceil(level / 4) + 1}`
 
   return (
@@ -334,25 +645,19 @@ function FantasyCombatTab({ attrs, characterId, canEdit, onDelete, level }: {
       <div>
         <SectionDivider title="Valores Calculados" />
         <div className="grid grid-cols-2 gap-3">
-          <div
-            className="text-center py-5 rounded-lg"
-            style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)' }}
-          >
+          <div className="text-center py-5 rounded-lg"
+            style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)' }}>
             <p className="font-cinzel text-3xl font-bold text-gold">{iniciativa}</p>
             <p className="font-almendra text-[9px] text-saga-dim uppercase tracking-widest mt-2">Iniciativa</p>
-            {dex && <p className="text-[9px] text-saga-dim/50 mt-0.5">de Destreza {dex.value}</p>}
           </div>
-          <div
-            className="text-center py-5 rounded-lg"
-            style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)' }}
-          >
+          <div className="text-center py-5 rounded-lg"
+            style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)' }}>
             <p className="font-cinzel text-3xl font-bold text-gold">{profBonus}</p>
             <p className="font-almendra text-[9px] text-saga-dim uppercase tracking-widest mt-2">Proficiência</p>
             <p className="text-[9px] text-saga-dim/50 mt-0.5">nível {level}</p>
           </div>
         </div>
       </div>
-
       {combatAttrs.length > 0 && (
         <div>
           <SectionDivider title="Atributos de Combate" />
@@ -361,11 +666,9 @@ function FantasyCombatTab({ attrs, characterId, canEdit, onDelete, level }: {
               <div key={attr.id} className="flex items-center gap-3 py-3 px-2 rounded group hover:bg-white/[0.015] transition-all">
                 <span className="flex-1 text-sm">{attr.attribute.name}</span>
                 {canEdit ? (
-                  <EditableVal
-                    attrId={attr.id} value={attr.value} characterId={characterId}
+                  <EditableVal attrId={attr.id} value={attr.value} characterId={characterId}
                     onSaved={() => router.refresh()}
-                    className="font-cinzel font-bold text-lg text-gold w-10 text-center"
-                  />
+                    className="font-cinzel font-bold text-lg text-gold w-10 text-center" />
                 ) : (
                   <span className="font-cinzel font-bold text-lg text-gold">{attr.value}</span>
                 )}
@@ -374,12 +677,6 @@ function FantasyCombatTab({ attrs, characterId, canEdit, onDelete, level }: {
             ))}
           </div>
         </div>
-      )}
-
-      {combatAttrs.length === 0 && (
-        <p className="text-[11px] text-saga-dim text-center py-2 leading-relaxed">
-          Adicione atributos como "CA" ou "Velocidade" na aba Atributos para exibi-los aqui.
-        </p>
       )}
     </div>
   )
@@ -413,7 +710,6 @@ function WoDAttrCell({ attr, characterId, canEdit, onSaved, onDelete, max = 5 }:
   )
 }
 
-// Shared 3-column grid used for Attributes, Abilities, and Advantages
 function WoDThreeColGrid({ cols, children }: {
   cols: { label: string; hint?: string }[]
   children: React.ReactNode
@@ -479,11 +775,7 @@ function WoDAbilitiesTab({ col1, col2, col3, col1Label, col2Label, col3Label, ch
         <WoDCol items={col2} characterId={characterId} canEdit={canEdit} onSaved={onSaved} onDelete={onDelete} emptyHint="—" />
         <WoDCol items={col3} characterId={characterId} canEdit={canEdit} onSaved={onSaved} onDelete={onDelete} emptyHint="—" />
       </WoDThreeColGrid>
-      {canEdit && (
-        <div className="flex justify-end">
-          <AddBtn onClick={onAdd} />
-        </div>
-      )}
+      {canEdit && <div className="flex justify-end"><AddBtn onClick={onAdd} /></div>}
     </div>
   )
 }
@@ -513,15 +805,10 @@ function WoDAdvantagesTab({ disciplines, backgrounds, virtues, powers, character
         <WoDCol items={rightItems} characterId={characterId} canEdit={canEdit} onSaved={onSaved}
           onDelete={virtues.length === 0 ? onDelete : undefined} />
       </WoDThreeColGrid>
-      {canEdit && (
-        <div className="flex justify-end">
-          <AddBtn onClick={onAdd} />
-        </div>
-      )}
+      {canEdit && <div className="flex justify-end"><AddBtn onClick={onAdd} /></div>}
     </div>
   )
 }
-
 
 function WoDResourcesTab({ resources, characterId, canEdit, onSaved }: {
   resources: Attr[]; characterId: string; canEdit: boolean; onSaved: () => void
@@ -538,7 +825,8 @@ function WoDResourcesTab({ resources, characterId, canEdit, onSaved }: {
             const isSmall = desc.includes('1-5') || desc.includes('0-5') || desc.includes('fome')
             const max = isSmall ? 5 : 10
             return (
-              <div key={attr.id} className="py-3 px-3 rounded" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <div key={attr.id} className="py-3 px-3 rounded"
+                style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-almendra text-sm text-saga-text">{attr.attribute.name}</span>
                   <span className="font-cinzel font-bold text-gold">{attr.value} / {max}</span>
@@ -556,12 +844,176 @@ function WoDResourcesTab({ resources, characterId, canEdit, onSaved }: {
   )
 }
 
-// ─── Horror ───────────────────────────────────────────────────────────────────
+// ─── Horror / CoC ─────────────────────────────────────────────────────────────
 
-function HorrorTab({ attrs, characterId, canEdit, onAdd, onDelete }: {
-  attrs: Attr[]; characterId: string; canEdit: boolean; onAdd: () => void; onDelete: (id: string) => void
+function CoCStatRow({ attr, characterId, canEdit, onSaved, onDelete }: {
+  attr: Attr; characterId: string; canEdit: boolean; onSaved: () => void; onDelete: (id: string) => void
+}) {
+  const pct = isPercentile(attr)
+  const half = Math.floor(attr.value / 2)
+  const fifth = Math.floor(attr.value / 5)
+  return (
+    <div className="flex items-center gap-3 py-2.5 px-2 rounded group hover:bg-white/[0.015] transition-all">
+      <div className="flex-1 min-w-0">
+        <span className="text-sm">{attr.attribute.name}</span>
+      </div>
+      {canEdit ? (
+        <EditableVal attrId={attr.id} value={attr.value} characterId={characterId} onSaved={onSaved}
+          className="font-cinzel font-bold text-base text-gold w-14 text-right" />
+      ) : (
+        <span className="font-cinzel font-bold text-base text-gold">
+          {pct ? `${attr.value}%` : attr.value}
+        </span>
+      )}
+      {pct && (
+        <div className="flex gap-2 text-[10px] text-saga-dim font-mono">
+          <span title="Metade">½{half}</span>
+          <span title="Quinto">⅕{fifth}</span>
+        </div>
+      )}
+      {!pct && <span className="text-[9px] text-saga-dim font-mono opacity-40 w-6">{attr.customDie ?? attr.attribute.defaultDie}</span>}
+      {canEdit && <DeleteBtn onClick={() => onDelete(attr.id)} />}
+    </div>
+  )
+}
+
+function CoCCharacteristicsTab({ coC, characterId, canEdit, onSaved, onDelete }: {
+  coC: ReturnType<typeof groupCoC>; characterId: string; canEdit: boolean
+  onSaved: () => void; onDelete: (id: string) => void
+}) {
+  const all = [...coC.characteristics]
+  return (
+    <div className="space-y-6">
+      {all.length > 0 && (
+        <div>
+          <SectionDivider title="Características" />
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {all.map(attr => {
+              const half = Math.floor(attr.value / 2)
+              const fifth = Math.floor(attr.value / 5)
+              return (
+                <div key={attr.id}
+                  className="flex flex-col items-center gap-1.5 py-4 px-1 rounded-lg border group transition-all hover:border-gold/25"
+                  style={{ background: 'rgba(255,255,255,0.025)', borderColor: 'rgba(255,255,255,0.07)' }}
+                >
+                  <span className="font-cinzel text-2xl font-bold text-gold leading-none">
+                    {canEdit
+                      ? <EditableVal attrId={attr.id} value={attr.value} characterId={characterId}
+                          onSaved={onSaved} className="font-cinzel text-2xl font-bold text-gold w-14 text-center" />
+                      : `${attr.value}%`
+                    }
+                  </span>
+                  <div className="flex gap-2 text-[9px] text-saga-dim font-mono">
+                    <span>½{half}</span><span>⅕{fifth}</span>
+                  </div>
+                  <div className="w-8 h-px" style={{ background: 'rgba(201,162,42,0.2)' }} />
+                  <span className="font-almendra text-[9px] text-saga-dim uppercase tracking-widest text-center">
+                    {ATTR_ABBREV[attr.attribute.name] ?? attr.attribute.name.slice(0, 3).toUpperCase()}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+      {coC.derived.length > 0 && (
+        <div>
+          <SectionDivider title="Atributos Derivados" />
+          <div className="space-y-1">
+            {coC.derived.map(attr => (
+              <CoCStatRow key={attr.id} attr={attr} characterId={characterId}
+                canEdit={canEdit} onSaved={onSaved} onDelete={onDelete} />
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function CoCSkillGroup({ title, skills, characterId, canEdit, onSaved, onDelete }: {
+  title: string; skills: Attr[]; characterId: string; canEdit: boolean
+  onSaved: () => void; onDelete: (id: string) => void
+}) {
+  if (skills.length === 0) return null
+  return (
+    <div>
+      <SectionDivider title={title} />
+      <div className="space-y-0.5">
+        {skills.map(attr => (
+          <CoCStatRow key={attr.id} attr={attr} characterId={characterId}
+            canEdit={canEdit} onSaved={onSaved} onDelete={onDelete} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function CoCSkillsTab({ coC, characterId, canEdit, onAdd, onSaved, onDelete }: {
+  coC: ReturnType<typeof groupCoC>; characterId: string; canEdit: boolean
+  onAdd: () => void; onSaved: () => void; onDelete: (id: string) => void
+}) {
+  const hasSkills = [coC.combat, coC.exploration, coC.technical, coC.knowledge, coC.social, coC.perception, coC.other]
+    .some(g => g.length > 0)
+
+  return (
+    <div className="space-y-4">
+      {canEdit && (
+        <div className="flex justify-end">
+          <AddBtn onClick={onAdd} />
+        </div>
+      )}
+      {!hasSkills && (
+        <p className="text-sm text-saga-dim text-center py-8">
+          {canEdit ? 'Nenhuma perícia. Clique em "Adicionar" para incluir.' : 'Nenhuma perícia adicionada.'}
+        </p>
+      )}
+      <CoCSkillGroup title="Combate" skills={coC.combat} characterId={characterId} canEdit={canEdit} onSaved={onSaved} onDelete={onDelete} />
+      <CoCSkillGroup title="Exploração" skills={coC.exploration} characterId={characterId} canEdit={canEdit} onSaved={onSaved} onDelete={onDelete} />
+      <CoCSkillGroup title="Técnicas" skills={coC.technical} characterId={characterId} canEdit={canEdit} onSaved={onSaved} onDelete={onDelete} />
+      <CoCSkillGroup title="Conhecimento" skills={coC.knowledge} characterId={characterId} canEdit={canEdit} onSaved={onSaved} onDelete={onDelete} />
+      <CoCSkillGroup title="Social" skills={coC.social} characterId={characterId} canEdit={canEdit} onSaved={onSaved} onDelete={onDelete} />
+      <CoCSkillGroup title="Percepção e Arte" skills={[...coC.perception, ...coC.other]} characterId={characterId} canEdit={canEdit} onSaved={onSaved} onDelete={onDelete} />
+    </div>
+  )
+}
+
+function HorrorTab({ attrs, characterId, canEdit, onAdd, onDelete, systemName }: {
+  attrs: Attr[]; characterId: string; canEdit: boolean; onAdd: () => void
+  onDelete: (id: string) => void; systemName: string | null
 }) {
   const router = useRouter()
+  const isCoC = systemName?.includes('Cthulhu') || systemName?.includes('Delta Green')
+
+  if (isCoC) {
+    const coC = groupCoC(attrs)
+    const [tab, setTab] = useState<'char' | 'skills'>('char')
+    return (
+      <div className="space-y-4">
+        <div className="flex gap-1">
+          {(['char', 'skills'] as const).map(t => (
+            <button key={t} onClick={() => setTab(t)}
+              className="px-3 py-1.5 rounded text-[10px] font-almendra uppercase tracking-wider transition-all"
+              style={{
+                color: tab === t ? '#c9a22a' : '#7878a0',
+                background: tab === t ? 'rgba(201,162,42,0.08)' : 'transparent',
+                border: `1px solid ${tab === t ? 'rgba(201,162,42,0.3)' : 'rgba(255,255,255,0.06)'}`,
+              }}>
+              {t === 'char' ? 'Características' : 'Perícias'}
+            </button>
+          ))}
+        </div>
+        {tab === 'char' && (
+          <CoCCharacteristicsTab coC={coC} characterId={characterId} canEdit={canEdit}
+            onSaved={() => router.refresh()} onDelete={onDelete} />
+        )}
+        {tab === 'skills' && (
+          <CoCSkillsTab coC={coC} characterId={characterId} canEdit={canEdit} onAdd={onAdd}
+            onSaved={() => router.refresh()} onDelete={onDelete} />
+        )}
+      </div>
+    )
+  }
 
   return (
     <div>
@@ -570,7 +1022,6 @@ function HorrorTab({ attrs, characterId, canEdit, onAdd, onDelete }: {
         <div className="flex-1 h-px" style={{ background: 'rgba(201,162,42,0.2)' }} />
         {canEdit && <AddBtn onClick={onAdd} />}
       </div>
-
       {attrs.length === 0 ? (
         <p className="text-sm text-saga-dim text-center py-6">
           {canEdit ? 'Nenhum atributo. Clique em "Adicionar".' : 'Nenhum atributo.'}
@@ -587,11 +1038,9 @@ function HorrorTab({ attrs, characterId, canEdit, onAdd, onDelete }: {
                   <span className="text-sm">{attr.attribute.name}</span>
                 </div>
                 {canEdit ? (
-                  <EditableVal
-                    attrId={attr.id} value={attr.value} characterId={characterId}
+                  <EditableVal attrId={attr.id} value={attr.value} characterId={characterId}
                     onSaved={() => router.refresh()}
-                    className={`font-cinzel font-bold text-base text-gold w-14 text-right ${pct ? '' : 'text-center'}`}
-                  />
+                    className={`font-cinzel font-bold text-base text-gold w-14 text-right ${pct ? '' : 'text-center'}`} />
                 ) : (
                   <span className="font-cinzel font-bold text-base text-gold">
                     {pct ? `${attr.value}%` : attr.value}
@@ -644,11 +1093,9 @@ function GenericTab({ attrs, characterId, canEdit, onAdd, onDelete, systemName }
                       )}
                     </div>
                     {canEdit ? (
-                      <EditableVal
-                        attrId={attr.id} value={attr.value} characterId={characterId}
+                      <EditableVal attrId={attr.id} value={attr.value} characterId={characterId}
                         onSaved={() => router.refresh()}
-                        className="font-cinzel font-bold text-base text-gold w-10 text-center"
-                      />
+                        className="font-cinzel font-bold text-base text-gold w-10 text-center" />
                     ) : (
                       <span className="font-cinzel font-bold text-base text-gold">{attr.value}</span>
                     )}
@@ -671,7 +1118,6 @@ function GenericTab({ attrs, characterId, canEdit, onAdd, onDelete, systemName }
         <div className="flex-1 h-px" style={{ background: 'rgba(201,162,42,0.2)' }} />
         {canEdit && <AddBtn onClick={onAdd} />}
       </div>
-
       {attrs.length === 0 ? (
         <p className="text-sm text-saga-dim text-center py-6">
           {canEdit ? 'Nenhum atributo. Clique em "Adicionar".' : 'Nenhum atributo.'}
@@ -687,11 +1133,9 @@ function GenericTab({ attrs, characterId, canEdit, onAdd, onDelete, systemName }
                 )}
               </div>
               {canEdit ? (
-                <EditableVal
-                  attrId={attr.id} value={attr.value} characterId={characterId}
+                <EditableVal attrId={attr.id} value={attr.value} characterId={characterId}
                   onSaved={() => router.refresh()}
-                  className="font-cinzel font-bold text-base text-gold w-10 text-center"
-                />
+                  className="font-cinzel font-bold text-base text-gold w-10 text-center" />
               ) : (
                 <span className="font-cinzel font-bold text-base text-gold">{attr.value}</span>
               )}
@@ -710,26 +1154,27 @@ function GenericTab({ attrs, characterId, canEdit, onAdd, onDelete, systemName }
 export function CharacterSheetView({ characterId, characterLevel, attributes, canEdit, category, systemName }: Props) {
   const router = useRouter()
 
+  const isDnD5e = systemName === 'D&D 5e'
+  const dnd = isDnD5e ? groupDnD5e(attributes) : null
   const wod = category === 'world-of-darkness' ? categorizeWoD(attributes) : null
 
-  // Build tab list per category
   const tabs: { id: string; label: string }[] = []
-  if (category === 'fantasy') {
+
+  if (isDnD5e) {
+    tabs.push({ id: 'atributos', label: 'Atributos' })
+    if ((dnd?.skills.length ?? 0) > 0) tabs.push({ id: 'pericias', label: 'Perícias' })
+    tabs.push({ id: 'combate', label: 'Combate' })
+  } else if (category === 'fantasy') {
     tabs.push({ id: 'atributos', label: 'Atributos' })
     tabs.push({ id: 'combate', label: 'Combate' })
   } else if (category === 'world-of-darkness') {
     tabs.push({ id: 'atributos', label: 'Atributos' })
     if (wod) {
-      const hasAbilities =
-        wod.talents.length + wod.skills.length + wod.knowledges.length +
+      const hasAbilities = wod.talents.length + wod.skills.length + wod.knowledges.length +
         wod.physSkills.length + wod.socSkills.length + wod.menSkills.length > 0
       if (hasAbilities) tabs.push({ id: 'habilidades', label: 'Habilidades' })
-
-      const hasAdvantages =
-        wod.disciplines.length + wod.backgrounds.length +
-        wod.virtues.length + wod.powers.length > 0
+      const hasAdvantages = wod.disciplines.length + wod.backgrounds.length + wod.virtues.length + wod.powers.length > 0
       if (hasAdvantages) tabs.push({ id: 'vantagens', label: 'Vantagens' })
-
       if (wod.resources.length > 0) tabs.push({ id: 'recursos', label: 'Recursos' })
     }
   } else if (category === 'horror') {
@@ -756,33 +1201,24 @@ export function CharacterSheetView({ characterId, characterLevel, attributes, ca
   }
 
   return (
-    <div
-      className="rounded-lg overflow-hidden"
-      style={{ background: 'rgba(17,17,30,0.6)', border: '1px solid rgba(255,255,255,0.07)' }}
-    >
+    <div className="rounded-lg overflow-hidden"
+      style={{ background: 'rgba(17,17,30,0.6)', border: '1px solid rgba(255,255,255,0.07)' }}>
+
       {/* Tab bar */}
-      <div
-        className="flex border-b"
-        style={{ borderColor: 'rgba(255,255,255,0.07)', background: 'rgba(0,0,0,0.18)' }}
-      >
+      <div className="flex border-b" style={{ borderColor: 'rgba(255,255,255,0.07)', background: 'rgba(0,0,0,0.18)' }}>
         {tabs.map(tab => {
           const isActive = tab.id === currentTab
           return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
               className="relative px-5 py-3.5 font-almendra text-[10px] uppercase tracking-[0.15em] transition-colors"
               style={{
                 color: isActive ? '#c9a22a' : '#7878a0',
                 background: isActive ? 'rgba(201,162,42,0.05)' : 'transparent',
-              }}
-            >
+              }}>
               {tab.label}
               {isActive && (
-                <span
-                  className="absolute bottom-0 left-0 right-0 h-[2px] rounded-t"
-                  style={{ background: 'linear-gradient(90deg, transparent, #c9a22a, transparent)' }}
-                />
+                <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-t"
+                  style={{ background: 'linear-gradient(90deg, transparent, #c9a22a, transparent)' }} />
               )}
             </button>
           )
@@ -791,78 +1227,71 @@ export function CharacterSheetView({ characterId, characterLevel, attributes, ca
 
       {/* Tab content */}
       <div className="p-5 sm:p-6">
-        {currentTab === 'atributos' && category === 'fantasy' && (
-          <FantasyAttrTab
-            attrs={attributes} characterId={characterId} canEdit={canEdit}
-            onAdd={() => setAddOpen(true)} onDelete={id => setDeleteTarget(id)}
-          />
+
+        {/* ── D&D 5e specific ── */}
+        {isDnD5e && dnd && currentTab === 'atributos' && (
+          <DnD5eAttrTab dnd={dnd} characterId={characterId} canEdit={canEdit}
+            level={characterLevel} onAdd={() => setAddOpen(true)} onDelete={id => setDeleteTarget(id)} />
+        )}
+        {isDnD5e && dnd && currentTab === 'pericias' && (
+          <DnD5eSkillsTab dnd={dnd} characterId={characterId} canEdit={canEdit} onDelete={id => setDeleteTarget(id)} />
+        )}
+        {isDnD5e && dnd && currentTab === 'combate' && (
+          <DnD5eCombatTab dnd={dnd} characterId={characterId} canEdit={canEdit}
+            level={characterLevel} onDelete={id => setDeleteTarget(id)} />
         )}
 
-        {currentTab === 'combate' && category === 'fantasy' && (
-          <FantasyCombatTab
-            attrs={attributes} characterId={characterId} canEdit={canEdit}
-            onDelete={id => setDeleteTarget(id)} level={characterLevel}
-          />
+        {/* ── Fantasy genérico ── */}
+        {!isDnD5e && currentTab === 'atributos' && category === 'fantasy' && (
+          <FantasyAttrTab attrs={attributes} characterId={characterId} canEdit={canEdit}
+            onAdd={() => setAddOpen(true)} onDelete={id => setDeleteTarget(id)} />
+        )}
+        {!isDnD5e && currentTab === 'combate' && category === 'fantasy' && (
+          <FantasyCombatTab attrs={attributes} characterId={characterId} canEdit={canEdit}
+            onDelete={id => setDeleteTarget(id)} level={characterLevel} />
         )}
 
+        {/* ── World of Darkness ── */}
         {currentTab === 'atributos' && category === 'world-of-darkness' && wod && (
-          <WoDAttrTab
-            physical={wod.physical} social={wod.social} mental={wod.mental}
+          <WoDAttrTab physical={wod.physical} social={wod.social} mental={wod.mental}
             characterId={characterId} canEdit={canEdit} onSaved={() => router.refresh()}
-            onDelete={id => setDeleteTarget(id)}
-          />
+            onDelete={id => setDeleteTarget(id)} />
         )}
-
         {currentTab === 'habilidades' && category === 'world-of-darkness' && wod && (() => {
           const useV20 = wod.talents.length + wod.skills.length + wod.knowledges.length > 0
           return (
             <WoDAbilitiesTab
-              col1={useV20 ? wod.talents   : wod.physSkills}
-              col2={useV20 ? wod.skills    : wod.socSkills}
-              col3={useV20 ? wod.knowledges: wod.menSkills}
-              col1Label={useV20 ? 'Talentos'     : 'Físicas'}
-              col2Label={useV20 ? 'Perícias'     : 'Sociais'}
-              col3Label={useV20 ? 'Conhecimentos': 'Mentais'}
-              characterId={characterId} canEdit={canEdit}
-              onSaved={() => router.refresh()}
-              onAdd={() => setAddOpen(true)}
-              onDelete={id => setDeleteTarget(id)}
-            />
+              col1={useV20 ? wod.talents    : wod.physSkills}
+              col2={useV20 ? wod.skills     : wod.socSkills}
+              col3={useV20 ? wod.knowledges : wod.menSkills}
+              col1Label={useV20 ? 'Talentos'      : 'Físicas'}
+              col2Label={useV20 ? 'Perícias'      : 'Sociais'}
+              col3Label={useV20 ? 'Conhecimentos' : 'Mentais'}
+              characterId={characterId} canEdit={canEdit} onSaved={() => router.refresh()}
+              onAdd={() => setAddOpen(true)} onDelete={id => setDeleteTarget(id)} />
           )
         })()}
-
         {currentTab === 'vantagens' && category === 'world-of-darkness' && wod && (
-          <WoDAdvantagesTab
-            disciplines={wod.disciplines} backgrounds={wod.backgrounds}
+          <WoDAdvantagesTab disciplines={wod.disciplines} backgrounds={wod.backgrounds}
             virtues={wod.virtues} powers={wod.powers}
-            characterId={characterId} canEdit={canEdit}
-            onSaved={() => router.refresh()}
-            onAdd={() => setAddOpen(true)}
-            onDelete={id => setDeleteTarget(id)}
-            systemName={systemName}
-          />
+            characterId={characterId} canEdit={canEdit} onSaved={() => router.refresh()}
+            onAdd={() => setAddOpen(true)} onDelete={id => setDeleteTarget(id)} systemName={systemName} />
         )}
-
         {currentTab === 'recursos' && category === 'world-of-darkness' && wod && (
-          <WoDResourcesTab
-            resources={wod.resources} characterId={characterId} canEdit={canEdit}
-            onSaved={() => router.refresh()}
-          />
+          <WoDResourcesTab resources={wod.resources} characterId={characterId} canEdit={canEdit}
+            onSaved={() => router.refresh()} />
         )}
 
+        {/* ── Horror / CoC ── */}
         {currentTab === 'caracteristicas' && category === 'horror' && (
-          <HorrorTab
-            attrs={attributes} characterId={characterId} canEdit={canEdit}
-            onAdd={() => setAddOpen(true)} onDelete={id => setDeleteTarget(id)}
-          />
+          <HorrorTab attrs={attributes} characterId={characterId} canEdit={canEdit}
+            onAdd={() => setAddOpen(true)} onDelete={id => setDeleteTarget(id)} systemName={systemName} />
         )}
 
+        {/* ── Sci-Fi / Generic / Custom ── */}
         {currentTab === 'atributos' && (category === 'scifi' || category === 'generic' || category === 'custom') && (
-          <GenericTab
-            attrs={attributes} characterId={characterId} canEdit={canEdit}
-            onAdd={() => setAddOpen(true)} onDelete={id => setDeleteTarget(id)}
-            systemName={systemName}
-          />
+          <GenericTab attrs={attributes} characterId={characterId} canEdit={canEdit}
+            onAdd={() => setAddOpen(true)} onDelete={id => setDeleteTarget(id)} systemName={systemName} />
         )}
       </div>
 

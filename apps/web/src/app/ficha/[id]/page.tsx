@@ -2,6 +2,7 @@ import { prisma } from 'database'
 import { notFound } from 'next/navigation'
 import { Badge } from '@/components/ui/Badge'
 import Link from 'next/link'
+import { safeImageUrl } from '@/lib/safe-url'
 import {
   Swords, Sparkles, Shield, Sword, Plus, Axe, Leaf, Music, Target, Dumbbell,
   Wand2, Moon, ScrollText, User, Heart,
@@ -56,9 +57,9 @@ export default async function PublicCharacterPage({ params }: { params: { id: st
       <div className="max-w-2xl mx-auto px-4 py-10">
         {/* Portrait + name */}
         <div className="bg-surface border border-border rounded-lg overflow-hidden mb-5">
-          {char.imageUrl ? (
+          {safeImageUrl(char.imageUrl) ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={char.imageUrl} alt={char.name} className="w-full h-64 object-cover object-top" />
+            <img src={safeImageUrl(char.imageUrl)!} alt={char.name} className="w-full h-64 object-cover object-top" />
           ) : (
             <div className="w-full h-48 bg-gradient-to-br from-[#1a0533] via-[#4a1080] to-[#7c3aed] flex items-center justify-center">
               <ClassIcon size={80} className="text-white/40" />

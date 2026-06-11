@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Badge } from '@/components/ui/Badge'
 import { NPCHPEditor } from '@/components/gm/NPCHPEditor'
 import { NPCAttributePanel } from '@/components/gm/NPCAttributePanel'
+import { safeImageUrl } from '@/lib/safe-url'
 import {
   ShieldAlert, UserCheck, Heart, Wind, User,
   ChevronLeft, Shield,
@@ -83,9 +84,9 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
         <div className="space-y-4">
           {/* Portrait */}
           <div className="bg-surface border border-border rounded-lg overflow-hidden">
-            {npc.imageUrl ? (
+            {safeImageUrl(npc.imageUrl) ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={npc.imageUrl} alt={npc.name} className="w-full h-52 object-cover object-top" />
+              <img src={safeImageUrl(npc.imageUrl)!} alt={npc.name} className="w-full h-52 object-cover object-top" />
             ) : (
               <div className="w-full h-52 bg-gradient-to-br from-[#1a0533] via-[#2d1060] to-[#4a1080] flex items-center justify-center">
                 <TypeIcon size={72} className="text-white/30" />
