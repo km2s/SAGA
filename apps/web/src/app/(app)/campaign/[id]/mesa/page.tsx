@@ -54,13 +54,15 @@ export default async function VirtualTablePage({ params }: { params: { id: strin
     orderBy: { role: 'asc' },
   }).catch(() => [])
 
+  // Carrega a sessão mais recente (ativa ou encerrada) para restaurar o estado do canvas
   const activeSession = await prisma.session.findFirst({
-    where: { campaignId: params.id, isActive: true },
+    where: { campaignId: params.id },
     orderBy: { startedAt: 'desc' },
     select: { id: true, name: true, isActive: true, tokensJson: true, musicYoutubeId: true, musicVolume: true, mapImageUrl: true },
   }).catch(() => null)
 
-  const initialRolls = activeSession
+  // Roll logs apenas da sessão ativa — sessões encerradas não precisam de logs em tempo real
+  const initialRolls = activeSession?.isActive
     ? await prisma.rollLog.findMany({
         where: { sessionId: activeSession.id },
         orderBy: { rolledAt: 'desc' },

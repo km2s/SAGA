@@ -33,11 +33,12 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
   const isGM = member.role === 'GM'
 
+  // Salva na sessão mais recente (ativa ou encerrada) — estado do canvas persiste entre sessões
   const activeSession = await prisma.session.findFirst({
-    where: { campaignId: params.id, isActive: true },
+    where: { campaignId: params.id },
     orderBy: { startedAt: 'desc' },
   }).catch(() => null)
-  if (!activeSession) return NextResponse.json({ error: 'Nenhuma sessão ativa' }, { status: 400 })
+  if (!activeSession) return NextResponse.json({ error: 'Nenhuma sessão encontrada' }, { status: 404 })
 
   const body = await req.json().catch(() => ({})) as {
     tokensJson?:     string | null

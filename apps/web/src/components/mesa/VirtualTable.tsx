@@ -161,7 +161,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
   }, [activeSession, campaign.id])
 
   useEffect(() => {
-    if (!activeSession) return
+    if (!activeSession?.isActive) return
     const iv = setInterval(async () => {
       const res = await fetch(`/api/campaigns/${campaign.id}/rolls?since=${encodeURIComponent(sinceRef.current)}`).catch(()=>null)
       if (!res?.ok) return
@@ -380,7 +380,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
   }
 
   async function rollDie(die: string) {
-    if (!activeSession||rollingDie) return
+    if (!activeSession?.isActive||rollingDie) return
     setRollingDie(die)
     const expr = rollModifier!==0
       ? `1${die}${rollModifier>0?'+':''}${rollModifier}`
@@ -444,7 +444,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
             <span className="font-cinzel text-[13px] font-semibold text-gold/90 group-hover:text-gold truncate max-w-[100px] sm:max-w-none">{campaign.name}</span>
           </Link>
           <div className="hidden sm:block h-4 w-px bg-white/10"/>
-          {activeSession ? (
+          {activeSession?.isActive ? (
             <div className="hidden sm:flex items-center gap-2">
               <div className="pulse-dot scale-75"/>
               <span className="text-[12px] text-saga-muted">{activeSession.name?? 'Sessão ativa'}</span>
@@ -452,7 +452,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
           ) : (
             <span className="hidden sm:inline text-[12px] text-saga-dim">Mesa sem sessão</span>
           )}
-          {activeSession && <div className="sm:hidden pulse-dot scale-75 shrink-0"/>}
+          {activeSession?.isActive && <div className="sm:hidden pulse-dot scale-75 shrink-0"/>}
         </div>
 
         {/* Right */}
@@ -526,7 +526,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
             <ClipboardList size={13}/>
             <span className="hidden sm:inline">Fichas</span>
           </button>
-          {activeSession && (
+          {activeSession?.isActive && (
             <button onClick={()=>setInitiativeOpen(o=>!o)}
               title="Tracker de Iniciativa"
               className={`px-2 sm:px-3 h-7 rounded text-[11px] font-medium border transition-all flex items-center gap-1.5 ${
@@ -536,7 +536,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
               <span className="hidden sm:inline">Iniciativa</span>
             </button>
           )}
-          {activeSession && (
+          {activeSession?.isActive && (
             <button onClick={()=>setHandoutsOpen(o=>!o)}
               title="Handouts"
               className={`px-2 sm:px-3 h-7 rounded text-[11px] font-medium border transition-all flex items-center gap-1.5 ${
@@ -560,7 +560,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
             }`}>
             <MessageSquare size={13}/>
           </button>
-          {isGM&&activeSession&&<EndSessionButton campaignId={campaign.id} compact/>}
+          {isGM&&activeSession?.isActive&&<EndSessionButton campaignId={campaign.id} compact/>}
         </div>
       </div>
 
@@ -733,22 +733,19 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
             </svg>
           )}
 
-          {/* ── No session overlay ── */}
-          {!activeSession&&(
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 z-30"
-                 style={{background:'rgba(0,0,0,0.75)',backdropFilter:'blur(6px)'}}>
-              <div className="text-center">
-                <Map size={44} className="text-saga-muted/30 mb-3 mx-auto"/>
-                <p className="font-cinzel text-lg font-semibold text-saga-muted">Mesa sem sessão ativa</p>
-                <p className="text-sm text-saga-dim mt-1">
-                  {isGM?'Inicie uma sessão para abrir a mesa.':'Aguardando o Mestre iniciar a sessão.'}
-                </p>
-              </div>
+          {/* ── No session banner — não bloqueia o canvas para o estado ser visível ── */}
+          {!activeSession?.isActive&&(
+            <div className="absolute top-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-3 px-4 py-2.5 rounded-xl shadow-2xl"
+                 style={{background:'rgba(12,12,24,0.92)',border:'1px solid rgba(201,162,42,0.25)',backdropFilter:'blur(12px)'}}>
+              <Map size={15} className="text-saga-dim shrink-0"/>
+              <span className="text-[12px] text-saga-muted">
+                {isGM?'Nenhuma sessão ativa':'Aguardando o Mestre iniciar a sessão'}
+              </span>
               {isGM&&(
                 <button onClick={()=>setStartSessionOpen(true)}
-                  className="px-7 py-2.5 rounded font-cinzel font-semibold text-sm text-bg flex items-center gap-2"
-                  style={{background:'linear-gradient(135deg,#c9a22a,#f0d060)',boxShadow:'0 0 24px rgba(201,162,42,0.35)'}}>
-                  <Play size={14}/>Iniciar Sessão
+                  className="px-3 py-1 rounded text-[11px] font-cinzel font-semibold text-bg flex items-center gap-1.5 shrink-0"
+                  style={{background:'linear-gradient(135deg,#c9a22a,#f0d060)'}}>
+                  <Play size={10}/>Iniciar
                 </button>
               )}
             </div>
@@ -1029,7 +1026,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
             {rolls.length===0&&(
               <div className="flex flex-col items-center justify-center h-32 gap-2 opacity-50">
                 <Dice6 size={28} className="text-saga-dim"/>
-                <p className="text-[11px] text-saga-dim text-center">{activeSession?'Nenhuma rolagem ainda.':'Inicie uma sessão.'}</p>
+                <p className="text-[11px] text-saga-dim text-center">{activeSession?.isActive?'Nenhuma rolagem ainda.':'Inicie uma sessão.'}</p>
               </div>
             )}
             {[...rolls].reverse().map(roll=>{
@@ -1083,7 +1080,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
           {/* Input + Dice bar */}
           <div className="shrink-0" style={{borderTop:'1px solid rgba(255,255,255,0.07)',background:'rgba(0,0,0,0.25)'}}>
             <div className="px-3 pt-2.5 pb-1">
-              <input value="" readOnly disabled={!activeSession} placeholder="Escreva uma mensagem..."
+              <input value="" readOnly disabled={!activeSession?.isActive} placeholder="Escreva uma mensagem..."
                 className="w-full rounded px-3 py-2 text-[12px] text-saga-text placeholder:text-saga-dim focus:outline-none disabled:opacity-40"
                 style={{background:'rgba(255,255,255,0.05)'}}/>
             </div>
@@ -1115,10 +1112,10 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
                   const rolling=rollingDie===die
                   return (
                     <button key={die} onClick={()=>void rollDie(die)}
-                      disabled={!activeSession||!!rollingDie}
+                      disabled={!activeSession?.isActive||!!rollingDie}
                       title={`Rolar 1${die}${rollModifier!==0?(rollModifier>0?'+':'')+rollModifier:''}`}
                       className={`h-9 rounded flex flex-col items-center justify-center gap-0.5 transition-all select-none
-                        ${!activeSession||rollingDie?'opacity-30 cursor-not-allowed':'hover:scale-105 active:scale-95'}
+                        ${!activeSession?.isActive||rollingDie?'opacity-30 cursor-not-allowed':'hover:scale-105 active:scale-95'}
                         ${rolling?'ring-1 ring-gold/60':''}`}
                       style={{
                         background:rolling?'rgba(201,162,42,0.15)':'rgba(255,255,255,0.04)',
