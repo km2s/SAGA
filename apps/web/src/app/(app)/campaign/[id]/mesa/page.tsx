@@ -69,6 +69,44 @@ export default async function VirtualTablePage({ params }: { params: { id: strin
 
   const isGM = membership.role === 'GM'
 
+  const npcs = isGM
+    ? await prisma.nPC.findMany({
+        where: { campaignId: params.id },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          race: true,
+          class: true,
+          level: true,
+          hp: true,
+          maxHp: true,
+          attributes: {
+            include: { attribute: { select: { name: true, defaultDie: true } } },
+            orderBy: { attribute: { name: 'asc' } },
+          },
+        },
+        orderBy: { name: 'asc' },
+      }).catch(() => [])
+    : []
+
+  const serializedNpcs = npcs.map(n => ({
+    id: n.id,
+    name: n.name,
+    type: n.type,
+    race: n.race,
+    class: n.class,
+    level: n.level,
+    hp: n.hp,
+    maxHp: n.maxHp,
+    attributes: n.attributes.map(a => ({
+      id: a.id,
+      value: a.value,
+      name: a.attribute.name,
+      defaultDie: a.attribute.defaultDie,
+    })),
+  }))
+
   const serializedRolls = initialRolls.map(r => ({
     id: r.id,
     expression: r.expression,
@@ -108,6 +146,7 @@ export default async function VirtualTablePage({ params }: { params: { id: strin
       campaign={{ id: campaign.id, name: campaign.name }}
       activeSession={activeSession}
       members={serializedMembers}
+      npcs={serializedNpcs}
       initialRolls={serializedRolls}
       isGM={isGM}
       currentMemberId={membership.id}

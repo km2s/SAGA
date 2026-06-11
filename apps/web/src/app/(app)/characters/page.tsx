@@ -25,7 +25,13 @@ export default async function CharactersPage() {
   // Only non-GM memberships without an existing character
   const allCampaigns = user.memberships
     .filter(m => m.role !== 'GM' && !m.character)
-    .map(m => ({ id: m.campaign.id, name: m.campaign.name }))
+    .map(m => ({
+      id: m.campaign.id,
+      name: m.campaign.name,
+      system: m.campaign.system
+        ? { id: m.campaign.system.id, name: m.campaign.system.name, category: m.campaign.system.category }
+        : null,
+    }))
 
   // Player memberships — shown in "Jogador" tab (all roles, but only those with a character)
   const playerMemberships = user.memberships

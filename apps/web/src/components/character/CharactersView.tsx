@@ -57,7 +57,7 @@ interface PlayerMembership {
 interface Props {
   playerMemberships: PlayerMembership[]
   gmCampaigns: GMCampaign[]
-  allCampaigns: { id: string; name: string }[]
+  allCampaigns: { id: string; name: string; system: { id: string; name: string; category: string } | null }[]
 }
 
 export function CharactersView({ playerMemberships, gmCampaigns, allCampaigns }: Props) {

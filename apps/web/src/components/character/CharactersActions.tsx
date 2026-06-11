@@ -6,7 +6,7 @@ import { CreateCharacterModal } from './CreateCharacterModal'
 import { ImportCharacterModal } from './ImportCharacterModal'
 import { Upload } from 'lucide-react'
 
-interface Campaign { id: string; name: string }
+interface Campaign { id: string; name: string; system: { id: string; name: string; category: string } | null }
 
 export function CharactersActions({ campaigns }: { campaigns: Campaign[] }) {
   const [createOpen, setCreateOpen] = useState(false)

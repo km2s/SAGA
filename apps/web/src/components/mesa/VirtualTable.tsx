@@ -38,12 +38,13 @@ interface CharData {
   level: number; hp: number; maxHp: number; attributes: CharAttr[]
 }
 interface Member { id: string; role: string; user: { username: string }; character: CharData | null }
+interface NpcData { id: string; name: string; type: string; race: string | null; class: string | null; level: number; hp: number; maxHp: number; attributes: CharAttr[] }
 interface Campaign { id: string; name: string }
 interface SessionState { tokensJson: string | null; musicYoutubeId: string | null; musicVolume: number; mapImageUrl: string | null }
 interface ActiveSession { id: string; name: string | null; isActive: boolean; tokensJson?: string | null; musicYoutubeId?: string | null; musicVolume?: number; mapImageUrl?: string | null }
 interface VirtualTableProps {
   campaign: Campaign; activeSession: ActiveSession | null
-  members: Member[]; initialRolls: RollLogEntry[]
+  members: Member[]; npcs: NpcData[]; initialRolls: RollLogEntry[]
   isGM: boolean; currentMemberId: string; systemName: string | null
 }
 
@@ -79,7 +80,7 @@ interface PanDrag   { startMouseX: number; startMouseY: number; startPanX: numbe
 interface AddTokenState { screenX: number; screenY: number; worldX: number; worldY: number }
 interface PinchState { dist: number; zoom: number; panX: number; panY: number; midX: number; midY: number }
 
-export function VirtualTable({ campaign, activeSession, members, initialRolls, isGM, currentMemberId, systemName }: VirtualTableProps) {
+export function VirtualTable({ campaign, activeSession, members, npcs, initialRolls, isGM, currentMemberId, systemName }: VirtualTableProps) {
   const [tool, setTool] = useState<Tool>('select')
   const [tokens, setTokens] = useState<Token[]>(() => {
     if (activeSession?.tokensJson) {
@@ -727,7 +728,7 @@ export function VirtualTable({ campaign, activeSession, members, initialRolls, i
           {sheetsOpen&&(
             <CharacterSheetPanel
               onClose={()=>setSheetsOpen(false)}
-              members={members} currentMemberId={currentMemberId}
+              members={members} npcs={npcs} currentMemberId={currentMemberId}
               isGM={isGM} campaignId={campaign.id} systemName={systemName}
             />
           )}
