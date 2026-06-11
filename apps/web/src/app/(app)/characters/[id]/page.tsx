@@ -93,6 +93,9 @@ export default async function CharacterDetailPage({ params }: { params: { id: st
             include: { attribute: true },
             orderBy: { attribute: { name: 'asc' } },
           },
+          textFields: { orderBy: { order: 'asc' } },
+          weapons:    { orderBy: { order: 'asc' } },
+          spellSlots: { orderBy: { level: 'asc' } },
         },
       },
     },
@@ -229,6 +232,9 @@ export default async function CharacterDetailPage({ params }: { params: { id: st
           characterId={char.id}
           characterLevel={char.level}
           attributes={char.attributes}
+          textFields={char.textFields}
+          weapons={char.weapons}
+          spellSlots={char.spellSlots}
           canEdit={canEdit}
           category={category}
           systemName={system?.name ?? null}

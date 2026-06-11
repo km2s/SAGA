@@ -1,12 +1,13 @@
 import { prisma } from 'database'
 
 interface AttrDef { name: string; defaultDie: string; description?: string }
-interface SystemDef { name: string; category: string; attributes: AttrDef[] }
+interface SystemDef { name: string; category: string; description?: string; attributes: AttrDef[] }
 
 export const PRESET_SYSTEMS: SystemDef[] = [
   // ─── Família D20 ───────────────────────────────────────────────────────────
   {
     name: 'D&D 5e', category: 'fantasy',
+    description: 'Aventuras épicas de fantasia medieval com heróis, dragões, masmorras e magia. Os personagens escolhem entre dezenas de raças e classes — Guerreiro, Mago, Ladino, Clérigo e muito mais — e crescem de nível em nível. O sistema usa d20 + modificadores de atributo contra uma Classe de Dificuldade, com 6 atributos base, 18 perícias e salvaguardas para resistir a perigos.',
     attributes: [
       // ── Atributos base ─────────────────────────────────────
       { name: 'Força',        defaultDie: 'd20', description: 'Atributo — potência física e ataques corpo-a-corpo' },
@@ -49,6 +50,7 @@ export const PRESET_SYSTEMS: SystemDef[] = [
   },
   {
     name: 'D&D 3.5e', category: 'fantasy',
+    description: 'A edição clássica de 2003 que definiu uma geração de jogadores, com fantasia épica rica em regras. Classes e raças detalhadas, talentos, magias e uma progressão de personagem extremamente granular. Usa d20 + bônus de ataque base e modificadores de atributo — mais complexo que a 5ª edição, com enormes possibilidades de build.',
     attributes: [
       { name: 'Força',        defaultDie: 'd20', description: 'Potência física' },
       { name: 'Destreza',     defaultDie: 'd20', description: 'Agilidade e coordenação' },
@@ -60,6 +62,7 @@ export const PRESET_SYSTEMS: SystemDef[] = [
   },
   {
     name: 'Pathfinder 2e', category: 'fantasy',
+    description: 'Fantasia épica no mundo de Golarion, repleto de nações diversas, deuses ativos e ameaças cósmicas. Personagens escolhem ancestral, background e classe, com enorme variedade de opções publicadas pela Paizo. O sistema usa d20 com três ações por turno e graus de proficiência — mais tático e equilibrado que a 5ª edição de D&D.',
     attributes: [
       { name: 'Força',        defaultDie: 'd20', description: 'Potência física e carregamento' },
       { name: 'Destreza',     defaultDie: 'd20', description: 'Reflexos e esquiva' },
@@ -72,6 +75,7 @@ export const PRESET_SYSTEMS: SystemDef[] = [
   },
   {
     name: 'Pathfinder 1e', category: 'fantasy',
+    description: 'Fantasia épica no mundo de Golarion com uma das maiores bibliotecas de conteúdo do hobby. Conhecido pela profundidade de construção de personagem — raças, classes, habilidades de classe e prestígios com enorme personalização. Evolução direta do D&D 3.5e com o sistema d20 clássico e regras de combate tático detalhadas.',
     attributes: [
       { name: 'Força',        defaultDie: 'd20', description: 'Poder físico bruto' },
       { name: 'Destreza',     defaultDie: 'd20', description: 'Agilidade e precisão' },
@@ -83,6 +87,7 @@ export const PRESET_SYSTEMS: SystemDef[] = [
   },
   {
     name: 'Tormenta20', category: 'fantasy',
+    description: 'O RPG nacional por excelência, ambientado em Arton — um mundo de alta fantasia brasileiro com humor, drama e criaturas únicas. Heróis exploram o continente enquanto a Tormenta, um mal ancestral, ameaça tudo. Baseado no d20 com raças e classes próprias do cenário; usa Pontos de Mana em vez de espaços de magia, tornando a conjuração mais fluida.',
     attributes: [
       { name: 'Força',          defaultDie: 'd20', description: 'Potência física' },
       { name: 'Destreza',       defaultDie: 'd20', description: 'Agilidade e reflexos' },
@@ -95,6 +100,7 @@ export const PRESET_SYSTEMS: SystemDef[] = [
   },
   {
     name: 'Old Dragon 2', category: 'fantasy',
+    description: 'RPG nacional de fantasia clássica com alma OSR — dungeons perigosas, tesouros escondidos e morte sempre à espreita. O foco está na exploração, astúcia e trabalho em equipe, sem heróis invulneráveis. A segunda edição, da Retropunk, usa mecânicas simples baseadas em d20 com atributos clássicos e progressão por nível de classe.',
     attributes: [
       { name: 'Força',        defaultDie: 'd20', description: 'Poder físico e combate corpo-a-corpo' },
       { name: 'Destreza',     defaultDie: 'd20', description: 'Agilidade, esquiva e armas à distância' },
@@ -106,6 +112,7 @@ export const PRESET_SYSTEMS: SystemDef[] = [
   },
   {
     name: 'Dungeon World', category: 'fantasy',
+    description: 'Fantasia de espada-e-feitiçaria com foco total na narrativa e nos personagens, não nas táticas de combate. Os jogadores interpretam classes cinematográficas — Guerreiro, Mago, Ladino — num mundo que reage às suas ações. Usa o sistema Powered by the Apocalypse: rola 2d6 e soma os modificadores de atributo; 10+ é sucesso pleno, 7–9 é sucesso com custo, 6- é falha dramática que avança a trama.',
     attributes: [
       { name: 'Força',        defaultDie: 'd6+d6', description: 'Hack-and-slash, defier of danger com força' },
       { name: 'Destreza',     defaultDie: 'd6+d6', description: 'Volley, defier of danger com agilidade' },
@@ -117,6 +124,7 @@ export const PRESET_SYSTEMS: SystemDef[] = [
   },
   {
     name: '13th Age', category: 'fantasy',
+    description: 'Fantasia épica num mundo de 13 Ícones — figuras de poder enormes que definem a política e os conflitos do cenário. Cada personagem tem um "One Unique Thing" que o torna singular na história, além de backgrounds narrativos. Sistema d20 com classes clássicas, mas com o Escalation Die tornando os combates mais dinâmicos e cinematográficos a cada rodada.',
     attributes: [
       { name: 'Força',        defaultDie: 'd20', description: 'Combate corpo-a-corpo e escalada' },
       { name: 'Constituição', defaultDie: 'd20', description: 'PV, resistência e recuperações' },
@@ -130,6 +138,7 @@ export const PRESET_SYSTEMS: SystemDef[] = [
   // ─── World of Darkness ────────────────────────────────────────────────────
   {
     name: 'Vampire: The Masquerade V5', category: 'world-of-darkness',
+    description: 'Você é um vampiro tentando sobreviver às intrigas da Camarilla, manter laços com sua humanidade e controlar a Fome que ameaça consumir sua razão. O jogo mistura drama pessoal, política das trevas e horror íntimo. O sistema usa pools de dados d10 (dificuldade 6+); os atributos são divididos em Físico, Social e Mental, com dezenas de habilidades e as poderosas Disciplinas vampíricas.',
     attributes: [
       { name: 'Força',          defaultDie: 'd10', description: 'Físico — poder bruto e ataques' },
       { name: 'Destreza',       defaultDie: 'd10', description: 'Físico — rapidez e precisão' },
@@ -174,6 +183,7 @@ export const PRESET_SYSTEMS: SystemDef[] = [
   },
   {
     name: 'Vampire: The Masquerade V20', category: 'world-of-darkness',
+    description: 'A versão definitiva e mais completa do Vampiro: A Máscara — compilação de 20 anos de material. Vampiros navegam a Jyhad eterna entre clãs rivais enquanto escondem sua existência dos mortais. Sistema d10 com Humanidade, Virtudes, Disciplinas elaboradas e a Reserva de Sangue; uma das maiores bibliotecas de suplementos do RPG mundial.',
     attributes: [
       { name: 'Força',          defaultDie: 'd10', description: 'Físico — poder bruto' },
       { name: 'Destreza',       defaultDie: 'd10', description: 'Físico — rapidez e agilidade' },
@@ -225,6 +235,7 @@ export const PRESET_SYSTEMS: SystemDef[] = [
   },
   {
     name: 'Werewolf: The Apocalypse', category: 'world-of-darkness',
+    description: 'Você é um Garou — guerreiro licantrópico da Gaia — lutando contra a corrupção do Wyrm que devora o mundo. Uma saga de ação, espírito e sacrifício, com tribos rivais e batalhas épicas tanto no mundo físico quanto no espiritual. O sistema d10 usa Raiva para potencializar habilidades; os personagens têm 9 atributos, habilidades, Gnosis, Dons e podem assumir cinco formas distintas.',
     attributes: [
       { name: 'Força',          defaultDie: 'd10', description: 'Físico — poder em todas as formas' },
       { name: 'Destreza',       defaultDie: 'd10', description: 'Físico — agilidade e precisão' },
@@ -245,6 +256,7 @@ export const PRESET_SYSTEMS: SystemDef[] = [
   },
   {
     name: 'Mage: The Ascension', category: 'world-of-darkness',
+    description: 'Magos que despertaram para a verdade da realidade lutam para moldar o mundo conforme sua visão — contra outros Magos e contra o Consenso dos mortais que rejeita o sobrenatural. O jogo mais filosófico e ambicioso do Mundo das Trevas, sobre crença, poder e responsabilidade. O sistema d10 usa as 9 Esferas para definir o que o mago pode fazer; a magia vulgar gera Paradoxo, um perigoso ricochete da realidade.',
     attributes: [
       { name: 'Força',          defaultDie: 'd10', description: 'Físico' },
       { name: 'Destreza',       defaultDie: 'd10', description: 'Físico' },
@@ -272,6 +284,7 @@ export const PRESET_SYSTEMS: SystemDef[] = [
   },
   {
     name: 'Mage: The Awakening', category: 'world-of-darkness',
+    description: 'Magos que Despertaram para a verdade do universo e agora navegam a guerra silenciosa entre as Ordens que protegem o mundo e o Exilado que o corrompeu. Horror mágico, conspiração e responsabilidade pelo conhecimento proibido. O sistema usa os 10 Arcanos no lugar das Esferas; Gnose, Mana e Sabedoria são os recursos centrais — e perder Sabedoria tem consequências devastadoras.',
     attributes: [
       { name: 'Inteligência',   defaultDie: 'd10', description: 'Mental — raciocínio' },
       { name: 'Raciocínio',     defaultDie: 'd10', description: 'Mental — percepção rápida' },
@@ -300,6 +313,7 @@ export const PRESET_SYSTEMS: SystemDef[] = [
   },
   {
     name: 'Hunter: The Reckoning', category: 'world-of-darkness',
+    description: 'Humanos comuns que receberam uma iluminação divina e agora enxergam — e caçam — os monstros ocultos na sociedade. Mais próximo da ação e do horror humano do que as intrigas políticas de Vampiro. O sistema d10 clássico usa 9 atributos, habilidades convencionais e a Convicção como recurso especial que alimenta os poderes sobrenaturais do caçador.',
     attributes: [
       { name: 'Força',          defaultDie: 'd10', description: 'Físico' },
       { name: 'Destreza',       defaultDie: 'd10', description: 'Físico' },
@@ -317,6 +331,7 @@ export const PRESET_SYSTEMS: SystemDef[] = [
   },
   {
     name: 'Changeling: The Lost', category: 'world-of-darkness',
+    description: 'Você foi sequestrado pelas fadas para a Arcádia e conseguiu escapar — mas voltou mudado, carregando cicatrizes e um Fetiche que ainda te liga àquele mundo. Um jogo sobre trauma, recuperação de identidade e o medo de ser levado novamente. O sistema d10 usa Glamour como energia fae, Wyrd como profundidade de transformação e Contratos como poderes mágicos herdados da Arcádia.',
     attributes: [
       { name: 'Inteligência',   defaultDie: 'd10', description: 'Mental' },
       { name: 'Raciocínio',     defaultDie: 'd10', description: 'Mental' },
@@ -334,6 +349,7 @@ export const PRESET_SYSTEMS: SystemDef[] = [
   },
   {
     name: 'Demon: The Descent', category: 'world-of-darkness',
+    description: 'Você é um Anjo do Deus Máquina que se rebelou — agora vive escondido entre humanos sob uma identidade falsa enquanto foge de seus ex-colegas. Espionagem sobrenatural, paranoias e questionamentos sobre livre-arbítrio e propósito. O sistema d10 usa coberturas duplas (identidade mortal e forma demoníaca), com Aether como combustível para Embeds e Exploits — poderes do seu design angélico.',
     attributes: [
       { name: 'Inteligência',   defaultDie: 'd10', description: 'Mental' },
       { name: 'Raciocínio',     defaultDie: 'd10', description: 'Mental' },
@@ -351,6 +367,7 @@ export const PRESET_SYSTEMS: SystemDef[] = [
   },
   {
     name: 'Geist: The Sin-Eaters', category: 'world-of-darkness',
+    description: 'Você morreu — e foi ressuscitado por um Geist, um poderoso espírito da morte que agora compartilha sua alma. Uma segunda chance de vida, mas com a obrigação de servir os mortos que ficaram para trás. Jogo melancólico e poético sobre luto, laços e o que fica quando tudo acaba. O sistema d10 usa Plasm como energia espectral para alimentar as Manifestações — poderes ligados ao mundo dos mortos.',
     attributes: [
       { name: 'Inteligência',   defaultDie: 'd10', description: 'Mental' },
       { name: 'Raciocínio',     defaultDie: 'd10', description: 'Mental' },
@@ -369,6 +386,7 @@ export const PRESET_SYSTEMS: SystemDef[] = [
   // ─── Horror ───────────────────────────────────────────────────────────────
   {
     name: 'Call of Cthulhu 7e', category: 'horror',
+    description: 'Investigadores comuns — professores, detetives, médicos — que mergulham em mistérios macabros e descobrem que o universo é habitado por entidades além da compreensão humana. Baseado nos horrores cósmicos de H.P. Lovecraft. O sistema usa d100 percentual para todas as perícias; a Sanidade decresce conforme os personagens encaram o inominável — sobreviver com a mente intacta é a verdadeira vitória.',
     attributes: [
       // ── Características (atributos base) ───────────────────
       { name: 'Força',          defaultDie: 'd100', description: 'Característica — poder físico bruto' },
@@ -434,6 +452,7 @@ export const PRESET_SYSTEMS: SystemDef[] = [
   },
   {
     name: 'Delta Green', category: 'horror',
+    description: 'Agentes do governo infiltrados na organização clandestina Delta Green, investigando ameaças de Mythos enquanto destroem evidências e sacrificam suas vidas pessoais. Horror cósmico moderno com espionagem, paranoia e consequências permanentes — seus personagens vão sair destruídos, se saírem. Sistema BRP (d100 percentual) com foco em perícias táticas, Sanidade e os Pontos de Ruptura que definem o limite do trauma.',
     attributes: [
       { name: 'Força',          defaultDie: 'd100', description: 'Capacidade física de carregar e combater' },
       { name: 'Constituição',   defaultDie: 'd100', description: 'Saúde, resistência a ferimentos' },
@@ -448,6 +467,7 @@ export const PRESET_SYSTEMS: SystemDef[] = [
   },
   {
     name: 'Mothership', category: 'horror',
+    description: 'Você é um astronauta, cientista ou marine tentando sobreviver no espaço profundo — onde algo deu errado e ninguém vai te salvar. Horror de sobrevivência claustrofóbico no estilo Alien e Event Horizon. O sistema é leve (d10 e d100) e brutal: o Estresse sobe a cada susto e pode causar Pânico; os personagens são frágeis e mortais por design — para que cada decision importe.',
     attributes: [
       { name: 'Força',          defaultDie: 'd10', description: 'Força bruta e carregamento' },
       { name: 'Velocidade',     defaultDie: 'd10', description: 'Rapidez e combate' },
@@ -462,6 +482,7 @@ export const PRESET_SYSTEMS: SystemDef[] = [
   // ─── Sci-Fi / Cyberpunk ───────────────────────────────────────────────────
   {
     name: 'Cyberpunk Red', category: 'scifi',
+    description: 'Sobrevivência estilosa em Night City — uma metrópole distópica controlada por megacorporações onde a violência é moeda e os implantes cibernéticos são poder. Edgerunners, netrunners, solos e fixers tentam fazer nome numa cidade que devora os fracos. O sistema Interlock usa 10 atributos STAT e pool de dados d10; a Humanidade diminui a cada implante instalado, refletindo o custo de se tornar mais máquina que humano.',
     attributes: [
       { name: 'Inteligência',   defaultDie: 'd10', description: 'INT — memória, resolução de problemas' },
       { name: 'Reflexos',       defaultDie: 'd10', description: 'REF — coordenação e combate' },
@@ -478,6 +499,7 @@ export const PRESET_SYSTEMS: SystemDef[] = [
   },
   {
     name: 'Starfinder', category: 'scifi',
+    description: 'Exploração galáctica no universo de Pathfinder milênios no futuro — starships, alienígenas, tecnologia avançada e magia estelar coexistem. Soldados, mecânicos, místicos e operatives navegam entre facções e planetas em aventuras de ficção científica épica. O sistema d20 combina classes de RPG clássico com equipamentos tecnológicos e os Resolve Points — recurso de resistência que define a durabilidade do personagem.',
     attributes: [
       { name: 'Força',          defaultDie: 'd20', description: 'Poder físico e carregamento' },
       { name: 'Destreza',       defaultDie: 'd20', description: 'Reflexos e armas ranged' },
@@ -490,6 +512,7 @@ export const PRESET_SYSTEMS: SystemDef[] = [
   },
   {
     name: 'Shadowrun 6e', category: 'scifi',
+    description: 'Um mundo de 2080 onde a magia voltou e coexiste com megacorporações, realidade aumentada e implantes cibernéticos — elfos, trolls e anões dividem as ruas cyberpunk com hackers e magos corporativos. Shadowrunners executam missões ilegais para sobreviver entre as corporações que controlam tudo. O sistema usa pool de d6 (5 e 6 = sucesso) para tudo; a Essência é reduzida a cada implante cibernético, limitando o potencial mágico do personagem.',
     attributes: [
       { name: 'Corpo',          defaultDie: 'd6', description: 'Físico — saúde e resistência a dano' },
       { name: 'Agilidade',      defaultDie: 'd6', description: 'Físico — coordenação e combate' },
@@ -507,6 +530,7 @@ export const PRESET_SYSTEMS: SystemDef[] = [
   },
   {
     name: 'Star Wars: Edge of the Empire', category: 'scifi',
+    description: 'Você é a escória da galáxia — contrabandista, caçador de recompensas, foragido — tentando sobreviver nas margens do Império Galáctico. Aventuras de espaço ópera no universo de Star Wars, longe dos Jedis e heróis da Aliança. O sistema usa dados narrativos especiais (não são d6 comuns) que geram Sucesso/Falha, Vantagem/Ameaça e Triunfo/Desastre simultaneamente — qualquer ação pode ter resultados mistos e inesperados.',
     attributes: [
       { name: 'Vigor',          defaultDie: 'd12', description: 'Brawn — força bruta e saúde' },
       { name: 'Agilidade',      defaultDie: 'd12', description: 'Agility — velocidade e precisão' },
@@ -522,6 +546,7 @@ export const PRESET_SYSTEMS: SystemDef[] = [
   // ─── Genérico / Indie ─────────────────────────────────────────────────────
   {
     name: 'GURPS 4e', category: 'generic',
+    description: 'O sistema de RPG mais universal do mercado — funciona em absolutamente qualquer cenário ou gênero, do medievo ao espaço, do realismo ao fantástico. Ideal para mestres que constroem seus próprios mundos ou adaptam livros, filmes e séries. Personagens são criados com pontos distribuídos em 4 atributos (Força, Destreza, Inteligência, Saúde) e habilidades individuais; rola-se 3d6 contra o valor da perícia.',
     attributes: [
       { name: 'Força',          defaultDie: 'd6+d6', description: 'ST — carregar, dano corpo-a-corpo, HP base' },
       { name: 'Destreza',       defaultDie: 'd6+d6', description: 'DX — coordenação, ataques e defesas' },
@@ -535,6 +560,7 @@ export const PRESET_SYSTEMS: SystemDef[] = [
   },
   {
     name: 'Fate Core', category: 'generic',
+    description: 'Um sistema de narrativa colaborativa onde a história e os personagens têm prioridade sobre as regras — funciona em qualquer gênero e é especialmente forte para grupos que querem contar histórias épicas sem perder horas em combate tático. Os personagens são definidos por Aspectos (frases criativas que descrevem quem eles são) e uma lista livre de habilidades. Rola Fate Dice (d6 com +, blank e −) e usa Invocar/Compelir Aspectos para criar momentos dramáticos.',
     attributes: [
       { name: 'Atletismo',      defaultDie: 'd6+d6', description: 'Movimento, acrobacias e defesa física' },
       { name: 'Combate',        defaultDie: 'd6+d6', description: 'Luta corpo-a-corpo' },
@@ -552,6 +578,7 @@ export const PRESET_SYSTEMS: SystemDef[] = [
   },
   {
     name: 'Savage Worlds', category: 'generic',
+    description: 'Aventura rápida e cinematográfica em qualquer gênero — Velho Oeste, fantasia, horror, ficção científica ou pulp. O foco é na ação dinâmica com o mínimo de burocracia, perfeito para grupos que querem sessões rápidas e emocionantes. Cada atributo tem um dado próprio (d4 a d12) que sobe com experiência; protagonistas (Wild Cards) rolam um Wild Die adicional, e Vantagens personalizam o estilo de jogo sem classes rígidas.',
     attributes: [
       { name: 'Agilidade',      defaultDie: 'd6',  description: 'Velocidade, furtividade e ataques' },
       { name: 'Astúcia',        defaultDie: 'd6',  description: 'Mente, perícias acadêmicas e mágicas' },
@@ -563,6 +590,7 @@ export const PRESET_SYSTEMS: SystemDef[] = [
   },
   {
     name: 'Blades in the Dark', category: 'generic',
+    description: 'Sua crew de criminosos planejam e executam golpes na cidade perpetuamente noturna de Duskwall — uma metrópole vitoriana obscura onde os fantasmas dos mortos são literalmente reais e usados como combustível. Crime, ocultismo e consequências duras numa cidade que nunca perdoa. As ações são agrupadas em Insight, Prowess e Resolve; Stress absorve consequências e Trauma marca cicatrizes permanentes — não há classe, apenas o Playbook que define seu estilo de golpe.',
     attributes: [
       { name: 'Insight — Estudar',  defaultDie: 'd6', description: 'Observar e pesquisar' },
       { name: 'Insight — Sondar',   defaultDie: 'd6', description: 'Ler pessoas e situações' },
@@ -581,6 +609,7 @@ export const PRESET_SYSTEMS: SystemDef[] = [
   },
   {
     name: 'Ironsworn', category: 'generic',
+    description: 'Fantasia nórdica sombria em que você interpreta um herói solitário numa terra selvagem cheia de perigos, promessas não cumpridas e comunidades que dependem de você. Pode ser jogado completamente solo, sem Mestre. As Juras (Vows) que você faz movem toda a narrativa; 5 stats (Edge, Heart, Iron, Shadow, Wits) definem seus pontos fortes. Rola 1d6 de ação contra 2d10 de desafio — o menor d10 define sucesso ou falha.',
     attributes: [
       { name: 'Edge',    defaultDie: 'd6', description: 'Combate à distância, rapidez e furtividade' },
       { name: 'Heart',   defaultDie: 'd6', description: 'Interação social, cura e vínculo com NPCs' },
@@ -595,7 +624,11 @@ export const PRESET_SYSTEMS: SystemDef[] = [
   },
 
   // ─── Personalizado ────────────────────────────────────────────────────────
-  { name: 'Personalizado', category: 'custom', attributes: [] },
+  {
+    name: 'Personalizado', category: 'custom',
+    description: 'Crie o seu próprio RPG do zero, adaptado exatamente ao cenário e tom que você imaginou — de fantasia única a ficção científica original, passando por qualquer gênero que não tenha sistema publicado. Total liberdade criativa: defina os atributos, escolha os dados (d4, d6, d8, d10, d12, d20, d100), escreva as descrições e monte a ficha que faz sentido para a sua campanha.',
+    attributes: [],
+  },
 ]
 
 export async function seedAndGetSystems() {
@@ -606,7 +639,11 @@ export async function seedAndGetSystems() {
     })
     if (!existing) {
       const system = await prisma.rPGSystem.create({
-        data: { name: preset.name, isPreset: true, category: preset.category },
+        data: {
+          name: preset.name, isPreset: true,
+          category: preset.category,
+          description: preset.description ?? null,
+        },
       })
       if (preset.attributes.length > 0) {
         await prisma.systemAttribute.createMany({
@@ -617,10 +654,16 @@ export async function seedAndGetSystems() {
         })
       }
     } else {
-      if (existing.category === 'custom' && preset.category !== 'custom') {
+      const needsUpdate =
+        (existing.category === 'custom' && preset.category !== 'custom') ||
+        existing.description !== (preset.description ?? null)
+      if (needsUpdate) {
         await prisma.rPGSystem.update({
           where: { id: existing.id },
-          data: { category: preset.category },
+          data: {
+            category: preset.category,
+            description: preset.description ?? null,
+          },
         }).catch(() => null)
       }
       const existingNames = new Set(existing.attributes.map(a => a.name))

@@ -121,12 +121,15 @@ model CharacterSheet {
 
   member     CampaignMember       @relation(fields: [memberId], references: [id])
   attributes CharacterAttribute[]
+  textFields CharacterTextField[]
+  weapons    CharacterWeapon[]
+  spellSlots CharacterSpellSlot[]
 }
 
 model CharacterAttribute {
   id          String  @id @default(cuid())
-  value       Int     @default(0) // modificador, ex: +4
-  customDie   String?             // sobrescreve o dado padrão do sistema
+  value       Int     @default(0)
+  customDie   String?
   sheetId     String
   attributeId String
 
@@ -134,6 +137,49 @@ model CharacterAttribute {
   attribute SystemAttribute @relation(fields: [attributeId], references: [id])
 
   @@unique([sheetId, attributeId])
+}
+
+model CharacterTextField {
+  id      String @id @default(cuid())
+  sheetId String
+  key     String
+  label   String
+  value   String @default("") @db.Text
+  order   Int    @default(0)
+
+  sheet CharacterSheet @relation(fields: [sheetId], references: [id], onDelete: Cascade)
+
+  @@unique([sheetId, key])
+  @@index([sheetId])
+}
+
+model CharacterWeapon {
+  id          String  @id @default(cuid())
+  sheetId     String
+  name        String
+  attackBonus String?
+  damage      String?
+  damageType  String?
+  range       String?
+  properties  String?
+  order       Int     @default(0)
+
+  sheet CharacterSheet @relation(fields: [sheetId], references: [id], onDelete: Cascade)
+
+  @@index([sheetId])
+}
+
+model CharacterSpellSlot {
+  id      String @id @default(cuid())
+  sheetId String
+  level   Int
+  total   Int    @default(0)
+  used    Int    @default(0)
+
+  sheet CharacterSheet @relation(fields: [sheetId], references: [id], onDelete: Cascade)
+
+  @@unique([sheetId, level])
+  @@index([sheetId])
 }
 
 // ─── NPC ───────────────────────────────────────────────────

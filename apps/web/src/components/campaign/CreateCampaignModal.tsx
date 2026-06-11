@@ -1,22 +1,42 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
+
+interface RPGSystem { id: string; name: string; category: string }
+
+const CATEGORY_LABELS: Record<string, string> = {
+  fantasy: 'Fantasia',
+  'world-of-darkness': 'World of Darkness',
+  horror: 'Horror',
+  scifi: 'Sci-Fi / Cyberpunk',
+  generic: 'Genérico / Indie',
+  custom: 'Personalizado',
+}
+
+const CATEGORY_ORDER = ['fantasy', 'world-of-darkness', 'horror', 'scifi', 'generic', 'custom']
 
 interface Props {
   open: boolean
   onClose: () => void
 }
 
-const SYSTEMS = ['D&D 5e', 'Tormenta20', 'Pathfinder 2e', 'Call of Cthulhu', 'Vampire: The Masquerade', 'Outro']
-
 export function CreateCampaignModal({ open, onClose }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [form, setForm] = useState({ name: '', description: '', systemName: '', theme: '' })
+  const [systems, setSystems] = useState<RPGSystem[]>([])
+
+  useEffect(() => {
+    if (!open) return
+    fetch('/api/systems')
+      .then(r => r.json())
+      .then((data: RPGSystem[]) => Array.isArray(data) && setSystems(data))
+      .catch(() => {})
+  }, [open])
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     setForm(f => ({ ...f, [e.target.name]: e.target.value }))
@@ -50,6 +70,10 @@ export function CreateCampaignModal({ open, onClose }: Props) {
     }
   }
 
+  const grouped = CATEGORY_ORDER
+    .map(cat => ({ cat, items: systems.filter(s => s.category === cat) }))
+    .filter(g => g.items.length > 0)
+
   return (
     <Modal open={open} onClose={onClose} title="Nova Campanha">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -76,8 +100,14 @@ export function CreateCampaignModal({ open, onClose }: Props) {
             onChange={handleChange}
             className="w-full bg-surface-2 border border-border rounded px-3 py-2.5 text-sm text-saga-text focus:outline-none focus:border-gold/60 transition-colors"
           >
-            <option value="">Personalizado</option>
-            {SYSTEMS.map(s => <option key={s} value={s}>{s}</option>)}
+            <option value="">Nenhum / Livre</option>
+            {grouped.map(({ cat, items }) => (
+              <optgroup key={cat} label={CATEGORY_LABELS[cat] ?? cat}>
+                {items.map(s => (
+                  <option key={s.id} value={s.name}>{s.name}</option>
+                ))}
+              </optgroup>
+            ))}
           </select>
         </div>
 
