@@ -21,6 +21,7 @@ interface Token {
   x: number; y: number
   type: 'player' | 'enemy' | 'npc'; color: string
   hp?: number; maxHp?: number
+  imageUrl?: string | null
 }
 
 interface InitiativeEntry {
@@ -35,10 +36,10 @@ interface RollLogEntry {
 interface CharAttr { id: string; value: number; name: string; defaultDie: string }
 interface CharData {
   id: string; name: string; race: string | null; class: string | null
-  level: number; hp: number; maxHp: number; attributes: CharAttr[]
+  level: number; hp: number; maxHp: number; imageUrl: string | null; attributes: CharAttr[]
 }
 interface Member { id: string; role: string; user: { username: string }; character: CharData | null }
-interface NpcData { id: string; name: string; type: string; race: string | null; class: string | null; level: number; hp: number; maxHp: number; attributes: CharAttr[] }
+interface NpcData { id: string; name: string; type: string; race: string | null; class: string | null; level: number; hp: number; maxHp: number; imageUrl: string | null; attributes: CharAttr[] }
 interface Campaign { id: string; name: string }
 interface SessionState { tokensJson: string | null; musicYoutubeId: string | null; musicVolume: number; mapImageUrl: string | null }
 interface ActiveSession { id: string; name: string | null; isActive: boolean; tokensJson?: string | null; musicYoutubeId?: string | null; musicVolume?: number; mapImageUrl?: string | null }
@@ -56,16 +57,19 @@ const DICE = ['d4','d6','d8','d10','d12','d20','d100']
 function snap(v: number) { return Math.round(v / GRID) * GRID }
 
 function initTokens(members: Member[]): Token[] {
-  return members.map((m, i) => ({
-    id: m.id,
-    label: m.character?.name ?? m.user.username,
-    initial: (m.character?.name ?? m.user.username)[0]?.toUpperCase() ?? '?',
-    x: ((i % 8) + 1) * GRID, y: (Math.floor(i / 8) + 1) * GRID,
-    type: m.role === 'GM' ? 'npc' : 'player',
-    color: m.role === 'GM' ? '#c9a22a' : (PLAYER_COLORS[i % PLAYER_COLORS.length] ?? '#7c3aed'),
-    hp: m.character?.hp,
-    maxHp: m.character?.maxHp,
-  }))
+  return members
+    .filter(m => m.role !== 'GM')
+    .map((m, i) => ({
+      id: m.id,
+      label: m.character?.name ?? m.user.username,
+      initial: (m.character?.name ?? m.user.username)[0]?.toUpperCase() ?? '?',
+      x: ((i % 8) + 1) * GRID, y: (Math.floor(i / 8) + 1) * GRID,
+      type: 'player' as const,
+      color: PLAYER_COLORS[i % PLAYER_COLORS.length] ?? '#7c3aed',
+      hp: m.character?.hp,
+      maxHp: m.character?.maxHp,
+      imageUrl: m.character?.imageUrl ?? null,
+    }))
 }
 
 function timeAgo(iso: string) {
@@ -122,6 +126,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
   const [initiativeOrder, setInitiativeOrder] = useState<InitiativeEntry[]>([])
   const [currentTurnIdx, setCurrentTurnIdx] = useState(0)
   const [handoutsOpen, setHandoutsOpen] = useState(false)
+  const [gmCustomOpen, setGmCustomOpen] = useState(false)
 
   const canvasRef    = useRef<HTMLDivElement>(null)
   const chatEndRef   = useRef<HTMLDivElement>(null)
@@ -331,6 +336,27 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
   function removeToken(id: string) {
     const next=tokens.filter(t=>t.id!==id)
     setTokens(next)
+    syncTokens(next)
+  }
+
+  function placeNpcToken(npc: NpcData) {
+    if (!addToken) return
+    const typeColor = npc.type === 'ENEMY' ? '#ef4444' : npc.type === 'VILLAIN' ? '#ef4444' : npc.type === 'ALLY' ? '#22c55e' : '#c9a22a'
+    const newToken: Token = {
+      id: crypto.randomUUID(),
+      label: npc.name,
+      initial: npc.name[0]?.toUpperCase() ?? '?',
+      x: snap(addToken.worldX), y: snap(addToken.worldY),
+      type: (npc.type === 'ENEMY' || npc.type === 'VILLAIN') ? 'enemy' : 'npc',
+      color: typeColor,
+      hp: npc.hp,
+      maxHp: npc.maxHp,
+      imageUrl: npc.imageUrl,
+    }
+    const next = [...tokens, newToken]
+    setTokens(next)
+    setAddToken(null)
+    setGmCustomOpen(false)
     syncTokens(next)
   }
 
@@ -615,9 +641,9 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
                   onMouseDown={e=>onTokenDown(e,t.id)}
                   onContextMenu={e=>{e.preventDefault();if(tool==='select')removeToken(t.id)}}
                 >
-                  <div className="relative w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white"
+                  <div className="relative w-10 h-10 rounded-full overflow-hidden flex items-center justify-center text-sm font-bold text-white"
                     style={{
-                      background:t.type==='enemy'
+                      background:safeImageUrl(t.imageUrl??null)?'transparent':t.type==='enemy'
                         ?'radial-gradient(circle at 35% 35%,#f87171,#dc2626)'
                         :t.type==='npc'
                           ?`radial-gradient(circle at 35% 35%,${t.color}cc,${t.color}88)`
@@ -628,7 +654,11 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
                           ?`0 0 0 2px #f0d060,0 0 0 4px rgba(240,208,96,0.4),0 4px 16px rgba(240,208,96,0.5)`
                           :`0 0 0 1.5px ${t.color}88,0 2px 8px rgba(0,0,0,0.6)`,
                     }}>
-                    {t.initial}
+                    {safeImageUrl(t.imageUrl??null)
+                      // eslint-disable-next-line @next/next/no-img-element
+                      ? <img src={safeImageUrl(t.imageUrl??null)!} alt={t.label} className="w-full h-full object-cover"/>
+                      : t.initial
+                    }
                     {isDragging&&<div className="absolute inset-0 rounded-full animate-ping opacity-30" style={{background:t.color}}/>}
                     {isCurrentTurn&&<div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-yellow-300 border border-yellow-500 flex items-center justify-center">
                       <span className="text-[5px] font-black text-yellow-900">▶</span>
@@ -842,55 +872,133 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
             <div className="absolute z-50 rounded-xl border border-border shadow-2xl overflow-hidden"
               style={{
                 left:Math.min(addToken.screenX+8,(canvasRef.current?.offsetWidth??600)-240),
-                top:Math.min(addToken.screenY+8,(canvasRef.current?.offsetHeight??400)-260),
-                width:232,background:'rgba(15,15,28,0.97)',backdropFilter:'blur(12px)',
+                top:Math.min(addToken.screenY+8,(canvasRef.current?.offsetHeight??400)-(isGM?320:260)),
+                width:236,background:'rgba(15,15,28,0.97)',backdropFilter:'blur(12px)',
               }}
               onMouseDown={e=>e.stopPropagation()}>
               <div className="px-3 py-2.5 border-b border-white/6 flex items-center justify-between">
-                <span className="font-cinzel text-[11px] font-bold text-saga-muted uppercase tracking-widest">Novo Token</span>
-                <button onClick={()=>setAddToken(null)} className="text-saga-dim hover:text-saga-text"><X size={14}/></button>
+                <span className="font-cinzel text-[11px] font-bold text-saga-muted uppercase tracking-widest">
+                  {isGM?'Colocar Token':'Novo Token'}
+                </span>
+                <button onClick={()=>{setAddToken(null);setGmCustomOpen(false)}} className="text-saga-dim hover:text-saga-text"><X size={14}/></button>
               </div>
-              <div className="p-3 flex flex-col gap-3">
-                <input autoFocus value={newTokenLabel} onChange={e=>setNewTokenLabel(e.target.value)}
-                  onKeyDown={e=>{if(e.key==='Enter')addNewToken();if(e.key==='Escape')setAddToken(null)}}
-                  placeholder="Nome do token..."
-                  className="w-full px-3 py-2 rounded text-sm text-saga-text placeholder:text-saga-dim focus:outline-none"
-                  style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)'}}/>
-                <div className="flex gap-1.5">
-                  {(['player','enemy','npc'] as const).map(tp=>(
-                    <button key={tp} onClick={()=>setNewTokenType(tp)}
-                      className={`flex-1 py-1.5 rounded text-[10px] font-medium uppercase transition-all ${newTokenType===tp?'text-white':'text-saga-dim'}`}
-                      style={{
-                        background:newTokenType===tp
-                          ?tp==='player'?'rgba(124,58,237,0.4)':tp==='enemy'?'rgba(239,68,68,0.4)':'rgba(201,162,42,0.3)'
-                          :'rgba(255,255,255,0.04)',
-                        border:newTokenType===tp
-                          ?`1px solid ${tp==='player'?'rgba(124,58,237,0.6)':tp==='enemy'?'rgba(239,68,68,0.5)':'rgba(201,162,42,0.5)'}`
-                          :'1px solid rgba(255,255,255,0.08)',
-                      }}>
-                      {tp==='player'?'Jogador':tp==='enemy'?'Inimigo':'NPC'}
+
+              {isGM ? (
+                /* ── GM: NPC picker ── */
+                <div className="flex flex-col">
+                  {npcs.length===0 ? (
+                    <p className="text-[11px] text-saga-dim text-center py-6">Nenhum NPC criado nesta campanha</p>
+                  ) : (
+                    <div className="max-h-52 overflow-y-auto p-1.5 flex flex-col gap-0.5">
+                      {npcs.map(npc=>{
+                        const tc=npc.type==='ENEMY'||npc.type==='VILLAIN'?'#ef4444':npc.type==='ALLY'?'#22c55e':'#c9a22a'
+                        const typeLabel=npc.type==='ENEMY'||npc.type==='VILLAIN'?'Inimigo':npc.type==='ALLY'?'Aliado':'Neutro'
+                        const hpPct=npc.maxHp>0?Math.max(0,Math.min(100,(npc.hp/npc.maxHp)*100)):0
+                        return (
+                          <button key={npc.id} onClick={()=>placeNpcToken(npc)}
+                            className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/5 transition-all text-left w-full">
+                            {safeImageUrl(npc.imageUrl)
+                              // eslint-disable-next-line @next/next/no-img-element
+                              ? <img src={safeImageUrl(npc.imageUrl)!} alt={npc.name} className="w-7 h-7 rounded-full object-cover shrink-0"/>
+                              : <div className="w-7 h-7 rounded-full shrink-0 flex items-center justify-center text-xs font-bold"
+                                  style={{background:`${tc}22`,border:`1px solid ${tc}55`,color:tc}}>
+                                  {npc.name[0]?.toUpperCase()??'?'}
+                                </div>
+                            }
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[12px] font-medium text-saga-text truncate leading-tight">{npc.name}</p>
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                <span className="text-[9px] font-medium" style={{color:tc}}>{typeLabel}</span>
+                                <div className="flex-1 h-[3px] rounded-full overflow-hidden" style={{background:'rgba(255,255,255,0.08)'}}>
+                                  <div className="h-full rounded-full" style={{width:`${hpPct}%`,background:hpPct>50?'#22c55e':hpPct>25?'#f59e0b':'#ef4444'}}/>
+                                </div>
+                                <span className="text-[9px] text-saga-dim shrink-0">{npc.hp}/{npc.maxHp}</span>
+                              </div>
+                            </div>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
+                  {/* Custom token fallback */}
+                  <div className="border-t border-white/6">
+                    <button onClick={()=>setGmCustomOpen(o=>!o)}
+                      className="w-full px-3 py-2 text-[10px] text-saga-dim hover:text-saga-text transition-colors flex items-center justify-center gap-1">
+                      <Plus size={10}/> Token Personalizado
                     </button>
-                  ))}
-                </div>
-                <div className="flex gap-1.5 flex-wrap">
-                  {TOKEN_COLORS.map(c=>(
-                    <button key={c} onClick={()=>setNewTokenColor(c)}
-                      className="w-5 h-5 rounded-full transition-all"
-                      style={{background:c,boxShadow:newTokenColor===c?'0 0 0 2px rgba(255,255,255,0.9)':'none',transform:newTokenColor===c?'scale(1.2)':'scale(1)'}}/>
-                  ))}
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style={{background:newTokenColor}}>
-                    {(newTokenLabel[0]??'?').toUpperCase()}
+                    {gmCustomOpen&&(
+                      <div className="p-2.5 pt-0 flex flex-col gap-2">
+                        <input autoFocus value={newTokenLabel} onChange={e=>setNewTokenLabel(e.target.value)}
+                          onKeyDown={e=>{if(e.key==='Enter')addNewToken();if(e.key==='Escape')setAddToken(null)}}
+                          placeholder="Nome do token..."
+                          className="w-full px-2 py-1.5 rounded text-xs text-saga-text placeholder:text-saga-dim focus:outline-none"
+                          style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)'}}/>
+                        <div className="flex gap-1">
+                          {(['player','enemy','npc'] as const).map(tp=>(
+                            <button key={tp} onClick={()=>setNewTokenType(tp)}
+                              className={`flex-1 py-1 rounded text-[9px] font-medium uppercase transition-all ${newTokenType===tp?'text-white':'text-saga-dim'}`}
+                              style={{
+                                background:newTokenType===tp?tp==='player'?'rgba(124,58,237,0.4)':tp==='enemy'?'rgba(239,68,68,0.4)':'rgba(201,162,42,0.3)':'rgba(255,255,255,0.04)',
+                                border:newTokenType===tp?`1px solid ${tp==='player'?'rgba(124,58,237,0.6)':tp==='enemy'?'rgba(239,68,68,0.5)':'rgba(201,162,42,0.5)'}`:'1px solid rgba(255,255,255,0.08)',
+                              }}>
+                              {tp==='player'?'Jogador':tp==='enemy'?'Inimigo':'NPC'}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="flex gap-1 flex-wrap">
+                          {TOKEN_COLORS.map(c=>(
+                            <button key={c} onClick={()=>setNewTokenColor(c)} className="w-4 h-4 rounded-full transition-all"
+                              style={{background:c,boxShadow:newTokenColor===c?'0 0 0 2px rgba(255,255,255,0.9)':'none',transform:newTokenColor===c?'scale(1.2)':'scale(1)'}}/>
+                          ))}
+                        </div>
+                        <button onClick={addNewToken}
+                          className="w-full py-1.5 rounded text-[11px] font-bold text-bg font-cinzel"
+                          style={{background:'linear-gradient(135deg,#c9a22a,#f0d060)'}}>
+                          Colocar no Mapa
+                        </button>
+                      </div>
+                    )}
                   </div>
-                  <button onClick={addNewToken}
-                    className="flex-1 py-1.5 rounded text-[11px] font-bold text-bg font-cinzel"
-                    style={{background:'linear-gradient(135deg,#c9a22a,#f0d060)'}}>
-                    Colocar no Mapa
-                  </button>
                 </div>
-                <p className="text-[9px] text-saga-dim text-center">Clique direito no token para remover</p>
-              </div>
+              ) : (
+                /* ── Jogador: form genérico ── */
+                <div className="p-3 flex flex-col gap-3">
+                  <input autoFocus value={newTokenLabel} onChange={e=>setNewTokenLabel(e.target.value)}
+                    onKeyDown={e=>{if(e.key==='Enter')addNewToken();if(e.key==='Escape')setAddToken(null)}}
+                    placeholder="Nome do token..."
+                    className="w-full px-3 py-2 rounded text-sm text-saga-text placeholder:text-saga-dim focus:outline-none"
+                    style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)'}}/>
+                  <div className="flex gap-1.5">
+                    {(['player','enemy','npc'] as const).map(tp=>(
+                      <button key={tp} onClick={()=>setNewTokenType(tp)}
+                        className={`flex-1 py-1.5 rounded text-[10px] font-medium uppercase transition-all ${newTokenType===tp?'text-white':'text-saga-dim'}`}
+                        style={{
+                          background:newTokenType===tp?tp==='player'?'rgba(124,58,237,0.4)':tp==='enemy'?'rgba(239,68,68,0.4)':'rgba(201,162,42,0.3)':'rgba(255,255,255,0.04)',
+                          border:newTokenType===tp?`1px solid ${tp==='player'?'rgba(124,58,237,0.6)':tp==='enemy'?'rgba(239,68,68,0.5)':'rgba(201,162,42,0.5)'}`:'1px solid rgba(255,255,255,0.08)',
+                        }}>
+                        {tp==='player'?'Jogador':tp==='enemy'?'Inimigo':'NPC'}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex gap-1.5 flex-wrap">
+                    {TOKEN_COLORS.map(c=>(
+                      <button key={c} onClick={()=>setNewTokenColor(c)} className="w-5 h-5 rounded-full transition-all"
+                        style={{background:c,boxShadow:newTokenColor===c?'0 0 0 2px rgba(255,255,255,0.9)':'none',transform:newTokenColor===c?'scale(1.2)':'scale(1)'}}/>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style={{background:newTokenColor}}>
+                      {(newTokenLabel[0]??'?').toUpperCase()}
+                    </div>
+                    <button onClick={addNewToken}
+                      className="flex-1 py-1.5 rounded text-[11px] font-bold text-bg font-cinzel"
+                      style={{background:'linear-gradient(135deg,#c9a22a,#f0d060)'}}>
+                      Colocar no Mapa
+                    </button>
+                  </div>
+                  <p className="text-[9px] text-saga-dim text-center">Clique direito no token para remover</p>
+                </div>
+              )}
             </div>
           )}
         </div>

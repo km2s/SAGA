@@ -7,17 +7,8 @@ import { HPEditor } from '@/components/character/HPEditor'
 import { CharacterShareToggle } from '@/components/character/CharacterShareToggle'
 import { CharacterSheetView, type SheetCategory } from '@/components/character/CharacterSheetView'
 import { DeleteCharacterButton } from '@/components/character/DeleteCharacterButton'
-import { safeImageUrl } from '@/lib/safe-url'
-import {
-  Swords, Sparkles, Shield, Sword, Plus, Axe, Leaf, Music, Target, Dumbbell,
-  Wand2, Moon, ScrollText, ClipboardList, Pencil, User,
-} from 'lucide-react'
-
-const CLASS_ICONS: Record<string, React.ElementType> = {
-  Guerreiro: Swords, Mago: Sparkles, Paladino: Shield, Ladino: Sword, Clérigo: Plus,
-  Bárbaro: Axe, Druida: Leaf, Bardo: Music, Ranger: Target, Monge: Dumbbell,
-  Feiticeiro: Wand2, Bruxo: Moon, Arcanista: ScrollText,
-}
+import { CharacterPortrait } from '@/components/character/CharacterPortrait'
+import { ClipboardList, Pencil } from 'lucide-react'
 
 const SYSTEM_CATEGORIES: Record<string, SheetCategory> = {
   // Fantasy
@@ -116,7 +107,6 @@ export default async function CharacterDetailPage({ params }: { params: { id: st
   const system = campaign.system
 
   const category: SheetCategory = detectCategory(system?.name)
-  const ClassIcon = CLASS_ICONS[char.class ?? ''] ?? User
   const SystemIcon = system?.isPreset ? ClipboardList : Pencil
   const systemColor = SYSTEM_COLOR[category] ?? 'text-saga-muted'
 
@@ -162,14 +152,13 @@ export default async function CharacterDetailPage({ params }: { params: { id: st
         <div className="space-y-4">
           {/* Portrait card */}
           <div className="bg-surface border border-border rounded-lg overflow-hidden">
-            {safeImageUrl(char.imageUrl) ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={safeImageUrl(char.imageUrl)!} alt={char.name} className="w-full h-52 object-cover object-top" />
-            ) : (
-              <div className="w-full h-52 bg-gradient-to-br from-[#1a0533] via-[#4a1080] to-[#7c3aed] flex items-center justify-center">
-                <ClassIcon size={72} className="text-white/50" />
-              </div>
-            )}
+            <CharacterPortrait
+              characterId={char.id}
+              imageUrl={char.imageUrl}
+              name={char.name}
+              charClass={char.class}
+              canEdit={canEdit}
+            />
             <div className="p-4">
               <h2 className="font-cinzel-deco text-base font-bold text-center leading-snug">{char.name}</h2>
               {char.race && (

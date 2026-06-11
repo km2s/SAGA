@@ -41,6 +41,7 @@ export default async function VirtualTablePage({ params }: { params: { id: strin
           level: true,
           hp: true,
           maxHp: true,
+          imageUrl: true,
           attributes: {
             include: {
               attribute: { select: { name: true, defaultDie: true } },
@@ -81,6 +82,7 @@ export default async function VirtualTablePage({ params }: { params: { id: strin
           level: true,
           hp: true,
           maxHp: true,
+          imageUrl: true,
           attributes: {
             include: { attribute: { select: { name: true, defaultDie: true } } },
             orderBy: { attribute: { name: 'asc' } },
@@ -99,6 +101,7 @@ export default async function VirtualTablePage({ params }: { params: { id: strin
     level: n.level,
     hp: n.hp,
     maxHp: n.maxHp,
+    imageUrl: n.imageUrl,
     attributes: n.attributes.map(a => ({
       id: a.id,
       value: a.value,
@@ -131,6 +134,7 @@ export default async function VirtualTablePage({ params }: { params: { id: strin
           level: m.character.level,
           hp: m.character.hp,
           maxHp: m.character.maxHp,
+          imageUrl: m.character.imageUrl,
           attributes: m.character.attributes.map(a => ({
             id: a.id,
             value: a.value,

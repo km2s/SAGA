@@ -50,7 +50,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   })
   if (!isMine && !isGM) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const body = await req.json() as { hp?: number; maxHp?: number; level?: number; isPublic?: boolean }
+  const body = await req.json() as { hp?: number; maxHp?: number; level?: number; isPublic?: boolean; imageUrl?: string | null }
 
   // Only the character owner can change visibility
   if (body.isPublic !== undefined && !isMine) {
@@ -64,6 +64,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       ...(body.maxHp !== undefined && { maxHp: Math.max(1, body.maxHp) }),
       ...(body.level !== undefined && { level: Math.min(20, Math.max(1, body.level)) }),
       ...(body.isPublic !== undefined && { isPublic: body.isPublic }),
+      ...('imageUrl' in body && { imageUrl: body.imageUrl ?? null }),
     },
   })
   return NextResponse.json(updated)
