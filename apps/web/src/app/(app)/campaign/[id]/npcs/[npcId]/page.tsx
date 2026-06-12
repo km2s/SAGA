@@ -6,10 +6,11 @@ import Link from 'next/link'
 import { Badge } from '@/components/ui/Badge'
 import { NPCHPEditor } from '@/components/gm/NPCHPEditor'
 import { NPCAttributePanel } from '@/components/gm/NPCAttributePanel'
+import { CharacterSheetView, type SheetCategory } from '@/components/character/CharacterSheetView'
 import { safeImageUrl } from '@/lib/safe-url'
 import {
   ShieldAlert, UserCheck, Heart, Wind, User,
-  ChevronLeft, Shield,
+  ChevronLeft, Shield, ClipboardList, Pencil,
 } from 'lucide-react'
 
 const NPC_TYPE_LABELS: Record<string, string> = {
@@ -23,6 +24,54 @@ const NPC_TYPE_ICONS: Record<string, React.ElementType> = {
 const NPC_TYPE_BADGE: Record<string, 'gold' | 'success' | 'purple' | 'muted'> = {
   VILLAIN: 'gold', ALLY: 'success', MERCHANT: 'purple',
   FAMILIAR: 'purple', MOUNT: 'muted', SERVANT: 'muted', NEUTRAL: 'muted', OTHER: 'muted',
+}
+
+const SYSTEM_CATEGORIES: Record<string, SheetCategory> = {
+  'D&D 5e': 'fantasy', 'D&D 3.5e': 'fantasy', 'Pathfinder 2e': 'fantasy',
+  'Pathfinder 1e': 'fantasy', 'Tormenta20': 'fantasy', 'Old Dragon 2': 'fantasy',
+  'Dungeon World': 'fantasy', '13th Age': 'fantasy',
+  'Vampire: The Masquerade V5': 'world-of-darkness',
+  'Vampire: The Masquerade V20': 'world-of-darkness',
+  'Vampire: The Masquerade': 'world-of-darkness',
+  'Werewolf: The Apocalypse': 'world-of-darkness',
+  'Mage: The Ascension': 'world-of-darkness',
+  'Mage: The Awakening': 'world-of-darkness',
+  'Hunter: The Reckoning': 'world-of-darkness',
+  'Changeling: The Lost': 'world-of-darkness',
+  'Demon: The Descent': 'world-of-darkness',
+  'Geist: The Sin-Eaters': 'world-of-darkness',
+  'Call of Cthulhu 7e': 'horror', 'Delta Green': 'horror', 'Mothership': 'horror',
+  'Cyberpunk Red': 'scifi', 'Starfinder': 'scifi', 'Shadowrun 6e': 'scifi',
+  'Star Wars: Edge of the Empire': 'scifi',
+  'GURPS 4e': 'generic', 'Fate Core': 'generic', 'Savage Worlds': 'generic',
+  'Blades in the Dark': 'generic', 'Ironsworn': 'generic',
+}
+
+function detectCategory(name: string | null | undefined): SheetCategory {
+  if (!name) return 'custom'
+  const exact = SYSTEM_CATEGORIES[name]
+  if (exact) return exact
+  const n = name.toLowerCase()
+  if (n.includes('vampire') || n.includes('werewolf') || n.includes('mage') ||
+      n.includes('hunter') || n.includes('changeling') || n.includes('demon') ||
+      n.includes('geist') || n.includes('masquerade') || n.includes('darkness'))
+    return 'world-of-darkness'
+  if (n.includes('cthulhu') || n.includes('horror') || n.includes('mothership') || n.includes('delta green'))
+    return 'horror'
+  if (n.includes('cyberpunk') || n.includes('starfinder') || n.includes('shadowrun') || n.includes('star wars'))
+    return 'scifi'
+  if (n.includes('d&d') || n.includes('pathfinder') || n.includes('tormenta') || n.includes('dungeon'))
+    return 'fantasy'
+  return 'custom'
+}
+
+const SYSTEM_COLOR: Record<string, string> = {
+  fantasy:             'text-[#c9a22a]',
+  'world-of-darkness': 'text-[#9d5af5]',
+  horror:              'text-[#5a9e8f]',
+  scifi:               'text-[#5b8dd9]',
+  generic:             'text-saga-muted',
+  custom:              'text-saga-muted',
 }
 
 export default async function NPCDetailPage({ params }: { params: { id: string; npcId: string } }) {
@@ -39,7 +88,7 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
   const npc = await prisma.nPC.findFirst({
     where: { id: params.npcId, campaignId: params.id },
     include: {
-      campaign: true,
+      campaign: { include: { system: true } },
       attributes: {
         include: { attribute: true },
         orderBy: { attribute: { name: 'asc' } },
@@ -56,6 +105,22 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
   if (!canView) notFound()
 
   const TypeIcon = NPC_TYPE_ICONS[npc.type] ?? User
+  const system = npc.campaign.system
+  const category: SheetCategory = detectCategory(system?.name)
+  const SystemIcon = system?.isPreset ? ClipboardList : Pencil
+  const systemColor = SYSTEM_COLOR[category] ?? 'text-saga-muted'
+
+  // Map NPC attributes to the same shape CharacterSheetView expects
+  const sheetAttributes = npc.attributes.map(a => ({
+    id: a.id,
+    value: a.value,
+    customDie: a.customDie,
+    attribute: {
+      name: a.attribute.name,
+      defaultDie: a.attribute.defaultDie,
+      description: a.attribute.description ?? null,
+    },
+  }))
 
   return (
     <div className="p-4 sm:p-8 sm:pt-6">
@@ -68,10 +133,22 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
         </Link>
       </div>
 
+      {/* Header */}
       <div className="flex items-start justify-between mb-6 flex-wrap gap-3">
         <div>
           <h1 className="font-cinzel text-2xl font-bold">Ficha do NPC</h1>
-          <p className="text-sm text-saga-muted mt-1">{npc.campaign.name}</p>
+          <div className="flex items-center gap-2 mt-1">
+            <p className="text-sm text-saga-muted">{npc.campaign.name}</p>
+            {system && (
+              <>
+                <span className="text-saga-dim">·</span>
+                <span className={`flex items-center gap-1 text-sm font-medium ${systemColor}`}>
+                  <SystemIcon size={13} />
+                  {system.name}
+                </span>
+              </>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <Badge variant={NPC_TYPE_BADGE[npc.type] ?? 'muted'}>{NPC_TYPE_LABELS[npc.type] ?? npc.type}</Badge>
@@ -79,8 +156,8 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-5">
-        {/* LEFT — portrait + stats */}
+      <div className="grid grid-cols-1 md:grid-cols-[230px_1fr] gap-5">
+        {/* LEFT — portrait + stats (mesmo layout da ficha de personagem) */}
         <div className="space-y-4">
           {/* Portrait */}
           <div className="bg-surface border border-border rounded-lg overflow-hidden">
@@ -93,17 +170,17 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
               </div>
             )}
             <div className="p-4">
-              <h2 className="font-cinzel text-lg font-bold text-center">{npc.name}</h2>
+              <h2 className="font-cinzel-deco text-base font-bold text-center leading-snug">{npc.name}</h2>
               {npc.race && (
                 <div className="flex justify-between text-[12px] mt-2">
                   <span className="text-saga-muted">Raça</span>
-                  <span>{npc.race}</span>
+                  <span className="font-fell">{npc.race}</span>
                 </div>
               )}
               {npc.class && (
                 <div className="flex justify-between text-[12px] mt-1">
                   <span className="text-saga-muted">Classe</span>
-                  <span>{npc.class}</span>
+                  <span className="font-fell">{npc.class}</span>
                 </div>
               )}
               <div className="flex justify-center mt-3">
@@ -117,7 +194,7 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
             </div>
           </div>
 
-          {/* HP — só o GM edita */}
+          {/* HP */}
           <NPCHPEditor
             campaignId={params.id}
             npcId={npc.id}
@@ -125,25 +202,32 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
             maxHp={npc.maxHp}
           />
 
-          {/* Quick stats */}
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { label: 'CA', value: '10' },
-              { label: 'Iniciativa', value: '+0' },
-              { label: 'Velocidade', value: '9m' },
-              { label: 'Tipo', value: NPC_TYPE_LABELS[npc.type] ?? npc.type },
-            ].map(s => (
-              <div key={s.label} className="bg-surface border border-border rounded-lg p-3 text-center">
-                <p className="font-cinzel text-base font-bold truncate">{s.value}</p>
-                <p className="text-[10px] text-saga-muted mt-0.5">{s.label}</p>
-              </div>
-            ))}
+          {/* Tipo */}
+          <div className="bg-surface border border-border rounded-lg p-3 text-center">
+            <p className="font-cinzel text-base font-bold">{NPC_TYPE_LABELS[npc.type] ?? npc.type}</p>
+            <p className="font-almendra text-[9px] text-saga-muted mt-0.5 uppercase tracking-widest">Tipo de NPC</p>
           </div>
+
+          {/* Sistema */}
+          {system && (
+            <div className="bg-surface border border-border rounded-lg p-4">
+              <p className="font-almendra text-[9px] font-bold text-saga-dim uppercase tracking-widest mb-2">Sistema</p>
+              <div className="flex items-center gap-2">
+                <SystemIcon size={16} className="text-saga-muted shrink-0" />
+                <div>
+                  <p className={`text-sm font-medium ${systemColor}`}>{system.name}</p>
+                  <p className="text-[10px] text-saga-dim">
+                    {system.isPreset ? 'Ficha pré-definida' : 'Ficha personalizada'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Descrição */}
           {npc.description && (
             <div className="bg-surface border border-border rounded-lg p-4">
-              <p className="text-[10px] font-bold text-saga-dim uppercase tracking-widest mb-2 flex items-center gap-1">
+              <p className="font-almendra text-[9px] font-bold text-saga-dim uppercase tracking-widest mb-2 flex items-center gap-1">
                 <Shield size={10}/> Descrição
               </p>
               <p className="text-sm text-saga-muted leading-relaxed">{npc.description}</p>
@@ -151,42 +235,37 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
           )}
         </div>
 
-        {/* RIGHT — attributes */}
-        <div>
-          {isGM ? (
-            <NPCAttributePanel
-              campaignId={params.id}
-              npcId={npc.id}
-              attributes={npc.attributes.map(a => ({
-                id: a.id, value: a.value,
-                attribute: { name: a.attribute.name, defaultDie: a.customDie ?? a.attribute.defaultDie },
-              }))}
-            />
-          ) : npc.attributes.length > 0 ? (
+        {/* RIGHT — sheet view (igual à ficha de personagem, somente leitura) */}
+        <div className="space-y-4">
+          <CharacterSheetView
+            characterId={npc.id}
+            characterLevel={npc.level}
+            attributes={sheetAttributes}
+            textFields={[]}
+            weapons={[]}
+            spellSlots={[]}
+            canEdit={false}
+            category={category}
+            systemName={system?.name ?? null}
+          />
+
+          {/* GM: painel de edição de atributos */}
+          {isGM && (
             <div className="bg-surface border border-border rounded-lg overflow-hidden">
-              <div className="px-5 py-4 border-b border-border">
-                <h3 className="font-cinzel text-base font-semibold">Atributos</h3>
+              <div className="px-5 py-3 border-b border-border flex items-center gap-2">
+                <Pencil size={14} className="text-saga-muted" />
+                <h3 className="font-cinzel text-sm font-semibold">Editar Atributos (Mestre)</h3>
               </div>
-              <div className="divide-y divide-border">
-                {npc.attributes.map(attr => {
-                  const mod = Math.floor((attr.value - 10) / 2)
-                  const modStr = mod >= 0 ? `+${mod}` : `${mod}`
-                  return (
-                    <div key={attr.id} className="flex items-center gap-4 px-5 py-3.5">
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">{attr.attribute.name}</p>
-                        <p className="text-[11px] text-saga-muted">valor {attr.value}</p>
-                      </div>
-                      <p className={`font-cinzel text-2xl font-bold ${mod >= 0 ? 'text-gold' : 'text-saga-danger'}`}>{modStr}</p>
-                    </div>
-                  )
-                })}
+              <div className="p-4">
+                <NPCAttributePanel
+                  campaignId={params.id}
+                  npcId={npc.id}
+                  attributes={npc.attributes.map(a => ({
+                    id: a.id, value: a.value,
+                    attribute: { name: a.attribute.name, defaultDie: a.customDie ?? a.attribute.defaultDie },
+                  }))}
+                />
               </div>
-            </div>
-          ) : (
-            <div className="bg-surface border border-border rounded-lg p-8 flex flex-col items-center justify-center text-center gap-3">
-              <Shield size={36} className="text-saga-muted/20"/>
-              <p className="text-sm text-saga-muted font-cinzel">Nenhum atributo definido</p>
             </div>
           )}
         </div>
