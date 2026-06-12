@@ -10,7 +10,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "postinstall": "prisma generate --schema=./prisma/schema.prisma",
+    "postinstall": "prisma generate --schema=./prisma/schema.prisma && tsc",
     "generate": "prisma generate --schema=./prisma/schema.prisma",
     "migrate": "prisma migrate dev --schema=./prisma/schema.prisma",
     "studio": "prisma studio --schema=./prisma/schema.prisma"

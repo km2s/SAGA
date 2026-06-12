@@ -78,6 +78,7 @@ interface Props {
   weapons: Weapon[]
   spellSlots: SpellSlot[]
   canEdit: boolean
+  canEditWeapons?: boolean
   category: SheetCategory
   systemName: string | null
 }
@@ -900,8 +901,8 @@ function DnD5ePericias({ dnd, characterId, canEdit, onDelete, onRefresh }: {
   )
 }
 
-function DnD5eCombate({ dnd, characterId, canEdit, level, weapons, spellSlots, textFields, onDelete, onRefresh }: {
-  dnd: ReturnType<typeof groupDnD5e>; characterId: string; canEdit: boolean
+function DnD5eCombate({ dnd, characterId, canEdit, canEditWeapons = canEdit, level, weapons, spellSlots, textFields, onDelete, onRefresh }: {
+  dnd: ReturnType<typeof groupDnD5e>; characterId: string; canEdit: boolean; canEditWeapons?: boolean
   level: number; weapons: Weapon[]; spellSlots: SpellSlot[]; textFields: TextField[]
   onDelete: (id: string) => void; onRefresh: () => void
 }) {
@@ -978,7 +979,7 @@ function DnD5eCombate({ dnd, characterId, canEdit, level, weapons, spellSlots, t
       />
 
       {/* Armas */}
-      <WeaponsSection weapons={weapons} characterId={characterId} canEdit={canEdit} onRefresh={onRefresh} />
+      <WeaponsSection weapons={weapons} characterId={characterId} canEdit={canEditWeapons} onRefresh={onRefresh} />
     </div>
   )
 }
@@ -1421,7 +1422,7 @@ function GenericTab({ attrs, weapons, characterId, canEdit, onAdd, onDelete, onR
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export function CharacterSheetView({ characterId, characterLevel, attributes, textFields, weapons, spellSlots, canEdit, category, systemName }: Props) {
+export function CharacterSheetView({ characterId, characterLevel, attributes, textFields, weapons, spellSlots, canEdit, canEditWeapons = canEdit, category, systemName }: Props) {
   const router = useRouter()
 
   // ── System-specific sheets (early return) ──
@@ -1614,7 +1615,7 @@ export function CharacterSheetView({ characterId, characterLevel, attributes, te
             onDelete={id => setDeleteTarget(id)} onRefresh={refresh} />
         )}
         {isDnD5e && dnd && currentTab === 'combate' && (
-          <DnD5eCombate dnd={dnd} characterId={characterId} canEdit={canEdit} level={characterLevel}
+          <DnD5eCombate dnd={dnd} characterId={characterId} canEdit={canEdit} canEditWeapons={canEditWeapons} level={characterLevel}
             weapons={weapons} spellSlots={spellSlots} textFields={textFields}
             onDelete={id => setDeleteTarget(id)} onRefresh={refresh} />
         )}

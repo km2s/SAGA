@@ -86,10 +86,15 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
 
   const isGM = member.role === 'GM'
 
-  const npc = await prisma.nPC.findFirst({
+  let npc = await prisma.nPC.findFirst({
     where: { id: params.npcId, campaignId: params.id },
     include: {
-      campaign: { include: { system: true, members: { include: { user: true } } } },
+      campaign: {
+        include: {
+          system: { include: { attributes: true } },
+          members: { include: { user: true } },
+        },
+      },
       attributes: {
         include: { attribute: true },
         orderBy: { attribute: { name: 'asc' } },
@@ -105,6 +110,45 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
   const canView = isGM || npc.isPublic ||
     npc.visibilities.some(v => v.memberId === member.id && v.canView)
   if (!canView) notFound()
+
+  // Auto-seed attributes for NPCs created before the seeding fix
+  if (npc.attributes.length === 0 && npc.campaign.system?.attributes?.length) {
+    function attrDefault(description: string | null): number {
+      const d = description?.trim() ?? ''
+      if (d.startsWith('Talento') || d.startsWith('Perícia') || d.startsWith('Conhecimento') ||
+          d.startsWith('Habilidade') || d.startsWith('Disciplina') || d.startsWith('Antecedente')) return 0
+      if (d.startsWith('Virtude')) return 1
+      return 1
+    }
+    await prisma.nPCAttribute.createMany({
+      data: npc.campaign.system.attributes.map(a => ({
+        npcId: npc!.id,
+        attributeId: a.id,
+        value: attrDefault(a.description ?? null),
+      })),
+      skipDuplicates: true,
+    }).catch(() => null)
+    // Re-fetch with the newly seeded attributes
+    npc = await prisma.nPC.findFirst({
+      where: { id: params.npcId, campaignId: params.id },
+      include: {
+        campaign: {
+          include: {
+            system: { include: { attributes: true } },
+            members: { include: { user: true } },
+          },
+        },
+        attributes: {
+          include: { attribute: true },
+          orderBy: { attribute: { name: 'asc' } },
+        },
+        textFields: { orderBy: { order: 'asc' } },
+        linkedMember: { include: { user: true } },
+        visibilities: true,
+      },
+    }).catch(() => null)
+    if (!npc) notFound()
+  }
 
   const players = npc.campaign.members.filter(m => m.role === 'PLAYER')
   const TypeIcon = NPC_TYPE_ICONS[npc.type] ?? User
@@ -269,6 +313,7 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
             weapons={[]}
             spellSlots={[]}
             canEdit={isGM}
+            canEditWeapons={false}
             category={category}
             systemName={system?.name ?? null}
           />
