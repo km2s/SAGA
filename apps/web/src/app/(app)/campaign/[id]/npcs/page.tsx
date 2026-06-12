@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Badge } from '@/components/ui/Badge'
 import { GMActions } from '@/components/gm/GMActions'
 import { DeleteNPCButton } from '@/components/gm/DeleteNPCButton'
+import { MarkTutorialVisited } from '@/components/tutorial/MarkTutorialVisited'
 import { ShieldAlert, UserCheck, Heart, Wind, User, Pencil } from 'lucide-react'
 import { safeImageUrl } from '@/lib/safe-url'
 
@@ -58,6 +59,7 @@ export default async function CampaignNpcsPage({ params }: { params: { id: strin
 
   return (
     <div className="p-4 sm:p-8 sm:pt-5">
+      {isGM && <MarkTutorialVisited tutorialKey="saga_visited_npc" />}
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-cinzel text-lg font-semibold">NPCs</h2>
         {isGM && <GMActions campaignId={params.id} players={players} />}

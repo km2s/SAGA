@@ -13,6 +13,8 @@ import {
   MessageSquare, Image as ImageIcon, Minus, Plus, Swords, ChevronRight, BookOpen,
 } from 'lucide-react'
 import { safeImageUrl } from '@/lib/safe-url'
+import { MesaSpotlight } from '@/components/tutorial/MesaSpotlight'
+import { MarkTutorialVisited } from '@/components/tutorial/MarkTutorialVisited'
 
 type Tool = 'select' | 'move' | 'token' | 'marker' | 'measure' | 'fog' | 'reveal'
 
@@ -472,7 +474,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
           <div className="hidden sm:block h-4 w-px bg-white/10"/>
 
           {/* Mapa button */}
-          {isGM && <div className="relative" ref={mapDropRef}>
+          {isGM && <div data-mesa-tutorial="topbar-map" className="relative" ref={mapDropRef}>
             <button onClick={()=>setMapInputOpen(o=>!o)}
               className={`px-2 sm:px-3 h-7 rounded text-[11px] font-medium border transition-all flex items-center gap-1.5 ${
                 mapUrl?'text-gold border-gold/50 bg-gold/10':'text-saga-muted border-white/10 hover:border-gold/40 hover:text-gold'
@@ -519,7 +521,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
             )}
           </div>}
 
-          <button onClick={()=>setSheetsOpen(o=>!o)}
+          <button data-mesa-tutorial="topbar-sheets" onClick={()=>setSheetsOpen(o=>!o)}
             className={`px-2 sm:px-3 h-7 rounded text-[11px] font-medium border transition-all flex items-center gap-1.5 ${
               sheetsOpen?'text-gold border-gold/50 bg-gold/10':'text-saga-muted border-white/10 hover:border-gold/40 hover:text-gold'
             }`}>
@@ -527,7 +529,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
             <span className="hidden sm:inline">Fichas</span>
           </button>
           {activeSession?.isActive && (
-            <button onClick={()=>setInitiativeOpen(o=>!o)}
+            <button data-mesa-tutorial="topbar-initiative" onClick={()=>setInitiativeOpen(o=>!o)}
               title="Tracker de Iniciativa"
               className={`px-2 sm:px-3 h-7 rounded text-[11px] font-medium border transition-all flex items-center gap-1.5 ${
                 initiativeOpen?'text-gold border-gold/50 bg-gold/10':'text-saga-muted border-white/10 hover:border-gold/40 hover:text-gold'
@@ -568,7 +570,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
       <div className="flex flex-1 overflow-hidden relative">
 
         {/* ── Left toolbar ── */}
-        <div className="w-12 flex flex-col items-center py-2 gap-0.5 shrink-0 border-r border-white/5 z-10"
+        <div data-mesa-tutorial="toolbar" className="w-12 flex flex-col items-center py-2 gap-0.5 shrink-0 border-r border-white/5 z-10"
              style={{background:'rgba(10,10,20,0.92)'}}>
           {tools.map(([t,Icon,label])=>(
             <button key={t}
@@ -592,6 +594,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
 
         {/* ── Canvas ── */}
         <div
+          data-mesa-tutorial="canvas"
           ref={canvasRef}
           className={`flex-1 relative overflow-hidden ${cursor}`}
           style={{
@@ -735,7 +738,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
 
           {/* ── No session banner — não bloqueia o canvas para o estado ser visível ── */}
           {!activeSession?.isActive&&(
-            <div className="absolute top-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-3 px-4 py-2.5 rounded-xl shadow-2xl"
+            <div data-mesa-tutorial="session-banner" className="absolute top-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-3 px-4 py-2.5 rounded-xl shadow-2xl"
                  style={{background:'rgba(12,12,24,0.92)',border:'1px solid rgba(201,162,42,0.25)',backdropFilter:'blur(12px)'}}>
               <Map size={15} className="text-saga-dim shrink-0"/>
               <span className="text-[12px] text-saga-muted">
@@ -1078,7 +1081,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
           </div>
 
           {/* Input + Dice bar */}
-          <div className="shrink-0" style={{borderTop:'1px solid rgba(255,255,255,0.07)',background:'rgba(0,0,0,0.25)'}}>
+          <div data-mesa-tutorial="dice" className="shrink-0" style={{borderTop:'1px solid rgba(255,255,255,0.07)',background:'rgba(0,0,0,0.25)'}}>
             <div className="px-3 pt-2.5 pb-1">
               <input value="" readOnly disabled={!activeSession?.isActive} placeholder="Escreva uma mensagem..."
                 className="w-full rounded px-3 py-2 text-[12px] text-saga-text placeholder:text-saga-dim focus:outline-none disabled:opacity-40"
@@ -1142,6 +1145,8 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
           title="session-music"
         />
       )}
+      <MesaSpotlight isGM={isGM} />
+      <MarkTutorialVisited tutorialKey="saga_visited_mesa" />
       {isGM&&<StartSessionModal campaignId={campaign.id} open={startSessionOpen} onClose={()=>setStartSessionOpen(false)}/>}
       {isGM&&<MusicPlayer
         open={musicOpen}

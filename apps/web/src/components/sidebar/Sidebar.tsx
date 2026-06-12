@@ -15,6 +15,7 @@ import {
   Menu,
   X,
   Library,
+  HelpCircle,
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -127,9 +128,16 @@ export function Sidebar({ campaigns = [], discordClientId }: SidebarProps) {
           </div>
         )}
 
-        {/* Bot invite */}
-        {inviteUrl && (
-          <div className="px-3 mt-auto mb-2">
+        {/* Bot invite + Tutorial */}
+        <div className={`px-3 ${inviteUrl ? 'mt-auto' : 'mt-auto'} mb-2 flex flex-col gap-0.5`}>
+          <button
+            onClick={() => window.dispatchEvent(new Event('saga:open-checklist'))}
+            className="flex items-center gap-2.5 px-3 py-2.5 rounded text-sm text-saga-dim hover:text-gold hover:bg-gold-dim border border-transparent hover:border-gold/20 transition-all cursor-pointer w-full"
+          >
+            <HelpCircle size={15} strokeWidth={1.8} className="shrink-0" />
+            <span>Primeiros Passos</span>
+          </button>
+          {inviteUrl && (
             <a
               href={inviteUrl}
               target="_blank"
@@ -139,8 +147,8 @@ export function Sidebar({ campaigns = [], discordClientId }: SidebarProps) {
               <Bot size={15} strokeWidth={1.8} className="shrink-0" />
               <span>Convidar Bot</span>
             </a>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* User */}
         <div className={`border-t border-border p-3 ${inviteUrl ? '' : 'mt-auto'}`}>

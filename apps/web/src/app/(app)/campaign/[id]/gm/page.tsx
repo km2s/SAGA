@@ -8,6 +8,7 @@ import { NPCVisibilityRow } from '@/components/gm/NPCVisibilityRow'
 import { SessionControls } from '@/components/gm/SessionControls'
 import { GMActions } from '@/components/gm/GMActions'
 import { Map, Users, ScrollText, FileText } from 'lucide-react'
+import { MarkTutorialVisited } from '@/components/tutorial/MarkTutorialVisited'
 
 export default async function GmPanelPage({ params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
@@ -41,6 +42,7 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
 
   return (
     <div className="p-4 sm:p-8 sm:pt-5 space-y-7">
+      <MarkTutorialVisited tutorialKey="saga_visited_gm" />
       {/* Session control */}
       <section>
         <div className="flex items-center justify-between mb-3">
