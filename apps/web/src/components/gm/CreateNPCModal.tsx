@@ -56,9 +56,10 @@ export function CreateNPCModal({ campaignId, players, open, onClose }: {
       setError(data.error ?? 'Erro ao criar NPC')
       return
     }
+    const data = await res.json() as { id: string }
     setForm({ name: '', description: '', imageUrl: '', type: 'NEUTRAL', race: '', class: '', level: 1, hp: 10, maxHp: 10, isPublic: false, linkedMemberId: '' })
     onClose()
-    router.refresh()
+    router.push(`/campaign/${campaignId}/npcs/${data.id}`)
   }
 
   return (

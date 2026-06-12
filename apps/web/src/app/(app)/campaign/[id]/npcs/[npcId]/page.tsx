@@ -6,12 +6,12 @@ import Link from 'next/link'
 import { Badge } from '@/components/ui/Badge'
 import { NPCHPEditor } from '@/components/gm/NPCHPEditor'
 import { NPCAttributePanel } from '@/components/gm/NPCAttributePanel'
-import { NpcGMControls } from '@/components/gm/NpcGMControls'
+import { NPCInfoEditor } from '@/components/gm/NPCInfoEditor'
 import { CharacterSheetView, type SheetCategory } from '@/components/character/CharacterSheetView'
 import { safeImageUrl } from '@/lib/safe-url'
 import {
   ShieldAlert, UserCheck, Heart, Wind, User,
-  ChevronLeft, Shield, ClipboardList, Pencil,
+  ChevronLeft, ClipboardList, Pencil,
 } from 'lucide-react'
 
 const NPC_TYPE_LABELS: Record<string, string> = {
@@ -113,7 +113,6 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
   const SystemIcon = system?.isPreset ? ClipboardList : Pencil
   const systemColor = SYSTEM_COLOR[category] ?? 'text-saga-muted'
 
-  // Map NPC attributes to the same shape CharacterSheetView expects
   const sheetAttributes = npc.attributes.map(a => ({
     id: a.id,
     value: a.value,
@@ -124,6 +123,21 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
       description: a.attribute.description ?? null,
     },
   }))
+
+  const systemCard = system && (
+    <div className="bg-surface border border-border rounded-lg p-4">
+      <p className="font-almendra text-[9px] font-bold text-saga-dim uppercase tracking-widest mb-2">Sistema</p>
+      <div className="flex items-center gap-2">
+        <SystemIcon size={16} className="text-saga-muted shrink-0" />
+        <div>
+          <p className={`text-sm font-medium ${systemColor}`}>{system.name}</p>
+          <p className="text-[10px] text-saga-dim">
+            {system.isPreset ? 'Ficha pré-definida' : 'Ficha personalizada'}
+          </p>
+        </div>
+      </div>
+    </div>
+  )
 
   return (
     <div className="p-4 sm:p-8 sm:pt-6">
@@ -156,107 +170,96 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
         <div className="flex items-center gap-2 flex-wrap">
           <Badge variant={NPC_TYPE_BADGE[npc.type] ?? 'muted'}>{NPC_TYPE_LABELS[npc.type] ?? npc.type}</Badge>
           <Badge variant={npc.isPublic ? 'success' : 'muted'}>{npc.isPublic ? 'Visível aos jogadores' : 'Restrito ao Mestre'}</Badge>
-          {isGM && (
-            <NpcGMControls
-              campaignId={params.id}
-              npc={{
-                id: npc.id,
-                name: npc.name,
-                description: npc.description ?? null,
-                imageUrl: npc.imageUrl ?? null,
-                type: npc.type,
-                race: npc.race ?? null,
-                class: npc.class ?? null,
-                level: npc.level,
-                isPublic: npc.isPublic,
-                linkedMemberId: npc.linkedMemberId ?? null,
-              }}
-              players={players}
-            />
-          )}
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-[230px_1fr] gap-5">
-        {/* LEFT — portrait + stats (mesmo layout da ficha de personagem) */}
+        {/* LEFT column */}
         <div className="space-y-4">
-          {/* Portrait */}
-          <div className="bg-surface border border-border rounded-lg overflow-hidden">
-            {safeImageUrl(npc.imageUrl) ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={safeImageUrl(npc.imageUrl)!} alt={npc.name} className="w-full h-52 object-cover object-top" />
-            ) : (
-              <div className="w-full h-52 bg-gradient-to-br from-[#1a0533] via-[#2d1060] to-[#4a1080] flex items-center justify-center">
-                <TypeIcon size={72} className="text-white/30" />
-              </div>
-            )}
-            <div className="p-4">
-              <h2 className="font-cinzel-deco text-base font-bold text-center leading-snug">{npc.name}</h2>
-              {npc.race && (
-                <div className="flex justify-between text-[12px] mt-2">
-                  <span className="text-saga-muted">Raça</span>
-                  <span className="font-fell">{npc.race}</span>
-                </div>
-              )}
-              {npc.class && (
-                <div className="flex justify-between text-[12px] mt-1">
-                  <span className="text-saga-muted">Classe</span>
-                  <span className="font-fell">{npc.class}</span>
-                </div>
-              )}
-              <div className="flex justify-center mt-3">
-                <Badge variant="gold">Nível {npc.level}</Badge>
-              </div>
-              {npc.linkedMember && (
-                <p className="text-[11px] text-saga-muted mt-3 text-center border-t border-border pt-2">
-                  Ligado a <span className="text-saga-text">{npc.linkedMember.user.username}</span>
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* HP */}
-          <NPCHPEditor
-            campaignId={params.id}
-            npcId={npc.id}
-            hp={npc.hp}
-            maxHp={npc.maxHp}
-          />
-
-          {/* Tipo */}
-          <div className="bg-surface border border-border rounded-lg p-3 text-center">
-            <p className="font-cinzel text-base font-bold">{NPC_TYPE_LABELS[npc.type] ?? npc.type}</p>
-            <p className="font-almendra text-[9px] text-saga-muted mt-0.5 uppercase tracking-widest">Tipo de NPC</p>
-          </div>
-
-          {/* Sistema */}
-          {system && (
-            <div className="bg-surface border border-border rounded-lg p-4">
-              <p className="font-almendra text-[9px] font-bold text-saga-dim uppercase tracking-widest mb-2">Sistema</p>
-              <div className="flex items-center gap-2">
-                <SystemIcon size={16} className="text-saga-muted shrink-0" />
-                <div>
-                  <p className={`text-sm font-medium ${systemColor}`}>{system.name}</p>
-                  <p className="text-[10px] text-saga-dim">
-                    {system.isPreset ? 'Ficha pré-definida' : 'Ficha personalizada'}
-                  </p>
+          {isGM ? (
+            <>
+              <NPCInfoEditor
+                campaignId={params.id}
+                npc={{
+                  id: npc.id,
+                  name: npc.name,
+                  race: npc.race ?? null,
+                  class: npc.class ?? null,
+                  level: npc.level,
+                  description: npc.description ?? null,
+                  imageUrl: npc.imageUrl ?? null,
+                  type: npc.type,
+                  isPublic: npc.isPublic,
+                  linkedMemberId: npc.linkedMemberId ?? null,
+                  hp: npc.hp,
+                  maxHp: npc.maxHp,
+                }}
+                players={players}
+              />
+              {systemCard}
+            </>
+          ) : (
+            <>
+              {/* Portrait (read-only for players) */}
+              <div className="bg-surface border border-border rounded-lg overflow-hidden">
+                {safeImageUrl(npc.imageUrl) ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={safeImageUrl(npc.imageUrl)!} alt={npc.name} className="w-full h-52 object-cover object-top" />
+                ) : (
+                  <div className="w-full h-52 bg-gradient-to-br from-[#1a0533] via-[#2d1060] to-[#4a1080] flex items-center justify-center">
+                    <TypeIcon size={72} className="text-white/30" />
+                  </div>
+                )}
+                <div className="p-4">
+                  <h2 className="font-cinzel-deco text-base font-bold text-center leading-snug">{npc.name}</h2>
+                  {npc.race && (
+                    <div className="flex justify-between text-[12px] mt-2">
+                      <span className="text-saga-muted">Raça</span>
+                      <span className="font-fell">{npc.race}</span>
+                    </div>
+                  )}
+                  {npc.class && (
+                    <div className="flex justify-between text-[12px] mt-1">
+                      <span className="text-saga-muted">Classe</span>
+                      <span className="font-fell">{npc.class}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-center mt-3">
+                    <Badge variant="gold">Nível {npc.level}</Badge>
+                  </div>
+                  {npc.linkedMember && (
+                    <p className="text-[11px] text-saga-muted mt-3 text-center border-t border-border pt-2">
+                      Ligado a <span className="text-saga-text">{npc.linkedMember.user.username}</span>
+                    </p>
+                  )}
                 </div>
               </div>
-            </div>
-          )}
 
-          {/* Descrição */}
-          {npc.description && (
-            <div className="bg-surface border border-border rounded-lg p-4">
-              <p className="font-almendra text-[9px] font-bold text-saga-dim uppercase tracking-widest mb-2 flex items-center gap-1">
-                <Shield size={10}/> Descrição
-              </p>
-              <p className="text-sm text-saga-muted leading-relaxed">{npc.description}</p>
-            </div>
+              <NPCHPEditor
+                campaignId={params.id}
+                npcId={npc.id}
+                hp={npc.hp}
+                maxHp={npc.maxHp}
+              />
+
+              <div className="bg-surface border border-border rounded-lg p-3 text-center">
+                <p className="font-cinzel text-base font-bold">{NPC_TYPE_LABELS[npc.type] ?? npc.type}</p>
+                <p className="font-almendra text-[9px] text-saga-muted mt-0.5 uppercase tracking-widest">Tipo de NPC</p>
+              </div>
+
+              {systemCard}
+
+              {npc.description && (
+                <div className="bg-surface border border-border rounded-lg p-4">
+                  <p className="font-almendra text-[9px] font-bold text-saga-dim uppercase tracking-widest mb-2">Descrição</p>
+                  <p className="text-sm text-saga-muted leading-relaxed">{npc.description}</p>
+                </div>
+              )}
+            </>
           )}
         </div>
 
-        {/* RIGHT — sheet view (igual à ficha de personagem, somente leitura) */}
+        {/* RIGHT column */}
         <div className="space-y-4">
           <CharacterSheetView
             characterId={npc.id}
@@ -270,7 +273,6 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
             systemName={system?.name ?? null}
           />
 
-          {/* GM: painel de edição de atributos */}
           {isGM && (
             <div className="bg-surface border border-border rounded-lg overflow-hidden">
               <div className="px-5 py-3 border-b border-border flex items-center gap-2">

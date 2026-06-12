@@ -3,6 +3,16 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from 'database'
 import { NextResponse } from 'next/server'
 
+function attrDefault(description: string | null): number {
+  const d = description?.trim() ?? ''
+  if (
+    d.startsWith('Talento') || d.startsWith('Perícia') || d.startsWith('Conhecimento') ||
+    d.startsWith('Habilidade') || d.startsWith('Disciplina') || d.startsWith('Antecedente')
+  ) return 0
+  if (d.startsWith('Virtude')) return 1
+  return 1
+}
+
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -51,6 +61,23 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     },
     include: { linkedMember: { include: { user: true } }, visibilities: true },
   })
+
+  // Seed system attributes, exactly like character creation does
+  const campaign = await prisma.campaign.findUnique({
+    where: { id: params.id },
+    include: { system: { include: { attributes: true } } },
+  }).catch(() => null)
+
+  if (campaign?.system?.attributes && campaign.system.attributes.length > 0) {
+    await prisma.nPCAttribute.createMany({
+      data: campaign.system.attributes.map(a => ({
+        npcId: npc.id,
+        attributeId: a.id,
+        value: attrDefault(a.description ?? null),
+      })),
+      skipDuplicates: true,
+    }).catch(() => null)
+  }
 
   return NextResponse.json(npc, { status: 201 })
 }

@@ -568,6 +568,107 @@ function SpellSlotsSection({ spellSlots, characterId, canEdit, onRefresh }: {
   )
 }
 
+// ─── Spell List section ───────────────────────────────────────────────────────
+
+function SpellListSection({ textFields, spellSlots, characterId, canEdit, onRefresh }: {
+  textFields: TextField[]; spellSlots: SpellSlot[]; characterId: string; canEdit: boolean; onRefresh: () => void
+}) {
+  const [drafts, setDrafts] = useState<Record<number, string>>({})
+  const [saving, setSaving] = useState(false)
+
+  function getSpells(level: number): string[] {
+    const key = level === 0 ? 'spells_cantrip' : `spells_lvl${level}`
+    const field = textFields.find(f => f.key === key)
+    if (!field?.value) return []
+    try { return JSON.parse(field.value) as string[] } catch { return [] }
+  }
+
+  async function saveSpells(level: number, spells: string[]) {
+    const key = level === 0 ? 'spells_cantrip' : `spells_lvl${level}`
+    const label = level === 0 ? 'Truques (Cantrips)' : `Magias de Nível ${level}`
+    await fetch(`/api/characters/${characterId}/text-fields`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key, label, value: JSON.stringify(spells) }),
+    }).catch(() => null)
+    onRefresh()
+  }
+
+  async function addSpell(level: number) {
+    const draft = (drafts[level] ?? '').trim()
+    if (!draft) return
+    setSaving(true)
+    await saveSpells(level, [...getSpells(level), draft])
+    setDrafts(d => ({ ...d, [level]: '' }))
+    setSaving(false)
+  }
+
+  async function removeSpell(level: number, idx: number) {
+    await saveSpells(level, getSpells(level).filter((_, i) => i !== idx))
+  }
+
+  const visibleLevels = [
+    0,
+    ...[1, 2, 3, 4, 5, 6, 7, 8, 9].filter(lvl => {
+      const hasSlots = spellSlots.some(s => s.level === lvl && s.total > 0)
+      const hasSpells = getSpells(lvl).length > 0
+      return hasSlots || hasSpells
+    }),
+  ]
+
+  return (
+    <div>
+      <SectionDivider title="Magias Conhecidas" />
+      <div className="space-y-3">
+        {visibleLevels.map(lvl => {
+          const spells = getSpells(lvl)
+          const levelLabel = lvl === 0 ? 'Truques' : `Nível ${lvl}`
+          const draft = drafts[lvl] ?? ''
+          return (
+            <div key={lvl} className="rounded p-3"
+              style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)' }}>
+              <p className="font-almendra text-[9px] text-saga-dim uppercase tracking-wider mb-2">{levelLabel}</p>
+              <div className="space-y-1.5">
+                {spells.map((spell, i) => (
+                  <div key={i} className="flex items-center gap-2 group">
+                    <span className="flex-1 text-sm text-saga-text">{spell}</span>
+                    {canEdit && (
+                      <button onClick={() => void removeSpell(lvl, i)}
+                        className="opacity-0 group-hover:opacity-100 text-saga-dim hover:text-saga-danger transition-all">
+                        <X size={13} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+                {spells.length === 0 && !canEdit && (
+                  <span className="text-[11px] text-saga-dim italic">—</span>
+                )}
+                {canEdit && (
+                  <div className="flex gap-1.5 mt-1">
+                    <input
+                      value={draft}
+                      onChange={e => setDrafts(d => ({ ...d, [lvl]: e.target.value }))}
+                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); void addSpell(lvl) } }}
+                      placeholder={lvl === 0 ? 'Nome do truque...' : 'Nome da magia...'}
+                      disabled={saving}
+                      className="flex-1 bg-surface-2 border border-border rounded px-2.5 py-1.5 text-[13px] focus:outline-none focus:border-gold/60 transition-colors" />
+                    <button
+                      onClick={() => void addSpell(lvl)}
+                      disabled={saving || !draft.trim()}
+                      className="px-3 py-1.5 rounded text-gold hover:bg-gold/10 text-sm font-bold transition-colors disabled:opacity-40">
+                      +
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 // ─── Text Fields section ──────────────────────────────────────────────────────
 
 function TextFieldsSection({ fields, characterId, canEdit, onRefresh }: {
@@ -882,12 +983,13 @@ function DnD5eCombate({ dnd, characterId, canEdit, level, weapons, spellSlots, t
   )
 }
 
-function DnD5eMagias({ spellSlots, characterId, canEdit, onRefresh }: {
-  spellSlots: SpellSlot[]; characterId: string; canEdit: boolean; onRefresh: () => void
+function DnD5eMagias({ spellSlots, textFields, characterId, canEdit, onRefresh }: {
+  spellSlots: SpellSlot[]; textFields: TextField[]; characterId: string; canEdit: boolean; onRefresh: () => void
 }) {
   return (
     <div className="space-y-6">
       <SpellSlotsSection spellSlots={spellSlots} characterId={characterId} canEdit={canEdit} onRefresh={onRefresh} />
+      <SpellListSection textFields={textFields} spellSlots={spellSlots} characterId={characterId} canEdit={canEdit} onRefresh={onRefresh} />
     </div>
   )
 }
@@ -1517,7 +1619,7 @@ export function CharacterSheetView({ characterId, characterLevel, attributes, te
             onDelete={id => setDeleteTarget(id)} onRefresh={refresh} />
         )}
         {isDnD5e && currentTab === 'magias' && (
-          <DnD5eMagias spellSlots={spellSlots} characterId={characterId} canEdit={canEdit} onRefresh={refresh} />
+          <DnD5eMagias spellSlots={spellSlots} textFields={textFields} characterId={characterId} canEdit={canEdit} onRefresh={refresh} />
         )}
         {isDnD5e && currentTab === 'personagem' && (
           <DnD5ePersonagem textFields={narrativeFields} characterId={characterId} canEdit={canEdit} onRefresh={refresh} />
