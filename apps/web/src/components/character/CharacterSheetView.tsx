@@ -7,6 +7,30 @@ import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { FateCoreSheet } from './sheets/FateCoreSheet'
 import { VtMV5Sheet } from './sheets/VtMV5Sheet'
 import { BitDSheet } from './sheets/BitDSheet'
+import { VtMV20Sheet } from './sheets/VtMV20Sheet'
+import { WerewolfSheet } from './sheets/WerewolfSheet'
+import { MageAscSheet } from './sheets/MageAscSheet'
+import { MageAwkSheet } from './sheets/MageAwkSheet'
+import { HunterSheet } from './sheets/HunterSheet'
+import { ChangelingSheet } from './sheets/ChangelingSheet'
+import { DemonSheet } from './sheets/DemonSheet'
+import { GeistSheet } from './sheets/GeistSheet'
+import { CoC7eSheet } from './sheets/CoC7eSheet'
+import { DeltaGreenSheet } from './sheets/DeltaGreenSheet'
+import { MothershipSheet } from './sheets/MothershipSheet'
+import { CyberpunkRedSheet } from './sheets/CyberpunkRedSheet'
+import { StarfinderSheet } from './sheets/StarfinderSheet'
+import { Shadowrun6eSheet } from './sheets/Shadowrun6eSheet'
+import { StarWarsSheet } from './sheets/StarWarsSheet'
+import { GURPSSheet } from './sheets/GURPSSheet'
+import { SavageWorldsSheet } from './sheets/SavageWorldsSheet'
+import { IronswornSheet } from './sheets/IronswornSheet'
+import { DnD35Sheet } from './sheets/DnD35Sheet'
+import { Pathfinder1eSheet } from './sheets/Pathfinder1eSheet'
+import { Pathfinder2eSheet } from './sheets/Pathfinder2eSheet'
+import { Tormenta20Sheet } from './sheets/Tormenta20Sheet'
+import { DungeonWorldSheet } from './sheets/DungeonWorldSheet'
+import { Age13Sheet } from './sheets/Age13Sheet'
 import { X, Plus, Shield, Sword, Wand2, BookOpen, User, ChevronDown, ChevronUp } from 'lucide-react'
 
 export type SheetCategory = 'fantasy' | 'world-of-darkness' | 'horror' | 'scifi' | 'generic' | 'custom'
@@ -1307,6 +1331,87 @@ export function CharacterSheetView({ characterId, characterLevel, attributes, te
   }
   if (systemName === 'Blades in the Dark') {
     return <BitDSheet characterId={characterId} characterLevel={characterLevel} attributes={attributes} textFields={textFields} canEdit={canEdit} />
+  }
+
+  // WoD
+  if (systemName === 'Vampire: The Masquerade V20' || systemName === 'Vampire: The Masquerade') {
+    return <VtMV20Sheet characterId={characterId} attributes={attributes} textFields={textFields} weapons={weapons} canEdit={canEdit} />
+  }
+  if (systemName === 'Werewolf: The Apocalypse') {
+    return <WerewolfSheet characterId={characterId} attributes={attributes} textFields={textFields} weapons={weapons} canEdit={canEdit} />
+  }
+  if (systemName === 'Mage: The Ascension') {
+    return <MageAscSheet characterId={characterId} attributes={attributes} textFields={textFields} weapons={weapons} canEdit={canEdit} />
+  }
+  if (systemName === 'Mage: The Awakening') {
+    return <MageAwkSheet characterId={characterId} attributes={attributes} textFields={textFields} weapons={weapons} canEdit={canEdit} />
+  }
+  if (systemName === 'Hunter: The Reckoning') {
+    return <HunterSheet characterId={characterId} attributes={attributes} textFields={textFields} weapons={weapons} canEdit={canEdit} />
+  }
+  if (systemName === 'Changeling: The Lost') {
+    return <ChangelingSheet characterId={characterId} attributes={attributes} textFields={textFields} weapons={weapons} canEdit={canEdit} />
+  }
+  if (systemName === 'Demon: The Descent') {
+    return <DemonSheet characterId={characterId} attributes={attributes} textFields={textFields} weapons={weapons} canEdit={canEdit} />
+  }
+  if (systemName === 'Geist: The Sin-Eaters') {
+    return <GeistSheet characterId={characterId} attributes={attributes} textFields={textFields} weapons={weapons} canEdit={canEdit} />
+  }
+  // Horror
+  if (systemName === 'Call of Cthulhu 7e') {
+    return <CoC7eSheet characterId={characterId} characterLevel={characterLevel} attributes={attributes} textFields={textFields} weapons={weapons} spellSlots={spellSlots} canEdit={canEdit} />
+  }
+  if (systemName === 'Delta Green') {
+    return <DeltaGreenSheet characterId={characterId} characterLevel={characterLevel} attributes={attributes} textFields={textFields} weapons={weapons} spellSlots={spellSlots} canEdit={canEdit} />
+  }
+  if (systemName === 'Mothership') {
+    return <MothershipSheet characterId={characterId} characterLevel={characterLevel} attributes={attributes} textFields={textFields} weapons={weapons} spellSlots={spellSlots} canEdit={canEdit} />
+  }
+  // Sci-Fi / Cyberpunk
+  if (systemName === 'Cyberpunk Red') {
+    return <CyberpunkRedSheet characterId={characterId} characterLevel={characterLevel} attributes={attributes} textFields={textFields} weapons={weapons} spellSlots={spellSlots} canEdit={canEdit} />
+  }
+  if (systemName === 'Starfinder') {
+    return <StarfinderSheet characterId={characterId} characterLevel={characterLevel} attributes={attributes} textFields={textFields} weapons={weapons} spellSlots={spellSlots} canEdit={canEdit} />
+  }
+  if (systemName === 'Shadowrun 6e') {
+    return <Shadowrun6eSheet characterId={characterId} characterLevel={characterLevel} attributes={attributes} textFields={textFields} weapons={weapons} spellSlots={spellSlots} canEdit={canEdit} />
+  }
+  if (systemName === 'Star Wars: Edge of the Empire') {
+    return <StarWarsSheet characterId={characterId} characterLevel={characterLevel} attributes={attributes} textFields={textFields} weapons={weapons} spellSlots={spellSlots} canEdit={canEdit} />
+  }
+  // Generic
+  if (systemName === 'GURPS 4e') {
+    return <GURPSSheet characterId={characterId} characterLevel={characterLevel} attributes={attributes} textFields={textFields} weapons={weapons} spellSlots={spellSlots} canEdit={canEdit} />
+  }
+  if (systemName === 'Savage Worlds') {
+    return <SavageWorldsSheet characterId={characterId} characterLevel={characterLevel} attributes={attributes} textFields={textFields} weapons={weapons} spellSlots={spellSlots} canEdit={canEdit} />
+  }
+  if (systemName === 'Ironsworn') {
+    return <IronswornSheet characterId={characterId} characterLevel={characterLevel} attributes={attributes} textFields={textFields} weapons={weapons} spellSlots={spellSlots} canEdit={canEdit} />
+  }
+  // Fantasy
+  if (systemName === 'D&D 3.5e') {
+    return <DnD35Sheet characterId={characterId} characterLevel={characterLevel} attributes={attributes} textFields={textFields} weapons={weapons} spellSlots={spellSlots} canEdit={canEdit} />
+  }
+  if (systemName === 'Old Dragon 2') {
+    return <DnD35Sheet characterId={characterId} characterLevel={characterLevel} attributes={attributes} textFields={textFields} weapons={weapons} spellSlots={spellSlots} canEdit={canEdit} />
+  }
+  if (systemName === 'Pathfinder 1e') {
+    return <Pathfinder1eSheet characterId={characterId} characterLevel={characterLevel} attributes={attributes} textFields={textFields} weapons={weapons} spellSlots={spellSlots} canEdit={canEdit} />
+  }
+  if (systemName === 'Pathfinder 2e') {
+    return <Pathfinder2eSheet characterId={characterId} characterLevel={characterLevel} attributes={attributes} textFields={textFields} weapons={weapons} spellSlots={spellSlots} canEdit={canEdit} />
+  }
+  if (systemName === 'Tormenta20') {
+    return <Tormenta20Sheet characterId={characterId} characterLevel={characterLevel} attributes={attributes} textFields={textFields} weapons={weapons} spellSlots={spellSlots} canEdit={canEdit} />
+  }
+  if (systemName === 'Dungeon World') {
+    return <DungeonWorldSheet characterId={characterId} characterLevel={characterLevel} attributes={attributes} textFields={textFields} weapons={weapons} spellSlots={spellSlots} canEdit={canEdit} />
+  }
+  if (systemName === '13th Age') {
+    return <Age13Sheet characterId={characterId} characterLevel={characterLevel} attributes={attributes} textFields={textFields} weapons={weapons} spellSlots={spellSlots} canEdit={canEdit} />
   }
 
   const isDnD5e  = systemName === 'D&D 5e'
