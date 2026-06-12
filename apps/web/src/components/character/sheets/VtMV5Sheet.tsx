@@ -330,6 +330,45 @@ function ETF({ tfKey, label, textFields, characterId, canEdit, multiline = false
   )
 }
 
+// ── Numeric text field ────────────────────────────────────────────────────────
+
+function NumericTextField({ tfKey, label, textFields, characterId, canEdit, onRefresh }: {
+  tfKey: string; label: string; textFields: TextField[]; characterId: string; canEdit: boolean; onRefresh: () => void
+}) {
+  const field = textFields.find(f => f.key === tfKey)
+  const [editing, setEditing] = useState(false)
+  const [val, setVal] = useState(field?.value ?? '')
+
+  async function save() {
+    await fetch(`/api/characters/${characterId}/text-fields`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: tfKey, label, value: val }),
+    }).catch(() => null)
+    setEditing(false)
+    onRefresh()
+  }
+
+  return (
+    <div className="rounded p-3" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+      <p className="font-almendra text-[9px] uppercase tracking-widest text-saga-dim mb-2">{label}</p>
+      {editing && canEdit ? (
+        <input autoFocus type="number" value={val} onChange={e => setVal(e.target.value)}
+          onBlur={() => void save()} onKeyDown={e => { if (e.key === 'Enter') void save() }}
+          className="w-full bg-surface-2 border border-gold/40 rounded px-2 py-1.5 text-sm focus:outline-none" />
+      ) : (
+        <div onClick={() => canEdit && setEditing(true)}
+          className={`${canEdit ? 'cursor-pointer hover:bg-white/[0.03]' : ''} rounded px-2 py-1 min-h-[28px] transition-colors`}>
+          {field?.value
+            ? <p className="text-sm text-saga-text font-cinzel">{field.value}</p>
+            : <p className="text-xs text-saga-dim italic">{canEdit ? 'Clique para editar…' : '—'}</p>
+          }
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Tabs ──────────────────────────────────────────────────────────────────────
 
 const TABS = [
@@ -531,6 +570,11 @@ export function VtMV5Sheet({ characterId, attributes, textFields, weapons, canEd
             <ETF tfKey="ambition"  label="Ambição"   textFields={textFields} characterId={characterId} canEdit={canEdit} onRefresh={refresh} />
             <ETF tfKey="desire"    label="Desejo"    textFields={textFields} characterId={characterId} canEdit={canEdit} onRefresh={refresh} />
             <ETF tfKey="backstory" label="História"  textFields={textFields} characterId={characterId} canEdit={canEdit} multiline onRefresh={refresh} />
+            <ETF tfKey="resonance" label="Ressonância / Hunting" textFields={textFields} characterId={characterId} canEdit={canEdit} multiline onRefresh={refresh} />
+            <div className="grid grid-cols-2 gap-3">
+              <NumericTextField tfKey="xp_current" label="XP Atual" textFields={textFields} characterId={characterId} canEdit={canEdit} onRefresh={refresh} />
+              <NumericTextField tfKey="xp_total"   label="XP Total Gasto" textFields={textFields} characterId={characterId} canEdit={canEdit} onRefresh={refresh} />
+            </div>
             <ETF tfKey="notes"     label="Notas"     textFields={textFields} characterId={characterId} canEdit={canEdit} multiline onRefresh={refresh} />
           </div>
         )}
