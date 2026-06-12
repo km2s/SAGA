@@ -447,8 +447,6 @@ function PersonagemTab({ textFields, characterId, canEdit, onRefresh }: {
     { key: 'vice',           label: 'Vício',                    multi: false },
     { key: 'vicePurveyor',   label: 'Fornecedor do Vício',       multi: false },
     { key: 'alias',          label: 'Alias',                    multi: false },
-    { key: 'coin',           label: 'Coin (Moedas Atuais)',      multi: false },
-    { key: 'stash',          label: 'Stash (Moedas Guardadas)',  multi: false },
     { key: 'specialAbils',   label: 'Habilidades Especiais',    multi: true  },
     { key: 'contacts',       label: 'Contatos',                 multi: true  },
     { key: 'notes',          label: 'Notas',                    multi: true  },
