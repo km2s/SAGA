@@ -11,7 +11,7 @@ interface TextField {
 }
 interface Props {
   characterId: string; characterLevel: number; attributes: Attr[]
-  textFields: TextField[]; canEdit: boolean
+  textFields: TextField[]; weapons?: unknown[]; spellSlots?: unknown[]; canEdit: boolean
 }
 
 const ACCENT = '#4d7c0f'

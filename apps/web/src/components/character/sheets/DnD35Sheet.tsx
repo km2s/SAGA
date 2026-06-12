@@ -262,8 +262,10 @@ export function DnD35Sheet({ characterId, characterLevel, attributes, textFields
                     <div key={attr.id} className="flex flex-col items-center gap-1.5 py-4 rounded-lg"
                       style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)' }}>
                       {canEdit
-                        ? <EditableVal attrId={attr.id} value={attr.value} characterId={characterId} onSaved={refresh}
-                            className="font-cinzel font-bold text-2xl w-16 text-center" style={{ color: ACCENT } as React.CSSProperties} />
+                        ? <span className="font-cinzel font-bold text-2xl cursor-pointer" style={{ color: ACCENT }}>
+                            <EditableVal attrId={attr.id} value={attr.value} characterId={characterId} onSaved={refresh}
+                              className="font-cinzel font-bold text-2xl w-16 text-center" />
+                          </span>
                         : <span className="font-cinzel font-bold text-2xl" style={{ color: ACCENT }}>{attr.value}</span>}
                       <span className="font-almendra text-[9px] text-saga-dim uppercase tracking-widest">{attr.attribute.name}</span>
                     </div>
