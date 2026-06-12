@@ -10,7 +10,7 @@ import { HandoutsPanel } from './HandoutsPanel'
 import {
   MousePointer, Hand, Coins, MapPin, Ruler, Cloud, Eye,
   ClipboardList, Music, Map, Play, X, Dice6, Sparkles, Skull,
-  MessageSquare, Image as ImageIcon, Minus, Plus, Swords, ChevronRight, BookOpen,
+  MessageSquare, Image as ImageIcon, Minus, Plus, Swords, ChevronRight, BookOpen, HelpCircle,
 } from 'lucide-react'
 import { safeImageUrl } from '@/lib/safe-url'
 import { MesaSpotlight } from '@/components/tutorial/MesaSpotlight'
@@ -549,7 +549,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
             </button>
           )}
           {isGM && (
-            <button onClick={()=>setMusicOpen(true)}
+            <button data-mesa-tutorial="topbar-music" onClick={()=>setMusicOpen(true)}
               className="px-2 sm:px-3 h-7 rounded text-[11px] font-medium border transition-all text-saga-muted border-white/10 hover:border-gold/40 hover:text-gold flex items-center gap-1.5">
               <Music size={13}/>
               <span className="hidden sm:inline">Música</span>
@@ -561,6 +561,13 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
               chatOpen?'text-gold border-gold/50 bg-gold/10':'text-saga-muted border-white/10'
             }`}>
             <MessageSquare size={13}/>
+          </button>
+          <button
+            onClick={() => window.dispatchEvent(new Event('saga:mesa-tutorial'))}
+            title="Ver tutorial da Mesa Virtual"
+            className="w-7 h-7 rounded-full flex items-center justify-center text-saga-dim hover:text-gold transition-colors hover:bg-white/6"
+          >
+            <HelpCircle size={13}/>
           </button>
           {isGM&&activeSession?.isActive&&<EndSessionButton campaignId={campaign.id} compact/>}
         </div>

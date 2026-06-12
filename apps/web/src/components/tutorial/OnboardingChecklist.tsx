@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import {
   CheckCircle2, Circle, ChevronDown, ChevronUp,
   X, Swords, Sparkles,
@@ -20,7 +20,8 @@ interface Props {
 }
 
 export function OnboardingChecklist({ hasCampaign, firstCampaignId, firstGMCampaignId }: Props) {
-  const router = useRouter()
+  const router   = useRouter()
+  const pathname = usePathname()
   const [mounted, setMounted]         = useState(false)
   const [open, setOpen]               = useState(false)
   const [minimized, setMinimized]     = useState(false)
@@ -43,19 +44,17 @@ export function OnboardingChecklist({ hasCampaign, firstCampaignId, firstGMCampa
       setOpen(true)
       setMinimized(false)
     }
-    // Refresh visited state when returning from another page
-    function handleFocus() {
-      setVisitedGm(localStorage.getItem(KEY_VISITED_GM) === 'true')
-      setVisitedNpc(localStorage.getItem(KEY_VISITED_NPC) === 'true')
-      setVisitedMesa(localStorage.getItem(KEY_VISITED_MESA) === 'true')
-    }
     window.addEventListener('saga:open-checklist', handleReopen)
-    window.addEventListener('focus', handleFocus)
-    return () => {
-      window.removeEventListener('saga:open-checklist', handleReopen)
-      window.removeEventListener('focus', handleFocus)
-    }
+    return () => window.removeEventListener('saga:open-checklist', handleReopen)
   }, [])
+
+  // Re-read localStorage whenever the route changes (Next.js navigation)
+  useEffect(() => {
+    if (!mounted) return
+    setVisitedGm(localStorage.getItem(KEY_VISITED_GM) === 'true')
+    setVisitedNpc(localStorage.getItem(KEY_VISITED_NPC) === 'true')
+    setVisitedMesa(localStorage.getItem(KEY_VISITED_MESA) === 'true')
+  }, [pathname, mounted])
 
   if (!mounted) return null
 
