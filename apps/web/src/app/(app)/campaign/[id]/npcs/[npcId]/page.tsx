@@ -244,7 +244,7 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
             textFields={[]}
             weapons={[]}
             spellSlots={[]}
-            canEdit={false}
+            canEdit={isGM}
             category={category}
             systemName={system?.name ?? null}
           />
