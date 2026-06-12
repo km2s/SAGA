@@ -5,7 +5,8 @@ import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/Badge'
 import { GMActions } from '@/components/gm/GMActions'
-import { ShieldAlert, UserCheck, Heart, Wind, User } from 'lucide-react'
+import { DeleteNPCButton } from '@/components/gm/DeleteNPCButton'
+import { ShieldAlert, UserCheck, Heart, Wind, User, Pencil } from 'lucide-react'
 import { safeImageUrl } from '@/lib/safe-url'
 
 const NPC_TYPE_LABELS: Record<string, string> = {
@@ -71,41 +72,55 @@ export default async function CampaignNpcsPage({ params }: { params: { id: strin
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {npcs.map(npc => (
-            <Link key={npc.id} href={`/campaign/${params.id}/npcs/${npc.id}`}>
-            <div className="bg-surface border border-border rounded-lg overflow-hidden hover:border-border-bright transition-all card-hover">
-              {safeImageUrl(npc.imageUrl) ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={safeImageUrl(npc.imageUrl)!} alt={npc.name} className="w-full h-36 object-cover" />
-              ) : (
-                <div className="w-full h-36 bg-surface-2 flex items-center justify-center text-saga-muted/40">
-                  {npc.type === 'VILLAIN' ? <ShieldAlert size={40} /> :
-                   npc.type === 'ALLY'    ? <UserCheck size={40} /> :
-                   npc.type === 'FAMILIAR'? <Heart size={40} /> :
-                   npc.type === 'MOUNT'   ? <Wind size={40} /> :
-                   <User size={40} />}
+            <div key={npc.id} className="relative group bg-surface border border-border rounded-lg overflow-hidden hover:border-border-bright transition-all card-hover">
+              <Link href={`/campaign/${params.id}/npcs/${npc.id}`} className="block">
+                {safeImageUrl(npc.imageUrl) ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={safeImageUrl(npc.imageUrl)!} alt={npc.name} className="w-full h-36 object-cover" />
+                ) : (
+                  <div className="w-full h-36 bg-surface-2 flex items-center justify-center text-saga-muted/40">
+                    {npc.type === 'VILLAIN' ? <ShieldAlert size={40} /> :
+                     npc.type === 'ALLY'    ? <UserCheck size={40} /> :
+                     npc.type === 'FAMILIAR'? <Heart size={40} /> :
+                     npc.type === 'MOUNT'   ? <Wind size={40} /> :
+                     <User size={40} />}
+                  </div>
+                )}
+                <div className="p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-cinzel font-semibold">{npc.name}</h3>
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      <Badge variant={npc.isPublic ? 'success' : 'muted'}>
+                        {npc.isPublic ? 'Visível' : 'Restrito'}
+                      </Badge>
+                      <Badge variant="purple">{NPC_TYPE_LABELS[npc.type] ?? npc.type}</Badge>
+                    </div>
+                  </div>
+                  {npc.description && (
+                    <p className="text-[12px] text-saga-muted mt-2 line-clamp-3">{npc.description}</p>
+                  )}
+                  {npc.linkedMember && (
+                    <p className="text-[11px] text-saga-muted mt-2 border-t border-border pt-2">
+                      Ligado a: <span className="text-saga-text">{npc.linkedMember.user.username}</span>
+                    </p>
+                  )}
                 </div>
-              )}
-              <div className="p-4">
-                <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-cinzel font-semibold">{npc.name}</h3>
-                  <div className="flex flex-col items-end gap-1 shrink-0">
-                    <Badge variant={npc.isPublic ? 'success' : 'muted'}>
-                      {npc.isPublic ? 'Visível' : 'Restrito'}
-                    </Badge>
-                    <Badge variant="purple">{NPC_TYPE_LABELS[npc.type] ?? npc.type}</Badge>
+              </Link>
+              {isGM && (
+                <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Link
+                    href={`/campaign/${params.id}/npcs/${npc.id}`}
+                    className="p-1.5 rounded bg-surface/80 backdrop-blur-sm text-saga-muted hover:text-saga-text hover:bg-surface transition-colors"
+                    title="Editar NPC"
+                  >
+                    <Pencil size={13} />
+                  </Link>
+                  <div className="bg-surface/80 backdrop-blur-sm rounded">
+                    <DeleteNPCButton campaignId={params.id} npcId={npc.id} npcName={npc.name} />
                   </div>
                 </div>
-                {npc.description && (
-                  <p className="text-[12px] text-saga-muted mt-2 line-clamp-3">{npc.description}</p>
-                )}
-                {npc.linkedMember && (
-                  <p className="text-[11px] text-saga-muted mt-2 border-t border-border pt-2">
-                    Ligado a: <span className="text-saga-text">{npc.linkedMember.user.username}</span>
-                  </p>
-                )}
-              </div>
+              )}
             </div>
-            </Link>
           ))}
         </div>
       )}

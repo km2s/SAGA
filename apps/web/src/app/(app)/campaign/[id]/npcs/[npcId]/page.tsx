@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Badge } from '@/components/ui/Badge'
 import { NPCHPEditor } from '@/components/gm/NPCHPEditor'
 import { NPCAttributePanel } from '@/components/gm/NPCAttributePanel'
+import { NpcGMControls } from '@/components/gm/NpcGMControls'
 import { CharacterSheetView, type SheetCategory } from '@/components/character/CharacterSheetView'
 import { safeImageUrl } from '@/lib/safe-url'
 import {
@@ -88,7 +89,7 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
   const npc = await prisma.nPC.findFirst({
     where: { id: params.npcId, campaignId: params.id },
     include: {
-      campaign: { include: { system: true } },
+      campaign: { include: { system: true, members: { include: { user: true } } } },
       attributes: {
         include: { attribute: true },
         orderBy: { attribute: { name: 'asc' } },
@@ -105,6 +106,7 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
     npc.visibilities.some(v => v.memberId === member.id && v.canView)
   if (!canView) notFound()
 
+  const players = npc.campaign.members.filter(m => m.role === 'PLAYER')
   const TypeIcon = NPC_TYPE_ICONS[npc.type] ?? User
   const system = npc.campaign.system
   const category: SheetCategory = detectCategory(system?.name)
@@ -154,6 +156,24 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
         <div className="flex items-center gap-2 flex-wrap">
           <Badge variant={NPC_TYPE_BADGE[npc.type] ?? 'muted'}>{NPC_TYPE_LABELS[npc.type] ?? npc.type}</Badge>
           <Badge variant={npc.isPublic ? 'success' : 'muted'}>{npc.isPublic ? 'Visível aos jogadores' : 'Restrito ao Mestre'}</Badge>
+          {isGM && (
+            <NpcGMControls
+              campaignId={params.id}
+              npc={{
+                id: npc.id,
+                name: npc.name,
+                description: npc.description ?? null,
+                imageUrl: npc.imageUrl ?? null,
+                type: npc.type,
+                race: npc.race ?? null,
+                class: npc.class ?? null,
+                level: npc.level,
+                isPublic: npc.isPublic,
+                linkedMemberId: npc.linkedMemberId ?? null,
+              }}
+              players={players}
+            />
+          )}
         </div>
       </div>
 
