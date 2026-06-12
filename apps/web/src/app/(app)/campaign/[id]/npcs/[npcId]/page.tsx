@@ -93,6 +93,7 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
         include: { attribute: true },
         orderBy: { attribute: { name: 'asc' } },
       },
+      textFields: { orderBy: { order: 'asc' } },
       linkedMember: { include: { user: true } },
       visibilities: true,
     },
@@ -241,7 +242,7 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
             characterId={npc.id}
             characterLevel={npc.level}
             attributes={sheetAttributes}
-            textFields={[]}
+            textFields={npc.textFields}
             weapons={[]}
             spellSlots={[]}
             canEdit={isGM}

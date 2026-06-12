@@ -204,6 +204,7 @@ model NPC {
   campaign     Campaign        @relation(fields: [campaignId], references: [id])
   linkedMember CampaignMember? @relation("NPCLinkedMember", fields: [linkedMemberId], references: [id])
   attributes   NPCAttribute[]
+  textFields   NPCTextField[]
   visibilities NPCVisibility[]
 
   @@index([campaignId])
@@ -220,6 +221,20 @@ model NPCAttribute {
   attribute SystemAttribute @relation(fields: [attributeId], references: [id])
 
   @@unique([npcId, attributeId])
+}
+
+model NPCTextField {
+  id    String @id @default(cuid())
+  npcId String
+  key   String
+  label String
+  value String @default("")
+  order Int    @default(0)
+
+  npc NPC @relation(fields: [npcId], references: [id], onDelete: Cascade)
+
+  @@unique([npcId, key])
+  @@index([npcId])
 }
 
 model NPCVisibility {
