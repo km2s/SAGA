@@ -330,6 +330,27 @@ function ETF({ tfKey, label, textFields, characterId, canEdit, multiline = false
   )
 }
 
+function NumericTextField({ tfKey, label, textFields, characterId, canEdit, onRefresh }: {
+  tfKey: string; label: string; textFields: TextField[]; characterId: string; canEdit: boolean; onRefresh: () => void
+}) {
+  const field = textFields.find(f => f.key === tfKey)
+  const [val, setVal] = useState(field?.value ?? '')
+  async function save(v: string) {
+    await fetch(`/api/characters/${characterId}/text-fields`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: tfKey, label, value: v }),
+    }).catch(() => null)
+    onRefresh()
+  }
+  return (
+    <input type="number" min={0} max={5} value={val}
+      onChange={e => setVal(e.target.value)}
+      onBlur={e => void save(e.target.value)}
+      disabled={!canEdit}
+      className="w-20 bg-surface-2 border border-gold/40 rounded px-2 py-1 text-sm focus:outline-none text-center" />
+  )
+}
+
 // ── Tabs ──────────────────────────────────────────────────────────────────────
 
 const TABS = [
@@ -460,12 +481,25 @@ export function VtMV5Sheet({ characterId, attributes, textFields, weapons, canEd
               )
             })()}
 
-            {/* Blood Potency */}
+            {/* Blood Potency — tabela completa */}
             {(() => {
               const bp = attributes.find(a => a.attribute.name.toLowerCase().includes('blood potency') || a.attribute.name.toLowerCase().includes('potência de sangue'))
               if (!bp) return null
-              const ROUSE = ['-', 'Nenhum', 'Em 10', 'Em 10', 'Em 10', 'Em 10', 'Em 10', 'Em 10', 'Em 10', 'Em 10', 'Em 10']
-              const SURGE = ['+1', '+1', '+1', '+2', '+2', '+2', '+3', '+3', '+3', '+3']
+              // Indexed by BP value (0-10)
+              const TABLE: Array<{ surge: string; mend: string; power: string; feeding: string; bane: number; rouse: string }> = [
+                { surge: '+1 dado',  mend: '1 Sup',  power: '—',  feeding: 'Nenhuma',           bane: 1, rouse: 'Nunca'       },
+                { surge: '+1 dado',  mend: '1 Sup',  power: '—',  feeding: 'Sangue-ralo',        bane: 1, rouse: 'Nunca'       },
+                { surge: '+1 dado',  mend: '1 Sup',  power: '+1', feeding: 'Animais',             bane: 2, rouse: 'Nenhum'      },
+                { surge: '+1 dado',  mend: '2 Sup',  power: '+1', feeding: 'Animal somente',      bane: 3, rouse: 'Nenhum'      },
+                { surge: '+2 dados', mend: '2 Sup',  power: '+2', feeding: 'Animal somente',      bane: 3, rouse: 'Fome 1'      },
+                { surge: '+2 dados', mend: '2 Sup',  power: '+2', feeding: 'Mortal somente',      bane: 4, rouse: 'Fome 1'      },
+                { surge: '+3 dados', mend: '3 Sup',  power: '+3', feeding: 'Mortal somente',      bane: 4, rouse: 'Fome 1-2'    },
+                { surge: '+3 dados', mend: '3 Sup',  power: '+3', feeding: 'Sangue ensacado',     bane: 5, rouse: 'Fome 1-2'    },
+                { surge: '+3 dados', mend: '3 Sup',  power: '+4', feeding: 'Sangue ensacado',     bane: 5, rouse: 'Fome 1-3'    },
+                { surge: '+4 dados', mend: '3 Sup',  power: '+4', feeding: 'Sangue ensacado',     bane: 6, rouse: 'Fome 1-3'    },
+                { surge: '+4 dados', mend: '3 Sup',  power: '+5', feeding: 'Sangue de vampiro',   bane: 6, rouse: 'Fome 1-5'    },
+              ]
+              const row = TABLE[bp.value] ?? TABLE[10]!
               return (
                 <div className="rounded p-3" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)' }}>
                   <div className="flex items-center justify-between mb-3">
@@ -474,9 +508,22 @@ export function VtMV5Sheet({ characterId, attributes, textFields, weapons, canEd
                   </div>
                   <Dots value={bp.value} max={10} editable={canEdit} attrId={bp.id} characterId={characterId} onSaved={refresh} color="#ef4444" />
                   {bp.value > 0 && (
-                    <div className="mt-3 grid grid-cols-2 gap-2 text-[10px] text-saga-dim">
-                      <span>Blood Surge: {SURGE[bp.value - 1] ?? '+3'} dados</span>
-                      <span>Rouse Re-roll: {ROUSE[bp.value] ?? 'Sim'}</span>
+                    <div className="mt-3 space-y-1.5">
+                      <div className="grid grid-cols-3 gap-x-3 gap-y-1.5">
+                        {[
+                          ['Blood Surge', row.surge],
+                          ['Curar (Rouse)', row.mend],
+                          ['Bônus de Poder', row.power],
+                          ['Penalidade Alim.', row.feeding],
+                          ['Severidade Bane', String(row.bane)],
+                          ['Rouse Re-roll', row.rouse],
+                        ].map(([label, val]) => (
+                          <div key={label} className="rounded px-2 py-1.5" style={{ background: 'rgba(0,0,0,0.3)' }}>
+                            <div className="text-[8px] text-saga-dim uppercase tracking-wider">{label}</div>
+                            <div className="text-[11px] font-bold text-red-300 mt-0.5">{val}</div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -530,6 +577,19 @@ export function VtMV5Sheet({ characterId, attributes, textFields, weapons, canEd
             </div>
             <ETF tfKey="ambition"  label="Ambição"   textFields={textFields} characterId={characterId} canEdit={canEdit} onRefresh={refresh} />
             <ETF tfKey="desire"    label="Desejo"    textFields={textFields} characterId={characterId} canEdit={canEdit} onRefresh={refresh} />
+            {/* Haven */}
+            <div className="rounded-lg p-3 space-y-2" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)' }}>
+              <p className="font-almendra text-[9px] uppercase tracking-widest text-saga-dim">Haven</p>
+              <ETF tfKey="haven_location" label="Localização" textFields={textFields} characterId={characterId} canEdit={canEdit} onRefresh={refresh} />
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-saga-dim uppercase tracking-wider">Rating (1-5)</label>
+                {(() => {
+                  const havenAttr = attributes.find(a => a.attribute.name.toLowerCase().includes('haven'))
+                  if (havenAttr) return <Dots value={havenAttr.value} max={5} editable={canEdit} attrId={havenAttr.id} characterId={characterId} onSaved={refresh} />
+                  return <NumericTextField tfKey="haven_rating" label="Haven Rating" textFields={textFields} characterId={characterId} canEdit={canEdit} onRefresh={refresh} />
+                })()}
+              </div>
+            </div>
             <ETF tfKey="backstory" label="História"  textFields={textFields} characterId={characterId} canEdit={canEdit} multiline onRefresh={refresh} />
             <ETF tfKey="notes"     label="Notas"     textFields={textFields} characterId={characterId} canEdit={canEdit} multiline onRefresh={refresh} />
           </div>
