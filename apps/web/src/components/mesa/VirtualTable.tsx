@@ -186,7 +186,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
         setMapUrl(st.mapImageUrl)
         setSessionMusic({ youtubeId: st.musicYoutubeId, volume: st.musicVolume })
       }
-    }, 3000)
+    }, 5000)
     return () => clearInterval(iv)
   }, [campaign.id, activeSession, isGM])
 

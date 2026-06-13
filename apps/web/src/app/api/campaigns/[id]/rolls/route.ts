@@ -27,16 +27,17 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const member = await prisma.campaignMember.findFirst({
-    where: { campaignId: params.id, user: { discordId: session.user.discordId } },
-  }).catch(() => null)
+  const [member, activeSession] = await Promise.all([
+    prisma.campaignMember.findFirst({
+      where: { campaignId: params.id, user: { discordId: session.user.discordId } },
+    }).catch(() => null),
+    prisma.session.findFirst({
+      where: { campaignId: params.id, isActive: true },
+      orderBy: { startedAt: 'desc' },
+      select: { id: true, tokensJson: true, musicYoutubeId: true, musicVolume: true, mapImageUrl: true },
+    }).catch(() => null),
+  ])
   if (!member) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-
-  const activeSession = await prisma.session.findFirst({
-    where: { campaignId: params.id, isActive: true },
-    orderBy: { startedAt: 'desc' },
-    select: { id: true, tokensJson: true, musicYoutubeId: true, musicVolume: true, mapImageUrl: true },
-  }).catch(() => null)
 
   if (!activeSession) return NextResponse.json({ rolls: [], sessionState: null })
 
