@@ -571,20 +571,84 @@ function SpellSlotsSection({ spellSlots, characterId, canEdit, onRefresh }: {
 
 // ─── Spell List section ───────────────────────────────────────────────────────
 
+interface SpellEntry { name: string; cost?: string; desc?: string }
+
+const SPELL_COST_OPTIONS = [
+  '1 ação', '1 ação bônus', '1 reação', '1 minuto',
+  '10 minutos', '1 hora', '8 horas', 'Ritual',
+]
+
+function parseSpells(textFields: TextField[], level: number): SpellEntry[] {
+  const key = level === 0 ? 'spells_cantrip' : `spells_lvl${level}`
+  const field = textFields.find(f => f.key === key)
+  if (!field?.value) return []
+  try {
+    const parsed = JSON.parse(field.value) as unknown[]
+    if (!Array.isArray(parsed)) return []
+    return parsed.map(item =>
+      typeof item === 'string' ? { name: item } : item as SpellEntry
+    ).filter(item => typeof item === 'object' && item !== null && (item as SpellEntry).name)
+  } catch { return [] }
+}
+
+function SpellCard({ spell, canEdit, onRemove }: { spell: SpellEntry; canEdit: boolean; onRemove: () => void }) {
+  const [expanded, setExpanded] = useState(false)
+  const hasExtra = !!(spell.cost || spell.desc)
+  return (
+    <div className="rounded group transition-all"
+      style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)' }}>
+      <div className="flex items-start gap-2 px-3 py-2">
+        {hasExtra && (
+          <button onClick={() => setExpanded(e => !e)}
+            className="mt-0.5 text-saga-dim hover:text-saga-text transition-colors shrink-0">
+            {expanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+          </button>
+        )}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm text-saga-text font-medium">{spell.name}</span>
+            {spell.cost && (
+              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0"
+                style={{ background: 'rgba(139,92,246,0.15)', color: '#c4b5fd', border: '1px solid rgba(139,92,246,0.25)' }}>
+                {spell.cost}
+              </span>
+            )}
+          </div>
+          {spell.desc && expanded && (
+            <p className="text-[11px] text-saga-muted mt-1 leading-relaxed whitespace-pre-wrap">{spell.desc}</p>
+          )}
+          {spell.desc && !expanded && (
+            <button onClick={() => setExpanded(true)} className="text-[10px] text-saga-dim hover:text-saga-muted mt-0.5 transition-colors">
+              {spell.desc.slice(0, 60)}{spell.desc.length > 60 ? '…' : ''}
+            </button>
+          )}
+        </div>
+        {canEdit && (
+          <button onClick={onRemove}
+            className="opacity-0 group-hover:opacity-100 text-saga-dim hover:text-saga-danger transition-all shrink-0 mt-0.5">
+            <X size={13} />
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+const BLANK_DRAFT: SpellEntry = { name: '', cost: '', desc: '' }
+
 function SpellListSection({ textFields, spellSlots, characterId, canEdit, onRefresh }: {
   textFields: TextField[]; spellSlots: SpellSlot[]; characterId: string; canEdit: boolean; onRefresh: () => void
 }) {
-  const [drafts, setDrafts] = useState<Record<number, string>>({})
+  const [drafts, setDrafts] = useState<Record<number, SpellEntry>>({})
+  const [adding, setAdding] = useState<Record<number, boolean>>({})
   const [saving, setSaving] = useState(false)
 
-  function getSpells(level: number): string[] {
-    const key = level === 0 ? 'spells_cantrip' : `spells_lvl${level}`
-    const field = textFields.find(f => f.key === key)
-    if (!field?.value) return []
-    try { return JSON.parse(field.value) as string[] } catch { return [] }
+  function getDraft(lvl: number): SpellEntry { return drafts[lvl] ?? BLANK_DRAFT }
+  function setDraftField(lvl: number, field: keyof SpellEntry, val: string) {
+    setDrafts(d => ({ ...d, [lvl]: { ...getDraft(lvl), [field]: val } }))
   }
 
-  async function saveSpells(level: number, spells: string[]) {
+  async function saveSpells(level: number, spells: SpellEntry[]) {
     const key = level === 0 ? 'spells_cantrip' : `spells_lvl${level}`
     const label = level === 0 ? 'Truques (Cantrips)' : `Magias de Nível ${level}`
     await fetch(`/api/characters/${characterId}/text-fields`, {
@@ -596,23 +660,29 @@ function SpellListSection({ textFields, spellSlots, characterId, canEdit, onRefr
   }
 
   async function addSpell(level: number) {
-    const draft = (drafts[level] ?? '').trim()
-    if (!draft) return
+    const draft = getDraft(level)
+    if (!draft.name.trim()) return
     setSaving(true)
-    await saveSpells(level, [...getSpells(level), draft])
-    setDrafts(d => ({ ...d, [level]: '' }))
+    const entry: SpellEntry = {
+      name: draft.name.trim(),
+      ...(draft.cost?.trim() && { cost: draft.cost.trim() }),
+      ...(draft.desc?.trim() && { desc: draft.desc.trim() }),
+    }
+    await saveSpells(level, [...parseSpells(textFields, level), entry])
+    setDrafts(d => ({ ...d, [level]: BLANK_DRAFT }))
+    setAdding(a => ({ ...a, [level]: false }))
     setSaving(false)
   }
 
   async function removeSpell(level: number, idx: number) {
-    await saveSpells(level, getSpells(level).filter((_, i) => i !== idx))
+    await saveSpells(level, parseSpells(textFields, level).filter((_, i) => i !== idx))
   }
 
   const visibleLevels = [
     0,
     ...[1, 2, 3, 4, 5, 6, 7, 8, 9].filter(lvl => {
       const hasSlots = spellSlots.some(s => s.level === lvl && s.total > 0)
-      const hasSpells = getSpells(lvl).length > 0
+      const hasSpells = parseSpells(textFields, lvl).length > 0
       return hasSlots || hasSpells
     }),
   ]
@@ -622,46 +692,83 @@ function SpellListSection({ textFields, spellSlots, characterId, canEdit, onRefr
       <SectionDivider title="Magias Conhecidas" />
       <div className="space-y-3">
         {visibleLevels.map(lvl => {
-          const spells = getSpells(lvl)
+          const spells = parseSpells(textFields, lvl)
           const levelLabel = lvl === 0 ? 'Truques' : `Nível ${lvl}`
-          const draft = drafts[lvl] ?? ''
+          const isAdding = !!(adding[lvl])
+          const draft = getDraft(lvl)
           return (
             <div key={lvl} className="rounded p-3"
-              style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)' }}>
-              <p className="font-almendra text-[9px] text-saga-dim uppercase tracking-wider mb-2">{levelLabel}</p>
+              style={{ background: 'rgba(255,255,255,0.015)', border: '1px solid rgba(255,255,255,0.07)' }}>
+              <div className="flex items-center justify-between mb-2">
+                <p className="font-almendra text-[9px] text-saga-dim uppercase tracking-wider">{levelLabel}</p>
+                {canEdit && !isAdding && (
+                  <button onClick={() => setAdding(a => ({ ...a, [lvl]: true }))}
+                    className="text-[11px] text-saga-dim hover:text-gold transition-colors font-bold">
+                    + Adicionar
+                  </button>
+                )}
+              </div>
+
               <div className="space-y-1.5">
                 {spells.map((spell, i) => (
-                  <div key={i} className="flex items-center gap-2 group">
-                    <span className="flex-1 text-sm text-saga-text">{spell}</span>
-                    {canEdit && (
-                      <button onClick={() => void removeSpell(lvl, i)}
-                        className="opacity-0 group-hover:opacity-100 text-saga-dim hover:text-saga-danger transition-all">
-                        <X size={13} />
-                      </button>
-                    )}
-                  </div>
+                  <SpellCard key={i} spell={spell} canEdit={canEdit}
+                    onRemove={() => void removeSpell(lvl, i)} />
                 ))}
                 {spells.length === 0 && !canEdit && (
                   <span className="text-[11px] text-saga-dim italic">—</span>
                 )}
-                {canEdit && (
-                  <div className="flex gap-1.5 mt-1">
-                    <input
-                      value={draft}
-                      onChange={e => setDrafts(d => ({ ...d, [lvl]: e.target.value }))}
-                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); void addSpell(lvl) } }}
-                      placeholder={lvl === 0 ? 'Nome do truque...' : 'Nome da magia...'}
-                      disabled={saving}
-                      className="flex-1 bg-surface-2 border border-border rounded px-2.5 py-1.5 text-[13px] focus:outline-none focus:border-gold/60 transition-colors" />
+              </div>
+
+              {canEdit && isAdding && (
+                <div className="mt-2 rounded p-3 space-y-2"
+                  style={{ background: 'rgba(201,162,42,0.04)', border: '1px solid rgba(201,162,42,0.15)' }}>
+                  <input
+                    value={draft.name}
+                    onChange={e => setDraftField(lvl, 'name', e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); void addSpell(lvl) } }}
+                    placeholder={lvl === 0 ? 'Nome do truque...' : 'Nome da magia...'}
+                    autoFocus
+                    className="w-full bg-surface-2 border border-border rounded px-2.5 py-1.5 text-[13px] focus:outline-none focus:border-gold/60 transition-colors" />
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[9px] text-saga-dim uppercase tracking-widest block mb-1">Custo</label>
+                      <input
+                        list={`cost-options-${lvl}`}
+                        value={draft.cost ?? ''}
+                        onChange={e => setDraftField(lvl, 'cost', e.target.value)}
+                        placeholder="1 ação..."
+                        className="w-full bg-surface-2 border border-border rounded px-2.5 py-1.5 text-[12px] focus:outline-none focus:border-gold/60 transition-colors" />
+                      <datalist id={`cost-options-${lvl}`}>
+                        {SPELL_COST_OPTIONS.map(o => <option key={o} value={o} />)}
+                      </datalist>
+                    </div>
+                    <div />
+                  </div>
+                  <div>
+                    <label className="text-[9px] text-saga-dim uppercase tracking-widest block mb-1">Descrição</label>
+                    <textarea
+                      value={draft.desc ?? ''}
+                      onChange={e => setDraftField(lvl, 'desc', e.target.value)}
+                      placeholder="Descreva o efeito da magia..."
+                      rows={3}
+                      className="w-full bg-surface-2 border border-border rounded px-2.5 py-1.5 text-[12px] focus:outline-none focus:border-gold/60 transition-colors resize-none" />
+                  </div>
+                  <div className="flex gap-2 justify-end">
+                    <button
+                      onClick={() => { setAdding(a => ({ ...a, [lvl]: false })); setDrafts(d => ({ ...d, [lvl]: BLANK_DRAFT })) }}
+                      className="px-3 py-1.5 rounded text-saga-dim hover:text-saga-text text-[12px] transition-colors">
+                      Cancelar
+                    </button>
                     <button
                       onClick={() => void addSpell(lvl)}
-                      disabled={saving || !draft.trim()}
-                      className="px-3 py-1.5 rounded text-gold hover:bg-gold/10 text-sm font-bold transition-colors disabled:opacity-40">
-                      +
+                      disabled={saving || !draft.name.trim()}
+                      className="px-3 py-1.5 rounded text-[12px] font-medium transition-colors disabled:opacity-40"
+                      style={{ background: 'rgba(201,162,42,0.15)', color: '#c9a22a', border: '1px solid rgba(201,162,42,0.3)' }}>
+                      {saving ? 'Salvando...' : 'Salvar Magia'}
                     </button>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           )
         })}
@@ -858,13 +965,19 @@ function DnD5eAtributos({ dnd, characterId, canEdit, level, onAdd, onDelete, onR
   )
 }
 
-function DnD5ePericias({ dnd, characterId, canEdit, onDelete, onRefresh }: {
+function DnD5ePericias({ dnd, characterId, canEdit, onAdd, onDelete, onRefresh }: {
   dnd: ReturnType<typeof groupDnD5e>; characterId: string; canEdit: boolean
-  onDelete: (id: string) => void; onRefresh: () => void
+  onAdd: () => void; onDelete: (id: string) => void; onRefresh: () => void
 }) {
   const attrOrder = ['FOR', 'DES', 'CON', 'INT', 'SAB', 'CAR']
+  const hasSkills = Object.keys(dnd.byAttr).length > 0
   return (
     <div className="space-y-5">
+      {canEdit && (
+        <div className="flex justify-end">
+          <AddBtn onClick={onAdd} />
+        </div>
+      )}
       {attrOrder.map(abbrev => {
         const skills = dnd.byAttr[abbrev] ?? []
         if (skills.length === 0) return null
@@ -894,8 +1007,10 @@ function DnD5ePericias({ dnd, characterId, canEdit, onDelete, onRefresh }: {
           </div>
         )
       })}
-      {Object.keys(dnd.byAttr).length === 0 && (
-        <p className="text-sm text-saga-dim text-center py-8">Nenhuma perícia adicionada.</p>
+      {!hasSkills && (
+        <p className="text-sm text-saga-dim text-center py-8">
+          {canEdit ? 'Clique em "+" para adicionar perícias D&D 5e.' : 'Nenhuma perícia adicionada.'}
+        </p>
       )}
     </div>
   )
@@ -1527,7 +1642,7 @@ export function CharacterSheetView({ characterId, characterLevel, attributes, te
 
   if (isDnD5e) {
     tabs.push({ id: 'atributos',  label: 'Atributos',  icon: Shield })
-    if ((dnd?.skills.length ?? 0) > 0) tabs.push({ id: 'pericias', label: 'Perícias' })
+    tabs.push({ id: 'pericias', label: 'Perícias' })
     tabs.push({ id: 'combate',    label: 'Combate',    icon: Sword })
     tabs.push({ id: 'magias',     label: 'Magias',     icon: Wand2 })
     tabs.push({ id: 'personagem', label: 'Personagem', icon: User })
@@ -1612,7 +1727,7 @@ export function CharacterSheetView({ characterId, characterLevel, attributes, te
         )}
         {isDnD5e && dnd && currentTab === 'pericias' && (
           <DnD5ePericias dnd={dnd} characterId={characterId} canEdit={canEdit}
-            onDelete={id => setDeleteTarget(id)} onRefresh={refresh} />
+            onAdd={() => setAddOpen(true)} onDelete={id => setDeleteTarget(id)} onRefresh={refresh} />
         )}
         {isDnD5e && dnd && currentTab === 'combate' && (
           <DnD5eCombate dnd={dnd} characterId={characterId} canEdit={canEdit} canEditWeapons={canEditWeapons} level={characterLevel}

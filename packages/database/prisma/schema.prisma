@@ -257,10 +257,11 @@ model Session {
   startedAt      DateTime  @default(now())
   endedAt        DateTime?
   campaignId     String
-  tokensJson     String?
-  musicYoutubeId String?
-  musicVolume    Int       @default(50)
-  mapImageUrl    String?
+  tokensJson      String?
+  musicYoutubeId  String?
+  musicVolume     Int       @default(50)
+  mapImageUrl     String?
+  liveMembersJson String?
 
   campaign Campaign        @relation(fields: [campaignId], references: [id])
   rollLogs RollLog[]

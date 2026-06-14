@@ -14,6 +14,32 @@ const COMMON_ATTRIBUTES = [
   { name: 'Carisma', die: 'd20' },
 ]
 
+const DND5E_SKILLS = [
+  { name: 'Atletismo',        attr: 'FOR', desc: 'Perícia (FOR)' },
+  { name: 'Acrobacia',        attr: 'DES', desc: 'Perícia (DES)' },
+  { name: 'Furtividade',      attr: 'DES', desc: 'Perícia (DES)' },
+  { name: 'Prestidigitação',  attr: 'DES', desc: 'Perícia (DES)' },
+  { name: 'Arcanismo',        attr: 'INT', desc: 'Perícia (INT)' },
+  { name: 'História',         attr: 'INT', desc: 'Perícia (INT)' },
+  { name: 'Investigação',     attr: 'INT', desc: 'Perícia (INT)' },
+  { name: 'Natureza',         attr: 'INT', desc: 'Perícia (INT)' },
+  { name: 'Religião',         attr: 'INT', desc: 'Perícia (INT)' },
+  { name: 'Adestrar Animais', attr: 'SAB', desc: 'Perícia (SAB)' },
+  { name: 'Intuição',         attr: 'SAB', desc: 'Perícia (SAB)' },
+  { name: 'Medicina',         attr: 'SAB', desc: 'Perícia (SAB)' },
+  { name: 'Percepção',        attr: 'SAB', desc: 'Perícia (SAB)' },
+  { name: 'Sobrevivência',    attr: 'SAB', desc: 'Perícia (SAB)' },
+  { name: 'Enganação',        attr: 'CAR', desc: 'Perícia (CAR)' },
+  { name: 'Intimidação',      attr: 'CAR', desc: 'Perícia (CAR)' },
+  { name: 'Atuação',          attr: 'CAR', desc: 'Perícia (CAR)' },
+  { name: 'Persuasão',        attr: 'CAR', desc: 'Perícia (CAR)' },
+]
+
+const ATTR_COLORS: Record<string, string> = {
+  FOR: '#ef4444', DES: '#22c55e', CON: '#f97316',
+  INT: '#3b82f6', SAB: '#8b5cf6', CAR: '#ec4899',
+}
+
 export function AddAttributeModal({ characterId, open, onClose }: {
   characterId: string
   open: boolean
@@ -22,12 +48,12 @@ export function AddAttributeModal({ characterId, open, onClose }: {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [form, setForm] = useState({ name: '', value: '10', defaultDie: 'd20' })
+  const [form, setForm] = useState({ name: '', value: '10', defaultDie: 'd20', description: '' })
 
   function set(k: string, v: string) { setForm(f => ({ ...f, [k]: v })) }
 
-  function selectPreset(name: string, die: string) {
-    setForm(f => ({ ...f, name, defaultDie: die }))
+  function selectPreset(name: string, die: string, description = '') {
+    setForm(f => ({ ...f, name, defaultDie: die, description }))
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -40,7 +66,12 @@ export function AddAttributeModal({ characterId, open, onClose }: {
     const res = await fetch(`/api/characters/${characterId}/attributes`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: form.name.trim(), value, defaultDie: form.defaultDie }),
+      body: JSON.stringify({
+        name: form.name.trim(),
+        value,
+        defaultDie: form.defaultDie,
+        ...(form.description && { description: form.description }),
+      }),
     }).catch(() => null)
     setLoading(false)
     if (!res?.ok) {
@@ -48,10 +79,16 @@ export function AddAttributeModal({ characterId, open, onClose }: {
       setError(data.error ?? 'Erro ao salvar atributo')
       return
     }
-    setForm({ name: '', value: '10', defaultDie: 'd20' })
+    setForm({ name: '', value: '10', defaultDie: 'd20', description: '' })
     onClose()
     router.refresh()
   }
+
+  const byAttr = DND5E_SKILLS.reduce<Record<string, typeof DND5E_SKILLS>>((acc, s) => {
+    if (!acc[s.attr]) acc[s.attr] = []
+    acc[s.attr]!.push(s)
+    return acc
+  }, {})
 
   return (
     <Modal open={open} onClose={onClose} title="Adicionar / Editar Atributo">
@@ -62,7 +99,7 @@ export function AddAttributeModal({ characterId, open, onClose }: {
             {COMMON_ATTRIBUTES.map(a => (
               <button key={a.name} type="button" onClick={() => selectPreset(a.name, a.die)}
                 className={`px-2.5 py-1 rounded text-xs font-medium border transition-colors ${
-                  form.name === a.name
+                  form.name === a.name && !form.description
                     ? 'bg-gold-dim border-gold/40 text-gold'
                     : 'bg-surface-2 border-border text-saga-muted hover:text-saga-text'
                 }`}>
@@ -71,6 +108,35 @@ export function AddAttributeModal({ characterId, open, onClose }: {
             ))}
           </div>
         </div>
+
+        <div>
+          <p className="text-[11px] text-saga-muted font-bold uppercase tracking-widest mb-2">Perícias D&D 5e</p>
+          <div className="space-y-1.5">
+            {Object.entries(byAttr).map(([attr, skills]) => (
+              <div key={attr} className="flex items-start gap-2">
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded mt-0.5 shrink-0"
+                  style={{ background: `${ATTR_COLORS[attr]}18`, color: ATTR_COLORS[attr], border: `1px solid ${ATTR_COLORS[attr]}30` }}>
+                  {attr}
+                </span>
+                <div className="flex flex-wrap gap-1">
+                  {skills.map(s => (
+                    <button key={s.name} type="button" onClick={() => selectPreset(s.name, 'd20', s.desc)}
+                      className={`px-2 py-0.5 rounded text-[11px] border transition-colors ${
+                        form.name === s.name && form.description === s.desc
+                          ? 'border-[#8b5cf6]/50 text-[#c4b5fd]'
+                          : 'bg-surface-2 border-border text-saga-muted hover:text-saga-text'
+                      }`}
+                      style={form.name === s.name && form.description === s.desc
+                        ? { background: `${ATTR_COLORS[attr]}15` } : {}}>
+                      {s.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">Nome *</label>

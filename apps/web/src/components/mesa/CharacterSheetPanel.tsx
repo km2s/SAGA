@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Swords, Sparkles, Shield, Sword, Plus, Axe, Leaf, Music, Target, Dumbbell, Moon, ScrollText, User, ClipboardList, X, FileText, ChevronRight, Skull } from 'lucide-react'
+import { Swords, Sparkles, Shield, Sword, Plus, Minus, Axe, Leaf, Music, Target, Dumbbell, Moon, ScrollText, User, ClipboardList, X, FileText, ChevronRight, Skull } from 'lucide-react'
 
 interface CharAttr {
   id: string
@@ -79,21 +79,76 @@ function dndMod(v: number) {
   return m >= 0 ? `+${m}` : `${m}`
 }
 
-function HPBar({ hp, maxHp }: { hp: number; maxHp: number }) {
+function HPEditor({ initialHp, maxHp, canEdit, onSave }: {
+  initialHp: number; maxHp: number; canEdit: boolean; onSave: (hp: number) => void
+}) {
+  const [hp, setHp] = useState(initialHp)
+  const [editing, setEditing] = useState(false)
+  const [inputVal, setInputVal] = useState('')
+  const [saving, setSaving] = useState(false)
+
   const pct = maxHp > 0 ? Math.min(100, Math.round((hp / maxHp) * 100)) : 0
   const color = pct > 60 ? '#22c55e' : pct > 30 ? '#f59e0b' : '#ef4444'
+
+  function apply(newHp: number) {
+    const clamped = Math.min(maxHp, Math.max(0, newHp))
+    if (clamped === hp) return
+    setHp(clamped)
+    setSaving(true)
+    Promise.resolve(onSave(clamped)).finally(() => setSaving(false))
+  }
+
+  function commitInput() {
+    const n = parseInt(inputVal, 10)
+    if (!isNaN(n)) apply(n)
+    setEditing(false)
+  }
+
   return (
     <div className="rounded-lg p-3" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
       <div className="flex items-center justify-between mb-2">
         <span className="text-[10px] font-bold text-saga-dim uppercase tracking-widest">Pontos de Vida</span>
-        <span className="font-cinzel font-bold text-base leading-none" style={{ color }}>
-          {hp}<span className="text-saga-dim font-normal text-[11px]"> / {maxHp}</span>
-        </span>
+        <div className="flex items-center gap-1">
+          {canEdit && (
+            <button onClick={() => apply(hp - 1)}
+              className="w-5 h-5 flex items-center justify-center rounded text-saga-dim hover:text-red-400 hover:bg-red-400/10 transition-all">
+              <Minus size={9} />
+            </button>
+          )}
+          {canEdit && editing ? (
+            <input
+              type="number" value={inputVal}
+              onChange={e => setInputVal(e.target.value)}
+              onBlur={commitInput}
+              onKeyDown={e => { if (e.key === 'Enter') commitInput(); if (e.key === 'Escape') setEditing(false) }}
+              autoFocus
+              className="w-10 text-center font-cinzel font-bold text-base bg-transparent border-b outline-none"
+              style={{ color, borderColor: 'rgba(255,255,255,0.2)' }}
+            />
+          ) : (
+            <span
+              className={`font-cinzel font-bold text-base leading-none ${canEdit ? 'cursor-pointer hover:opacity-70' : ''}`}
+              style={{ color }}
+              onClick={() => { if (!canEdit) return; setInputVal(String(hp)); setEditing(true) }}
+              title={canEdit ? 'Clique para editar' : undefined}
+            >
+              {hp}
+            </span>
+          )}
+          <span className="text-saga-dim font-normal text-[11px]"> / {maxHp}</span>
+          {canEdit && (
+            <button onClick={() => apply(hp + 1)}
+              className="w-5 h-5 flex items-center justify-center rounded text-saga-dim hover:text-green-400 hover:bg-green-400/10 transition-all">
+              <Plus size={9} />
+            </button>
+          )}
+        </div>
       </div>
       <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
         <div className="h-full rounded-full transition-all duration-500"
           style={{ width: `${pct}%`, background: color, boxShadow: `0 0 8px ${color}55` }} />
       </div>
+      {saving && <p className="text-[9px] text-saga-dim mt-1 opacity-50 text-right">Salvando...</p>}
     </div>
   )
 }
@@ -321,7 +376,19 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
                   </div>
                 </div>
 
-                <HPBar hp={char.hp} maxHp={char.maxHp} />
+                <HPEditor
+                  key={char.id}
+                  initialHp={char.hp}
+                  maxHp={char.maxHp}
+                  canEdit={isGM || selectedMember?.id === currentMemberId}
+                  onSave={hp => {
+                    fetch(`/api/characters/${char.id}`, {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ hp }),
+                    }).catch(() => {})
+                  }}
+                />
                 <AttributesBlock attributes={char.attributes} />
 
                 {/* Link to full sheet */}
@@ -373,7 +440,19 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
                     </div>
                   </div>
 
-                  <HPBar hp={selectedNpc.hp} maxHp={selectedNpc.maxHp} />
+                  <HPEditor
+                    key={selectedNpc.id}
+                    initialHp={selectedNpc.hp}
+                    maxHp={selectedNpc.maxHp}
+                    canEdit={isGM}
+                    onSave={hp => {
+                      fetch(`/api/campaigns/${campaignId}/npcs/${selectedNpc.id}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ hp }),
+                      }).catch(() => {})
+                    }}
+                  />
                   <AttributesBlock attributes={selectedNpc.attributes} />
 
                   {/* Link to NPC management page */}

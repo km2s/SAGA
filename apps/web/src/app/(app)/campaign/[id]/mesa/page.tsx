@@ -58,7 +58,7 @@ export default async function VirtualTablePage({ params }: { params: { id: strin
   const activeSession = await prisma.session.findFirst({
     where: { campaignId: params.id },
     orderBy: { startedAt: 'desc' },
-    select: { id: true, name: true, isActive: true, tokensJson: true, musicYoutubeId: true, musicVolume: true, mapImageUrl: true },
+    select: { id: true, name: true, isActive: true, tokensJson: true, musicYoutubeId: true, musicVolume: true, mapImageUrl: true, liveMembersJson: true },
   }).catch(() => null)
 
   // Roll logs apenas da sessão ativa — sessões encerradas não precisam de logs em tempo real

@@ -11,17 +11,25 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     name?: string
     value?: number
     defaultDie?: string
+    description?: string
   }
 
   if (!body.name?.trim()) return NextResponse.json({ error: 'Nome do atributo obrigatório' }, { status: 400 })
   if (body.value === undefined) return NextResponse.json({ error: 'Valor obrigatório' }, { status: 400 })
 
   // ── Try CharacterSheet path ────────────────────────────────────────────────
-  const member = await prisma.campaignMember.findFirst({
-    where: { character: { id: params.id }, user: { discordId: session.user.discordId } },
+  const ownerMember = await prisma.campaignMember.findFirst({
+    where: { character: { id: params.id } },
+    include: { user: true },
   }).catch(() => null)
 
-  if (member) {
+  if (ownerMember) {
+    const isMine = ownerMember.user.discordId === session.user.discordId
+    const isGM = isMine ? null : await prisma.campaignMember.findFirst({
+      where: { campaignId: ownerMember.campaignId, user: { discordId: session.user.discordId }, role: 'GM' },
+    }).catch(() => null)
+    if (!isMine && !isGM) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
     const sheet = await prisma.characterSheet.findUnique({
       where: { id: params.id },
       include: { member: { include: { campaign: { include: { system: true } } } } },
@@ -49,7 +57,12 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         }
       }
       systemAttr = await prisma.systemAttribute.create({
-        data: { name: body.name.trim(), defaultDie: body.defaultDie ?? 'd20', systemId: system.id },
+        data: {
+          name: body.name.trim(),
+          defaultDie: body.defaultDie ?? 'd20',
+          systemId: system.id,
+          ...(body.description && { description: body.description }),
+        },
       })
     }
 
@@ -88,8 +101,14 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         name: body.name.trim(),
         defaultDie: body.defaultDie ?? 'd20',
         systemId: npc.campaign.systemId,
+        ...(body.description && { description: body.description }),
       },
     }).catch(() => null)
+  } else if (systemAttr && body.description && !systemAttr.description) {
+    systemAttr = await prisma.systemAttribute.update({
+      where: { id: systemAttr.id },
+      data: { description: body.description },
+    }).catch(() => systemAttr!)
   }
   if (!systemAttr) return NextResponse.json({ error: 'Sistema não configurado' }, { status: 400 })
 
@@ -111,11 +130,18 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
   if (!body.charAttributeId) return NextResponse.json({ error: 'charAttributeId obrigatório' }, { status: 400 })
 
   // ── Try CharacterSheet path ────────────────────────────────────────────────
-  const member = await prisma.campaignMember.findFirst({
-    where: { character: { id: params.id }, user: { discordId: session.user.discordId } },
+  const ownerMember = await prisma.campaignMember.findFirst({
+    where: { character: { id: params.id } },
+    include: { user: true },
   }).catch(() => null)
 
-  if (member) {
+  if (ownerMember) {
+    const isMine = ownerMember.user.discordId === session.user.discordId
+    const isGM = isMine ? null : await prisma.campaignMember.findFirst({
+      where: { campaignId: ownerMember.campaignId, user: { discordId: session.user.discordId }, role: 'GM' },
+    }).catch(() => null)
+    if (!isMine && !isGM) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
     await prisma.characterAttribute.delete({
       where: { id: body.charAttributeId },
     }).catch(() => null)

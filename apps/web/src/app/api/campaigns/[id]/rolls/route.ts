@@ -34,7 +34,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     prisma.session.findFirst({
       where: { campaignId: params.id, isActive: true },
       orderBy: { startedAt: 'desc' },
-      select: { id: true, tokensJson: true, musicYoutubeId: true, musicVolume: true, mapImageUrl: true },
+      select: { id: true, tokensJson: true, musicYoutubeId: true, musicVolume: true, mapImageUrl: true, liveMembersJson: true },
     }).catch(() => null),
   ])
   if (!member) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
@@ -61,10 +61,11 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   return NextResponse.json({
     rolls,
     sessionState: {
-      tokensJson:     activeSession.tokensJson,
-      musicYoutubeId: activeSession.musicYoutubeId,
-      musicVolume:    activeSession.musicVolume,
-      mapImageUrl:    activeSession.mapImageUrl,
+      tokensJson:      activeSession.tokensJson,
+      musicYoutubeId:  activeSession.musicYoutubeId,
+      musicVolume:     activeSession.musicVolume,
+      mapImageUrl:     activeSession.mapImageUrl,
+      liveMembersJson: activeSession.liveMembersJson,
     },
   })
 }

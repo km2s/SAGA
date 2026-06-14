@@ -11,6 +11,7 @@ import {
   MousePointer, Hand, Coins, MapPin, Ruler, Cloud, Eye,
   ClipboardList, Music, Map, Play, X, Dice6, Sparkles, Skull,
   MessageSquare, Image as ImageIcon, Minus, Plus, Swords, ChevronRight, BookOpen, HelpCircle,
+  Radio, Wifi, WifiOff,
 } from 'lucide-react'
 import { safeImageUrl } from '@/lib/safe-url'
 import { MesaSpotlight } from '@/components/tutorial/MesaSpotlight'
@@ -43,8 +44,8 @@ interface CharData {
 interface Member { id: string; role: string; user: { username: string }; character: CharData | null }
 interface NpcData { id: string; name: string; type: string; race: string | null; class: string | null; level: number; hp: number; maxHp: number; imageUrl: string | null; attributes: CharAttr[] }
 interface Campaign { id: string; name: string }
-interface SessionState { tokensJson: string | null; musicYoutubeId: string | null; musicVolume: number; mapImageUrl: string | null }
-interface ActiveSession { id: string; name: string | null; isActive: boolean; tokensJson?: string | null; musicYoutubeId?: string | null; musicVolume?: number; mapImageUrl?: string | null }
+interface SessionState { tokensJson: string | null; musicYoutubeId: string | null; musicVolume: number; mapImageUrl: string | null; liveMembersJson: string | null }
+interface ActiveSession { id: string; name: string | null; isActive: boolean; tokensJson?: string | null; musicYoutubeId?: string | null; musicVolume?: number; mapImageUrl?: string | null; liveMembersJson?: string | null }
 interface VirtualTableProps {
   campaign: Campaign; activeSession: ActiveSession | null
   members: Member[]; npcs: NpcData[]; initialRolls: RollLogEntry[]
@@ -129,14 +130,24 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
   const [currentTurnIdx, setCurrentTurnIdx] = useState(0)
   const [handoutsOpen, setHandoutsOpen] = useState(false)
   const [gmCustomOpen, setGmCustomOpen] = useState(false)
+  const [liveOpen, setLiveOpen] = useState(false)
+  const [liveMembers, setLiveMembers] = useState<string[]>(() => {
+    const raw = activeSession?.liveMembersJson
+    if (!raw) return []
+    try { return JSON.parse(raw) as string[] } catch { return [] }
+  })
 
-  const canvasRef    = useRef<HTMLDivElement>(null)
-  const chatEndRef   = useRef<HTMLDivElement>(null)
-  const pinchRef     = useRef<PinchState | null>(null)
-  const sinceRef     = useRef(initialRolls[0]?.rolledAt ?? new Date(0).toISOString())
-  const mapDropRef   = useRef<HTMLDivElement>(null)
+  const canvasRef       = useRef<HTMLDivElement>(null)
+  const chatEndRef      = useRef<HTMLDivElement>(null)
+  const pinchRef        = useRef<PinchState | null>(null)
+  const sinceRef        = useRef(initialRolls[0]?.rolledAt ?? new Date(0).toISOString())
+  const tokenDragRef    = useRef<TokenDrag | null>(null)
+  const liveMembersRef  = useRef<string[]>(liveMembers)
+  const mapDropRef      = useRef<HTMLDivElement>(null)
 
   // ── Effects ──
+  useEffect(() => { tokenDragRef.current = tokenDrag }, [tokenDrag])
+  useEffect(() => { liveMembersRef.current = liveMembers }, [liveMembers])
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [rolls])
   useEffect(() => {
     const t = setInterval(() => { const c = Date.now()-3500; setMarkers(p=>p.filter(m=>m.createdAt>c)) }, 500)
@@ -155,12 +166,14 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
   }, [mapInputOpen])
   const syncTokens = useCallback((next: Token[]) => {
     if (!activeSession) return
+    // Non-GM players only sync if the GM granted them live permission
+    if (!isGM && !liveMembersRef.current.includes(currentMemberId)) return
     fetch(`/api/campaigns/${campaign.id}/sessions/state`, {
       method: 'PATCH',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ tokensJson: JSON.stringify(next) }),
     }).catch(() => {})
-  }, [activeSession, campaign.id])
+  }, [activeSession, campaign.id, isGM, currentMemberId])
 
   useEffect(() => {
     if (!activeSession?.isActive) return
@@ -178,17 +191,24 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
           return news.length ? [...news.reverse(), ...prev].slice(0, 50) : prev
         })
       }
-      // Apply session state for non-GM clients (GM is source of truth)
-      if (st && !isGM) {
+      // All clients (including GM) update from server when not actively dragging
+      if (st && !tokenDragRef.current) {
         if (st.tokensJson !== null) {
           try { setTokens(JSON.parse(st.tokensJson)) } catch {}
         }
         setMapUrl(st.mapImageUrl)
         setSessionMusic({ youtubeId: st.musicYoutubeId, volume: st.musicVolume })
       }
+      // Always sync live members list
+      if (st?.liveMembersJson !== undefined) {
+        try {
+          const live = st.liveMembersJson ? JSON.parse(st.liveMembersJson) as string[] : []
+          setLiveMembers(live)
+        } catch {}
+      }
     }, 5000)
     return () => clearInterval(iv)
-  }, [campaign.id, activeSession, isGM])
+  }, [campaign.id, activeSession])
 
   // ── Coord helpers ──
   const toWorld = useCallback((sx: number, sy: number) => {
@@ -450,6 +470,12 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
             <div className="hidden sm:flex items-center gap-2">
               <div className="pulse-dot scale-75"/>
               <span className="text-[12px] text-saga-muted">{activeSession.name?? 'Sessão ativa'}</span>
+              {!isGM && liveMembers.includes(currentMemberId) && (
+                <span className="flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded"
+                  style={{ background: 'rgba(16,185,129,0.12)', color: '#34d399', border: '1px solid rgba(16,185,129,0.25)' }}>
+                  <Wifi size={8}/> AO VIVO
+                </span>
+              )}
             </div>
           ) : (
             <span className="hidden sm:inline text-[12px] text-saga-dim">Mesa sem sessão</span>
@@ -554,6 +580,100 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
               <Music size={13}/>
               <span className="hidden sm:inline">Música</span>
             </button>
+          )}
+          {isGM && activeSession?.isActive && (
+            <div className="relative">
+              <button onClick={()=>setLiveOpen(o=>!o)}
+                title="Controle Ao Vivo"
+                className={`px-2 sm:px-3 h-7 rounded text-[11px] font-medium border transition-all flex items-center gap-1.5 ${
+                  liveOpen || liveMembers.length > 0
+                    ? 'text-emerald-400 border-emerald-400/50 bg-emerald-400/10'
+                    : 'text-saga-muted border-white/10 hover:border-emerald-400/40 hover:text-emerald-400'
+                }`}>
+                <Radio size={13}/>
+                <span className="hidden sm:inline">Ao Vivo</span>
+                {liveMembers.length > 0 && (
+                  <span className="w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center"
+                    style={{ background: '#10b981', color: '#fff' }}>
+                    {liveMembers.length}
+                  </span>
+                )}
+              </button>
+
+              {liveOpen && (
+                <div className="absolute top-full right-0 mt-1.5 z-[60] w-72 rounded-xl border border-border shadow-2xl overflow-hidden"
+                  style={{background:'rgba(15,15,28,0.98)',backdropFilter:'blur(12px)'}}>
+                  <div className="px-3 py-2.5 border-b border-white/6 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Radio size={12} className="text-emerald-400"/>
+                      <span className="font-cinzel text-[11px] font-bold text-saga-muted uppercase tracking-widest">Controle Ao Vivo</span>
+                    </div>
+                    <button onClick={()=>setLiveOpen(false)} className="text-saga-dim hover:text-saga-text"><X size={13}/></button>
+                  </div>
+                  <div className="p-3">
+                    <p className="text-[10px] text-saga-dim mb-3 leading-relaxed">
+                      Jogadores com "Ao Vivo" ativado podem mover tokens que todos verão em tempo real.
+                    </p>
+                    {members.filter(m => m.role !== 'GM').length === 0 ? (
+                      <p className="text-[11px] text-saga-dim text-center py-3">Nenhum jogador na sessão.</p>
+                    ) : (
+                      <div className="space-y-1.5">
+                        {members.filter(m => m.role !== 'GM').map(m => {
+                          const hasLive = liveMembers.includes(m.id)
+                          function toggleLive() {
+                            const next = hasLive
+                              ? liveMembers.filter(id => id !== m.id)
+                              : [...liveMembers, m.id]
+                            setLiveMembers(next)
+                            fetch(`/api/campaigns/${campaign.id}/sessions/state`, {
+                              method: 'PATCH',
+                              headers: {'Content-Type':'application/json'},
+                              body: JSON.stringify({ liveMembersJson: JSON.stringify(next) }),
+                            }).catch(() => {})
+                          }
+                          return (
+                            <div key={m.id}
+                              className="flex items-center justify-between px-3 py-2 rounded transition-all"
+                              style={{ background: hasLive ? 'rgba(16,185,129,0.08)' : 'rgba(255,255,255,0.03)', border: `1px solid ${hasLive ? 'rgba(16,185,129,0.25)' : 'rgba(255,255,255,0.07)'}` }}>
+                              <div className="flex items-center gap-2">
+                                {hasLive
+                                  ? <Wifi size={11} className="text-emerald-400 shrink-0"/>
+                                  : <WifiOff size={11} className="text-saga-dim shrink-0"/>
+                                }
+                                <div>
+                                  <p className="text-[12px] font-medium text-saga-text">{m.character?.name ?? m.user.username}</p>
+                                  {m.character?.name && (
+                                    <p className="text-[9px] text-saga-dim">{m.user.username}</p>
+                                  )}
+                                </div>
+                              </div>
+                              <button onClick={toggleLive}
+                                className={`relative w-9 h-5 rounded-full transition-all shrink-0 ${hasLive ? 'bg-emerald-500' : 'bg-white/10'}`}>
+                                <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-all ${hasLive ? 'left-4' : 'left-0.5'}`}/>
+                              </button>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                    {liveMembers.length > 0 && (
+                      <button
+                        onClick={() => {
+                          setLiveMembers([])
+                          fetch(`/api/campaigns/${campaign.id}/sessions/state`, {
+                            method: 'PATCH',
+                            headers: {'Content-Type':'application/json'},
+                            body: JSON.stringify({ liveMembersJson: '[]' }),
+                          }).catch(() => {})
+                        }}
+                        className="mt-3 w-full py-1.5 rounded text-[11px] text-saga-dim hover:text-saga-danger transition-colors border border-white/6 hover:border-saga-danger/30">
+                        Desativar todos
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           )}
           {/* Chat toggle — mobile only */}
           <button onClick={()=>setChatOpen(o=>!o)}

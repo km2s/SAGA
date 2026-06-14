@@ -41,15 +41,26 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   if (!activeSession) return NextResponse.json({ error: 'Nenhuma sessão encontrada' }, { status: 404 })
 
   const body = await req.json().catch(() => ({})) as {
-    tokensJson?:     string | null
-    musicYoutubeId?: string | null
-    musicVolume?:    number
-    mapImageUrl?:    string | null
+    tokensJson?:      string | null
+    musicYoutubeId?:  string | null
+    musicVolume?:     number
+    mapImageUrl?:     string | null
+    liveMembersJson?: string | null
   }
 
   const data: Record<string, unknown> = {}
 
   if ('tokensJson' in body) {
+    // Non-GM token sync requires live permission
+    if (!isGM) {
+      const currentLive = activeSession.liveMembersJson
+        ? (JSON.parse(activeSession.liveMembersJson) as string[])
+        : []
+      if (!currentLive.includes(member.id)) {
+        return NextResponse.json({ error: 'Sem permissão para sincronizar ao vivo' }, { status: 403 })
+      }
+    }
+
     if (body.tokensJson === null) {
       data.tokensJson = null
     } else if (typeof body.tokensJson === 'string') {
@@ -64,6 +75,19 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   }
 
   if (isGM) {
+    if ('liveMembersJson' in body) {
+      if (body.liveMembersJson === null) {
+        data.liveMembersJson = null
+      } else if (typeof body.liveMembersJson === 'string') {
+        try {
+          const parsed = JSON.parse(body.liveMembersJson) as unknown
+          if (!Array.isArray(parsed) || !parsed.every(id => typeof id === 'string')) throw new Error()
+          data.liveMembersJson = body.liveMembersJson
+        } catch {
+          return NextResponse.json({ error: 'liveMembersJson inválido' }, { status: 400 })
+        }
+      }
+    }
     if ('musicYoutubeId' in body) {
       const ytId = body.musicYoutubeId
       if (ytId !== null && ytId !== undefined) {
@@ -98,7 +122,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   const updated = await prisma.session.update({
     where: { id: activeSession.id },
     data,
-    select: { tokensJson: true, musicYoutubeId: true, musicVolume: true, mapImageUrl: true },
+    select: { tokensJson: true, musicYoutubeId: true, musicVolume: true, mapImageUrl: true, liveMembersJson: true },
   })
 
   return NextResponse.json(updated)
