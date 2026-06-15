@@ -5,7 +5,6 @@ import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/Badge'
 import { NPCHPEditor } from '@/components/gm/NPCHPEditor'
-import { NPCAttributePanel } from '@/components/gm/NPCAttributePanel'
 import { NPCInfoEditor } from '@/components/gm/NPCInfoEditor'
 import { CharacterSheetView, type SheetCategory } from '@/components/character/CharacterSheetView'
 import { safeImageUrl } from '@/lib/safe-url'
@@ -318,24 +317,6 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
             systemName={system?.name ?? null}
           />
 
-          {isGM && (
-            <div className="bg-surface border border-border rounded-lg overflow-hidden">
-              <div className="px-5 py-3 border-b border-border flex items-center gap-2">
-                <Pencil size={14} className="text-saga-muted" />
-                <h3 className="font-cinzel text-sm font-semibold">Editar Atributos (Mestre)</h3>
-              </div>
-              <div className="p-4">
-                <NPCAttributePanel
-                  campaignId={params.id}
-                  npcId={npc.id}
-                  attributes={npc.attributes.map(a => ({
-                    id: a.id, value: a.value,
-                    attribute: { name: a.attribute.name, defaultDie: a.customDie ?? a.attribute.defaultDie },
-                  }))}
-                />
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>

@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import { Swords, Sparkles, Shield, Sword, Plus, Minus, Axe, Leaf, Music, Target, Dumbbell, Moon, ScrollText, User, ClipboardList, X, FileText, ChevronRight, Skull } from 'lucide-react'
+import { useState, useCallback, useEffect } from 'react'
+import { Swords, Sparkles, Shield, Sword, Plus, Minus, Axe, Leaf, Music, Target, Dumbbell, Moon, ScrollText, User, ClipboardList, X, FileText, ChevronRight, Skull, ArrowLeft, StickyNote, Loader2 } from 'lucide-react'
+import { CharacterSheetView, type SheetCategory } from '@/components/character/CharacterSheetView'
 
 interface CharAttr {
   id: string
@@ -40,6 +41,19 @@ interface MesaMember {
   character: CharData | null
 }
 
+interface FullCharData {
+  level: number
+  systemName: string | null
+  canEdit: boolean
+  attributes: {
+    id: string; value: number; customDie: string | null
+    attribute: { name: string; defaultDie: string; description?: string | null }
+  }[]
+  textFields: { id: string; key: string; label: string; value: string; order: number }[]
+  weapons: { id: string; name: string; attackBonus: string | null; damage: string | null; damageType: string | null; range: string | null; properties: string | null; order: number }[]
+  spellSlots: { id: string; level: number; total: number; used: number }[]
+}
+
 interface Props {
   onClose: () => void
   members: MesaMember[]
@@ -72,6 +86,46 @@ const CORE_NAMES = new Set(['Força', 'Destreza', 'Constituição', 'Inteligênc
 const ATTR_ABBREV: Record<string, string> = {
   'Força': 'FOR', 'Destreza': 'DES', 'Constituição': 'CON',
   'Inteligência': 'INT', 'Sabedoria': 'SAB', 'Carisma': 'CAR',
+}
+
+const SYSTEM_CATEGORIES: Record<string, SheetCategory> = {
+  'D&D 5e': 'fantasy', 'D&D 3.5e': 'fantasy', 'Pathfinder 2e': 'fantasy',
+  'Pathfinder 1e': 'fantasy', 'Tormenta20': 'fantasy', 'Old Dragon 2': 'fantasy',
+  'Dungeon World': 'fantasy', '13th Age': 'fantasy',
+  'Vampire: The Masquerade V5': 'world-of-darkness',
+  'Vampire: The Masquerade V20': 'world-of-darkness',
+  'Vampire: The Masquerade': 'world-of-darkness',
+  'Werewolf: The Apocalypse': 'world-of-darkness',
+  'Mage: The Ascension': 'world-of-darkness',
+  'Mage: The Awakening': 'world-of-darkness',
+  'Hunter: The Reckoning': 'world-of-darkness',
+  'Changeling: The Lost': 'world-of-darkness',
+  'Demon: The Descent': 'world-of-darkness',
+  'Geist: The Sin-Eaters': 'world-of-darkness',
+  'Call of Cthulhu 7e': 'horror', 'Delta Green': 'horror', 'Mothership': 'horror',
+  'Cyberpunk Red': 'scifi', 'Starfinder': 'scifi', 'Shadowrun 6e': 'scifi',
+  'Star Wars: Edge of the Empire': 'scifi',
+  'GURPS 4e': 'generic', 'Fate Core': 'generic', 'Savage Worlds': 'generic',
+  'Blades in the Dark': 'generic', 'Ironsworn': 'generic',
+  'Personalizado': 'custom',
+}
+
+function detectCategory(name: string | null | undefined): SheetCategory {
+  if (!name) return 'custom'
+  const exact = SYSTEM_CATEGORIES[name]
+  if (exact) return exact
+  const n = name.toLowerCase()
+  if (n.includes('vampire') || n.includes('werewolf') || n.includes('mage') ||
+      n.includes('hunter') || n.includes('changeling') || n.includes('demon') ||
+      n.includes('geist') || n.includes('masquerade') || n.includes('darkness'))
+    return 'world-of-darkness'
+  if (n.includes('cthulhu') || n.includes('horror') || n.includes('mothership') || n.includes('delta green'))
+    return 'horror'
+  if (n.includes('cyberpunk') || n.includes('starfinder') || n.includes('shadowrun') || n.includes('star wars'))
+    return 'scifi'
+  if (n.includes('d&d') || n.includes('pathfinder') || n.includes('tormenta') || n.includes('dungeon'))
+    return 'fantasy'
+  return 'custom'
 }
 
 function dndMod(v: number) {
@@ -208,6 +262,64 @@ function AttributesBlock({ attributes }: { attributes: CharAttr[] }) {
   )
 }
 
+function NotesBlock({ charId, canEdit }: { charId: string; canEdit: boolean }) {
+  const [notes, setNotes] = useState('')
+  const [loaded, setLoaded] = useState(false)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    fetch(`/api/characters/${charId}/full`)
+      .then(r => r.ok ? r.json() : null)
+      .then((data: { textFields?: { key: string; value: string }[] } | null) => {
+        if (cancelled || !data) return
+        const note = data.textFields?.find((f: { key: string; value: string }) => f.key === 'mesa_notes')
+        setNotes(note?.value ?? '')
+        setLoaded(true)
+      })
+      .catch(() => { if (!cancelled) setLoaded(true) })
+    return () => { cancelled = true }
+  }, [charId])
+
+  async function saveNotes() {
+    if (!canEdit) return
+    setSaving(true)
+    await fetch(`/api/characters/${charId}/text-fields`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: 'mesa_notes', label: 'Notas da Sessão', value: notes, order: 99 }),
+    }).catch(() => null)
+    setSaving(false)
+  }
+
+  return (
+    <div className="rounded-lg p-3" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-1.5">
+          <StickyNote size={11} className="text-saga-dim" />
+          <span className="text-[10px] font-bold text-saga-dim uppercase tracking-widest">Notas da Sessão</span>
+        </div>
+        {saving && <span className="text-[9px] text-saga-dim opacity-50">Salvando...</span>}
+      </div>
+      {canEdit ? (
+        <textarea
+          value={notes}
+          onChange={e => setNotes(e.target.value)}
+          onBlur={() => void saveNotes()}
+          placeholder={loaded ? 'Anotações rápidas da sessão...' : 'Carregando...'}
+          disabled={!loaded}
+          rows={4}
+          className="w-full bg-transparent text-[12px] text-saga-text placeholder:text-saga-dim/50 focus:outline-none resize-none leading-relaxed"
+        />
+      ) : (
+        <p className="text-[12px] text-saga-muted leading-relaxed whitespace-pre-wrap min-h-[40px]">
+          {notes || <span className="italic text-saga-dim/50">Sem notas.</span>}
+        </p>
+      )}
+    </div>
+  )
+}
+
 type Selection =
   | { kind: 'member'; id: string }
   | { kind: 'npc';    id: string }
@@ -224,6 +336,11 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
     return { kind: 'member', id: '' }
   })
 
+  const [viewMode, setViewMode] = useState<'summary' | 'full'>('summary')
+  const [fullData, setFullData] = useState<FullCharData | null>(null)
+  const [loadingFull, setLoadingFull] = useState(false)
+  const [fullDataKey, setFullDataKey] = useState(0) // forces re-render on refresh
+
   const selectedMember = selection.kind === 'member' ? members.find(m => m.id === selection.id) : null
   const selectedNpc    = selection.kind === 'npc'    ? npcs.find(n => n.id === selection.id)   : null
 
@@ -231,6 +348,32 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
   const ClassIcon = CLASS_ICONS[char?.class ?? ''] ?? User
 
   const showPicker = isGM && (membersWithChar.length + npcs.length) > 1
+
+  async function openFullSheet(charId: string) {
+    setLoadingFull(true)
+    setViewMode('full')
+    const res = await fetch(`/api/characters/${charId}/full`).catch(() => null)
+    const data = res?.ok ? (await res.json() as FullCharData) : null
+    setFullData(data)
+    setLoadingFull(false)
+  }
+
+  const refreshFull = useCallback(async () => {
+    if (!char) return
+    const res = await fetch(`/api/characters/${char.id}/full`).catch(() => null)
+    const data = res?.ok ? (await res.json() as FullCharData) : null
+    setFullData(data)
+    setFullDataKey(k => k + 1)
+  }, [char])
+
+  function switchSelection(sel: Selection) {
+    setSelection(sel)
+    setViewMode('summary')
+    setFullData(null)
+  }
+
+  const isFullMode = viewMode === 'full'
+  const panelWidth = isFullMode ? 740 : 370
 
   return (
     <>
@@ -241,9 +384,9 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
         onMouseUp={e => e.stopPropagation()} />
 
       {/* Panel */}
-      <div className="absolute left-0 inset-y-0 z-50 flex flex-col overflow-hidden"
+      <div className="absolute left-0 inset-y-0 z-50 flex flex-col overflow-hidden transition-all duration-300"
         style={{
-          width: 370,
+          width: panelWidth,
           background: 'rgba(8,8,18,0.98)',
           borderRight: '1px solid rgba(255,255,255,0.09)',
           backdropFilter: 'blur(20px)',
@@ -256,9 +399,15 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
         {/* Header */}
         <div className="px-4 py-3 border-b border-white/6 shrink-0 flex items-center justify-between">
           <div className="flex items-center gap-2">
+            {isFullMode && (
+              <button onClick={() => { setViewMode('summary'); setFullData(null) }}
+                className="w-6 h-6 flex items-center justify-center rounded text-saga-dim hover:text-saga-text hover:bg-white/8 transition-all mr-1">
+                <ArrowLeft size={13} />
+              </button>
+            )}
             <ClipboardList size={14} className="text-saga-dim" />
             <span className="font-cinzel text-[11px] font-bold text-saga-muted uppercase tracking-widest">
-              Fichas de Personagem
+              {isFullMode ? 'Ficha Completa' : 'Fichas de Personagem'}
             </span>
           </div>
           <button onClick={onClose}
@@ -267,10 +416,9 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
           </button>
         </div>
 
-        {/* Picker — jogadores + NPCs */}
-        {showPicker && (
+        {/* Picker — jogadores + NPCs (hidden in full mode) */}
+        {!isFullMode && showPicker && (
           <div className="px-3 pt-2.5 pb-2 border-b border-white/6 shrink-0 space-y-3 max-h-52 overflow-y-auto">
-            {/* Jogadores */}
             {membersWithChar.length > 0 && (
               <div>
                 <p className="text-[9px] font-bold text-saga-dim uppercase tracking-widest mb-1.5">Jogadores</p>
@@ -280,7 +428,7 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
                     const isMine = m.id === currentMemberId
                     const initial = (m.character?.name ?? m.user.username)[0]?.toUpperCase() ?? '?'
                     return (
-                      <button key={m.id} onClick={() => setSelection({ kind: 'member', id: m.id })}
+                      <button key={m.id} onClick={() => switchSelection({ kind: 'member', id: m.id })}
                         title={m.character?.name ?? m.user.username}
                         className="flex items-center gap-1.5 px-2.5 py-1.5 rounded transition-all"
                         style={{
@@ -302,7 +450,6 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
               </div>
             )}
 
-            {/* NPCs (GM only) */}
             {isGM && npcs.length > 0 && (
               <div>
                 <p className="text-[9px] font-bold text-saga-dim uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
@@ -314,7 +461,7 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
                     const color  = NPC_TYPE_COLOR[n.type] ?? '#c9a22a'
                     const initial = n.name[0]?.toUpperCase() ?? '?'
                     return (
-                      <button key={n.id} onClick={() => setSelection({ kind: 'npc', id: n.id })}
+                      <button key={n.id} onClick={() => switchSelection({ kind: 'npc', id: n.id })}
                         title={n.name}
                         className="flex items-center gap-1.5 px-2.5 py-1.5 rounded transition-all"
                         style={{
@@ -325,7 +472,7 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
                           style={{ background: isSel ? color : 'rgba(255,255,255,0.15)' }}>
                           {initial}
                         </div>
-                        <span className={`text-[10px] font-medium max-w-[90px] truncate`}
+                        <span className="text-[10px] font-medium max-w-[90px] truncate"
                           style={{ color: isSel ? color : '#7878a0' }}>
                           {n.name}
                         </span>
@@ -341,8 +488,36 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
         {/* Body */}
         <div className="flex-1 overflow-y-auto">
 
-          {/* ── Character view ── */}
-          {selection.kind === 'member' && (
+          {/* ── Character — FULL SHEET mode ── */}
+          {selection.kind === 'member' && isFullMode && (
+            !char ? null : (
+              loadingFull || !fullData ? (
+                <div className="flex flex-col items-center justify-center h-48 gap-3">
+                  <Loader2 size={24} className="text-saga-dim animate-spin" />
+                  <p className="text-[12px] text-saga-dim">Carregando ficha...</p>
+                </div>
+              ) : (
+                <div className="p-4">
+                  <CharacterSheetView
+                    key={fullDataKey}
+                    characterId={char.id}
+                    characterLevel={fullData.level}
+                    attributes={fullData.attributes}
+                    textFields={fullData.textFields}
+                    weapons={fullData.weapons}
+                    spellSlots={fullData.spellSlots}
+                    canEdit={fullData.canEdit}
+                    category={detectCategory(fullData.systemName)}
+                    systemName={fullData.systemName}
+                    onRefresh={refreshFull}
+                  />
+                </div>
+              )
+            )
+          )}
+
+          {/* ── Character — SUMMARY mode ── */}
+          {selection.kind === 'member' && !isFullMode && (
             !char ? (
               <div className="flex flex-col items-center justify-center h-48 gap-3">
                 <ClipboardList size={40} className="opacity-20 text-saga-muted" />
@@ -389,16 +564,24 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
                     }).catch(() => {})
                   }}
                 />
+
+                <NotesBlock
+                  key={`notes-${char.id}`}
+                  charId={char.id}
+                  canEdit={isGM || selectedMember?.id === currentMemberId}
+                />
+
                 <AttributesBlock attributes={char.attributes} />
 
-                {/* Link to full sheet */}
-                <a href={`/characters/${selectedMember?.id}`} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full py-2.5 rounded text-[11px] font-medium text-saga-muted hover:text-gold transition-colors mt-1"
-                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                {/* Full sheet button */}
+                <button
+                  onClick={() => void openFullSheet(char.id)}
+                  className="flex items-center justify-center gap-2 w-full py-2.5 rounded text-[11px] font-medium transition-colors"
+                  style={{ background: 'rgba(201,162,42,0.08)', border: '1px solid rgba(201,162,42,0.25)', color: '#c9a22a' }}>
                   <FileText size={12} />
-                  <span>Ver e editar ficha completa</span>
+                  <span>Editar Ficha Completa</span>
                   <ChevronRight size={11} />
-                </a>
+                </button>
               </div>
             )
           )}
@@ -415,7 +598,6 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
               const typeLabel = NPC_TYPE_LABEL[selectedNpc.type] ?? selectedNpc.type
               return (
                 <div className="p-4 space-y-4">
-                  {/* Identity */}
                   <div className="flex items-start gap-4">
                     <div className="w-16 h-16 rounded-xl flex items-center justify-center text-white/40 shrink-0"
                       style={{ background: 'linear-gradient(135deg, #1a0520, #3d1060)', border: `1px solid ${typeColor}35`, boxShadow: `0 4px 16px ${typeColor}20` }}>
@@ -455,7 +637,6 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
                   />
                   <AttributesBlock attributes={selectedNpc.attributes} />
 
-                  {/* Link to NPC management page */}
                   <a href={`/campaign/${campaignId}/npcs`} target="_blank" rel="noopener noreferrer"
                     className="flex items-center justify-center gap-2 w-full py-2.5 rounded text-[11px] font-medium text-saga-muted hover:text-gold transition-colors mt-1"
                     style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>

@@ -31,7 +31,7 @@ import { Pathfinder2eSheet } from './sheets/Pathfinder2eSheet'
 import { Tormenta20Sheet } from './sheets/Tormenta20Sheet'
 import { DungeonWorldSheet } from './sheets/DungeonWorldSheet'
 import { Age13Sheet } from './sheets/Age13Sheet'
-import { X, Plus, Shield, Sword, Wand2, BookOpen, User, ChevronDown, ChevronUp } from 'lucide-react'
+import { X, Plus, Minus, Shield, Sword, Wand2, BookOpen, User, ChevronDown, ChevronUp } from 'lucide-react'
 
 export type SheetCategory = 'fantasy' | 'world-of-darkness' | 'horror' | 'scifi' | 'generic' | 'custom'
 
@@ -81,6 +81,7 @@ interface Props {
   canEditWeapons?: boolean
   category: SheetCategory
   systemName: string | null
+  onRefresh?: () => void
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -152,7 +153,10 @@ function groupDnD5e(attrs: Attr[]) {
     if (!byAttr[key]) byAttr[key] = []
     byAttr[key]!.push(s)
   }
-  return { core, saves, skills, byAttr, combat, extras }
+  // Avoid showing in "Outros" any attribute whose name already appears in saves or core
+  const alreadyNamed = new Set([...core, ...saves].map(a => a.attribute.name))
+  const filteredExtras = extras.filter(a => !alreadyNamed.has(a.attribute.name))
+  return { core, saves, skills, byAttr, combat, extras: filteredExtras }
 }
 
 function groupCoC(attrs: Attr[]) {
@@ -221,8 +225,8 @@ function EditableVal({ attrId, value, characterId, onSaved, className }: {
   const [val, setVal] = useState(String(value))
   const [saving, setSaving] = useState(false)
 
-  async function save() {
-    const n = parseInt(val)
+  async function save(override?: number) {
+    const n = override !== undefined ? override : parseInt(val)
     if (isNaN(n) || n === value) { setEditing(false); return }
     setSaving(true)
     await fetch(`/api/characters/${characterId}/attributes/${attrId}`, {
@@ -237,14 +241,35 @@ function EditableVal({ attrId, value, characterId, onSaved, className }: {
 
   if (editing) {
     return (
-      <input
-        autoFocus type="number" value={val}
-        onChange={e => setVal(e.target.value)}
-        onBlur={save}
-        onKeyDown={e => { if (e.key === 'Enter') void save(); if (e.key === 'Escape') setEditing(false) }}
-        className={`bg-surface-2 border border-gold/40 rounded text-center font-bold focus:outline-none text-saga-text ${className ?? 'w-12 text-base'}`}
-        style={{ MozAppearance: 'textfield' }}
-      />
+      <div className="flex items-center gap-0.5">
+        <button type="button"
+          onMouseDown={e => e.preventDefault()}
+          onClick={() => void save((parseInt(val) || value) - 1)}
+          className="w-5 h-5 flex items-center justify-center rounded text-saga-dim hover:text-red-400 hover:bg-red-400/10 transition-all">
+          <Minus size={9} />
+        </button>
+        <input
+          autoFocus
+          type="text"
+          inputMode="numeric"
+          value={val}
+          onChange={e => setVal(e.target.value)}
+          onBlur={() => void save()}
+          onKeyDown={e => {
+            if (e.key === 'Enter') void save()
+            if (e.key === 'Escape') setEditing(false)
+            if (e.key === 'ArrowUp') { e.preventDefault(); setVal(v => String((parseInt(v) || value) + 1)) }
+            if (e.key === 'ArrowDown') { e.preventDefault(); setVal(v => String((parseInt(v) || value) - 1)) }
+          }}
+          className="w-10 text-center font-bold bg-surface-2 border border-gold/40 rounded focus:outline-none text-saga-text text-sm py-0.5"
+        />
+        <button type="button"
+          onMouseDown={e => e.preventDefault()}
+          onClick={() => void save((parseInt(val) || value) + 1)}
+          className="w-5 h-5 flex items-center justify-center rounded text-saga-dim hover:text-green-400 hover:bg-green-400/10 transition-all">
+          <Plus size={9} />
+        </button>
+      </div>
     )
   }
   return (
@@ -636,6 +661,57 @@ function SpellCard({ spell, canEdit, onRemove }: { spell: SpellEntry; canEdit: b
 
 const BLANK_DRAFT: SpellEntry = { name: '', cost: '', desc: '' }
 
+function CostPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false)
+  const isPreset = SPELL_COST_OPTIONS.includes(value)
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-2.5 py-1.5 rounded text-[12px] bg-surface-2 border border-border hover:border-gold/40 focus:outline-none focus:border-gold/60 transition-colors text-left"
+      >
+        <span className={value ? 'text-saga-text' : 'text-saga-dim/60'}>{value || '1 ação...'}</span>
+        <ChevronDown size={11} className="text-saga-dim shrink-0 ml-1" />
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-[65]" onClick={() => setOpen(false)} />
+          <div
+            className="absolute top-full left-0 right-0 mt-1 z-[70] rounded-lg border border-white/10 shadow-2xl overflow-hidden"
+            style={{ background: 'rgba(10,10,20,0.97)', backdropFilter: 'blur(16px)' }}
+          >
+            {SPELL_COST_OPTIONS.map(opt => (
+              <button
+                key={opt}
+                type="button"
+                onClick={() => { onChange(opt); setOpen(false) }}
+                className={`w-full text-left px-3 py-2 text-[12px] transition-colors ${
+                  value === opt
+                    ? 'text-gold bg-gold/10'
+                    : 'text-saga-muted hover:bg-white/5 hover:text-saga-text'
+                }`}
+              >
+                {opt}
+              </button>
+            ))}
+            <div className="border-t border-white/6 p-2">
+              <input
+                value={isPreset ? '' : value}
+                onChange={e => onChange(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') setOpen(false) }}
+                onClick={e => e.stopPropagation()}
+                placeholder="Outro custo..."
+                className="w-full bg-white/5 rounded px-2.5 py-1 text-[11px] text-saga-text placeholder:text-saga-dim/60 focus:outline-none border border-white/8 focus:border-gold/40 transition-colors"
+              />
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 function SpellListSection({ textFields, spellSlots, characterId, canEdit, onRefresh }: {
   textFields: TextField[]; spellSlots: SpellSlot[]; characterId: string; canEdit: boolean; onRefresh: () => void
 }) {
@@ -729,20 +805,12 @@ function SpellListSection({ textFields, spellSlots, characterId, canEdit, onRefr
                     placeholder={lvl === 0 ? 'Nome do truque...' : 'Nome da magia...'}
                     autoFocus
                     className="w-full bg-surface-2 border border-border rounded px-2.5 py-1.5 text-[13px] focus:outline-none focus:border-gold/60 transition-colors" />
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="text-[9px] text-saga-dim uppercase tracking-widest block mb-1">Custo</label>
-                      <input
-                        list={`cost-options-${lvl}`}
-                        value={draft.cost ?? ''}
-                        onChange={e => setDraftField(lvl, 'cost', e.target.value)}
-                        placeholder="1 ação..."
-                        className="w-full bg-surface-2 border border-border rounded px-2.5 py-1.5 text-[12px] focus:outline-none focus:border-gold/60 transition-colors" />
-                      <datalist id={`cost-options-${lvl}`}>
-                        {SPELL_COST_OPTIONS.map(o => <option key={o} value={o} />)}
-                      </datalist>
-                    </div>
-                    <div />
+                  <div>
+                    <label className="text-[9px] text-saga-dim uppercase tracking-widest block mb-1">Custo</label>
+                    <CostPicker
+                      value={draft.cost ?? ''}
+                      onChange={v => setDraftField(lvl, 'cost', v)}
+                    />
                   </div>
                   <div>
                     <label className="text-[9px] text-saga-dim uppercase tracking-widest block mb-1">Descrição</label>
@@ -1537,7 +1605,7 @@ function GenericTab({ attrs, weapons, characterId, canEdit, onAdd, onDelete, onR
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export function CharacterSheetView({ characterId, characterLevel, attributes, textFields, weapons, spellSlots, canEdit, canEditWeapons = canEdit, category, systemName }: Props) {
+export function CharacterSheetView({ characterId, characterLevel, attributes, textFields, weapons, spellSlots, canEdit, canEditWeapons = canEdit, category, systemName, onRefresh }: Props) {
   const router = useRouter()
 
   // ── System-specific sheets (early return) ──
@@ -1678,7 +1746,7 @@ export function CharacterSheetView({ characterId, characterLevel, attributes, te
   const currentTab  = tabs.find(t => t.id === activeTab) ? activeTab : (tabs[0]?.id ?? 'atributos')
   const targetAttr  = attributes.find(a => a.id === deleteTarget)
 
-  function refresh() { router.refresh() }
+  function refresh() { onRefresh ? onRefresh() : router.refresh() }
 
   async function handleDelete(id: string) {
     setDeleteTarget(null)
@@ -1687,7 +1755,7 @@ export function CharacterSheetView({ characterId, characterLevel, attributes, te
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ charAttributeId: id }),
     }).catch(() => null)
-    router.refresh()
+    refresh()
   }
 
   // Filter text fields — exclude internal death save keys
