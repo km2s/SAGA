@@ -110,43 +110,48 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
     npc.visibilities.some(v => v.memberId === member.id && v.canView)
   if (!canView) notFound()
 
-  // Auto-seed attributes for NPCs created before the seeding fix
-  if (npc.attributes.length === 0 && npc.campaign.system?.attributes?.length) {
-    function attrDefault(description: string | null): number {
-      const d = description?.trim() ?? ''
-      if (d.startsWith('Talento') || d.startsWith('Perícia') || d.startsWith('Conhecimento') ||
-          d.startsWith('Habilidade') || d.startsWith('Disciplina') || d.startsWith('Antecedente')) return 0
-      if (d.startsWith('Virtude')) return 1
-      return 1
-    }
-    await prisma.nPCAttribute.createMany({
-      data: npc.campaign.system.attributes.map(a => ({
-        npcId: npc!.id,
-        attributeId: a.id,
-        value: attrDefault(a.description ?? null),
-      })),
-      skipDuplicates: true,
-    }).catch(() => null)
-    // Re-fetch with the newly seeded attributes
-    npc = await prisma.nPC.findFirst({
-      where: { id: params.npcId, campaignId: params.id },
-      include: {
-        campaign: {
-          include: {
-            system: { include: { attributes: true } },
-            members: { include: { user: true } },
+  // Seed any system attributes that this NPC is missing (handles new attrs added after NPC creation)
+  const systemAttrs = npc.campaign.system?.attributes ?? []
+  if (systemAttrs.length > 0) {
+    const existingAttrIds = new Set(npc.attributes.map(a => a.attributeId))
+    const missingAttrs = systemAttrs.filter(a => !existingAttrIds.has(a.id))
+    if (missingAttrs.length > 0) {
+      function attrDefault(description: string | null): number {
+        const d = description?.trim() ?? ''
+        if (d.startsWith('Talento') || d.startsWith('Perícia') || d.startsWith('Conhecimento') ||
+            d.startsWith('Habilidade') || d.startsWith('Disciplina') || d.startsWith('Antecedente')) return 0
+        if (d.startsWith('Virtude')) return 1
+        return 1
+      }
+      await prisma.nPCAttribute.createMany({
+        data: missingAttrs.map(a => ({
+          npcId: npc!.id,
+          attributeId: a.id,
+          value: attrDefault(a.description ?? null),
+        })),
+        skipDuplicates: true,
+      }).catch(() => null)
+      // Re-fetch with the newly seeded attributes
+      npc = await prisma.nPC.findFirst({
+        where: { id: params.npcId, campaignId: params.id },
+        include: {
+          campaign: {
+            include: {
+              system: { include: { attributes: true } },
+              members: { include: { user: true } },
+            },
           },
+          attributes: {
+            include: { attribute: true },
+            orderBy: { attribute: { name: 'asc' } },
+          },
+          textFields: { orderBy: { order: 'asc' } },
+          linkedMember: { include: { user: true } },
+          visibilities: true,
         },
-        attributes: {
-          include: { attribute: true },
-          orderBy: { attribute: { name: 'asc' } },
-        },
-        textFields: { orderBy: { order: 'asc' } },
-        linkedMember: { include: { user: true } },
-        visibilities: true,
-      },
-    }).catch(() => null)
-    if (!npc) notFound()
+      }).catch(() => null)
+      if (!npc) notFound()
+    }
   }
 
   const players = npc.campaign.members.filter(m => m.role === 'PLAYER')

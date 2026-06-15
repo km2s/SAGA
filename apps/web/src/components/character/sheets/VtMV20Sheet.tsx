@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { X } from 'lucide-react'
 
 interface Attr { id: string; value: number; customDie: string | null; attribute: { name: string; defaultDie: string; description?: string | null } }
 interface TextField { id: string; key: string; label: string; value: string; order: number }
@@ -281,7 +282,18 @@ const GEN_TABLE: Record<number, [number, number, number]> = {
 export function VtMV20Sheet({ characterId, attributes, textFields, canEdit }: Props) {
   const router = useRouter()
   const [tab, setTab] = useState<'atributos' | 'habilidades' | 'vantagens' | 'recursos' | 'personagem'>('atributos')
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
   const onRefresh = () => router.refresh()
+
+  async function deleteAttr(id: string) {
+    setDeleteTarget(null)
+    await fetch(`/api/characters/${characterId}/attributes`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ charAttributeId: id }),
+    }).catch(() => null)
+    onRefresh()
+  }
 
   const { physical, social, mental, talents, skills, knowledges, virtues, other } = categorize(attributes)
 
@@ -519,14 +531,129 @@ export function VtMV20Sheet({ characterId, attributes, textFields, canEdit }: Pr
             )}
           </div>
 
-          {/* Virtudes */}
-          <div className={card} style={cardStyle}>
-            <SectionDivider title="Virtudes" />
-            {virtues.length === 0
-              ? <p className="text-[11px] text-saga-dim italic">Nenhuma virtude encontrada</p>
-              : virtues.map(a => <AttrRow key={a.id} a={a} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />)
-            }
-          </div>
+          {/* Virtudes — lógica automática baseada em Humanidade/Via */}
+          {(() => {
+            // Detectar se o vampiro segue Humanidade ou uma Via de Iluminação
+            // Regras V20 p.312-315:
+            // - Humanidade → Consciência + Autocontrole + Coragem
+            // - Via de Iluminação → substitui Consciência por Convicção e/ou Autocontrole por Instinto
+            // - Requisito para mudar de Via: Humanidade ≤ 3 (V20 p.315)
+            // - Geração não determina Convicção por si só; é a Via que troca as virtudes
+            const moralityTF = textFields.find(f => f.key === 'humanity')
+            const moralityVal = moralityTF?.value?.trim() ?? ''
+            // Se o campo contém um número ≤ 3 ou o nome de uma Via (não é "Humanidade" nem vazio)
+            const isOnPath = moralityVal !== '' &&
+              moralityVal.toLowerCase() !== 'humanidade' &&
+              (isNaN(Number(moralityVal)) || Number(moralityVal) <= 3)
+            const isNumericLow = !isNaN(Number(moralityVal)) && Number(moralityVal) <= 3 && moralityVal !== ''
+            const isNamedPath = moralityVal !== '' && isNaN(Number(moralityVal)) && moralityVal.toLowerCase() !== 'humanidade'
+
+            // Detectar qual combinação de virtudes a Via usa
+            // Via nomeada → verificar se tem "Convicção" ou "Instinto" nos text-fields de preferência da Via
+            const pathVirtueOverrideTF = textFields.find(f => f.key === 'path_virtue_override')
+            const override = pathVirtueOverrideTF?.value ?? 'none' // 'none' | 'conviction' | 'instinct' | 'both'
+
+            const useConviction = isNamedPath && (override === 'conviction' || override === 'both')
+            const useInstinct   = isNamedPath && (override === 'instinct'   || override === 'both')
+
+            const conscienceAttr = virtues.find(a => a.attribute.name.toLowerCase().includes('consciência') || a.attribute.name.toLowerCase().includes('conscience'))
+            const selfCtrlAttr   = virtues.find(a => a.attribute.name.toLowerCase().includes('autocontrole') || a.attribute.name.toLowerCase().includes('self-control'))
+            const courageAttr    = virtues.find(a => a.attribute.name.toLowerCase().includes('coragem') || a.attribute.name.toLowerCase().includes('courage'))
+
+            const virtueRows = [
+              { label: useConviction ? 'Convicção' : 'Consciência',    attr: conscienceAttr,
+                tooltip: useConviction
+                  ? 'Convicção — capacidade de justificar ações segundo o código da Via (substitui Consciência)'
+                  : 'Consciência — arrependimento moral; governa o risco de perder Humanidade' },
+              { label: useInstinct ? 'Instinto' : 'Autocontrole',       attr: selfCtrlAttr,
+                tooltip: useInstinct
+                  ? 'Instinto — abraçar a Besta para resistir ao frenesi (substitui Autocontrole)'
+                  : 'Autocontrole — resistir ao frenesi quando provocado; rolar para evitar ceder à Besta' },
+              { label: 'Coragem',                                         attr: courageAttr,
+                tooltip: 'Coragem — enfrentar Rötschreck (medo de fogo/luz solar) e situações aterrorizantes' },
+            ]
+
+            return (
+              <div className="rounded-xl p-4 space-y-3" style={cardStyle}>
+                <SectionDivider title="Virtudes" />
+
+                {/* Banner de estado moral */}
+                {isNamedPath ? (
+                  <div className="rounded px-3 py-2 text-[10px]" style={{ background: 'rgba(120,20,20,0.25)', border: '1px solid rgba(220,38,38,0.3)' }}>
+                    <span className="font-bold text-red-300">Via de Iluminação: </span>
+                    <span className="text-saga-dim">{moralityVal}</span>
+                    <span className="text-red-400/60 ml-2">— virtudes podem diferir da Humanidade</span>
+                  </div>
+                ) : isNumericLow ? (
+                  <div className="rounded px-3 py-2 text-[10px]" style={{ background: 'rgba(120,80,0,0.2)', border: '1px solid rgba(200,130,0,0.3)' }}>
+                    <span className="font-bold text-amber-400">Humanidade {moralityVal} </span>
+                    <span className="text-saga-dim">— nível crítico; elegível para adotar uma Via de Iluminação (V20 p.315)</span>
+                  </div>
+                ) : (
+                  <div className="rounded px-3 py-2 text-[10px]" style={{ background: 'rgba(20,40,20,0.3)', border: '1px solid rgba(60,120,60,0.25)' }}>
+                    <span className="font-bold text-green-400">Humanidade </span>
+                    <span className="text-saga-dim">— virtudes padrão: Consciência · Autocontrole · Coragem</span>
+                  </div>
+                )}
+
+                {/* Seletor de virtudes alternativas (só aparece em Via nomeada) */}
+                {isNamedPath && canEdit && (
+                  <div className="space-y-1">
+                    <p className="text-[9px] text-saga-dim uppercase tracking-wider">Virtudes alternativas desta Via</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {[
+                        { val: 'none',       label: 'Consciência + Autocontrole' },
+                        { val: 'conviction', label: 'Convicção + Autocontrole' },
+                        { val: 'instinct',   label: 'Consciência + Instinto' },
+                        { val: 'both',       label: 'Convicção + Instinto' },
+                      ].map(opt => (
+                        <button key={opt.val} type="button"
+                          onClick={async () => {
+                            await fetch(`/api/characters/${characterId}/text-fields`, {
+                              method: 'POST', headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ key: 'path_virtue_override', label: 'Virtudes da Via', value: opt.val }),
+                            }).catch(() => null)
+                            onRefresh()
+                          }}
+                          className="px-2 py-0.5 rounded text-[10px] font-bold transition-all"
+                          style={{
+                            background: override === opt.val ? 'rgba(220,38,38,0.2)' : 'rgba(255,255,255,0.04)',
+                            border: `1px solid ${override === opt.val ? 'rgba(220,38,38,0.5)' : 'rgba(255,255,255,0.08)'}`,
+                            color: override === opt.val ? '#fca5a5' : '#7878a0',
+                          }}>
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Linhas de virtude */}
+                <div className="space-y-0">
+                  {virtueRows.map(({ label, attr, tooltip }) => (
+                    <div key={label} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0" title={tooltip}>
+                      <div>
+                        <span className="text-sm text-saga-muted">{label}</span>
+                        <span className="text-[9px] text-saga-dim/60 ml-1.5">{tooltip.split('—')[1]?.trim().slice(0, 45)}…</span>
+                      </div>
+                      {attr
+                        ? <Dots value={attr.value} max={5} editable={canEdit} attrId={attr.id} characterId={characterId} onSaved={onRefresh} />
+                        : <span className="text-[10px] text-saga-dim italic">não encontrada</span>
+                      }
+                    </div>
+                  ))}
+                </div>
+
+                {/* Nota de regra */}
+                <p className="text-[9px] text-saga-dim/50 italic">
+                  {isNamedPath
+                    ? 'V20 p.312–315: Vias substituem virtudes. Convicção ↔ Consciência; Instinto ↔ Autocontrole.'
+                    : 'V20 p.289: Consciência + Autocontrole = Humanidade inicial. Coragem = Força de Vontade inicial.'
+                  }
+                </p>
+              </div>
+            )
+          })()}
 
           {/* Outros (Força de Vontade, Humanidade, Sangue — atributos numéricos) */}
           {other.filter(a => !a.attribute.name.toLowerCase().includes('geração') && !a.attribute.name.toLowerCase().includes('generation')).length > 0 && (
