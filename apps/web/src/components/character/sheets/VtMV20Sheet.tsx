@@ -9,19 +9,69 @@ interface Props { characterId: string; attributes: Attr[]; textFields: TextField
 const ACCENT = '#7c1818'
 const RED = '#dc2626'
 
-function SectionDivider({ title }: { title: string }) {
-  return (
-    <div className="flex items-center gap-3 mb-4">
-      <p className="font-almendra text-[9px] font-bold text-saga-dim uppercase tracking-[0.2em] whitespace-nowrap">{title}</p>
-      <div className="flex-1 h-px" style={{ background: 'rgba(201,162,42,0.2)' }} />
-    </div>
-  )
+// ── Disciplinas por Clã (V20) ──────────────────────────────────────────────────
+const CLAN_DISCIPLINES: Record<string, string[]> = {
+  // Camarilla
+  'Brujah':    ['Celeridade', 'Potência', 'Presença'],
+  'Gangrel':   ['Animalismo', 'Fortitude', 'Proteísmo'],
+  'Malkavian': ['Auspex', 'Demência', 'Ofuscação'],
+  'Nosferatu': ['Animalismo', 'Ofuscação', 'Potência'],
+  'Toreador':  ['Auspex', 'Celeridade', 'Presença'],
+  'Tremere':   ['Auspex', 'Dominação', 'Taumaturgia'],
+  'Ventrue':   ['Dominação', 'Fortitude', 'Presença'],
+  // Sabbat
+  'Lasombra':  ['Dominação', 'Obtenebridade', 'Potência'],
+  'Tzimisce':  ['Animalismo', 'Auspex', 'Vicissitude'],
+  // Independentes
+  'Assamita':  ['Celeridade', 'Ofuscação', 'Quietus'],
+  'Seguidor de Set': ['Ofuscação', 'Presença', 'Serpentis'],
+  'Giovanni':  ['Dominação', 'Necromancia', 'Potência'],
+  'Ravnos':    ['Animalismo', 'Fortitude', 'Quimerismo'],
+  // Camarilla antigos
+  'Caitiff':   [],
+  'Baali':     ['Demonismo', 'Ofuscação', 'Presença'],
+  // Variações comuns de nome
+  'Malkaviano':   ['Auspex', 'Demência', 'Ofuscação'],
+  'Nosferatu (Clã)': ['Animalismo', 'Ofuscação', 'Potência'],
+  'Toreador (Clã)':  ['Auspex', 'Celeridade', 'Presença'],
+}
+
+// Todas as disciplinas disponíveis para o seletor manual
+const ALL_DISCIPLINES = [
+  'Animalismo', 'Auspex', 'Celeridade', 'Demência', 'Demonismo',
+  'Dominação', 'Fortitude', 'Necromancia', 'Obtenebridade', 'Ofuscação',
+  'Potência', 'Presença', 'Proteísmo', 'Quimerismo', 'Quietus',
+  'Sanguis', 'Serpentis', 'Taumaturgia', 'Vicissitude',
+]
+
+// Antecedentes padrão V20
+const DEFAULT_BACKGROUNDS = [
+  'Aliados', 'Contatos', 'Domínio', 'Fama', 'Geração', 'Gregge',
+  'Influência', 'Mentor', 'Recursos', 'Rebanho', 'Retainers', 'Status',
+]
+
+// ── Utilitários ────────────────────────────────────────────────────────────────
+
+function normalizeClan(raw: string): string {
+  return raw.trim()
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+}
+
+function getDisciplinesForClan(clanRaw: string): string[] {
+  for (const [key, discs] of Object.entries(CLAN_DISCIPLINES)) {
+    const norm = normalizeClan(key)
+    if (normalizeClan(clanRaw).includes(norm) || norm.includes(normalizeClan(clanRaw))) {
+      return discs
+    }
+  }
+  return []
 }
 
 function categorize(attrs: Attr[]) {
   const physical: Attr[] = [], social: Attr[] = [], mental: Attr[] = []
   const talents: Attr[] = [], skills: Attr[] = [], knowledges: Attr[] = []
-  const resources: Attr[] = []
+  const virtues: Attr[] = [], other: Attr[] = []
   for (const a of attrs) {
     const d = a.attribute.description ?? ''
     if      (d.startsWith('Físico'))       physical.push(a)
@@ -30,9 +80,21 @@ function categorize(attrs: Attr[]) {
     else if (d.startsWith('Talento'))      talents.push(a)
     else if (d.startsWith('Perícia'))      skills.push(a)
     else if (d.startsWith('Conhecimento')) knowledges.push(a)
-    else                                   resources.push(a)
+    else if (d.startsWith('Virtude'))      virtues.push(a)
+    else                                   other.push(a)
   }
-  return { physical, social, mental, talents, skills, knowledges, resources }
+  return { physical, social, mental, talents, skills, knowledges, virtues, other }
+}
+
+// ── Componentes ────────────────────────────────────────────────────────────────
+
+function SectionDivider({ title }: { title: string }) {
+  return (
+    <div className="flex items-center gap-3 mb-4">
+      <p className="font-almendra text-[9px] font-bold text-saga-dim uppercase tracking-[0.2em] whitespace-nowrap">{title}</p>
+      <div className="flex-1 h-px" style={{ background: 'rgba(201,162,42,0.2)' }} />
+    </div>
+  )
 }
 
 function Dots({ value, max = 5, editable = false, attrId, characterId, onSaved, color = RED }: {
@@ -96,11 +158,89 @@ function TFField({ characterId, textFields, tfKey, label, placeholder, multiline
   )
 }
 
-// Health track with WoD penalties
+// Discipline row com dots de 0-5 salvo em text-fields (chave: disc_{nome normalizado})
+function DisciplineRow({ name, characterId, textFields, canEdit, onRefresh, removable, onRemove }: {
+  name: string; characterId: string; textFields: TextField[]; canEdit: boolean; onRefresh: () => void
+  removable?: boolean; onRemove?: () => void
+}) {
+  const key = `disc_${name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '_')}`
+  const existing = textFields.find(f => f.key === key)
+  const [value, setValue] = useState(Number(existing?.value ?? 0))
+
+  async function setDot(i: number) {
+    if (!canEdit) return
+    const newVal = i + 1 === value ? i : i + 1
+    setValue(newVal)
+    await fetch(`/api/characters/${characterId}/text-fields`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key, label: `Disciplina: ${name}`, value: String(newVal) }),
+    }).catch(() => null)
+    onRefresh()
+  }
+
+  return (
+    <div className="flex items-center justify-between py-2 border-b border-white/5 last:border-0 group">
+      <span className="text-sm text-saga-muted">{name}</span>
+      <div className="flex items-center gap-2">
+        <div className="flex gap-1">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <button key={i} type="button" onClick={() => void setDot(i)}
+              className={`w-3 h-3 rounded-full border transition-colors ${canEdit ? 'cursor-pointer' : 'cursor-default'}`}
+              style={{ background: i < value ? RED : 'transparent', borderColor: RED }} />
+          ))}
+        </div>
+        {removable && canEdit && (
+          <button type="button" onClick={onRemove}
+            className="opacity-0 group-hover:opacity-100 text-[10px] text-red-500 hover:text-red-300 transition-all ml-1">✕</button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// Background row salvo em text-fields (chave: bg_{nome})
+function BackgroundRow({ name, characterId, textFields, canEdit, onRefresh, removable, onRemove }: {
+  name: string; characterId: string; textFields: TextField[]; canEdit: boolean; onRefresh: () => void
+  removable?: boolean; onRemove?: () => void
+}) {
+  const key = `bg_${name.toLowerCase().replace(/\s+/g, '_')}`
+  const existing = textFields.find(f => f.key === key)
+  const [value, setValue] = useState(Number(existing?.value ?? 0))
+
+  async function setDot(i: number) {
+    if (!canEdit) return
+    const newVal = i + 1 === value ? i : i + 1
+    setValue(newVal)
+    await fetch(`/api/characters/${characterId}/text-fields`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key, label: `Antecedente: ${name}`, value: String(newVal) }),
+    }).catch(() => null)
+    onRefresh()
+  }
+
+  return (
+    <div className="flex items-center justify-between py-2 border-b border-white/5 last:border-0 group">
+      <span className="text-sm text-saga-muted">{name}</span>
+      <div className="flex items-center gap-2">
+        <div className="flex gap-1">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <button key={i} type="button" onClick={() => void setDot(i)}
+              className={`w-3 h-3 rounded-full border transition-colors ${canEdit ? 'cursor-pointer' : 'cursor-default'}`}
+              style={{ background: i < value ? '#b45309' : 'transparent', borderColor: '#b45309' }} />
+          ))}
+        </div>
+        {removable && canEdit && (
+          <button type="button" onClick={onRemove}
+            className="opacity-0 group-hover:opacity-100 text-[10px] text-amber-500 hover:text-amber-300 transition-all ml-1">✕</button>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function HealthTrack({ characterId, textFields, canEdit, onRefresh }: { characterId: string; textFields: TextField[]; canEdit: boolean; onRefresh: () => void }) {
   const existing = textFields.find(f => f.key === 'healthTrack')?.value ?? '00000000'
   const [track, setTrack] = useState(existing.split('').map(Number))
-  // WoD V20 wound levels: Bruised(0), Hurt(-1), Injured(-1), Wounded(-2), Mauled(-2), Crippled(-5), Incapacitated
   const LEVELS = [
     'Contundido (0)', 'Machucado (−1)', 'Ferido (−1)',
     'Lacerado (−2)', 'Mutilado (−2)', 'Aleijado (−5)', 'Incapacitado',
@@ -129,7 +269,6 @@ function HealthTrack({ characterId, textFields, canEdit, onRefresh }: { characte
   )
 }
 
-// Generation table: [max blood pool, max trait, blood spent per round]
 const GEN_TABLE: Record<number, [number, number, number]> = {
   3: [100, 10, 10], 4: [50, 9, 8], 5: [40, 8, 6],
   6: [30, 7, 4], 7: [20, 6, 3], 8: [15, 5, 2],
@@ -137,11 +276,78 @@ const GEN_TABLE: Record<number, [number, number, number]> = {
   12: [11, 3, 1], 13: [10, 3, 1], 15: [10, 3, 1],
 }
 
+// ── Sheet principal ────────────────────────────────────────────────────────────
+
 export function VtMV20Sheet({ characterId, attributes, textFields, canEdit }: Props) {
   const router = useRouter()
   const [tab, setTab] = useState<'atributos' | 'habilidades' | 'vantagens' | 'recursos' | 'personagem'>('atributos')
   const onRefresh = () => router.refresh()
-  const { physical, social, mental, talents, skills, knowledges, resources } = categorize(attributes)
+
+  const { physical, social, mental, talents, skills, knowledges, virtues, other } = categorize(attributes)
+
+  // Clã atual (salvo no text-field 'clan')
+  const clanValue = textFields.find(f => f.key === 'clan')?.value ?? ''
+  const clanDisciplines = getDisciplinesForClan(clanValue)
+
+  // Disciplinas extras adicionadas manualmente (salvas como 'extra_disc_list')
+  const extraDiscRaw = textFields.find(f => f.key === 'extra_disc_list')?.value ?? ''
+  const [extraDiscs, setExtraDiscs] = useState<string[]>(
+    extraDiscRaw ? extraDiscRaw.split('|').filter(Boolean) : []
+  )
+  const [showDiscPicker, setShowDiscPicker] = useState(false)
+
+  async function addExtraDisc(disc: string) {
+    if (clanDisciplines.includes(disc) || extraDiscs.includes(disc)) return
+    const next = [...extraDiscs, disc]
+    setExtraDiscs(next)
+    setShowDiscPicker(false)
+    await fetch(`/api/characters/${characterId}/text-fields`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: 'extra_disc_list', label: 'Disciplinas Extras', value: next.join('|') }),
+    }).catch(() => null)
+    onRefresh()
+  }
+
+  async function removeExtraDisc(disc: string) {
+    const next = extraDiscs.filter(d => d !== disc)
+    setExtraDiscs(next)
+    await fetch(`/api/characters/${characterId}/text-fields`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: 'extra_disc_list', label: 'Disciplinas Extras', value: next.join('|') }),
+    }).catch(() => null)
+    onRefresh()
+  }
+
+  // Antecedentes extras adicionados manualmente
+  const extraBgRaw = textFields.find(f => f.key === 'extra_bg_list')?.value ?? ''
+  const [extraBgs, setExtraBgs] = useState<string[]>(
+    extraBgRaw ? extraBgRaw.split('|').filter(Boolean) : []
+  )
+  const [newBgInput, setNewBgInput] = useState('')
+  const [showBgInput, setShowBgInput] = useState(false)
+
+  async function addExtraBg(name: string) {
+    if (!name.trim() || DEFAULT_BACKGROUNDS.includes(name) || extraBgs.includes(name)) return
+    const next = [...extraBgs, name.trim()]
+    setExtraBgs(next)
+    setNewBgInput('')
+    setShowBgInput(false)
+    await fetch(`/api/characters/${characterId}/text-fields`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: 'extra_bg_list', label: 'Antecedentes Extras', value: next.join('|') }),
+    }).catch(() => null)
+    onRefresh()
+  }
+
+  async function removeExtraBg(name: string) {
+    const next = extraBgs.filter(b => b !== name)
+    setExtraBgs(next)
+    await fetch(`/api/characters/${characterId}/text-fields`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: 'extra_bg_list', label: 'Antecedentes Extras', value: next.join('|') }),
+    }).catch(() => null)
+    onRefresh()
+  }
 
   const genAttr = attributes.find(a => a.attribute.name.toLowerCase().includes('geração') || a.attribute.name.toLowerCase().includes('generation'))
   const genNum = genAttr?.value ?? 13
@@ -150,20 +356,30 @@ export function VtMV20Sheet({ characterId, attributes, textFields, canEdit }: Pr
   const card = 'rounded-xl p-4' as const
   const cardStyle = { background: 'rgba(17,17,30,0.6)', border: '1px solid rgba(255,255,255,0.07)' }
   const tabs = [
-    { id: 'atributos', label: 'Atributos' },
+    { id: 'atributos',   label: 'Atributos' },
     { id: 'habilidades', label: 'Habilidades' },
-    { id: 'vantagens', label: 'Vantagens' },
-    { id: 'recursos', label: 'Recursos' },
-    { id: 'personagem', label: 'Personagem' },
+    { id: 'vantagens',   label: 'Vantagens' },
+    { id: 'recursos',    label: 'Recursos' },
+    { id: 'personagem',  label: 'Personagem' },
   ] as const
+
+  // Disciplinas a exibir: clã + extras
+  const allDiscsToShow = [
+    ...clanDisciplines,
+    ...extraDiscs.filter(d => !clanDisciplines.includes(d)),
+  ]
+  // Disciplinas disponíveis para adicionar (não inclui já adicionadas)
+  const availableDiscs = ALL_DISCIPLINES.filter(d => !allDiscsToShow.includes(d))
 
   return (
     <div className="space-y-4">
+      {/* Header */}
       <div className="rounded-xl px-4 py-3 flex items-center gap-3" style={{ background: `${ACCENT}40`, border: `1px solid ${RED}40` }}>
         <div className="w-2 h-2 rounded-full" style={{ background: RED }} />
         <span className="font-cinzel text-sm font-bold" style={{ color: RED }}>Vampire: The Masquerade V20</span>
       </div>
 
+      {/* Tabs */}
       <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.05)' }}>
         {tabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
@@ -174,42 +390,158 @@ export function VtMV20Sheet({ characterId, attributes, textFields, canEdit }: Pr
         ))}
       </div>
 
+      {/* ── Atributos ── */}
       {tab === 'atributos' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[['Físico', physical], ['Social', social], ['Mental', mental]].map(([title, list]) => (
             <div key={String(title)} className={card} style={cardStyle}>
               <SectionDivider title={String(title)} />
-              {(list as Attr[]).map(a => <AttrRow key={a.id} a={a} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />)}
+              {(list as Attr[]).length === 0
+                ? <p className="text-[11px] text-saga-dim italic">Nenhum atributo encontrado</p>
+                : (list as Attr[]).map(a => <AttrRow key={a.id} a={a} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />)
+              }
             </div>
           ))}
         </div>
       )}
 
+      {/* ── Habilidades ── */}
       {tab === 'habilidades' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[['Talentos', talents], ['Perícias', skills], ['Conhecimentos', knowledges]].map(([title, list]) => (
             <div key={String(title)} className={card} style={cardStyle}>
               <SectionDivider title={String(title)} />
-              {(list as Attr[]).map(a => <AttrRow key={a.id} a={a} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />)}
+              {(list as Attr[]).length === 0
+                ? <p className="text-[11px] text-saga-dim italic">Nenhuma habilidade encontrada</p>
+                : (list as Attr[]).map(a => <AttrRow key={a.id} a={a} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />)
+              }
             </div>
           ))}
         </div>
       )}
 
+      {/* ── Vantagens ── */}
       {tab === 'vantagens' && (
         <div className="space-y-4">
+
+          {/* Disciplinas */}
           <div className={card} style={cardStyle}>
-            <SectionDivider title="Disciplinas / Antecedentes / Virtudes" />
-            {resources.map(a => (
-              <div key={a.id} className="flex items-center justify-between py-1.5 border-b border-white/5 last:border-0">
-                <span className="text-sm text-saga-muted">{a.attribute.name}</span>
-                <Dots value={a.value} editable={canEdit} attrId={a.id} characterId={characterId} onSaved={onRefresh} />
-              </div>
+            <SectionDivider title="Disciplinas" />
+
+            {clanValue && clanDisciplines.length > 0 && (
+              <p className="text-[10px] text-saga-dim mb-3 italic">
+                Disciplinas do clã <span className="text-amber-400 font-bold not-italic">{clanValue}</span> preenchidas automaticamente.
+              </p>
+            )}
+            {!clanValue && (
+              <p className="text-[10px] text-amber-500/70 mb-3 italic">
+                Defina o Clã na aba Personagem para ver as disciplinas do clã automaticamente.
+              </p>
+            )}
+            {clanValue && clanDisciplines.length === 0 && (
+              <p className="text-[10px] text-saga-dim mb-3 italic">
+                Clã não reconhecido ou sem disciplinas mapeadas. Adicione manualmente abaixo.
+              </p>
+            )}
+
+            {/* Disciplinas do clã */}
+            {clanDisciplines.map(disc => (
+              <DisciplineRow key={disc} name={disc} characterId={characterId} textFields={textFields} canEdit={canEdit} onRefresh={onRefresh} />
             ))}
+
+            {/* Disciplinas extras */}
+            {extraDiscs.filter(d => !clanDisciplines.includes(d)).map(disc => (
+              <DisciplineRow key={disc} name={disc} characterId={characterId} textFields={textFields} canEdit={canEdit} onRefresh={onRefresh}
+                removable onRemove={() => void removeExtraDisc(disc)} />
+            ))}
+
+            {/* Botão adicionar disciplina */}
+            {canEdit && (
+              <div className="mt-3 relative">
+                {showDiscPicker ? (
+                  <div className="space-y-1">
+                    <div className="flex flex-wrap gap-1.5">
+                      {availableDiscs.map(d => (
+                        <button key={d} type="button" onClick={() => void addExtraDisc(d)}
+                          className="px-2 py-0.5 rounded text-[10px] font-bold transition-all hover:opacity-80"
+                          style={{ background: 'rgba(220,38,38,0.15)', border: '1px solid rgba(220,38,38,0.3)', color: '#fca5a5' }}>
+                          + {d}
+                        </button>
+                      ))}
+                    </div>
+                    <button type="button" onClick={() => setShowDiscPicker(false)}
+                      className="text-[10px] text-saga-dim hover:text-saga-muted mt-1">Cancelar</button>
+                  </div>
+                ) : (
+                  <button type="button" onClick={() => setShowDiscPicker(true)}
+                    className="text-[10px] font-bold transition-all hover:opacity-80 px-3 py-1 rounded"
+                    style={{ background: 'rgba(220,38,38,0.1)', border: '1px solid rgba(220,38,38,0.2)', color: '#fca5a5' }}>
+                    + Adicionar Disciplina
+                  </button>
+                )}
+              </div>
+            )}
           </div>
+
+          {/* Antecedentes */}
+          <div className={card} style={cardStyle}>
+            <SectionDivider title="Antecedentes" />
+            {DEFAULT_BACKGROUNDS.map(bg => (
+              <BackgroundRow key={bg} name={bg} characterId={characterId} textFields={textFields} canEdit={canEdit} onRefresh={onRefresh} />
+            ))}
+            {extraBgs.map(bg => (
+              <BackgroundRow key={bg} name={bg} characterId={characterId} textFields={textFields} canEdit={canEdit} onRefresh={onRefresh}
+                removable onRemove={() => void removeExtraBg(bg)} />
+            ))}
+            {canEdit && (
+              <div className="mt-3">
+                {showBgInput ? (
+                  <div className="flex gap-2 items-center">
+                    <input type="text" value={newBgInput} onChange={e => setNewBgInput(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') void addExtraBg(newBgInput); if (e.key === 'Escape') setShowBgInput(false) }}
+                      placeholder="Nome do antecedente..."
+                      className="flex-1 bg-surface-2/50 border border-white/10 rounded px-2 py-1 text-xs text-saga-muted focus:outline-none focus:border-amber-700/40" />
+                    <button type="button" onClick={() => void addExtraBg(newBgInput)}
+                      className="text-[10px] font-bold px-2 py-1 rounded transition-all hover:opacity-80"
+                      style={{ background: 'rgba(180,83,9,0.2)', border: '1px solid rgba(180,83,9,0.3)', color: '#fcd34d' }}>
+                      Adicionar
+                    </button>
+                    <button type="button" onClick={() => setShowBgInput(false)} className="text-[10px] text-saga-dim hover:text-saga-muted">✕</button>
+                  </div>
+                ) : (
+                  <button type="button" onClick={() => setShowBgInput(true)}
+                    className="text-[10px] font-bold transition-all hover:opacity-80 px-3 py-1 rounded"
+                    style={{ background: 'rgba(180,83,9,0.1)', border: '1px solid rgba(180,83,9,0.2)', color: '#fcd34d' }}>
+                    + Adicionar Antecedente
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Virtudes */}
+          <div className={card} style={cardStyle}>
+            <SectionDivider title="Virtudes" />
+            {virtues.length === 0
+              ? <p className="text-[11px] text-saga-dim italic">Nenhuma virtude encontrada</p>
+              : virtues.map(a => <AttrRow key={a.id} a={a} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />)
+            }
+          </div>
+
+          {/* Outros (Força de Vontade, Humanidade, Sangue — atributos numéricos) */}
+          {other.filter(a => !a.attribute.name.toLowerCase().includes('geração') && !a.attribute.name.toLowerCase().includes('generation')).length > 0 && (
+            <div className={card} style={cardStyle}>
+              <SectionDivider title="Recursos" />
+              {other
+                .filter(a => !a.attribute.name.toLowerCase().includes('geração') && !a.attribute.name.toLowerCase().includes('generation'))
+                .map(a => <AttrRow key={a.id} a={a} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />)
+              }
+            </div>
+          )}
         </div>
       )}
 
+      {/* ── Recursos ── */}
       {tab === 'recursos' && (
         <div className="space-y-4">
           {/* Geração */}
@@ -235,41 +567,56 @@ export function VtMV20Sheet({ characterId, attributes, textFields, canEdit }: Pr
               )}
             </div>
           )}
+
           {/* Saúde */}
           <div className={card} style={cardStyle}>
             <SectionDivider title="Saúde" />
             <HealthTrack characterId={characterId} textFields={textFields} canEdit={canEdit} onRefresh={onRefresh} />
           </div>
-          {/* Recursos numéricos */}
+
+          {/* Pool de Sangue, Força de Vontade, Humanidade */}
           <div className={card} style={cardStyle}>
-            <SectionDivider title="Vitalidade / Força de Vontade / Humanidade" />
+            <SectionDivider title="Pool de Sangue / Força de Vontade / Humanidade" />
             <div className="space-y-3">
               <TFField characterId={characterId} textFields={textFields} tfKey="blood_current" label="Pool de Sangue (atual)" placeholder="10" canEdit={canEdit} onRefresh={onRefresh} />
               <TFField characterId={characterId} textFields={textFields} tfKey="willpower_current" label="Força de Vontade (atual)" placeholder="5" canEdit={canEdit} onRefresh={onRefresh} />
               <TFField characterId={characterId} textFields={textFields} tfKey="humanity" label="Humanidade / Via" placeholder="7" canEdit={canEdit} onRefresh={onRefresh} />
             </div>
           </div>
-          {/* Observação */}
+
+          {/* Experiência */}
           <div className={card} style={cardStyle}>
-            <SectionDivider title="Observação" />
-            <TFField characterId={characterId} textFields={textFields} tfKey="observations" label="Observação" placeholder="Anotações sobre este personagem..." multiline canEdit={canEdit} onRefresh={onRefresh} />
+            <SectionDivider title="Experiência" />
+            <div className="grid grid-cols-2 gap-3">
+              <TFField characterId={characterId} textFields={textFields} tfKey="xp_total" label="XP Total" placeholder="0" canEdit={canEdit} onRefresh={onRefresh} />
+              <TFField characterId={characterId} textFields={textFields} tfKey="xp_spent" label="XP Gasto" placeholder="0" canEdit={canEdit} onRefresh={onRefresh} />
+            </div>
+          </div>
+
+          {/* Observações */}
+          <div className={card} style={cardStyle}>
+            <SectionDivider title="Observações" />
+            <TFField characterId={characterId} textFields={textFields} tfKey="observations" label="Observações" placeholder="Anotações sobre este personagem..." multiline canEdit={canEdit} onRefresh={onRefresh} />
           </div>
         </div>
       )}
 
+      {/* ── Personagem ── */}
       {tab === 'personagem' && (
         <div className={card} style={cardStyle}>
-          <SectionDivider title="Personagem" />
+          <SectionDivider title="Identidade" />
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
-              <TFField characterId={characterId} textFields={textFields} tfKey="clan" label="Clã" placeholder="Brujah, Gangrel..." canEdit={canEdit} onRefresh={onRefresh} />
+              <TFField characterId={characterId} textFields={textFields} tfKey="clan" label="Clã" placeholder="Brujah, Malkaviano..." canEdit={canEdit} onRefresh={onRefresh} />
               <TFField characterId={characterId} textFields={textFields} tfKey="sect" label="Seita" placeholder="Camarilla, Sabbat..." canEdit={canEdit} onRefresh={onRefresh} />
               <TFField characterId={characterId} textFields={textFields} tfKey="nature" label="Natureza" placeholder="Arquétipo..." canEdit={canEdit} onRefresh={onRefresh} />
               <TFField characterId={characterId} textFields={textFields} tfKey="demeanor" label="Comportamento" placeholder="Arquétipo..." canEdit={canEdit} onRefresh={onRefresh} />
+              <TFField characterId={characterId} textFields={textFields} tfKey="sire" label="Senhor" placeholder="Quem te Abraçou..." canEdit={canEdit} onRefresh={onRefresh} />
+              <TFField characterId={characterId} textFields={textFields} tfKey="embrace_date" label="Data do Abraço" placeholder="Ex: 1924..." canEdit={canEdit} onRefresh={onRefresh} />
             </div>
-            <TFField characterId={characterId} textFields={textFields} tfKey="concept" label="Conceito" placeholder="Quem você era..." canEdit={canEdit} onRefresh={onRefresh} />
-            <TFField characterId={characterId} textFields={textFields} tfKey="haven" label="Refúgio" placeholder="Localização do Haven..." canEdit={canEdit} onRefresh={onRefresh} />
-            <TFField characterId={characterId} textFields={textFields} tfKey="backstory" label="História" placeholder="Sua história..." multiline canEdit={canEdit} onRefresh={onRefresh} />
+            <TFField characterId={characterId} textFields={textFields} tfKey="concept" label="Conceito" placeholder="Quem você era antes do Abraço..." canEdit={canEdit} onRefresh={onRefresh} />
+            <TFField characterId={characterId} textFields={textFields} tfKey="haven" label="Refúgio" placeholder="Localização e descrição do Haven..." canEdit={canEdit} onRefresh={onRefresh} />
+            <TFField characterId={characterId} textFields={textFields} tfKey="backstory" label="História" placeholder="Sua história como kindred..." multiline canEdit={canEdit} onRefresh={onRefresh} />
             <TFField characterId={characterId} textFields={textFields} tfKey="notes" label="Notas" placeholder="Anotações..." multiline canEdit={canEdit} onRefresh={onRefresh} />
           </div>
         </div>
