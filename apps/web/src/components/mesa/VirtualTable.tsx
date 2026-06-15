@@ -893,7 +893,8 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
           {/* ── Initiative Tracker ── */}
           {initiativeOpen&&(
             <div className="absolute top-3 left-1/2 -translate-x-1/2 z-40 w-72 rounded-xl overflow-hidden shadow-2xl"
-              style={{background:'rgba(10,10,22,0.97)',border:'1px solid rgba(201,162,42,0.25)',backdropFilter:'blur(12px)'}}>
+              style={{background:'rgba(10,10,22,0.97)',border:'1px solid rgba(201,162,42,0.25)',backdropFilter:'blur(12px)'}}
+              onWheel={e => e.stopPropagation()}>
               <div className="px-4 py-2.5 border-b flex items-center justify-between"
                 style={{borderColor:'rgba(201,162,42,0.2)',background:'rgba(201,162,42,0.06)'}}>
                 <div className="flex items-center gap-2">

@@ -339,7 +339,6 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
   const [viewMode, setViewMode] = useState<'summary' | 'full'>('summary')
   const [fullData, setFullData] = useState<FullCharData | null>(null)
   const [loadingFull, setLoadingFull] = useState(false)
-  const [fullDataKey, setFullDataKey] = useState(0) // forces re-render on refresh
 
   const selectedMember = selection.kind === 'member' ? members.find(m => m.id === selection.id) : null
   const selectedNpc    = selection.kind === 'npc'    ? npcs.find(n => n.id === selection.id)   : null
@@ -363,7 +362,6 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
     const res = await fetch(`/api/characters/${char.id}/full`).catch(() => null)
     const data = res?.ok ? (await res.json() as FullCharData) : null
     setFullData(data)
-    setFullDataKey(k => k + 1)
   }, [char])
 
   function switchSelection(sel: Selection) {
@@ -394,7 +392,8 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
         }}
         onMouseDown={e => e.stopPropagation()}
         onMouseMove={e => e.stopPropagation()}
-        onMouseUp={e => e.stopPropagation()}>
+        onMouseUp={e => e.stopPropagation()}
+        onWheel={e => e.stopPropagation()}>
 
         {/* Header */}
         <div className="px-4 py-3 border-b border-white/6 shrink-0 flex items-center justify-between">
@@ -499,7 +498,6 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
               ) : (
                 <div className="p-4">
                   <CharacterSheetView
-                    key={fullDataKey}
                     characterId={char.id}
                     characterLevel={fullData.level}
                     attributes={fullData.attributes}
