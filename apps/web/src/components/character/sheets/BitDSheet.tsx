@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { X, Dices } from 'lucide-react'
 
@@ -234,6 +234,36 @@ function ActionsTab({ attributes, textFields, characterId, canEdit, onRefresh }:
   )
 }
 
+// ── CoinTrack ─────────────────────────────────────────────────────────────────
+
+function CoinTrack({ value, max, label, onSet, canEdit }: {
+  value: number; max: number; label: string; onSet: (v: number) => void; canEdit: boolean
+}) {
+  const [editing, setEditing] = useState(false)
+  const [val, setVal] = useState(String(value))
+  function save() {
+    const n = parseInt(val)
+    if (!isNaN(n)) onSet(Math.max(0, Math.min(max, n)))
+    setEditing(false)
+  }
+  return (
+    <div className="flex items-center gap-2">
+      {editing && canEdit
+        ? <input autoFocus type="number" value={val}
+            onChange={e => setVal(e.target.value)}
+            onBlur={save}
+            onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') setEditing(false) }}
+            className="w-16 bg-surface-2 border border-gold/40 rounded text-center font-bold text-lg focus:outline-none text-saga-text" />
+        : <span className="font-cinzel font-bold text-2xl text-saga-text cursor-pointer hover:text-amber-400 transition-colors"
+            onClick={() => { if (canEdit) { setEditing(true); setVal(String(value)) } }}>
+            {value}
+          </span>
+      }
+      <span className="text-saga-dim text-sm">{label}</span>
+    </div>
+  )
+}
+
 // ── Estado tab — Stress, Harm, Armor, Load ─────────────────────────────────────
 
 function Checkbox({ checked, onChange, label }: { checked: boolean; onChange: () => void; label?: string }) {
@@ -392,6 +422,36 @@ function StateTab({ attributes, textFields, characterId, canEdit, onRefresh }: {
               </div>
             )
           })}
+        </div>
+      </div>
+
+      {/* Coin + Stash */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="rounded p-3" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)' }}>
+          <p className="font-almendra text-[9px] uppercase tracking-widest text-saga-dim mb-3">Moedas (Coin)</p>
+          <CoinTrack
+            value={parseInt(textFields.find(f => f.key === 'coin')?.value ?? '0')}
+            max={4}
+            label="/ 4"
+            onSet={async v => {
+              await saveTextField(characterId, 'coin', 'Moedas', String(v))
+              onRefresh()
+            }}
+            canEdit={canEdit}
+          />
+        </div>
+        <div className="rounded p-3" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)' }}>
+          <p className="font-almendra text-[9px] uppercase tracking-widest text-saga-dim mb-3">Reserva (Stash)</p>
+          <CoinTrack
+            value={parseInt(textFields.find(f => f.key === 'stash')?.value ?? '0')}
+            max={40}
+            label="/ 40"
+            onSet={async v => {
+              await saveTextField(characterId, 'stash', 'Reserva', String(v))
+              onRefresh()
+            }}
+            canEdit={canEdit}
+          />
         </div>
       </div>
 

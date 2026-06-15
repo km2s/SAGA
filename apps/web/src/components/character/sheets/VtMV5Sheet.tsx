@@ -534,6 +534,55 @@ export function VtMV5Sheet({ characterId, attributes, textFields, weapons, canEd
             <ETF tfKey="convictions" label="Convicções" textFields={textFields} characterId={characterId} canEdit={canEdit} multiline onRefresh={refresh} />
             <ETF tfKey="touchstones" label="Tocadores"  textFields={textFields} characterId={characterId} canEdit={canEdit} multiline onRefresh={refresh} />
             <ETF tfKey="tenets"      label="Preceitos da Crônica" textFields={textFields} characterId={characterId} canEdit={canEdit} multiline onRefresh={refresh} />
+
+            {/* Ressonância / Hunting */}
+            {(() => {
+              const resonanceAttr = attributes.find(a =>
+                a.attribute.name.toLowerCase().includes('ressonância') ||
+                a.attribute.name.toLowerCase().includes('resonância') ||
+                a.attribute.name.toLowerCase().includes('resonance')
+              )
+              const RESONANCE_TYPES = ['Sanguíneo', 'Colérico', 'Melancólico', 'Fleumático', 'Nervoso', 'Sem Ressonância']
+              return (
+                <div className="rounded p-3 space-y-3" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                  <p className="font-almendra text-[9px] uppercase tracking-widest text-saga-dim">Ressonância & Caça</p>
+                  {resonanceAttr && (
+                    <div>
+                      <p className="text-[9px] text-saga-dim mb-2">Intensidade (1–5)</p>
+                      <Dots value={resonanceAttr.value} max={5} editable={canEdit} attrId={resonanceAttr.id} characterId={characterId} onSaved={refresh} color="#dc2626" />
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-[9px] text-saga-dim mb-1.5">Tipo Emocional</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {RESONANCE_TYPES.map(type => {
+                        const tf = textFields.find(f => f.key === 'resonance_type')
+                        const active = tf?.value === type
+                        return (
+                          <button key={type} type="button" disabled={!canEdit}
+                            onClick={async () => {
+                              await fetch(`/api/characters/${characterId}/text-fields`, {
+                                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ key: 'resonance_type', label: 'Tipo de Ressonância', value: type }),
+                              }).catch(() => null)
+                              refresh()
+                            }}
+                            className="px-2 py-0.5 rounded text-[10px] font-bold transition-all"
+                            style={{
+                              background: active ? 'rgba(220,38,38,0.2)' : 'rgba(255,255,255,0.04)',
+                              border: `1px solid ${active ? 'rgba(220,38,38,0.5)' : 'rgba(255,255,255,0.08)'}`,
+                              color: active ? '#fca5a5' : '#7878a0',
+                            }}>
+                            {type}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                  <ETF tfKey="hunting_notes" label="Notas de Caça" textFields={textFields} characterId={characterId} canEdit={canEdit} multiline onRefresh={refresh} />
+                </div>
+              )
+            })()}
           </div>
         )}
 
