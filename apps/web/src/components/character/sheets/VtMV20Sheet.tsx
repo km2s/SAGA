@@ -249,6 +249,11 @@ export function VtMV20Sheet({ characterId, attributes, textFields, canEdit }: Pr
               <TFField characterId={characterId} textFields={textFields} tfKey="humanity" label="Humanidade / Via" placeholder="7" canEdit={canEdit} onRefresh={onRefresh} />
             </div>
           </div>
+          {/* Observação */}
+          <div className={card} style={cardStyle}>
+            <SectionDivider title="Observação" />
+            <TFField characterId={characterId} textFields={textFields} tfKey="observations" label="Observação" placeholder="Anotações sobre este personagem..." multiline canEdit={canEdit} onRefresh={onRefresh} />
+          </div>
         </div>
       )}
 

@@ -546,9 +546,19 @@ export async function GET() {
   try {
     const systems = await seedAndGetSystems()
     return NextResponse.json(systems)
-  } catch (e) {
-    console.error(e)
-    return NextResponse.json({ error: 'Erro ao buscar sistemas' }, { status: 500 })
+  } catch (seedError) {
+    console.error('[systems GET] seed error:', seedError)
+    // Seeding failed — return whatever is already in the DB so the modal still works
+    try {
+      const systems = await prisma.rPGSystem.findMany({
+        where: { OR: [{ isPreset: true }, { isPreset: false, creatorId: { not: null } }] },
+        orderBy: [{ isPreset: 'desc' }, { name: 'asc' }],
+      })
+      return NextResponse.json(systems)
+    } catch (dbError) {
+      console.error('[systems GET] db error:', dbError)
+      return NextResponse.json([])
+    }
   }
 }
 
