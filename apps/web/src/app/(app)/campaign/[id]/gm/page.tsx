@@ -9,6 +9,8 @@ import { SessionControls } from '@/components/gm/SessionControls'
 import { GMActions } from '@/components/gm/GMActions'
 import { Map, Users, ScrollText, FileText } from 'lucide-react'
 import { MarkTutorialVisited } from '@/components/tutorial/MarkTutorialVisited'
+import { ApplicationsPanel } from '@/components/gm/ApplicationsPanel'
+import { CampaignStatusToggle } from '@/components/gm/CampaignStatusToggle'
 
 export default async function GmPanelPage({ params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
@@ -23,6 +25,7 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
       },
       sessions: { where: { isActive: true }, take: 1 },
     },
+    // isOpen is a plain field — selected by default
   }).catch(() => null)
 
   if (!campaign) notFound()
@@ -132,6 +135,19 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
               Nenhum jogador ainda. Compartilhe o ID da campanha: <code className="font-mono text-gold">{params.id}</code>
             </div>
           )}
+        </div>
+      </section>
+
+      {/* Applications */}
+      <section>
+        <h2 className="font-cinzel text-base font-semibold mb-3">Inscrições de Jogadores</h2>
+        <div className="space-y-3">
+          <CampaignStatusToggle
+            campaignId={params.id}
+            initialIsOpen={campaign.isOpen}
+            campaignType={campaign.campaignType}
+          />
+          <ApplicationsPanel campaignId={params.id} />
         </div>
       </section>
 

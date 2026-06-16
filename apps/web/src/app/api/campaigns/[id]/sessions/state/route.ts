@@ -46,6 +46,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     musicVolume?:     number
     mapImageUrl?:     string | null
     liveMembersJson?: string | null
+    markersJson?:     string | null
   }
 
   const data: Record<string, unknown> = {}
@@ -71,6 +72,15 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         return NextResponse.json({ error: 'tokensJson inválido' }, { status: 400 })
       }
       data.tokensJson = body.tokensJson
+    }
+  }
+
+  // Any member can broadcast markers/pings
+  if ('markersJson' in body) {
+    if (body.markersJson === null) {
+      data.markersJson = null
+    } else if (typeof body.markersJson === 'string' && body.markersJson.length < 10000) {
+      data.markersJson = body.markersJson
     }
   }
 
@@ -122,7 +132,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   const updated = await prisma.session.update({
     where: { id: activeSession.id },
     data,
-    select: { tokensJson: true, musicYoutubeId: true, musicVolume: true, mapImageUrl: true, liveMembersJson: true },
+    select: { tokensJson: true, musicYoutubeId: true, musicVolume: true, mapImageUrl: true, liveMembersJson: true, markersJson: true },
   })
 
   return NextResponse.json(updated)

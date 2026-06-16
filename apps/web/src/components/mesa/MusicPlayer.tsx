@@ -89,7 +89,7 @@ export function MusicPlayer({ open, onClose, onMusicChange }: MusicPlayerProps) 
       <div className="relative z-10 w-full max-w-lg mx-4 rounded-xl border border-border shadow-2xl overflow-hidden"
            style={{ background: 'rgba(13,13,26,0.98)' }}>
         {/* Header */}
-        <div className="px-5 py-4 border-b border-white/6 flex items-center justify-between">
+        <div className="px-5 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className={`w-2 h-2 rounded-full transition-all ${playing ? 'bg-saga-success animate-pulse' : 'bg-saga-dim'}`} />
             <span className="font-cinzel text-sm font-semibold flex items-center gap-2">
@@ -103,7 +103,7 @@ export function MusicPlayer({ open, onClose, onMusicChange }: MusicPlayerProps) 
 
         {/* Now playing strip */}
         {current && (
-          <div className="px-5 py-3 border-b border-white/6 flex items-center gap-3"
+          <div className="px-5 py-3 flex items-center gap-3"
                style={{ background: 'rgba(201,162,42,0.05)' }}>
             <current.Icon size={22} className="text-saga-muted shrink-0" />
             <div className="flex-1 min-w-0">
@@ -147,7 +147,7 @@ export function MusicPlayer({ open, onClose, onMusicChange }: MusicPlayerProps) 
         </div>
 
         {/* Custom URL */}
-        <div className="px-4 pb-4 border-t border-white/6 pt-4">
+        <div className="px-4 pb-4 pt-2">
           <p className="text-[10px] font-bold text-saga-dim uppercase tracking-widest mb-2">URL do YouTube</p>
           <div className="flex gap-2">
             <input value={customUrl} onChange={e => setCustomUrl(e.target.value)}

@@ -19,29 +19,50 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  memberships CampaignMember[]
-  notes       Note[]
-  systems     RPGSystem[]
+  memberships  CampaignMember[]
+  notes        Note[]
+  systems      RPGSystem[]
+  applications CampaignApplication[]
 }
 
 // ─── Campanha ──────────────────────────────────────────────
 
 model Campaign {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  theme       String?
-  systemId    String?
-  guildId     String?  // Discord server ID vinculado
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(cuid())
+  name         String
+  description  String?
+  theme        String?
+  systemId     String?
+  guildId      String?
+  campaignType String   @default("campaign")
+  isOpen       Boolean  @default(false)
+  maxSlots     Int?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  system   RPGSystem?      @relation(fields: [systemId], references: [id])
-  members  CampaignMember[]
-  npcs     NPC[]
-  sessions Session[]
-  notes    Note[]
-  handouts Handout[]
+  system       RPGSystem?            @relation(fields: [systemId], references: [id])
+  members      CampaignMember[]
+  npcs         NPC[]
+  sessions     Session[]
+  notes        Note[]
+  handouts     Handout[]
+  applications CampaignApplication[]
+}
+
+model CampaignApplication {
+  id              String   @id @default(cuid())
+  campaignId      String
+  userId          String
+  characterDesc   String   @default("") @db.Text
+  experienceLevel String
+  status          String   @default("pending")
+  createdAt       DateTime @default(now())
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id])
+
+  @@unique([campaignId, userId])
+  @@index([campaignId])
 }
 
 enum MemberRole {
@@ -262,6 +283,7 @@ model Session {
   musicVolume     Int       @default(50)
   mapImageUrl     String?
   liveMembersJson String?
+  markersJson     String?
 
   campaign Campaign        @relation(fields: [campaignId], references: [id])
   rollLogs RollLog[]

@@ -25,7 +25,7 @@ export async function POST(req: Request) {
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
-  const { name, description, theme, systemName } = body
+  const { name, description, theme, systemName, campaignType, isOpen, maxSlots } = body
 
   if (!name) return NextResponse.json({ error: 'Nome obrigatório' }, { status: 400 })
 
@@ -46,6 +46,9 @@ export async function POST(req: Request) {
       description,
       theme,
       systemId: system?.id ?? null,
+      campaignType: campaignType === 'oneshot' ? 'oneshot' : 'campaign',
+      isOpen: isOpen === true,
+      maxSlots: isOpen && typeof maxSlots === 'number' && maxSlots > 0 ? maxSlots : null,
       members: { create: { userId: user.id, role: 'GM' } },
     },
     include: { system: true },

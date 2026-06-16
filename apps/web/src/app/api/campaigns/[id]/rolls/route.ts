@@ -34,7 +34,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     prisma.session.findFirst({
       where: { campaignId: params.id, isActive: true },
       orderBy: { startedAt: 'desc' },
-      select: { id: true, tokensJson: true, musicYoutubeId: true, musicVolume: true, mapImageUrl: true, liveMembersJson: true },
+      select: { id: true, tokensJson: true, musicYoutubeId: true, musicVolume: true, mapImageUrl: true, liveMembersJson: true, markersJson: true },
     }).catch(() => null),
   ])
   if (!member) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
@@ -66,6 +66,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
       musicVolume:     activeSession.musicVolume,
       mapImageUrl:     activeSession.mapImageUrl,
       liveMembersJson: activeSession.liveMembersJson,
+      markersJson:     activeSession.markersJson,
     },
   })
 }
@@ -79,11 +80,36 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   }).catch(() => null)
   if (!member) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const body      = await req.json().catch(() => ({})) as { expression?: string; attribute?: string }
-  const expression = (body.expression ?? '1d20').trim().toLowerCase().slice(0, 30)
-  const attribute  = typeof body.attribute === 'string' ? body.attribute.slice(0, 80) : null
+  const body      = await req.json().catch(() => ({})) as { expression?: string; attribute?: string; message?: string }
+  const rawExpr   = (body.expression ?? '1d20').trim().toLowerCase().slice(0, 30)
+  const attribute = typeof body.attribute === 'string' ? body.attribute.slice(0, 80) : null
 
-  const result = rollDice(expression)
+  // Chat message — stored with expression="chat", attribute=message text
+  if (rawExpr === 'chat') {
+    const message = typeof body.message === 'string' ? body.message.trim().slice(0, 500) : ''
+    if (!message) return NextResponse.json({ error: 'Mensagem vazia' }, { status: 400 })
+
+    const activeSession = await prisma.session.findFirst({
+      where: { campaignId: params.id, isActive: true },
+      orderBy: { startedAt: 'desc' },
+    }).catch(() => null)
+    if (!activeSession) return NextResponse.json({ error: 'Nenhuma sessão ativa' }, { status: 400 })
+
+    const rollLog = await prisma.rollLog.create({
+      data: {
+        expression: 'chat',
+        rolls:      [],
+        modifier:   0,
+        total:      0,
+        attribute:  message,
+        rolledBy:   session.user.username,
+        sessionId:  activeSession.id,
+      },
+    })
+    return NextResponse.json({ ...rollLog, isCrit: false }, { status: 201 })
+  }
+
+  const result = rollDice(rawExpr)
   if (!result) {
     return NextResponse.json(
       { error: 'Expressão inválida. Use o formato XdY±Z (ex: 2d6+3). Máximo: 100 dados, d1000, modificador ±10000.' },
@@ -99,7 +125,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
   const rollLog = await prisma.rollLog.create({
     data: {
-      expression,
+      expression: rawExpr,
       rolls:     result.rolls,
       modifier:  result.modifier,
       total:     result.total,

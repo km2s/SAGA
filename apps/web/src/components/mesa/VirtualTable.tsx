@@ -11,7 +11,7 @@ import {
   MousePointer, Hand, Coins, MapPin, Ruler, Cloud, Eye,
   ClipboardList, Music, Map, Play, X, Dice6, Sparkles, Skull,
   MessageSquare, Image as ImageIcon, Minus, Plus, Swords, ChevronRight, BookOpen, HelpCircle,
-  Radio, Wifi, WifiOff,
+  Radio, Wifi, WifiOff, Send,
 } from 'lucide-react'
 import { safeImageUrl } from '@/lib/safe-url'
 import { MesaSpotlight } from '@/components/tutorial/MesaSpotlight'
@@ -25,6 +25,7 @@ interface Token {
   type: 'player' | 'enemy' | 'npc'; color: string
   hp?: number; maxHp?: number
   imageUrl?: string | null
+  allowedPlayers?: string[]
 }
 
 interface InitiativeEntry {
@@ -44,7 +45,7 @@ interface CharData {
 interface Member { id: string; role: string; user: { username: string }; character: CharData | null }
 interface NpcData { id: string; name: string; type: string; race: string | null; class: string | null; level: number; hp: number; maxHp: number; imageUrl: string | null; attributes: CharAttr[] }
 interface Campaign { id: string; name: string }
-interface SessionState { tokensJson: string | null; musicYoutubeId: string | null; musicVolume: number; mapImageUrl: string | null; liveMembersJson: string | null }
+interface SessionState { tokensJson: string | null; musicYoutubeId: string | null; musicVolume: number; mapImageUrl: string | null; liveMembersJson: string | null; markersJson?: string | null }
 interface ActiveSession { id: string; name: string | null; isActive: boolean; tokensJson?: string | null; musicYoutubeId?: string | null; musicVolume?: number; mapImageUrl?: string | null; liveMembersJson?: string | null }
 interface VirtualTableProps {
   campaign: Campaign; activeSession: ActiveSession | null
@@ -114,6 +115,8 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
   const [rollingDie, setRollingDie] = useState<string | null>(null)
   const [lastRollId, setLastRollId] = useState<string | null>(null)
   const [rollModifier, setRollModifier] = useState(0)
+  const [chatInput, setChatInput] = useState('')
+  const [sendingChat, setSendingChat] = useState(false)
   const [measureAnchor, setMeasureAnchor] = useState<{x:number;y:number}|null>(null)
   const [pointerWorld, setPointerWorld] = useState<{x:number;y:number}>({x:0,y:0})
   const [fogRects, setFogRects] = useState<{id:string;x:number;y:number;w:number;h:number}[]>([])
@@ -125,12 +128,14 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
   const [startSessionOpen, setStartSessionOpen] = useState(false)
   const [musicOpen, setMusicOpen] = useState(false)
   const [sheetsOpen, setSheetsOpen] = useState(false)
+  const [hpOverrides, setHpOverrides] = useState<Record<string, number>>({})
   const [initiativeOpen, setInitiativeOpen] = useState(false)
   const [initiativeOrder, setInitiativeOrder] = useState<InitiativeEntry[]>([])
   const [currentTurnIdx, setCurrentTurnIdx] = useState(0)
   const [handoutsOpen, setHandoutsOpen] = useState(false)
   const [gmCustomOpen, setGmCustomOpen] = useState(false)
   const [liveOpen, setLiveOpen] = useState(false)
+  const [expandedLiveMember, setExpandedLiveMember] = useState<string | null>(null)
   const [liveMembers, setLiveMembers] = useState<string[]>(() => {
     const raw = activeSession?.liveMembersJson
     if (!raw) return []
@@ -150,7 +155,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
   useEffect(() => { liveMembersRef.current = liveMembers }, [liveMembers])
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [rolls])
   useEffect(() => {
-    const t = setInterval(() => { const c = Date.now()-3500; setMarkers(p=>p.filter(m=>m.createdAt>c)) }, 500)
+    const t = setInterval(() => { const c = Date.now()-10000; setMarkers(p=>p.filter(m=>m.createdAt>c)) }, 500)
     return () => clearInterval(t)
   }, [])
   // Close map dropdown on click outside (no backdrop overlay needed)
@@ -180,7 +185,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
     const iv = setInterval(async () => {
       const res = await fetch(`/api/campaigns/${campaign.id}/rolls?since=${encodeURIComponent(sinceRef.current)}`).catch(()=>null)
       if (!res?.ok) return
-      const data: { rolls: RollLogEntry[]; sessionState: SessionState | null } = await res.json().catch(()=>({ rolls: [], sessionState: null }))
+      const data: { rolls: RollLogEntry[]; sessionState: SessionState | null } = await res.json().catch(() => ({ rolls: [], sessionState: null }))
       const fresh = data.rolls ?? []
       const st = data.sessionState
       if (fresh.length) {
@@ -206,6 +211,18 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
           setLiveMembers(live)
         } catch {}
       }
+      // Merge server markers (pings from other clients)
+      if (st?.markersJson) {
+        try {
+          const serverMarkers = JSON.parse(st.markersJson) as Marker[]
+          const now = Date.now()
+          setMarkers(prev => {
+            const localIds = new Set(prev.map(m => m.id))
+            const fresh = serverMarkers.filter(m => !localIds.has(m.id) && now - m.createdAt < 10000)
+            return fresh.length > 0 ? [...prev, ...fresh] : prev
+          })
+        } catch {}
+      }
     }, 5000)
     return () => clearInterval(iv)
   }, [campaign.id, activeSession])
@@ -223,7 +240,12 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
     const tokenId = tokenEl?.dataset.tokenId
 
     if (tool === 'select' && tokenId) {
-      const t = tokens.find(tok=>tok.id===tokenId)
+      const tok = tokens.find(t=>t.id===tokenId)
+      const hasLive = liveMembersRef.current.includes(currentMemberId)
+      const canMove = isGM ||
+        (hasLive && (tokenId === currentMemberId || (tok?.allowedPlayers?.includes(currentMemberId) ?? false)))
+      if (!canMove) return
+      const t = tok
       if (t) setTokenDrag({ tokenId, startMouseX:clientX, startMouseY:clientY, startTokenX:t.x, startTokenY:t.y })
       return
     }
@@ -238,7 +260,16 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
       setNewTokenColor(TOKEN_COLORS[tokens.length % TOKEN_COLORS.length] ?? TOKEN_COLORS[0]!)
     } else if (tool === 'marker') {
       const w = toWorld(clientX, clientY)
-      setMarkers(prev=>[...prev,{id:crypto.randomUUID(),x:w.x,y:w.y,color:'#f59e0b',createdAt:Date.now()}])
+      const newMarker = { id: crypto.randomUUID(), x: w.x, y: w.y, color: '#f59e0b', createdAt: Date.now() }
+      setMarkers(prev=>[...prev, newMarker])
+      // Broadcast ping to all clients via session state
+      if (activeSession?.isActive) {
+        const allMarkers = [...markers, newMarker].filter(m => Date.now() - m.createdAt < 10000)
+        fetch(`/api/campaigns/${campaign.id}/sessions/state`, {
+          method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ markersJson: JSON.stringify(allMarkers) }),
+        }).catch(() => {})
+      }
     } else if (tool === 'measure') {
       const w = toWorld(clientX, clientY)
       setMeasureAnchor(prev=>prev?null:w)
@@ -338,11 +369,15 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
   // ── Token mouse ──
   const onTokenDown = useCallback((e: React.MouseEvent, tokenId: string) => {
     if (tool!=='select') return
+    const tok = tokens.find(t=>t.id===tokenId)
+    const hasLive = liveMembers.includes(currentMemberId)
+    const canMove = isGM ||
+      (hasLive && (tokenId === currentMemberId || (tok?.allowedPlayers?.includes(currentMemberId) ?? false)))
+    if (!canMove) return
     e.stopPropagation()
-    const t=tokens.find(t=>t.id===tokenId)
-    if (!t) return
-    setTokenDrag({tokenId,startMouseX:e.clientX,startMouseY:e.clientY,startTokenX:t.x,startTokenY:t.y})
-  }, [tool,tokens])
+    if (!tok) return
+    setTokenDrag({tokenId,startMouseX:e.clientX,startMouseY:e.clientY,startTokenX:tok.x,startTokenY:tok.y})
+  }, [tool, tokens, isGM, currentMemberId, liveMembers])
 
   // ── Actions ──
   function addNewToken() {
@@ -399,6 +434,23 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
 
   function nextTurn() {
     setCurrentTurnIdx(i => (i + 1) % Math.max(1, initiativeOrder.length))
+  }
+
+  async function sendChatMessage() {
+    const text = chatInput.trim()
+    if (!text || !activeSession?.isActive || sendingChat) return
+    setSendingChat(true)
+    const res = await fetch(`/api/campaigns/${campaign.id}/rolls`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ expression: 'chat', message: text }),
+    }).catch(() => null)
+    setSendingChat(false)
+    if (!res?.ok) return
+    const entry: RollLogEntry = await res.json().catch(() => null)
+    if (!entry) return
+    setChatInput('')
+    sinceRef.current = entry.rolledAt
+    setRolls(prev => [entry, ...prev].slice(0, 50))
   }
 
   async function rollDie(die: string) {
@@ -511,7 +563,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
             {mapInputOpen && (
               <div className="absolute top-full right-0 mt-1.5 z-[60] w-72 rounded-xl border border-border shadow-2xl overflow-hidden"
                    style={{background:'rgba(15,15,28,0.98)',backdropFilter:'blur(12px)'}}>
-                <div className="px-3 py-2.5 border-b border-white/6 flex items-center justify-between">
+                <div className="px-3 py-2.5 flex items-center justify-between">
                   <span className="font-cinzel text-[11px] font-bold text-saga-muted uppercase tracking-widest">Imagem do Mapa</span>
                   <button onClick={()=>setMapInputOpen(false)} className="text-saga-dim hover:text-saga-text"><X size={13}/></button>
                 </div>
@@ -603,7 +655,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
               {liveOpen && (
                 <div className="absolute top-full right-0 mt-1.5 z-[60] w-72 rounded-xl border border-border shadow-2xl overflow-hidden"
                   style={{background:'rgba(15,15,28,0.98)',backdropFilter:'blur(12px)'}}>
-                  <div className="px-3 py-2.5 border-b border-white/6 flex items-center justify-between">
+                  <div className="px-3 py-2.5 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Radio size={12} className="text-emerald-400"/>
                       <span className="font-cinzel text-[11px] font-bold text-saga-muted uppercase tracking-widest">Controle Ao Vivo</span>
@@ -620,37 +672,83 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
                       <div className="space-y-1.5">
                         {members.filter(m => m.role !== 'GM').map(m => {
                           const hasLive = liveMembers.includes(m.id)
+                          const isExpanded = expandedLiveMember === m.id
+                          const otherTokens = tokens.filter(t => t.id !== m.id)
                           function toggleLive() {
                             const next = hasLive
                               ? liveMembers.filter(id => id !== m.id)
                               : [...liveMembers, m.id]
                             setLiveMembers(next)
+                            if (!next.includes(m.id)) setExpandedLiveMember(e => e === m.id ? null : e)
                             fetch(`/api/campaigns/${campaign.id}/sessions/state`, {
                               method: 'PATCH',
                               headers: {'Content-Type':'application/json'},
                               body: JSON.stringify({ liveMembersJson: JSON.stringify(next) }),
                             }).catch(() => {})
                           }
+                          function toggleTokenPermission(tokenId: string) {
+                            const updated = tokens.map(t => {
+                              if (t.id !== tokenId) return t
+                              const allowed = t.allowedPlayers ?? []
+                              const hasPerm = allowed.includes(m.id)
+                              return { ...t, allowedPlayers: hasPerm ? allowed.filter(id => id !== m.id) : [...allowed, m.id] }
+                            })
+                            setTokens(updated)
+                            syncTokens(updated)
+                          }
                           return (
-                            <div key={m.id}
-                              className="flex items-center justify-between px-3 py-2 rounded transition-all"
-                              style={{ background: hasLive ? 'rgba(16,185,129,0.08)' : 'rgba(255,255,255,0.03)', border: `1px solid ${hasLive ? 'rgba(16,185,129,0.25)' : 'rgba(255,255,255,0.07)'}` }}>
-                              <div className="flex items-center gap-2">
-                                {hasLive
-                                  ? <Wifi size={11} className="text-emerald-400 shrink-0"/>
-                                  : <WifiOff size={11} className="text-saga-dim shrink-0"/>
-                                }
-                                <div>
-                                  <p className="text-[12px] font-medium text-saga-text">{m.character?.name ?? m.user.username}</p>
-                                  {m.character?.name && (
-                                    <p className="text-[9px] text-saga-dim">{m.user.username}</p>
+                            <div key={m.id} className="space-y-1">
+                              <div
+                                className="flex items-center justify-between px-3 py-2 rounded transition-all"
+                                style={{ background: hasLive ? 'rgba(16,185,129,0.08)' : 'rgba(255,255,255,0.03)', border: `1px solid ${hasLive ? 'rgba(16,185,129,0.25)' : 'rgba(255,255,255,0.07)'}` }}>
+                                <div className="flex items-center gap-2">
+                                  {hasLive
+                                    ? <Wifi size={11} className="text-emerald-400 shrink-0"/>
+                                    : <WifiOff size={11} className="text-saga-dim shrink-0"/>
+                                  }
+                                  <div>
+                                    <p className="text-[12px] font-medium text-saga-text">{m.character?.name ?? m.user.username}</p>
+                                    {m.character?.name && (
+                                      <p className="text-[9px] text-saga-dim">{m.user.username}</p>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {hasLive && otherTokens.length > 0 && (
+                                    <button
+                                      onClick={() => setExpandedLiveMember(isExpanded ? null : m.id)}
+                                      title="Tokens extras que este jogador pode mover"
+                                      className={`text-[9px] px-1.5 py-0.5 rounded transition-all border ${isExpanded ? 'text-emerald-400 border-emerald-400/30 bg-emerald-400/10' : 'text-saga-dim border-white/10 hover:text-emerald-400 hover:border-emerald-400/20'}`}>
+                                      Tokens
+                                    </button>
                                   )}
+                                  <button onClick={toggleLive}
+                                    className={`relative w-9 h-5 rounded-full transition-all shrink-0 ${hasLive ? 'bg-emerald-500' : 'bg-white/10'}`}>
+                                    <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-all ${hasLive ? 'left-4' : 'left-0.5'}`}/>
+                                  </button>
                                 </div>
                               </div>
-                              <button onClick={toggleLive}
-                                className={`relative w-9 h-5 rounded-full transition-all shrink-0 ${hasLive ? 'bg-emerald-500' : 'bg-white/10'}`}>
-                                <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-all ${hasLive ? 'left-4' : 'left-0.5'}`}/>
-                              </button>
+                              {hasLive && isExpanded && otherTokens.length > 0 && (
+                                <div className="ml-2 px-2.5 py-2 rounded border border-emerald-400/10 space-y-1.5" style={{background:'rgba(16,185,129,0.04)'}}>
+                                  <p className="text-[9px] text-saga-dim">Tokens extras que <span className="text-saga-muted">{m.character?.name ?? m.user.username}</span> pode mover:</p>
+                                  {otherTokens.map(t => {
+                                    const checked = (t.allowedPlayers ?? []).includes(m.id)
+                                    return (
+                                      <label key={t.id} className="flex items-center gap-2 cursor-pointer group">
+                                        <input
+                                          type="checkbox"
+                                          checked={checked}
+                                          onChange={() => toggleTokenPermission(t.id)}
+                                          className="accent-emerald-500 w-3 h-3 shrink-0"
+                                        />
+                                        <span className={`text-[11px] transition-colors truncate ${checked ? 'text-emerald-300' : 'text-saga-muted group-hover:text-saga-text'}`}>
+                                          {t.label}
+                                        </span>
+                                      </label>
+                                    )
+                                  })}
+                                </div>
+                              )}
                             </div>
                           )
                         })}
@@ -769,7 +867,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
                     cursor:tool==='select'?(isDragging?'grabbing':'grab'):'default',
                     zIndex:isDragging?100:10}}
                   onMouseDown={e=>onTokenDown(e,t.id)}
-                  onContextMenu={e=>{e.preventDefault();if(tool==='select')removeToken(t.id)}}
+                  onContextMenu={e=>{e.preventDefault();if(tool==='select'&&isGM)removeToken(t.id)}}
                 >
                   <div className="relative w-10 h-10 rounded-full overflow-hidden flex items-center justify-center text-sm font-bold text-white"
                     style={{
@@ -814,7 +912,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
 
             {/* Markers */}
             {markers.map(m=>{
-              const age=(Date.now()-m.createdAt)/3500
+              const age=(Date.now()-m.createdAt)/10000
               const opacity=Math.max(0,1-age)
               return (
                 <div key={m.id} className="absolute pointer-events-none"
@@ -887,6 +985,8 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
               onClose={()=>setSheetsOpen(false)}
               members={members} npcs={npcs} currentMemberId={currentMemberId}
               isGM={isGM} campaignId={campaign.id} systemName={systemName}
+              hpOverrides={hpOverrides}
+              onHpChange={(id, hp) => setHpOverrides(prev => ({ ...prev, [id]: hp }))}
             />
           )}
 
@@ -1161,6 +1261,23 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
               </div>
             )}
             {[...rolls].reverse().map(roll=>{
+              const isChat = roll.expression === 'chat'
+              if (isChat) {
+                return (
+                  <div key={roll.id} className="flex gap-2 items-start">
+                    <div className="w-5 h-5 rounded-full bg-purple/60 flex items-center justify-center text-[9px] font-bold text-white shrink-0 mt-0.5">
+                      {roll.rolledBy[0]?.toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-baseline gap-1.5 mb-0.5">
+                        <span className="text-[10px] font-medium text-saga-muted">{roll.rolledBy}</span>
+                        <span className="text-[9px] text-saga-dim">{timeAgo(roll.rolledAt)}</span>
+                      </div>
+                      <p className="text-[12px] text-saga-text leading-relaxed break-words">{roll.attribute}</p>
+                    </div>
+                  </div>
+                )
+              }
               const arr=Array.isArray(roll.rolls)?(roll.rolls as number[]):[]
               const isCrit=arr.length===1&&arr[0]===20&&roll.expression.includes('d20')
               const isFail=arr.length===1&&arr[0]===1&&roll.expression.includes('d20')
@@ -1210,10 +1327,23 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
 
           {/* Input + Dice bar */}
           <div data-mesa-tutorial="dice" className="shrink-0" style={{borderTop:'1px solid rgba(255,255,255,0.07)',background:'rgba(0,0,0,0.25)'}}>
-            <div className="px-3 pt-2.5 pb-1">
-              <input value="" readOnly disabled={!activeSession?.isActive} placeholder="Escreva uma mensagem..."
-                className="w-full rounded px-3 py-2 text-[12px] text-saga-text placeholder:text-saga-dim focus:outline-none disabled:opacity-40"
-                style={{background:'rgba(255,255,255,0.05)'}}/>
+            <div className="px-3 pt-2.5 pb-1 flex gap-2">
+              <input
+                value={chatInput}
+                onChange={e => setChatInput(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void sendChatMessage() } }}
+                disabled={!activeSession?.isActive || sendingChat}
+                placeholder={activeSession?.isActive ? 'Escreva uma mensagem...' : 'Inicie uma sessão para conversar'}
+                className="flex-1 rounded px-3 py-2 text-[12px] text-saga-text placeholder:text-saga-dim focus:outline-none disabled:opacity-40"
+                style={{background:'rgba(255,255,255,0.05)'}}
+              />
+              <button
+                onClick={() => void sendChatMessage()}
+                disabled={!activeSession?.isActive || !chatInput.trim() || sendingChat}
+                className="px-2.5 rounded text-[11px] font-medium text-saga-dim hover:text-saga-text disabled:opacity-30 transition-all shrink-0"
+                style={{background:'rgba(255,255,255,0.05)'}}>
+                <Send size={13}/>
+              </button>
             </div>
             <div className="px-3 pb-2.5 pt-1">
               {/* Modifier row */}

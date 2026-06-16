@@ -1603,6 +1603,97 @@ function GenericTab({ attrs, weapons, characterId, canEdit, onAdd, onDelete, onR
   )
 }
 
+// ─── Habilidades (character abilities) ───────────────────────────────────────
+
+interface Ability { id: string; name: string; desc: string }
+
+function AbilitiesSection({ characterId, textFields, canEdit, onRefresh }: {
+  characterId: string; textFields: TextField[]; canEdit: boolean; onRefresh: () => void
+}) {
+  const raw = textFields.find(f => f.key === 'char_abilities')?.value ?? '[]'
+  const [abilities, setAbilities] = useState<Ability[]>(() => {
+    try { return JSON.parse(raw) as Ability[] } catch { return [] }
+  })
+  const [adding, setAdding] = useState(false)
+  const [newName, setNewName] = useState('')
+  const [newDesc, setNewDesc] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  async function saveList(list: Ability[]) {
+    setAbilities(list)
+    await fetch(`/api/characters/${characterId}/text-fields`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: 'char_abilities', label: 'Habilidades', value: JSON.stringify(list) }),
+    }).catch(() => null)
+    onRefresh()
+  }
+
+  async function addAbility() {
+    if (!newName.trim()) return
+    setSaving(true)
+    const entry: Ability = { id: crypto.randomUUID(), name: newName.trim(), desc: newDesc.trim() }
+    await saveList([...abilities, entry])
+    setNewName(''); setNewDesc(''); setAdding(false)
+    setSaving(false)
+  }
+
+  return (
+    <div className="space-y-3">
+      {abilities.length === 0 && !adding && (
+        <p className="text-sm text-saga-dim text-center py-6">
+          {canEdit ? 'Nenhuma habilidade. Clique em "+ Adicionar" para criar.' : 'Nenhuma habilidade registrada.'}
+        </p>
+      )}
+      {abilities.map(a => (
+        <div key={a.id} className="rounded-lg p-3 group"
+          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+          <div className="flex items-start justify-between gap-2">
+            <p className="text-sm font-semibold text-saga-text">{a.name}</p>
+            {canEdit && (
+              <button onClick={() => void saveList(abilities.filter(b => b.id !== a.id))}
+                className="opacity-0 group-hover:opacity-100 text-saga-dim hover:text-red-400 transition-all shrink-0">
+                <X size={13} />
+              </button>
+            )}
+          </div>
+          {a.desc && <p className="text-[12px] text-saga-muted mt-1 leading-relaxed whitespace-pre-wrap">{a.desc}</p>}
+        </div>
+      ))}
+      {canEdit && (
+        adding ? (
+          <div className="rounded-lg p-3 space-y-2"
+            style={{ background: 'rgba(201,162,42,0.06)', border: '1px solid rgba(201,162,42,0.2)' }}>
+            <input autoFocus value={newName} onChange={e => setNewName(e.target.value)}
+              placeholder="Nome da habilidade..."
+              className="w-full bg-surface-2/50 border border-white/10 rounded px-2 py-1.5 text-sm text-saga-text placeholder:text-saga-dim/50 focus:outline-none focus:border-gold/30" />
+            <textarea value={newDesc} onChange={e => setNewDesc(e.target.value)}
+              placeholder="Descrição (opcional)..." rows={3}
+              className="w-full bg-surface-2/50 border border-white/10 rounded px-2 py-1.5 text-sm text-saga-muted placeholder:text-saga-dim/50 focus:outline-none focus:border-gold/30 resize-none" />
+            <div className="flex gap-2">
+              <button onClick={() => void addAbility()} disabled={saving || !newName.trim()}
+                className="px-3 py-1.5 rounded text-[11px] font-bold disabled:opacity-40 transition-all"
+                style={{ background: 'rgba(201,162,42,0.15)', border: '1px solid rgba(201,162,42,0.3)', color: '#c9a22a' }}>
+                {saving ? 'Salvando...' : 'Adicionar'}
+              </button>
+              <button onClick={() => { setAdding(false); setNewName(''); setNewDesc('') }}
+                className="px-3 py-1.5 rounded text-[11px] text-saga-dim hover:text-saga-muted border border-white/10 transition-all">
+                Cancelar
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button onClick={() => setAdding(true)}
+            className="flex items-center gap-1.5 text-[11px] font-bold transition-all hover:opacity-80 px-3 py-1.5 rounded"
+            style={{ background: 'rgba(201,162,42,0.08)', border: '1px solid rgba(201,162,42,0.2)', color: '#c9a22a' }}>
+            <Plus size={12} />
+            Adicionar Habilidade
+          </button>
+        )
+      )}
+    </div>
+  )
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export function CharacterSheetView({ characterId, characterLevel, attributes, textFields, weapons, spellSlots, canEdit, canEditWeapons = canEdit, category, systemName, onRefresh }: Props) {
@@ -1713,10 +1804,12 @@ export function CharacterSheetView({ characterId, characterLevel, attributes, te
     tabs.push({ id: 'pericias', label: 'Perícias' })
     tabs.push({ id: 'combate',    label: 'Combate',    icon: Sword })
     tabs.push({ id: 'magias',     label: 'Magias',     icon: Wand2 })
+    tabs.push({ id: 'habilidades_custom', label: 'Habilidades' })
     tabs.push({ id: 'personagem', label: 'Personagem', icon: User })
   } else if (category === 'fantasy') {
     tabs.push({ id: 'atributos', label: 'Atributos' })
     tabs.push({ id: 'combate',   label: 'Combate' })
+    tabs.push({ id: 'habilidades_custom', label: 'Habilidades' })
     tabs.push({ id: 'personagem', label: 'Personagem', icon: User })
   } else if (category === 'world-of-darkness') {
     tabs.push({ id: 'atributos', label: 'Atributos' })
@@ -1733,9 +1826,11 @@ export function CharacterSheetView({ characterId, characterLevel, attributes, te
     tabs.push({ id: 'caracteristicas', label: 'Características' })
     tabs.push({ id: 'pericias', label: 'Perícias' })
     tabs.push({ id: 'combate',  label: 'Combate' })
+    tabs.push({ id: 'habilidades_custom', label: 'Habilidades' })
     tabs.push({ id: 'personagem', label: 'Personagem', icon: User })
   } else {
     tabs.push({ id: 'atributos', label: 'Atributos' })
+    tabs.push({ id: 'habilidades_custom', label: 'Habilidades' })
     tabs.push({ id: 'personagem', label: 'Personagem', icon: User })
   }
 
@@ -1944,6 +2039,11 @@ export function CharacterSheetView({ characterId, characterLevel, attributes, te
         )}
         {(category === 'scifi' || category === 'generic' || category === 'custom') && currentTab === 'personagem' && (
           <DnD5ePersonagem textFields={narrativeFields} characterId={characterId} canEdit={canEdit} onRefresh={refresh} />
+        )}
+
+        {/* Habilidades (todas as categorias exceto WoD que tem sistema próprio) */}
+        {currentTab === 'habilidades_custom' && (
+          <AbilitiesSection characterId={characterId} textFields={textFields} canEdit={canEdit} onRefresh={refresh} />
         )}
       </div>
 

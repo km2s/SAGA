@@ -62,6 +62,8 @@ interface Props {
   isGM: boolean
   campaignId: string
   systemName: string | null
+  hpOverrides?: Record<string, number>
+  onHpChange?: (id: string, hp: number) => void
 }
 
 const CLASS_ICONS: Record<string, React.ElementType> = {
@@ -324,7 +326,7 @@ type Selection =
   | { kind: 'member'; id: string }
   | { kind: 'npc';    id: string }
 
-export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, isGM, campaignId, systemName }: Props) {
+export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, isGM, campaignId, systemName, hpOverrides = {}, onHpChange }: Props) {
   const membersWithChar = members.filter(m => m.character)
 
   const [selection, setSelection] = useState<Selection>(() => {
@@ -396,7 +398,7 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
         onWheel={e => e.stopPropagation()}>
 
         {/* Header */}
-        <div className="px-4 py-3 border-b border-white/6 shrink-0 flex items-center justify-between">
+        <div className="px-4 py-3 shrink-0 flex items-center justify-between">
           <div className="flex items-center gap-2">
             {isFullMode && (
               <button onClick={() => { setViewMode('summary'); setFullData(null) }}
@@ -417,7 +419,7 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
 
         {/* Picker — jogadores + NPCs (hidden in full mode) */}
         {!isFullMode && showPicker && (
-          <div className="px-3 pt-2.5 pb-2 border-b border-white/6 shrink-0 space-y-3 max-h-52 overflow-y-auto">
+          <div className="px-3 pt-2.5 pb-2 shrink-0 space-y-3 max-h-52 overflow-y-auto">
             {membersWithChar.length > 0 && (
               <div>
                 <p className="text-[9px] font-bold text-saga-dim uppercase tracking-widest mb-1.5">Jogadores</p>
@@ -551,10 +553,11 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
 
                 <HPEditor
                   key={char.id}
-                  initialHp={char.hp}
+                  initialHp={hpOverrides[char.id] ?? char.hp}
                   maxHp={char.maxHp}
                   canEdit={isGM || selectedMember?.id === currentMemberId}
                   onSave={hp => {
+                    onHpChange?.(char.id, hp)
                     fetch(`/api/characters/${char.id}`, {
                       method: 'PATCH',
                       headers: { 'Content-Type': 'application/json' },
@@ -622,10 +625,11 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
 
                   <HPEditor
                     key={selectedNpc.id}
-                    initialHp={selectedNpc.hp}
+                    initialHp={hpOverrides[selectedNpc.id] ?? selectedNpc.hp}
                     maxHp={selectedNpc.maxHp}
                     canEdit={isGM}
                     onSave={hp => {
+                      onHpChange?.(selectedNpc.id, hp)
                       fetch(`/api/campaigns/${campaignId}/npcs/${selectedNpc.id}`, {
                         method: 'PATCH',
                         headers: { 'Content-Type': 'application/json' },
