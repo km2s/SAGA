@@ -1,6 +1,9 @@
 import type { Metadata } from 'next'
+import { cookies } from 'next/headers'
 import './globals.css'
 import SessionProvider from '@/components/providers/SessionProvider'
+import { LocaleProvider } from '@/lib/i18n/context'
+import type { Locale } from '@/lib/i18n/translations'
 
 export const metadata: Metadata = {
   title: 'SAGA — RPG Campaign Manager',
@@ -8,10 +11,18 @@ export const metadata: Metadata = {
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = cookies()
+  const locale = (cookieStore.get('saga-locale')?.value ?? 'pt') as Locale
+  const htmlLang = locale === 'en' ? 'en' : 'pt-BR'
+
   return (
-    <html lang="pt-BR">
+    <html lang={htmlLang}>
       <body className="bg-bg text-saga-text antialiased">
-        <SessionProvider>{children}</SessionProvider>
+        <SessionProvider>
+          <LocaleProvider initialLocale={locale}>
+            {children}
+          </LocaleProvider>
+        </SessionProvider>
       </body>
     </html>
   )

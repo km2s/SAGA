@@ -229,6 +229,8 @@ model NPC {
   linkedMember CampaignMember? @relation("NPCLinkedMember", fields: [linkedMemberId], references: [id])
   attributes   NPCAttribute[]
   textFields   NPCTextField[]
+  weapons      NPCWeapon[]
+  spellSlots   NPCSpellSlot[]
   visibilities NPCVisibility[]
 
   @@index([campaignId])
@@ -258,6 +260,35 @@ model NPCTextField {
   npc NPC @relation(fields: [npcId], references: [id], onDelete: Cascade)
 
   @@unique([npcId, key])
+  @@index([npcId])
+}
+
+model NPCWeapon {
+  id          String  @id @default(cuid())
+  npcId       String
+  name        String
+  attackBonus String?
+  damage      String?
+  damageType  String?
+  range       String?
+  properties  String?
+  order       Int     @default(0)
+
+  npc NPC @relation(fields: [npcId], references: [id], onDelete: Cascade)
+
+  @@index([npcId])
+}
+
+model NPCSpellSlot {
+  id    String @id @default(cuid())
+  npcId String
+  level Int
+  total Int    @default(0)
+  used  Int    @default(0)
+
+  npc NPC @relation(fields: [npcId], references: [id], onDelete: Cascade)
+
+  @@unique([npcId, level])
   @@index([npcId])
 }
 

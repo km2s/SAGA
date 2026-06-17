@@ -16,17 +16,48 @@ import {
   X,
   Library,
   HelpCircle,
+  Globe,
 } from 'lucide-react'
+import { useLocale } from '@/lib/i18n/context'
+import type { Locale } from '@/lib/i18n/translations'
 
 interface SidebarProps {
   campaigns?: Array<{ id: string; name: string }>
   discordClientId?: string
 }
 
+function LangSwitcher() {
+  const { locale, setLocale } = useLocale()
+
+  function toggle(l: Locale) {
+    if (l !== locale) setLocale(l)
+  }
+
+  return (
+    <div className="flex items-center gap-1.5 px-3 py-2">
+      <Globe size={12} className="text-saga-dim shrink-0" />
+      <button
+        onClick={() => toggle('pt')}
+        className={`text-[11px] font-bold tracking-wide transition-colors ${locale === 'pt' ? 'text-gold' : 'text-saga-dim hover:text-saga-muted'}`}
+      >
+        PT
+      </button>
+      <span className="text-saga-dim/40 text-[10px] select-none">/</span>
+      <button
+        onClick={() => toggle('en')}
+        className={`text-[11px] font-bold tracking-wide transition-colors ${locale === 'en' ? 'text-gold' : 'text-saga-dim hover:text-saga-muted'}`}
+      >
+        EN
+      </button>
+    </div>
+  )
+}
+
 export function Sidebar({ campaigns = [], discordClientId }: SidebarProps) {
   const pathname = usePathname()
   const { data: session } = useSession()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const { t } = useLocale()
 
   function isActive(href: string) {
     return pathname === href || pathname.startsWith(href + '/')
@@ -43,7 +74,7 @@ export function Sidebar({ campaigns = [], discordClientId }: SidebarProps) {
         <button
           className="md:hidden fixed top-3 left-3 z-50 w-9 h-9 bg-surface border border-border rounded flex items-center justify-center text-saga-muted hover:text-saga-text transition-colors shadow-lg"
           onClick={() => setMobileOpen(true)}
-          aria-label="Abrir menu"
+          aria-label={t.nav.openMenu}
         >
           <Menu size={18} />
         </button>
@@ -76,7 +107,7 @@ export function Sidebar({ campaigns = [], discordClientId }: SidebarProps) {
           <button
             className="md:hidden text-saga-dim hover:text-saga-text transition-colors"
             onClick={() => setMobileOpen(false)}
-            aria-label="Fechar menu"
+            aria-label={t.nav.closeMenu}
           >
             <X size={18} />
           </button>
@@ -85,9 +116,9 @@ export function Sidebar({ campaigns = [], discordClientId }: SidebarProps) {
         {/* Main nav */}
         <div className="px-3 pt-3 flex flex-col gap-0.5">
           {[
-            { href: '/dashboard',   label: 'Dashboard',        Icon: LayoutDashboard },
-            { href: '/characters',  label: 'Meus Personagens', Icon: ScrollText },
-            { href: '/systems',     label: 'Sistemas',         Icon: Library },
+            { href: '/dashboard',  label: t.nav.dashboard,   Icon: LayoutDashboard },
+            { href: '/characters', label: t.nav.characters,  Icon: ScrollText },
+            { href: '/systems',    label: t.nav.systems,     Icon: Library },
           ].map(({ href, label, Icon }) => (
             <Link key={href} href={href} onClick={() => setMobileOpen(false)}>
               <div className={`flex items-center gap-2.5 px-3 py-2.5 rounded text-sm transition-all cursor-pointer
@@ -107,7 +138,7 @@ export function Sidebar({ campaigns = [], discordClientId }: SidebarProps) {
         {campaigns.length > 0 && (
           <div className="px-3 mt-3">
             <p className="text-[10px] font-bold text-saga-dim uppercase tracking-[2px] px-3 py-2">
-              Minhas Campanhas
+              {t.nav.campaigns}
             </p>
             <div className="flex flex-col gap-0.5">
               {campaigns.map(c => (
@@ -128,14 +159,14 @@ export function Sidebar({ campaigns = [], discordClientId }: SidebarProps) {
           </div>
         )}
 
-        {/* Bot invite + Tutorial */}
-        <div className={`px-3 ${inviteUrl ? 'mt-auto' : 'mt-auto'} mb-2 flex flex-col gap-0.5`}>
+        {/* Bot invite + Tutorial + LangSwitcher */}
+        <div className={`px-3 mt-auto mb-2 flex flex-col gap-0.5`}>
           <button
             onClick={() => window.dispatchEvent(new Event('saga:open-checklist'))}
             className="flex items-center gap-2.5 px-3 py-2.5 rounded text-sm text-saga-dim hover:text-gold hover:bg-gold-dim border border-transparent hover:border-gold/20 transition-all cursor-pointer w-full"
           >
             <HelpCircle size={15} strokeWidth={1.8} className="shrink-0" />
-            <span>Primeiros Passos</span>
+            <span>{t.nav.gettingStarted}</span>
           </button>
           {inviteUrl && (
             <a
@@ -145,13 +176,14 @@ export function Sidebar({ campaigns = [], discordClientId }: SidebarProps) {
               className="flex items-center gap-2.5 px-3 py-2.5 rounded text-sm text-saga-dim hover:text-gold hover:bg-gold-dim border border-transparent hover:border-gold/20 transition-all cursor-pointer"
             >
               <Bot size={15} strokeWidth={1.8} className="shrink-0" />
-              <span>Convidar Bot</span>
+              <span>{t.nav.inviteBot}</span>
             </a>
           )}
+          <LangSwitcher />
         </div>
 
         {/* User */}
-        <div className={`border-t border-border p-3 ${inviteUrl ? '' : 'mt-auto'}`}>
+        <div className="border-t border-border p-3">
           <div className="flex items-center gap-2.5 p-2 rounded cursor-pointer hover:bg-surface-2 transition-all group">
             {session?.user?.image ? (
               <Image
@@ -168,14 +200,14 @@ export function Sidebar({ campaigns = [], discordClientId }: SidebarProps) {
             )}
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-saga-text truncate">
-                {session?.user?.username ?? 'Carregando...'}
+                {session?.user?.username ?? t.user.loading}
               </p>
-              <p className="text-[11px] text-saga-muted">Discord</p>
+              <p className="text-[11px] text-saga-muted">{t.user.discord}</p>
             </div>
             <button
               onClick={() => signOut({ callbackUrl: '/login' })}
               className="opacity-0 group-hover:opacity-100 text-saga-dim hover:text-saga-danger transition-all"
-              title="Sair"
+              title={t.user.signOut}
             >
               <LogOut size={14} />
             </button>

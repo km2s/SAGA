@@ -26,26 +26,63 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     },
   }).catch(() => null)
 
-  if (!sheet) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (sheet) {
+    const isMine = sheet.member.user.discordId === session.user.discordId
+    const gmMembership = await prisma.campaignMember.findFirst({
+      where: {
+        campaignId: sheet.member.campaignId,
+        user: { discordId: session.user.discordId },
+        role: 'GM',
+      },
+    }).catch(() => null)
 
-  const isMine = sheet.member.user.discordId === session.user.discordId
+    if (!isMine && !gmMembership) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+    return NextResponse.json({
+      level: sheet.level,
+      systemName: sheet.member.campaign.system?.name ?? null,
+      canEdit: isMine || !!gmMembership,
+      attributes: sheet.attributes,
+      textFields:  sheet.textFields,
+      weapons:     sheet.weapons,
+      spellSlots:  sheet.spellSlots,
+    })
+  }
+
+  // ── NPC fallback ─────────────────────────────────────────────────────────────
+  const npc = await prisma.nPC.findUnique({
+    where: { id: params.id },
+    include: {
+      campaign: { include: { system: true } },
+      attributes: {
+        include: { attribute: true },
+        orderBy: { attribute: { name: 'asc' } },
+      },
+      textFields: { orderBy: { order: 'asc' } },
+      weapons:    { orderBy: { order: 'asc' } },
+      spellSlots: { orderBy: { level: 'asc' } },
+    },
+  }).catch(() => null)
+
+  if (!npc) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
   const gmMembership = await prisma.campaignMember.findFirst({
     where: {
-      campaignId: sheet.member.campaignId,
+      campaignId: npc.campaignId,
       user: { discordId: session.user.discordId },
       role: 'GM',
     },
   }).catch(() => null)
 
-  if (!isMine && !gmMembership) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  if (!gmMembership) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   return NextResponse.json({
-    level: sheet.level,
-    systemName: sheet.member.campaign.system?.name ?? null,
-    canEdit: isMine || !!gmMembership,
-    attributes: sheet.attributes,
-    textFields:  sheet.textFields,
-    weapons:     sheet.weapons,
-    spellSlots:  sheet.spellSlots,
+    level: npc.level,
+    systemName: npc.campaign.system?.name ?? null,
+    canEdit: true,
+    attributes: npc.attributes,
+    textFields:  npc.textFields,
+    weapons:     npc.weapons,
+    spellSlots:  npc.spellSlots,
   })
 }

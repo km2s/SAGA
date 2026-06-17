@@ -54,10 +54,6 @@ interface FullCharData {
   spellSlots: { id: string; level: number; total: number; used: number }[]
 }
 
-interface FullNpcData {
-  description: string | null
-  attributes: CharAttr[]
-}
 
 interface Props {
   onClose: () => void
@@ -327,104 +323,6 @@ function NotesBlock({ charId, canEdit }: { charId: string; canEdit: boolean }) {
   )
 }
 
-function NpcAttrRow({ attr, npcId, campaignId, onSaved }: {
-  attr: CharAttr; npcId: string; campaignId: string; onSaved: () => void
-}) {
-  const [editing, setEditing] = useState(false)
-  const [val, setVal] = useState(String(attr.value))
-  const [saving, setSaving] = useState(false)
-
-  async function save() {
-    const n = parseInt(val, 10)
-    if (isNaN(n) || n === attr.value) { setEditing(false); return }
-    setSaving(true)
-    await fetch(`/api/campaigns/${campaignId}/npcs/${npcId}/attributes`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: attr.name, value: n, defaultDie: attr.defaultDie }),
-    }).catch(() => null)
-    setSaving(false)
-    setEditing(false)
-    onSaved()
-  }
-
-  async function adjust(delta: number) {
-    const next = attr.value + delta
-    setSaving(true)
-    await fetch(`/api/campaigns/${campaignId}/npcs/${npcId}/attributes`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: attr.name, value: next, defaultDie: attr.defaultDie }),
-    }).catch(() => null)
-    setSaving(false)
-    onSaved()
-  }
-
-  return (
-    <div className="flex items-center justify-between px-3 py-2 rounded bg-white/[0.03] border border-white/[0.06]">
-      <span className="text-[12px] text-saga-muted">{attr.name}</span>
-      <div className="flex items-center gap-1.5">
-        <button onClick={() => void adjust(-1)} disabled={saving}
-          className="w-5 h-5 flex items-center justify-center rounded text-saga-dim hover:text-red-400 hover:bg-red-400/10 transition-all disabled:opacity-30">
-          <Minus size={9} />
-        </button>
-        {editing ? (
-          <input autoFocus type="number" value={val}
-            onChange={e => setVal(e.target.value)}
-            onBlur={() => void save()}
-            onKeyDown={e => { if (e.key === 'Enter') void save(); if (e.key === 'Escape') setEditing(false) }}
-            className="w-10 text-center font-cinzel font-bold text-sm bg-transparent border-b border-white/20 outline-none text-saga-text" />
-        ) : (
-          <span
-            className="font-cinzel font-bold text-sm text-saga-text cursor-pointer hover:text-gold transition-colors w-10 text-center"
-            onClick={() => { setVal(String(attr.value)); setEditing(true) }}
-            title="Clique para editar">
-            {attr.value}
-          </span>
-        )}
-        <button onClick={() => void adjust(1)} disabled={saving}
-          className="w-5 h-5 flex items-center justify-center rounded text-saga-dim hover:text-green-400 hover:bg-green-400/10 transition-all disabled:opacity-30">
-          <Plus size={9} />
-        </button>
-      </div>
-    </div>
-  )
-}
-
-function NpcDescriptionField({ npcId, campaignId, initialDescription }: {
-  npcId: string; campaignId: string; initialDescription: string | null
-}) {
-  const [desc, setDesc] = useState(initialDescription ?? '')
-  const [saving, setSaving] = useState(false)
-
-  async function save() {
-    setSaving(true)
-    await fetch(`/api/campaigns/${campaignId}/npcs/${npcId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ description: desc || null }),
-    }).catch(() => null)
-    setSaving(false)
-  }
-
-  return (
-    <div className="rounded-lg p-3 bg-white/[0.03] border border-white/[0.07]">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-[10px] font-bold text-saga-dim uppercase tracking-widest">Descrição</span>
-        {saving && <span className="text-[9px] text-saga-dim opacity-50">Salvando...</span>}
-      </div>
-      <textarea
-        value={desc}
-        onChange={e => setDesc(e.target.value)}
-        onBlur={() => void save()}
-        placeholder="Descreva o NPC — aparência, personalidade, motivações..."
-        rows={4}
-        className="w-full bg-transparent text-[12px] text-saga-text placeholder:text-saga-dim/50 focus:outline-none resize-none leading-relaxed"
-      />
-    </div>
-  )
-}
-
 type Selection =
   | { kind: 'member'; id: string }
   | { kind: 'npc';    id: string }
@@ -444,7 +342,7 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
   const [viewMode, setViewMode] = useState<'summary' | 'full'>('summary')
   const [fullData, setFullData] = useState<FullCharData | null>(null)
   const [loadingFull, setLoadingFull] = useState(false)
-  const [fullNpcData, setFullNpcData] = useState<FullNpcData | null>(null)
+  const [fullNpcData, setFullNpcData] = useState<FullCharData | null>(null)
   const [loadingNpcFull, setLoadingNpcFull] = useState(false)
 
   const selectedMember = selection.kind === 'member' ? members.find(m => m.id === selection.id) : null
@@ -467,19 +365,9 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
   async function openFullNpcSheet(npcId: string) {
     setLoadingNpcFull(true)
     setViewMode('full')
-    const res = await fetch(`/api/campaigns/${campaignId}/npcs/${npcId}`).catch(() => null)
-    if (res?.ok) {
-      const raw = await res.json() as {
-        description: string | null
-        attributes: { id: string; value: number; attribute: { name: string; defaultDie: string } }[]
-      }
-      setFullNpcData({
-        description: raw.description,
-        attributes: raw.attributes.map(a => ({
-          id: a.id, value: a.value, name: a.attribute.name, defaultDie: a.attribute.defaultDie,
-        })),
-      })
-    }
+    const res = await fetch(`/api/characters/${npcId}/full`).catch(() => null)
+    const data = res?.ok ? (await res.json() as FullCharData) : null
+    setFullNpcData(data)
     setLoadingNpcFull(false)
   }
 
@@ -491,20 +379,10 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
   }, [char])
 
   const refreshNpcFull = useCallback(async (npcId: string) => {
-    const res = await fetch(`/api/campaigns/${campaignId}/npcs/${npcId}`).catch(() => null)
-    if (res?.ok) {
-      const raw = await res.json() as {
-        description: string | null
-        attributes: { id: string; value: number; attribute: { name: string; defaultDie: string } }[]
-      }
-      setFullNpcData({
-        description: raw.description,
-        attributes: raw.attributes.map(a => ({
-          id: a.id, value: a.value, name: a.attribute.name, defaultDie: a.attribute.defaultDie,
-        })),
-      })
-    }
-  }, [campaignId])
+    const res = await fetch(`/api/characters/${npcId}/full`).catch(() => null)
+    const data = res?.ok ? (await res.json() as FullCharData) : null
+    setFullNpcData(data)
+  }, [])
 
   function switchSelection(sel: Selection) {
     setSelection(sel)
@@ -542,7 +420,7 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
         <div className="px-4 py-3 shrink-0 flex items-center justify-between">
           <div className="flex items-center gap-2">
             {isFullMode && (
-              <button onClick={() => { setViewMode('summary'); setFullData(null) }}
+              <button onClick={() => { setViewMode('summary'); setFullData(null); setFullNpcData(null) }}
                 className="w-6 h-6 flex items-center justify-center rounded text-saga-dim hover:text-saga-text hover:bg-white/8 transition-all mr-1">
                 <ArrowLeft size={13} />
               </button>
@@ -739,34 +617,19 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
                   <p className="text-[12px] text-saga-dim">Carregando ficha...</p>
                 </div>
               ) : (
-                <div className="p-4 space-y-5">
-                  {/* Description */}
-                  <NpcDescriptionField
-                    key={selectedNpc.id}
-                    npcId={selectedNpc.id}
-                    campaignId={campaignId}
-                    initialDescription={fullNpcData.description}
+                <div className="p-4">
+                  <CharacterSheetView
+                    characterId={selectedNpc.id}
+                    characterLevel={fullNpcData.level}
+                    attributes={fullNpcData.attributes}
+                    textFields={fullNpcData.textFields}
+                    weapons={fullNpcData.weapons}
+                    spellSlots={fullNpcData.spellSlots}
+                    canEdit={fullNpcData.canEdit}
+                    category={detectCategory(fullNpcData.systemName)}
+                    systemName={fullNpcData.systemName}
+                    onRefresh={() => void refreshNpcFull(selectedNpc.id)}
                   />
-
-                  {/* Editable attributes */}
-                  <div>
-                    <p className="text-[10px] font-bold text-saga-dim uppercase tracking-widest mb-3">Atributos</p>
-                    {fullNpcData.attributes.length === 0 ? (
-                      <p className="text-sm text-saga-dim text-center py-4">Nenhum atributo registrado.</p>
-                    ) : (
-                      <div className="space-y-1.5">
-                        {fullNpcData.attributes.map(attr => (
-                          <NpcAttrRow
-                            key={attr.id}
-                            attr={attr}
-                            npcId={selectedNpc.id}
-                            campaignId={campaignId}
-                            onSaved={() => void refreshNpcFull(selectedNpc.id)}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
                 </div>
               )
             )
