@@ -67,6 +67,22 @@ body {
 .bg-danger-dim { background: var(--danger-dim); }
 .border-gold-dim { border-color: var(--gold-glow); }
 
+/* Native select dark theme — forces OS dropdown to render in dark mode */
+select {
+  color-scheme: dark;
+}
+
+select option {
+  background-color: #11111e;
+  color: #e2e2f0;
+}
+
+select optgroup {
+  background-color: #191926;
+  color: #7878a0;
+  font-weight: 600;
+}
+
 /* Card hover lift */
 .card-hover {
   transition: all 0.18s ease;
