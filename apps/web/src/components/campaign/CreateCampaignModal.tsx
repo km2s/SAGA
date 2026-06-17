@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
-import { ChevronRight, ChevronLeft, BookOpen } from 'lucide-react'
+import { ChevronRight, ChevronLeft, ChevronDown, BookOpen } from 'lucide-react'
 
 interface RPGSystem { id: string; name: string; category: string }
 
@@ -69,6 +69,8 @@ export function CreateCampaignModal({ open, onClose }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [systems, setSystems] = useState<RPGSystem[]>([])
+  const [systemDropdownOpen, setSystemDropdownOpen] = useState(false)
+  const systemDropdownRef = useRef<HTMLDivElement>(null)
 
   const [form, setForm] = useState({
     name: '',
@@ -97,6 +99,17 @@ export function CreateCampaignModal({ open, onClose }: Props) {
       .then((data: RPGSystem[]) => Array.isArray(data) && setSystems(data))
       .catch(() => {})
   }, [open])
+
+  useEffect(() => {
+    if (!systemDropdownOpen) return
+    function onMouseDown(e: MouseEvent) {
+      if (systemDropdownRef.current && !systemDropdownRef.current.contains(e.target as Node)) {
+        setSystemDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onMouseDown)
+    return () => document.removeEventListener('mousedown', onMouseDown)
+  }, [systemDropdownOpen])
 
   function toggleStyle(val: string) {
     setForm(f => ({
@@ -221,16 +234,47 @@ export function CreateCampaignModal({ open, onClose }: Props) {
 
             <div>
               <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">Sistema</label>
-              <select name="systemName" value={form.systemName}
-                onChange={e => setForm(f => ({ ...f, systemName: e.target.value, addToSystems: false, customSystemName: '', systemDescription: '' }))}
-                className={inputCls}>
-                <option value="">Nenhum / Livre</option>
-                {grouped.map(({ cat, items }) => (
-                  <optgroup key={cat} label={CATEGORY_LABELS[cat] ?? cat}>
-                    {items.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
-                  </optgroup>
-                ))}
-              </select>
+              <div ref={systemDropdownRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setSystemDropdownOpen(o => !o)}
+                  className={`${inputCls} flex items-center justify-between gap-2 cursor-pointer`}
+                >
+                  <span className={form.systemName ? 'text-saga-text' : 'text-saga-dim'}>
+                    {form.systemName || 'Nenhum / Livre'}
+                  </span>
+                  <ChevronDown size={14} className={`text-saga-dim shrink-0 transition-transform duration-150 ${systemDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {systemDropdownOpen && (
+                  <div className="absolute left-0 right-0 top-full mt-1 z-50 rounded-lg overflow-hidden bg-surface-2 border border-white/10 shadow-2xl shadow-black/60 max-h-56 overflow-y-auto">
+                    <button
+                      type="button"
+                      onClick={() => { setForm(f => ({ ...f, systemName: '', addToSystems: false, customSystemName: '', systemDescription: '' })); setSystemDropdownOpen(false) }}
+                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${!form.systemName ? 'text-gold bg-gold/10' : 'text-saga-muted hover:bg-white/5 hover:text-saga-text'}`}
+                    >
+                      Nenhum / Livre
+                    </button>
+                    {grouped.map(({ cat, items }) => (
+                      <div key={cat}>
+                        <div className="px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest text-saga-dim bg-black/20 border-t border-white/5">
+                          {CATEGORY_LABELS[cat] ?? cat}
+                        </div>
+                        {items.map(s => (
+                          <button
+                            key={s.id}
+                            type="button"
+                            onClick={() => { setForm(f => ({ ...f, systemName: s.name, addToSystems: false, customSystemName: '', systemDescription: '' })); setSystemDropdownOpen(false) }}
+                            className={`w-full text-left px-4 pl-7 py-2 text-[13px] transition-colors ${form.systemName === s.name ? 'text-gold bg-gold/10' : 'text-saga-muted hover:bg-white/5 hover:text-saga-text'}`}
+                          >
+                            {s.name}
+                          </button>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
               {/* Opções extras quando "Personalizado" é selecionado */}
               {isPersonalizado && (
