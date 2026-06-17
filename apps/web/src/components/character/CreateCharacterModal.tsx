@@ -127,8 +127,7 @@ export function CreateCharacterModal({ campaigns, open, onClose }: {
           </label>
           {campaigns.length === 1 ? (
             // Uma única campanha — não precisa de dropdown
-            <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg border"
-              style={{ borderColor: 'rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)' }}>
+            <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg border border-white/8 bg-white/[0.03]">
               <span className="text-sm text-saga-text font-medium">{selectedCampaign?.name}</span>
             </div>
           ) : (

@@ -8,6 +8,10 @@ import ficha from './commands/ficha/index.js'
 import nota from './commands/nota/index.js'
 import npc from './commands/npc/index.js'
 import campanha from './commands/campanha/index.js'
+import hp from './commands/hp/index.js'
+import iniciativa from './commands/iniciativa/index.js'
+import resumo from './commands/resumo/index.js'
+import handout from './commands/handout/index.js'
 
 const client = new Client({
   intents: [
@@ -20,7 +24,7 @@ const client = new Client({
 const commands = new Collection<string, Command>()
 const PREFIX = '+'
 
-for (const cmd of [rolar, sessao, ficha, nota, npc, campanha]) {
+for (const cmd of [rolar, sessao, ficha, nota, npc, campanha, hp, iniciativa, resumo, handout]) {
   commands.set(cmd.data.name, cmd)
 }
 

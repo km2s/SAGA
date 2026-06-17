@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Users, Lock } from 'lucide-react'
 
 interface Props {
@@ -12,6 +13,7 @@ interface Props {
 export function CampaignStatusToggle({ campaignId, initialIsOpen, campaignType }: Props) {
   const [isOpen, setIsOpen] = useState(initialIsOpen)
   const [saving, setSaving] = useState(false)
+  const router = useRouter()
 
   async function toggle() {
     setSaving(true)
@@ -22,7 +24,10 @@ export function CampaignStatusToggle({ campaignId, initialIsOpen, campaignType }
       body: JSON.stringify({ isOpen: next }),
     }).catch(() => null)
     setSaving(false)
-    if (res?.ok) setIsOpen(next)
+    if (res?.ok) {
+      setIsOpen(next)
+      router.refresh()
+    }
   }
 
   const label = campaignType === 'oneshot' ? 'one-shot' : 'campanha'

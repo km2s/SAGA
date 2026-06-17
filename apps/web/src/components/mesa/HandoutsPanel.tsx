@@ -163,8 +163,7 @@ export function HandoutsPanel({ campaignId, isGM, onClose }: HandoutsPanelProps)
           <button
             onClick={shareHandout}
             disabled={posting || (!form.title.trim() && !form.content.trim() && !form.imageUrl.trim())}
-            className="flex items-center justify-center gap-1.5 py-1.5 rounded text-[11px] font-bold text-bg font-cinzel disabled:opacity-40 transition-opacity"
-            style={{ background: 'linear-gradient(135deg,#c9a22a,#f0d060)' }}
+            className="flex items-center justify-center gap-1.5 py-1.5 rounded text-[11px] font-bold text-bg font-cinzel disabled:opacity-40 transition-opacity bg-gradient-gold"
           >
             <Send size={10} />
             {posting ? 'Enviando...' : 'Revelar aos Jogadores'}

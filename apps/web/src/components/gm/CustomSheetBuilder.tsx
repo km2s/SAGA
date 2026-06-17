@@ -204,8 +204,9 @@ export function CustomSheetBuilder({ campaignId }: { campaignId: string }) {
           Novos personagens criados na campanha receberão este template automaticamente.
         </p>
         <button onClick={save} disabled={saving}
-          className="flex items-center gap-2 px-4 py-2 rounded font-medium text-sm disabled:opacity-50 transition-all"
-          style={{ background: saved ? 'rgba(34,197,94,0.15)' : 'linear-gradient(135deg,#c9a22a,#f0d060)', color: saved ? '#22c55e' : '#0a0a12' }}>
+          className={`flex items-center gap-2 px-4 py-2 rounded font-medium text-sm disabled:opacity-50 transition-all ${
+            saved ? 'bg-saga-success/15 text-saga-success' : 'bg-gradient-gold text-bg'
+          }`}>
           {saving ? <Loader2 size={14} className="animate-spin" /> : saved ? <Check size={14} /> : null}
           {saving ? 'Salvando...' : saved ? 'Salvo!' : 'Salvar Template'}
         </button>

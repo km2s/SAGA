@@ -505,8 +505,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
     <div className="fixed inset-0 z-50 flex flex-col" style={{background:'#080811'}}>
 
       {/* ── Top bar ── */}
-      <div className="h-11 flex items-center justify-between px-3 sm:px-4 shrink-0 border-b border-white/5 relative z-10"
-           style={{background:'rgba(13,13,26,0.97)',backdropFilter:'blur(8px)'}}>
+      <div className="h-11 flex items-center justify-between px-3 sm:px-4 shrink-0 border-b border-white/5 relative z-10 bg-surface/[0.97] backdrop-blur-sm">
 
         {/* Left */}
         <div className="flex items-center gap-2 sm:gap-5 min-w-0">
@@ -523,8 +522,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
               <div className="pulse-dot scale-75"/>
               <span className="text-[12px] text-saga-muted">{activeSession.name?? 'Sessão ativa'}</span>
               {!isGM && liveMembers.includes(currentMemberId) && (
-                <span className="flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded"
-                  style={{ background: 'rgba(16,185,129,0.12)', color: '#34d399', border: '1px solid rgba(16,185,129,0.25)' }}>
+                <span className="flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/[0.12] text-emerald-400 border border-emerald-500/25">
                   <Wifi size={8}/> AO VIVO
                 </span>
               )}
@@ -561,8 +559,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
               <span className="hidden sm:inline">Mapa</span>
             </button>
             {mapInputOpen && (
-              <div className="absolute top-full right-0 mt-1.5 z-[60] w-72 rounded-xl border border-border shadow-2xl overflow-hidden"
-                   style={{background:'rgba(15,15,28,0.98)',backdropFilter:'blur(12px)'}}>
+              <div className="absolute top-full right-0 mt-1.5 z-[60] w-72 rounded-xl border border-border shadow-2xl overflow-hidden bg-surface backdrop-blur-md">
                 <div className="px-3 py-2.5 flex items-center justify-between">
                   <span className="font-cinzel text-[11px] font-bold text-saga-muted uppercase tracking-widest">Imagem do Mapa</span>
                   <button onClick={()=>setMapInputOpen(false)} className="text-saga-dim hover:text-saga-text"><X size={13}/></button>
@@ -574,13 +571,11 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
                     onChange={e=>setMapInputValue(e.target.value)}
                     onKeyDown={e=>{if(e.key==='Enter')applyMap();if(e.key==='Escape')setMapInputOpen(false)}}
                     placeholder="https://... URL da imagem"
-                    className="w-full px-3 py-2 rounded text-[12px] text-saga-text placeholder:text-saga-dim focus:outline-none"
-                    style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)'}}
+                    className="w-full px-3 py-2 rounded text-[12px] text-saga-text placeholder:text-saga-dim focus:outline-none bg-white/5 border border-white/10 focus:border-gold/60 transition-colors"
                   />
                   <div className="flex gap-2">
                     <button onClick={applyMap}
-                      className="flex-1 py-1.5 rounded text-[11px] font-bold text-bg font-cinzel"
-                      style={{background:'linear-gradient(135deg,#c9a22a,#f0d060)'}}>
+                      className="flex-1 py-1.5 rounded text-[11px] font-bold text-bg font-cinzel bg-gradient-gold">
                       Aplicar
                     </button>
                     {mapUrl && (
@@ -645,16 +640,14 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
                 <Radio size={13}/>
                 <span className="hidden sm:inline">Ao Vivo</span>
                 {liveMembers.length > 0 && (
-                  <span className="w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center"
-                    style={{ background: '#10b981', color: '#fff' }}>
+                  <span className="w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center bg-emerald-500 text-white">
                     {liveMembers.length}
                   </span>
                 )}
               </button>
 
               {liveOpen && (
-                <div className="absolute top-full right-0 mt-1.5 z-[60] w-72 rounded-xl border border-border shadow-2xl overflow-hidden"
-                  style={{background:'rgba(15,15,28,0.98)',backdropFilter:'blur(12px)'}}>
+                <div className="absolute top-full right-0 mt-1.5 z-[60] w-72 rounded-xl border border-border shadow-2xl overflow-hidden bg-surface backdrop-blur-md">
                   <div className="px-3 py-2.5 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Radio size={12} className="text-emerald-400"/>
@@ -699,8 +692,9 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
                           return (
                             <div key={m.id} className="space-y-1">
                               <div
-                                className="flex items-center justify-between px-3 py-2 rounded transition-all"
-                                style={{ background: hasLive ? 'rgba(16,185,129,0.08)' : 'rgba(255,255,255,0.03)', border: `1px solid ${hasLive ? 'rgba(16,185,129,0.25)' : 'rgba(255,255,255,0.07)'}` }}>
+                                className={`flex items-center justify-between px-3 py-2 rounded transition-all border ${
+                                  hasLive ? 'bg-emerald-500/[0.08] border-emerald-500/25' : 'bg-white/[0.03] border-white/[0.07]'
+                                }`}>
                                 <div className="flex items-center gap-2">
                                   {hasLive
                                     ? <Wifi size={11} className="text-emerald-400 shrink-0"/>
@@ -729,7 +723,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
                                 </div>
                               </div>
                               {hasLive && isExpanded && otherTokens.length > 0 && (
-                                <div className="ml-2 px-2.5 py-2 rounded border border-emerald-400/10 space-y-1.5" style={{background:'rgba(16,185,129,0.04)'}}>
+                                <div className="ml-2 px-2.5 py-2 rounded border border-emerald-400/10 space-y-1.5 bg-emerald-500/[0.04]">
                                   <p className="text-[9px] text-saga-dim">Tokens extras que <span className="text-saga-muted">{m.character?.name ?? m.user.username}</span> pode mover:</p>
                                   {otherTokens.map(t => {
                                     const checked = (t.allowedPlayers ?? []).includes(m.id)
@@ -795,8 +789,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
       <div className="flex flex-1 overflow-hidden relative">
 
         {/* ── Left toolbar ── */}
-        <div data-mesa-tutorial="toolbar" className="w-12 flex flex-col items-center py-2 gap-0.5 shrink-0 border-r border-white/5 z-10"
-             style={{background:'rgba(10,10,20,0.92)'}}>
+        <div data-mesa-tutorial="toolbar" className="w-12 flex flex-col items-center py-2 gap-0.5 shrink-0 border-r border-white/5 z-10 bg-bg/[0.92]">
           {tools.map(([t,Icon,label])=>(
             <button key={t}
               onClick={()=>{setTool(t);setAddToken(null);if(t!=='measure')setMeasureAnchor(null)}}
@@ -892,18 +885,16 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
                       <span className="text-[5px] font-black text-yellow-900">▶</span>
                     </div>}
                   </div>
-                  <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-sm whitespace-nowrap max-w-[80px] truncate"
-                    style={{background:'rgba(0,0,0,0.7)',color:t.color,border:`1px solid ${t.color}44`,backdropFilter:'blur(4px)'}}>
+                  <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-sm whitespace-nowrap max-w-[80px] truncate bg-black/70 backdrop-blur-sm border"
+                    style={{color:t.color,borderColor:`${t.color}44`}}>
                     {t.label}
                   </span>
                   {/* HP bar */}
                   {hpPct !== null && (
-                    <div className="w-10 h-[3px] rounded-full overflow-hidden" style={{background:'rgba(0,0,0,0.6)'}}>
-                      <div className="h-full rounded-full transition-all duration-300"
-                        style={{
-                          width:`${hpPct}%`,
-                          background: hpPct > 50 ? '#22c55e' : hpPct > 25 ? '#f59e0b' : '#ef4444',
-                        }} />
+                    <div className="w-10 h-[3px] rounded-full overflow-hidden bg-black/60">
+                      <div className={`h-full rounded-full transition-all duration-300 ${
+                        hpPct > 50 ? 'bg-saga-success' : hpPct > 25 ? 'bg-saga-warning' : 'bg-saga-danger'
+                      }`} style={{width:`${hpPct}%`}} />
                     </div>
                   )}
                 </div>
@@ -963,16 +954,14 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
 
           {/* ── No session banner — não bloqueia o canvas para o estado ser visível ── */}
           {!activeSession?.isActive&&(
-            <div data-mesa-tutorial="session-banner" className="absolute top-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-3 px-4 py-2.5 rounded-xl shadow-2xl"
-                 style={{background:'rgba(12,12,24,0.92)',border:'1px solid rgba(201,162,42,0.25)',backdropFilter:'blur(12px)'}}>
+            <div data-mesa-tutorial="session-banner" className="absolute top-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-3 px-4 py-2.5 rounded-xl shadow-2xl bg-surface/95 border border-gold/25 backdrop-blur-md">
               <Map size={15} className="text-saga-dim shrink-0"/>
               <span className="text-[12px] text-saga-muted">
                 {isGM?'Nenhuma sessão ativa':'Aguardando o Mestre iniciar a sessão'}
               </span>
               {isGM&&(
                 <button onClick={()=>setStartSessionOpen(true)}
-                  className="px-3 py-1 rounded text-[11px] font-cinzel font-semibold text-bg flex items-center gap-1.5 shrink-0"
-                  style={{background:'linear-gradient(135deg,#c9a22a,#f0d060)'}}>
+                  className="px-3 py-1 rounded text-[11px] font-cinzel font-semibold text-bg flex items-center gap-1.5 shrink-0 bg-gradient-gold">
                   <Play size={10}/>Iniciar
                 </button>
               )}
@@ -992,11 +981,9 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
 
           {/* ── Initiative Tracker ── */}
           {initiativeOpen&&(
-            <div className="absolute top-3 left-1/2 -translate-x-1/2 z-40 w-72 rounded-xl overflow-hidden shadow-2xl"
-              style={{background:'rgba(10,10,22,0.97)',border:'1px solid rgba(201,162,42,0.25)',backdropFilter:'blur(12px)'}}
+            <div className="absolute top-3 left-1/2 -translate-x-1/2 z-40 w-72 rounded-xl overflow-hidden shadow-2xl bg-bg/[0.97] border border-gold/25 backdrop-blur-md"
               onWheel={e => e.stopPropagation()}>
-              <div className="px-4 py-2.5 border-b flex items-center justify-between"
-                style={{borderColor:'rgba(201,162,42,0.2)',background:'rgba(201,162,42,0.06)'}}>
+              <div className="px-4 py-2.5 border-b border-gold/20 flex items-center justify-between bg-gold/[0.06]">
                 <div className="flex items-center gap-2">
                   <Swords size={12} className="text-gold"/>
                   <span className="font-cinzel text-[11px] font-bold text-gold uppercase tracking-widest">Iniciativa</span>
@@ -1009,15 +996,13 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
                 <div className="flex items-center gap-1.5">
                   {isGM&&(
                     <button onClick={rollInitiative}
-                      className="px-2 py-0.5 rounded text-[9px] font-bold font-cinzel transition-all"
-                      style={{background:'rgba(201,162,42,0.15)',color:'#c9a22a',border:'1px solid rgba(201,162,42,0.3)'}}>
+                      className="px-2 py-0.5 rounded text-[9px] font-bold font-cinzel transition-all bg-gold/15 text-gold border border-gold/30">
                       Rolar
                     </button>
                   )}
                   {initiativeOrder.length>0&&isGM&&(
                     <button onClick={nextTurn}
-                      className="px-2 py-0.5 rounded text-[9px] font-bold font-cinzel flex items-center gap-1 transition-all"
-                      style={{background:'rgba(255,255,255,0.06)',color:'#a0a0c0',border:'1px solid rgba(255,255,255,0.1)'}}>
+                      className="px-2 py-0.5 rounded text-[9px] font-bold font-cinzel flex items-center gap-1 transition-all bg-white/[0.06] text-saga-muted border border-white/10">
                       <ChevronRight size={10}/>Próximo
                     </button>
                   )}
@@ -1062,19 +1047,18 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
                             </span>
                           </div>
                           {hpPct !== null && (
-                            <div className="mt-1 w-full h-[3px] rounded-full overflow-hidden" style={{background:'rgba(255,255,255,0.08)'}}>
-                              <div className="h-full rounded-full"
-                                style={{
-                                  width:`${hpPct}%`,
-                                  background: hpPct > 50 ? '#22c55e' : hpPct > 25 ? '#f59e0b' : '#ef4444',
-                                }} />
+                            <div className="mt-1 w-full h-[3px] rounded-full overflow-hidden bg-white/8">
+                              <div className={`h-full rounded-full ${
+                                hpPct > 50 ? 'bg-saga-success' : hpPct > 25 ? 'bg-saga-warning' : 'bg-saga-danger'
+                              }`} style={{width:`${hpPct}%`}} />
                             </div>
                           )}
                         </div>
                         {/* HP text */}
                         {entry.hp !== undefined && entry.maxHp !== undefined && (
-                          <span className="text-[9px] font-mono shrink-0"
-                            style={{color:hpPct && hpPct > 50 ? '#4ade80' : hpPct && hpPct > 25 ? '#fbbf24' : '#f87171'}}>
+                          <span className={`text-[9px] font-mono shrink-0 ${
+                            hpPct && hpPct > 50 ? 'text-green-400' : hpPct && hpPct > 25 ? 'text-amber-400' : 'text-red-400'
+                          }`}>
                             {entry.hp}/{entry.maxHp}
                           </span>
                         )}
@@ -1097,11 +1081,11 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
 
           {/* ── Add-token popover ── */}
           {addToken&&(
-            <div className="absolute z-50 rounded-xl border border-border shadow-2xl overflow-hidden"
+            <div className="absolute z-50 rounded-xl border border-border shadow-2xl overflow-hidden bg-surface backdrop-blur-md"
               style={{
                 left:Math.min(addToken.screenX+8,(canvasRef.current?.offsetWidth??600)-240),
                 top:Math.min(addToken.screenY+8,(canvasRef.current?.offsetHeight??400)-(isGM?320:260)),
-                width:236,background:'rgba(15,15,28,0.97)',backdropFilter:'blur(12px)',
+                width:236,
               }}
               onMouseDown={e=>e.stopPropagation()}>
               <div className="px-3 py-2.5 border-b border-white/6 flex items-center justify-between">
@@ -1137,8 +1121,8 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
                               <p className="text-[12px] font-medium text-saga-text truncate leading-tight">{npc.name}</p>
                               <div className="flex items-center gap-1.5 mt-0.5">
                                 <span className="text-[9px] font-medium" style={{color:tc}}>{typeLabel}</span>
-                                <div className="flex-1 h-[3px] rounded-full overflow-hidden" style={{background:'rgba(255,255,255,0.08)'}}>
-                                  <div className="h-full rounded-full" style={{width:`${hpPct}%`,background:hpPct>50?'#22c55e':hpPct>25?'#f59e0b':'#ef4444'}}/>
+                                <div className="flex-1 h-[3px] rounded-full overflow-hidden bg-white/8">
+                                  <div className={`h-full rounded-full ${hpPct>50?'bg-saga-success':hpPct>25?'bg-saga-warning':'bg-saga-danger'}`} style={{width:`${hpPct}%`}}/>
                                 </div>
                                 <span className="text-[9px] text-saga-dim shrink-0">{npc.hp}/{npc.maxHp}</span>
                               </div>
@@ -1159,16 +1143,17 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
                         <input autoFocus value={newTokenLabel} onChange={e=>setNewTokenLabel(e.target.value)}
                           onKeyDown={e=>{if(e.key==='Enter')addNewToken();if(e.key==='Escape')setAddToken(null)}}
                           placeholder="Nome do token..."
-                          className="w-full px-2 py-1.5 rounded text-xs text-saga-text placeholder:text-saga-dim focus:outline-none"
-                          style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)'}}/>
+                          className="w-full px-2 py-1.5 rounded text-xs text-saga-text placeholder:text-saga-dim focus:outline-none bg-white/5 border border-white/10 focus:border-gold/60 transition-colors"/>
                         <div className="flex gap-1">
                           {(['player','enemy','npc'] as const).map(tp=>(
                             <button key={tp} onClick={()=>setNewTokenType(tp)}
-                              className={`flex-1 py-1 rounded text-[9px] font-medium uppercase transition-all ${newTokenType===tp?'text-white':'text-saga-dim'}`}
-                              style={{
-                                background:newTokenType===tp?tp==='player'?'rgba(124,58,237,0.4)':tp==='enemy'?'rgba(239,68,68,0.4)':'rgba(201,162,42,0.3)':'rgba(255,255,255,0.04)',
-                                border:newTokenType===tp?`1px solid ${tp==='player'?'rgba(124,58,237,0.6)':tp==='enemy'?'rgba(239,68,68,0.5)':'rgba(201,162,42,0.5)'}`:'1px solid rgba(255,255,255,0.08)',
-                              }}>
+                              className={`flex-1 py-1 rounded text-[9px] font-medium uppercase transition-all border ${
+                                newTokenType===tp
+                                  ? tp==='player' ? 'bg-purple/40 border-purple/60 text-white'
+                                    : tp==='enemy' ? 'bg-saga-danger/40 border-saga-danger/50 text-white'
+                                    : 'bg-gold/30 border-gold/50 text-white'
+                                  : 'bg-white/[0.04] border-white/8 text-saga-dim'
+                              }`}>
                               {tp==='player'?'Jogador':tp==='enemy'?'Inimigo':'NPC'}
                             </button>
                           ))}
@@ -1180,8 +1165,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
                           ))}
                         </div>
                         <button onClick={addNewToken}
-                          className="w-full py-1.5 rounded text-[11px] font-bold text-bg font-cinzel"
-                          style={{background:'linear-gradient(135deg,#c9a22a,#f0d060)'}}>
+                          className="w-full py-1.5 rounded text-[11px] font-bold text-bg font-cinzel bg-gradient-gold">
                           Colocar no Mapa
                         </button>
                       </div>
@@ -1194,16 +1178,17 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
                   <input autoFocus value={newTokenLabel} onChange={e=>setNewTokenLabel(e.target.value)}
                     onKeyDown={e=>{if(e.key==='Enter')addNewToken();if(e.key==='Escape')setAddToken(null)}}
                     placeholder="Nome do token..."
-                    className="w-full px-3 py-2 rounded text-sm text-saga-text placeholder:text-saga-dim focus:outline-none"
-                    style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)'}}/>
+                    className="w-full px-3 py-2 rounded text-sm text-saga-text placeholder:text-saga-dim focus:outline-none bg-white/5 border border-white/10 focus:border-gold/60 transition-colors"/>
                   <div className="flex gap-1.5">
                     {(['player','enemy','npc'] as const).map(tp=>(
                       <button key={tp} onClick={()=>setNewTokenType(tp)}
-                        className={`flex-1 py-1.5 rounded text-[10px] font-medium uppercase transition-all ${newTokenType===tp?'text-white':'text-saga-dim'}`}
-                        style={{
-                          background:newTokenType===tp?tp==='player'?'rgba(124,58,237,0.4)':tp==='enemy'?'rgba(239,68,68,0.4)':'rgba(201,162,42,0.3)':'rgba(255,255,255,0.04)',
-                          border:newTokenType===tp?`1px solid ${tp==='player'?'rgba(124,58,237,0.6)':tp==='enemy'?'rgba(239,68,68,0.5)':'rgba(201,162,42,0.5)'}`:'1px solid rgba(255,255,255,0.08)',
-                        }}>
+                        className={`flex-1 py-1.5 rounded text-[10px] font-medium uppercase transition-all border ${
+                          newTokenType===tp
+                            ? tp==='player' ? 'bg-purple/40 border-purple/60 text-white'
+                              : tp==='enemy' ? 'bg-saga-danger/40 border-saga-danger/50 text-white'
+                              : 'bg-gold/30 border-gold/50 text-white'
+                            : 'bg-white/[0.04] border-white/8 text-saga-dim'
+                        }`}>
                         {tp==='player'?'Jogador':tp==='enemy'?'Inimigo':'NPC'}
                       </button>
                     ))}
@@ -1219,8 +1204,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
                       {(newTokenLabel[0]??'?').toUpperCase()}
                     </div>
                     <button onClick={addNewToken}
-                      className="flex-1 py-1.5 rounded text-[11px] font-bold text-bg font-cinzel"
-                      style={{background:'linear-gradient(135deg,#c9a22a,#f0d060)'}}>
+                      className="flex-1 py-1.5 rounded text-[11px] font-bold text-bg font-cinzel bg-gradient-gold">
                       Colocar no Mapa
                     </button>
                   </div>
@@ -1236,10 +1220,10 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
         <div className={`
           absolute sm:relative inset-y-0 right-0 z-50 sm:z-auto
           w-[300px] flex flex-col shrink-0 border-l border-white/5
-          transition-transform duration-300
+          bg-bg transition-transform duration-300
           ${chatOpen?'translate-x-0':'-translate-x-0 sm:translate-x-0'}
           hidden sm:flex ${chatOpen?'!flex':''}
-        `} style={{background:'rgba(10,10,22,0.96)'}}>
+        `}>
 
           <div className="px-4 py-3 border-b border-white/6 shrink-0 flex items-center justify-between">
             <span className="font-cinzel text-[11px] font-bold text-saga-muted uppercase tracking-widest">Chat da Sessão</span>
@@ -1284,12 +1268,11 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
               const isNew=roll.id===lastRollId
               return (
                 <div key={roll.id}
-                  className={`rounded-lg overflow-hidden transition-all duration-300 ${isNew?'scale-[1.02]':'scale-100'}`}
-                  style={{
-                    background:isCrit?'linear-gradient(135deg,rgba(201,162,42,0.12),rgba(201,162,42,0.04))':isFail?'linear-gradient(135deg,rgba(239,68,68,0.12),rgba(239,68,68,0.04))':'rgba(255,255,255,0.03)',
-                    border:isCrit?'1px solid rgba(201,162,42,0.3)':isFail?'1px solid rgba(239,68,68,0.25)':'1px solid rgba(255,255,255,0.06)',
-                    boxShadow:isCrit?'0 0 14px rgba(201,162,42,0.12)':'none',
-                  }}>
+                  className={`rounded-lg overflow-hidden transition-all duration-300 border ${isNew?'scale-[1.02]':'scale-100'} ${
+                    isCrit ? 'bg-gradient-to-br from-gold/12 to-gold/[0.04] border-gold/30 shadow-[0_0_14px_rgba(201,162,42,0.12)]'
+                    : isFail ? 'bg-gradient-to-br from-saga-danger/12 to-saga-danger/[0.04] border-saga-danger/25'
+                    : 'bg-white/[0.03] border-white/[0.06]'
+                  }`}>
                   {(isCrit||isFail)&&(
                     <div className={`px-3 py-1 text-[10px] font-bold uppercase tracking-widest font-cinzel text-center flex items-center justify-center gap-1 ${isCrit?'bg-gold/12 text-gold':'bg-saga-danger/12 text-saga-danger'}`}>
                       {isCrit?<><Sparkles size={10}/>Crítico!</>:<><Skull size={10}/>Falha Crítica</>}
@@ -1326,7 +1309,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
           </div>
 
           {/* Input + Dice bar */}
-          <div data-mesa-tutorial="dice" className="shrink-0" style={{borderTop:'1px solid rgba(255,255,255,0.07)',background:'rgba(0,0,0,0.25)'}}>
+          <div data-mesa-tutorial="dice" className="shrink-0 border-t border-white/[0.07] bg-black/25">
             <div className="px-3 pt-2.5 pb-1 flex gap-2">
               <input
                 value={chatInput}
@@ -1334,14 +1317,12 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void sendChatMessage() } }}
                 disabled={!activeSession?.isActive || sendingChat}
                 placeholder={activeSession?.isActive ? 'Escreva uma mensagem...' : 'Inicie uma sessão para conversar'}
-                className="flex-1 rounded px-3 py-2 text-[12px] text-saga-text placeholder:text-saga-dim focus:outline-none disabled:opacity-40"
-                style={{background:'rgba(255,255,255,0.05)'}}
+                className="flex-1 rounded px-3 py-2 text-[12px] text-saga-text placeholder:text-saga-dim focus:outline-none focus:border-gold/60 disabled:opacity-40 bg-white/5 border border-white/8 transition-colors"
               />
               <button
                 onClick={() => void sendChatMessage()}
                 disabled={!activeSession?.isActive || !chatInput.trim() || sendingChat}
-                className="px-2.5 rounded text-[11px] font-medium text-saga-dim hover:text-saga-text disabled:opacity-30 transition-all shrink-0"
-                style={{background:'rgba(255,255,255,0.05)'}}>
+                className="px-2.5 rounded text-[11px] font-medium text-saga-dim hover:text-saga-text hover:bg-white/10 disabled:opacity-30 transition-all shrink-0 bg-white/5">
                 <Send size={13}/>
               </button>
             </div>
@@ -1375,13 +1356,9 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
                     <button key={die} onClick={()=>void rollDie(die)}
                       disabled={!activeSession?.isActive||!!rollingDie}
                       title={`Rolar 1${die}${rollModifier!==0?(rollModifier>0?'+':'')+rollModifier:''}`}
-                      className={`h-9 rounded flex flex-col items-center justify-center gap-0.5 transition-all select-none
-                        ${!activeSession?.isActive||rollingDie?'opacity-30 cursor-not-allowed':'hover:scale-105 active:scale-95'}
-                        ${rolling?'ring-1 ring-gold/60':''}`}
-                      style={{
-                        background:rolling?'rgba(201,162,42,0.15)':'rgba(255,255,255,0.04)',
-                        border:rolling?'1px solid rgba(201,162,42,0.45)':'1px solid rgba(255,255,255,0.08)',
-                      }}>
+                      className={`h-9 rounded flex flex-col items-center justify-center gap-0.5 transition-all select-none border ${
+                        !activeSession?.isActive||rollingDie?'opacity-30 cursor-not-allowed':'hover:scale-105 active:scale-95'
+                      } ${rolling?'bg-gold/15 border-gold/45 ring-1 ring-gold/60':'bg-white/[0.04] border-white/8'}`}>
                       <Dice6 size={9} className="text-saga-dim"/>
                       <span className="text-[10px] font-cinzel font-bold text-gold leading-none">{die}</span>
                     </button>

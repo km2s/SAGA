@@ -198,11 +198,9 @@ export function CreateCampaignModal({ open, onClose }: Props) {
                   return (
                     <button key={type} type="button"
                       onClick={() => setForm(f => ({ ...f, campaignType: type }))}
-                      className="flex flex-col items-start gap-1 px-3 py-3 rounded-lg border transition-all text-left"
-                      style={{
-                        background: sel ? 'rgba(201,162,42,0.10)' : 'rgba(255,255,255,0.03)',
-                        border: `1px solid ${sel ? 'rgba(201,162,42,0.45)' : 'rgba(255,255,255,0.1)'}`,
-                      }}>
+                      className={`flex flex-col items-start gap-1 px-3 py-3 rounded-lg border transition-all text-left ${
+                        sel ? 'bg-gold/10 border-gold/45' : 'bg-white/[0.03] border-white/10'
+                      }`}>
                       <span className={`text-[12px] font-semibold ${sel ? 'text-gold' : 'text-saga-muted'}`}>
                         {type === 'campaign' ? 'Campanha' : 'One-Shot'}
                       </span>
@@ -236,8 +234,7 @@ export function CreateCampaignModal({ open, onClose }: Props) {
 
               {/* Opções extras quando "Personalizado" é selecionado */}
               {isPersonalizado && (
-                <div className="mt-2 rounded-lg p-3 space-y-3"
-                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <div className="mt-2 rounded-lg p-3 space-y-3 bg-white/[0.03] border border-white/8">
 
                   <div>
                     <label className="text-[10px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">
@@ -251,7 +248,7 @@ export function CreateCampaignModal({ open, onClose }: Props) {
                     />
                   </div>
 
-                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: '12px' }}>
+                  <div className="border-t border-white/[0.07] pt-3">
                     <div className="flex items-start gap-3">
                       <BookOpen size={14} className="text-saga-muted shrink-0 mt-0.5" />
                       <div className="flex-1">
@@ -278,12 +275,9 @@ export function CreateCampaignModal({ open, onClose }: Props) {
                               return (
                                 <button key={cat.value} type="button"
                                   onClick={() => setForm(f => ({ ...f, systemCategory: cat.value }))}
-                                  className="px-2.5 py-1 rounded-full text-[10px] font-medium border transition-all"
-                                  style={{
-                                    background: sel ? 'rgba(201,162,42,0.15)' : 'rgba(255,255,255,0.04)',
-                                    border: `1px solid ${sel ? 'rgba(201,162,42,0.5)' : 'rgba(255,255,255,0.1)'}`,
-                                    color: sel ? '#c9a22a' : '#7878a0',
-                                  }}>
+                                  className={`px-2.5 py-1 rounded-full text-[10px] font-medium border transition-all ${
+                                    sel ? 'bg-gold/15 border-gold/50 text-gold' : 'bg-white/[0.04] border-white/10 text-saga-muted'
+                                  }`}>
                                   {cat.label}
                                 </button>
                               )
@@ -348,11 +342,9 @@ export function CreateCampaignModal({ open, onClose }: Props) {
                   return (
                     <button key={t.value} type="button"
                       onClick={() => setForm(f => ({ ...f, contentTone: sel ? '' : t.value }))}
-                      className="flex items-center gap-2 px-3 py-2 rounded-lg border text-left transition-all"
-                      style={{
-                        background: sel ? 'rgba(201,162,42,0.10)' : 'rgba(255,255,255,0.03)',
-                        border: `1px solid ${sel ? 'rgba(201,162,42,0.45)' : 'rgba(255,255,255,0.1)'}`,
-                      }}>
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-left transition-all ${
+                        sel ? 'bg-gold/10 border-gold/45' : 'bg-white/[0.03] border-white/10'
+                      }`}>
                       <span className="text-base leading-none">{t.emoji}</span>
                       <span className={`text-[11px] font-medium ${sel ? 'text-gold' : 'text-saga-muted'}`}>{t.label}</span>
                     </button>
@@ -371,12 +363,9 @@ export function CreateCampaignModal({ open, onClose }: Props) {
                   const sel = form.playStyle.includes(s.value)
                   return (
                     <button key={s.value} type="button" onClick={() => toggleStyle(s.value)}
-                      className="px-3 py-1.5 rounded-full text-[11px] font-medium border transition-all"
-                      style={{
-                        background: sel ? 'rgba(124,58,237,0.15)' : 'rgba(255,255,255,0.04)',
-                        border: `1px solid ${sel ? 'rgba(124,58,237,0.5)' : 'rgba(255,255,255,0.1)'}`,
-                        color: sel ? '#9d5af5' : '#7878a0',
-                      }}>
+                      className={`px-3 py-1.5 rounded-full text-[11px] font-medium border transition-all ${
+                        sel ? 'bg-purple/15 border-purple/50 text-purple-bright' : 'bg-white/[0.04] border-white/10 text-saga-muted'
+                      }`}>
                       {s.label}
                     </button>
                   )
@@ -394,11 +383,9 @@ export function CreateCampaignModal({ open, onClose }: Props) {
                     return (
                       <button key={f.value} type="button"
                         onClick={() => setForm(fm => ({ ...fm, sessionFrequency: sel ? '' : f.value }))}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded border text-left transition-all"
-                        style={{
-                          background: sel ? 'rgba(201,162,42,0.08)' : 'rgba(255,255,255,0.03)',
-                          border: `1px solid ${sel ? 'rgba(201,162,42,0.4)' : 'rgba(255,255,255,0.08)'}`,
-                        }}>
+                        className={`w-full flex items-center gap-2 px-3 py-2 rounded border text-left transition-all ${
+                          sel ? 'bg-gold/[0.08] border-gold/40' : 'bg-white/[0.03] border-white/8'
+                        }`}>
                         <span className={`w-2 h-2 rounded-full shrink-0 ${sel ? 'bg-gold' : 'bg-white/20'}`} />
                         <span className={`text-[11px] ${sel ? 'text-gold font-medium' : 'text-saga-muted'}`}>{f.label}</span>
                       </button>
@@ -415,11 +402,9 @@ export function CreateCampaignModal({ open, onClose }: Props) {
                     return (
                       <button key={x.value} type="button"
                         onClick={() => setForm(f => ({ ...f, minExperience: x.value }))}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded border text-left transition-all"
-                        style={{
-                          background: sel ? 'rgba(201,162,42,0.08)' : 'rgba(255,255,255,0.03)',
-                          border: `1px solid ${sel ? 'rgba(201,162,42,0.4)' : 'rgba(255,255,255,0.08)'}`,
-                        }}>
+                        className={`w-full flex items-center gap-2 px-3 py-2 rounded border text-left transition-all ${
+                          sel ? 'bg-gold/[0.08] border-gold/40' : 'bg-white/[0.03] border-white/8'
+                        }`}>
                         <span className={`w-2 h-2 rounded-full shrink-0 ${sel ? 'bg-gold' : 'bg-white/20'}`} />
                         <span className={`text-[11px] ${sel ? 'text-gold font-medium' : 'text-saga-muted'}`}>{x.label}</span>
                       </button>
@@ -430,7 +415,7 @@ export function CreateCampaignModal({ open, onClose }: Props) {
             </div>
 
             {/* Inscrições */}
-            <div className="rounded-lg p-3" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <div className="rounded-lg p-3 bg-white/[0.03] border border-white/8">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-[12px] font-medium text-saga-text">Aberta para inscrições</p>
@@ -442,7 +427,7 @@ export function CreateCampaignModal({ open, onClose }: Props) {
                 </button>
               </div>
               {form.isOpen && (
-                <div className="mt-3 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+                <div className="mt-3 pt-3 border-t border-white/[0.07]">
                   <label className="text-[10px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">
                     Número máximo de vagas (opcional)
                   </label>

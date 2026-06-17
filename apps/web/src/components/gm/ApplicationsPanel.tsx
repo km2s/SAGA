@@ -73,8 +73,7 @@ export function ApplicationsPanel({ campaignId }: { campaignId: string }) {
             <div key={app.id} className="bg-surface border border-border rounded-lg overflow-hidden">
               <div className="flex items-center justify-between px-4 py-3">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-                    style={{ background: 'linear-gradient(135deg,#7c3aed,#c9a22a)' }}>
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 bg-gradient-to-br from-purple to-gold">
                     {app.user.username[0]?.toUpperCase()}
                   </div>
                   <div className="min-w-0">
