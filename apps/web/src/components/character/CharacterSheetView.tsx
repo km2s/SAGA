@@ -1534,6 +1534,10 @@ function GenericTab({ attrs, weapons, characterId, canEdit, onAdd, onDelete, onR
 }) {
   const isBlades = systemName === 'Blades in the Dark'
 
+  // Check if attrs have grupo: grouping (custom system template)
+  const visibleAttrs = attrs.filter(a => a.attribute.defaultDie !== 'text')
+  const hasGrouping = visibleAttrs.some(a => a.attribute.description?.startsWith('grupo:'))
+
   const content = isBlades ? (() => {
     const groups = groupByPrefix(attrs)
     return (
@@ -1548,7 +1552,6 @@ function GenericTab({ attrs, weapons, characterId, canEdit, onAdd, onDelete, onR
                   <div key={attr.id} className="flex items-center gap-3 py-2.5 px-2 rounded group hover:bg-white/[0.015] transition-all">
                     <div className="flex-1 min-w-0">
                       <span className="text-sm">{shortName}</span>
-                      {attr.attribute.description && <p className="text-[10px] text-saga-dim truncate">{attr.attribute.description}</p>}
                     </div>
                     {canEdit
                       ? <EditableVal attrId={attr.id} value={attr.value} characterId={characterId} onSaved={onRefresh} className="font-cinzel font-bold text-base text-gold w-10 text-center" />
@@ -1564,6 +1567,54 @@ function GenericTab({ attrs, weapons, characterId, canEdit, onAdd, onDelete, onR
         ))}
       </div>
     )
+  })() : hasGrouping ? (() => {
+    // Custom template with grupo: groups
+    const groupMap = new Map<string, Attr[]>()
+    const ungrouped: Attr[] = []
+    for (const attr of visibleAttrs) {
+      const desc = attr.attribute.description ?? ''
+      if (desc.startsWith('grupo:')) {
+        const gName = desc.replace('grupo:', '')
+        if (!groupMap.has(gName)) groupMap.set(gName, [])
+        groupMap.get(gName)!.push(attr)
+      } else {
+        ungrouped.push(attr)
+      }
+    }
+    const renderAttrRow = (attr: Attr) => (
+      <div key={attr.id} className="flex items-center gap-3 py-2.5 px-2 rounded hover:bg-white/[0.015] transition-all">
+        <div className="flex-1 min-w-0">
+          <span className="text-sm">{attr.attribute.name}</span>
+        </div>
+        {canEdit
+          ? <EditableVal attrId={attr.id} value={attr.value} characterId={characterId} onSaved={onRefresh} className="font-cinzel font-bold text-base text-gold w-10 text-center" />
+          : <span className="font-cinzel font-bold text-base text-gold">{attr.value}</span>
+        }
+        <span className="text-[9px] text-saga-dim font-mono opacity-40">{attr.customDie ?? attr.attribute.defaultDie}</span>
+        {canEdit && <DeleteBtn onClick={() => onDelete(attr.id)} />}
+      </div>
+    )
+    return (
+      <div className="space-y-5">
+        {Array.from(groupMap.entries()).map(([gName, gAttrs]) => (
+          <div key={gName}>
+            <SectionDivider title={gName} />
+            <div className="space-y-0.5">{gAttrs.map(renderAttrRow)}</div>
+          </div>
+        ))}
+        {ungrouped.length > 0 && (
+          <div>
+            <SectionDivider title="Outros" />
+            <div className="space-y-0.5">{ungrouped.map(renderAttrRow)}</div>
+          </div>
+        )}
+        {canEdit && (
+          <div className="pt-1">
+            <AddBtn onClick={onAdd} />
+          </div>
+        )}
+      </div>
+    )
   })() : (
     <div>
       <div className="flex items-center gap-3 mb-4">
@@ -1571,15 +1622,17 @@ function GenericTab({ attrs, weapons, characterId, canEdit, onAdd, onDelete, onR
         <div className="flex-1 h-px" style={{ background: 'rgba(201,162,42,0.2)' }} />
         {canEdit && <AddBtn onClick={onAdd} />}
       </div>
-      {attrs.length === 0
+      {visibleAttrs.length === 0
         ? <p className="text-sm text-saga-dim text-center py-6">{canEdit ? 'Nenhum atributo. Clique em "Adicionar".' : 'Nenhum atributo.'}</p>
         : (
           <div className="space-y-1">
-            {attrs.map(attr => (
+            {visibleAttrs.map(attr => (
               <div key={attr.id} className="flex items-center gap-3 py-2.5 px-2 rounded group hover:bg-white/[0.015] transition-all">
                 <div className="flex-1 min-w-0">
                   <span className="text-sm">{attr.attribute.name}</span>
-                  {attr.attribute.description && <p className="text-[10px] text-saga-dim truncate">{attr.attribute.description}</p>}
+                  {attr.attribute.description && !attr.attribute.description.startsWith('grupo:') && (
+                    <p className="text-[10px] text-saga-dim truncate">{attr.attribute.description}</p>
+                  )}
                 </div>
                 {canEdit
                   ? <EditableVal attrId={attr.id} value={attr.value} characterId={characterId} onSaved={onRefresh} className="font-cinzel font-bold text-base text-gold w-10 text-center" />

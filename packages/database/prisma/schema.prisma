@@ -28,17 +28,21 @@ model User {
 // ─── Campanha ──────────────────────────────────────────────
 
 model Campaign {
-  id           String   @id @default(cuid())
-  name         String
-  description  String?
-  theme        String?
-  systemId     String?
-  guildId      String?
-  campaignType String   @default("campaign")
-  isOpen       Boolean  @default(false)
-  maxSlots     Int?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                String   @id @default(cuid())
+  name              String
+  description       String?  @db.Text
+  theme             String?
+  systemId          String?
+  guildId           String?
+  campaignType      String   @default("campaign")
+  contentTone       String?
+  playStyle         String?
+  sessionFrequency  String?
+  minExperience     String?
+  isOpen            Boolean  @default(false)
+  maxSlots          Int?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   system       RPGSystem?            @relation(fields: [systemId], references: [id])
   members      CampaignMember[]

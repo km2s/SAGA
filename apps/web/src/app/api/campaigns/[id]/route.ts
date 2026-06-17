@@ -16,12 +16,20 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     isOpen?: boolean
     maxSlots?: number | null
     campaignType?: string
+    contentTone?: string | null
+    playStyle?: string | null
+    sessionFrequency?: string | null
+    minExperience?: string | null
   }
 
   const data: Record<string, unknown> = {}
   if (typeof body.isOpen === 'boolean') data.isOpen = body.isOpen
   if ('maxSlots' in body) data.maxSlots = typeof body.maxSlots === 'number' && body.maxSlots > 0 ? body.maxSlots : null
   if (body.campaignType === 'campaign' || body.campaignType === 'oneshot') data.campaignType = body.campaignType
+  if ('contentTone' in body) data.contentTone = typeof body.contentTone === 'string' ? body.contentTone : null
+  if ('playStyle' in body) data.playStyle = typeof body.playStyle === 'string' ? body.playStyle : null
+  if ('sessionFrequency' in body) data.sessionFrequency = typeof body.sessionFrequency === 'string' ? body.sessionFrequency : null
+  if ('minExperience' in body) data.minExperience = typeof body.minExperience === 'string' ? body.minExperience : null
 
   if (Object.keys(data).length === 0) {
     return NextResponse.json({ error: 'Nenhum campo para atualizar' }, { status: 400 })
@@ -30,7 +38,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   const updated = await prisma.campaign.update({
     where: { id: params.id },
     data,
-    select: { id: true, isOpen: true, maxSlots: true, campaignType: true },
+    select: { id: true, isOpen: true, maxSlots: true, campaignType: true, contentTone: true, playStyle: true, sessionFrequency: true, minExperience: true },
   }).catch(() => null)
   if (!updated) return NextResponse.json({ error: 'Erro ao atualizar campanha' }, { status: 500 })
 

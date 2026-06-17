@@ -137,14 +137,32 @@ export async function POST(req: Request) {
     }).catch(() => [])
 
     if (systemAttrs.length > 0) {
-      await prisma.characterAttribute.createMany({
-        data: systemAttrs.map(a => ({
-          sheetId: character.id,
-          attributeId: a.id,
-          value: wodAttrDefault(a.description),
-        })),
-        skipDuplicates: true,
-      }).catch(() => null)
+      const regularAttrs = systemAttrs.filter(a => a.defaultDie !== 'text')
+      const textAttrs = systemAttrs.filter(a => a.defaultDie === 'text')
+
+      if (regularAttrs.length > 0) {
+        await prisma.characterAttribute.createMany({
+          data: regularAttrs.map(a => ({
+            sheetId: character.id,
+            attributeId: a.id,
+            value: wodAttrDefault(a.description),
+          })),
+          skipDuplicates: true,
+        }).catch(() => null)
+      }
+
+      if (textAttrs.length > 0) {
+        await prisma.characterTextField.createMany({
+          data: textAttrs.map((a, i) => ({
+            sheetId: character.id,
+            key: `custom_sec_${a.id}`,
+            label: a.description?.startsWith('secao:') ? a.description.replace('secao:', '') : a.name,
+            value: '',
+            order: i,
+          })),
+          skipDuplicates: true,
+        }).catch(() => null)
+      }
     }
   }
 

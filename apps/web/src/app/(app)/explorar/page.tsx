@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Search, Users, Zap, BookOpen, Clock, CheckCircle, XCircle, Send } from 'lucide-react'
+import { Search, Users, Zap, BookOpen, Clock, CheckCircle, XCircle, Send, ChevronDown, ChevronUp } from 'lucide-react'
 
 interface OpenCampaign {
   id: string
@@ -9,6 +9,10 @@ interface OpenCampaign {
   description: string | null
   theme: string | null
   campaignType: string
+  contentTone: string | null
+  playStyle: string | null
+  sessionFrequency: string | null
+  minExperience: string | null
   maxSlots: number | null
   _count: { members: number }
   system: { name: string } | null
@@ -20,6 +24,39 @@ const XP_LABELS: Record<string, string> = {
   beginner:     'Iniciante',
   intermediate: 'Intermediário',
   advanced:     'Avançado',
+}
+
+const TONE_LABELS: Record<string, { label: string; emoji: string }> = {
+  epic:         { label: 'Épico',             emoji: '⚔️' },
+  dark:         { label: 'Sombrio',           emoji: '🌑' },
+  horror:       { label: 'Terror',            emoji: '💀' },
+  political:    { label: 'Político',          emoji: '👑' },
+  adventure:    { label: 'Aventura',          emoji: '🗺️' },
+  lighthearted: { label: 'Leve',              emoji: '🎲' },
+}
+
+const FREQ_LABELS: Record<string, string> = {
+  weekly:   'Semanal',
+  biweekly: 'Quinzenal',
+  monthly:  'Mensal',
+  sporadic: 'Esporádico',
+}
+
+const PLAY_LABELS: Record<string, string> = {
+  roleplay:    'Roleplay',
+  combat:      'Combate',
+  exploration: 'Exploração',
+  mystery:     'Mistério',
+  sandbox:     'Sandbox',
+  drama:       'Drama',
+  comedy:      'Comédia',
+  horror:      'Terror',
+}
+
+const XP_REQ_LABELS: Record<string, string> = {
+  beginner:     'Iniciante+',
+  intermediate: 'Intermediário+',
+  advanced:     'Avançados apenas',
 }
 
 function ApplyModal({ campaign, onClose, onSuccess }: {
@@ -116,6 +153,139 @@ function ApplyModal({ campaign, onClose, onSuccess }: {
   )
 }
 
+function CampaignCard({ c, onApply, successId }: {
+  c: OpenCampaign
+  onApply: (c: OpenCampaign) => void
+  successId: string | null
+}) {
+  const [expanded, setExpanded] = useState(false)
+  const appStatus = c.applications?.[0]?.status ?? null
+  const playerCount = c._count.members - 1
+  const slotsLeft = c.maxSlots !== null ? c.maxSlots - playerCount : null
+  const isFull = slotsLeft !== null && slotsLeft <= 0
+
+  const playStyles: string[] = (() => {
+    try { return c.playStyle ? JSON.parse(c.playStyle) : [] } catch { return [] }
+  })()
+
+  const tone = c.contentTone ? TONE_LABELS[c.contentTone] : null
+
+  const hasExtra = tone || playStyles.length > 0 || c.sessionFrequency || c.minExperience
+  const descLong = (c.description ?? '').length > 200
+
+  return (
+    <div className="bg-surface border border-border rounded-xl overflow-hidden flex flex-col hover:border-white/20 transition-colors">
+      <div className="p-4 flex-1">
+        {/* Title row */}
+        <div className="flex items-start justify-between gap-2 mb-2">
+          <h3 className="font-cinzel font-semibold text-saga-text leading-tight">{c.name}</h3>
+          <span className="shrink-0 text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"
+            style={{
+              background: c.campaignType === 'oneshot' ? 'rgba(124,58,237,0.15)' : 'rgba(201,162,42,0.12)',
+              color: c.campaignType === 'oneshot' ? '#9d5af5' : '#c9a22a',
+              border: `1px solid ${c.campaignType === 'oneshot' ? 'rgba(124,58,237,0.3)' : 'rgba(201,162,42,0.3)'}`,
+            }}>
+            {c.campaignType === 'oneshot' ? <><Zap size={9} />One-Shot</> : <><Clock size={9} />Campanha</>}
+          </span>
+        </div>
+
+        {/* System + theme */}
+        {(c.system || c.theme) && (
+          <p className="text-[11px] text-saga-dim mb-2">
+            {[c.system?.name, c.theme].filter(Boolean).join(' · ')}
+          </p>
+        )}
+
+        {/* Description */}
+        {c.description && (
+          <div className="mb-3">
+            <p className={`text-[12px] text-saga-muted leading-relaxed ${!expanded && descLong ? 'line-clamp-3' : ''}`}>
+              {c.description}
+            </p>
+            {descLong && (
+              <button onClick={() => setExpanded(v => !v)}
+                className="mt-1 text-[10px] text-saga-dim hover:text-gold transition-colors flex items-center gap-0.5">
+                {expanded ? <><ChevronUp size={11} />Menos</> : <><ChevronDown size={11} />Ler mais</>}
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Chips */}
+        {hasExtra && (
+          <div className="flex flex-wrap gap-1.5 mt-1">
+            {tone && (
+              <span className="text-[10px] px-2 py-0.5 rounded-full"
+                style={{ background: 'rgba(255,255,255,0.06)', color: '#a0a0c0', border: '1px solid rgba(255,255,255,0.1)' }}>
+                {tone.emoji} {tone.label}
+              </span>
+            )}
+            {playStyles.map(s => (
+              <span key={s} className="text-[10px] px-2 py-0.5 rounded-full"
+                style={{ background: 'rgba(124,58,237,0.10)', color: '#9d5af5', border: '1px solid rgba(124,58,237,0.25)' }}>
+                {PLAY_LABELS[s] ?? s}
+              </span>
+            ))}
+            {c.sessionFrequency && (
+              <span className="text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1"
+                style={{ background: 'rgba(255,255,255,0.05)', color: '#7878a0', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <Clock size={9} />{FREQ_LABELS[c.sessionFrequency] ?? c.sessionFrequency}
+              </span>
+            )}
+            {c.minExperience && XP_REQ_LABELS[c.minExperience] && (
+              <span className="text-[10px] px-2 py-0.5 rounded-full"
+                style={{ background: 'rgba(255,165,0,0.08)', color: '#b8860b', border: '1px solid rgba(255,165,0,0.2)' }}>
+                {XP_REQ_LABELS[c.minExperience]}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="px-4 py-3 flex items-center justify-between gap-2"
+        style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        <div className="flex items-center gap-3 text-[11px] text-saga-dim">
+          <span className="flex items-center gap-1">
+            <Users size={11} />
+            {playerCount}{c.maxSlots ? `/${c.maxSlots}` : ''} jogadores
+          </span>
+          {c.members[0] && (
+            <span>GM: {c.members[0].user.username}</span>
+          )}
+        </div>
+
+        {appStatus === 'approved' ? (
+          <span className="text-[11px] text-saga-success flex items-center gap-1 font-medium">
+            <CheckCircle size={12} />Aprovado
+          </span>
+        ) : appStatus === 'rejected' ? (
+          <span className="text-[11px] text-saga-danger flex items-center gap-1">
+            <XCircle size={12} />Rejeitado
+          </span>
+        ) : appStatus === 'pending' ? (
+          <span className="text-[11px] text-saga-muted flex items-center gap-1">
+            <Clock size={12} />Aguardando
+          </span>
+        ) : isFull ? (
+          <span className="text-[11px] text-saga-dim">Sem vagas</span>
+        ) : successId === c.id ? (
+          <span className="text-[11px] text-saga-success flex items-center gap-1 font-medium">
+            <CheckCircle size={12} />Enviado!
+          </span>
+        ) : (
+          <button
+            onClick={() => onApply(c)}
+            className="text-[11px] font-medium px-3 py-1.5 rounded transition-all"
+            style={{ background: 'rgba(201,162,42,0.12)', color: '#c9a22a', border: '1px solid rgba(201,162,42,0.3)' }}>
+            Inscrever-se
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export default function ExplorarPage() {
   const [campaigns, setCampaigns] = useState<OpenCampaign[]>([])
   const [loading, setLoading] = useState(true)
@@ -145,10 +315,6 @@ export default function ExplorarPage() {
     }
     return true
   })
-
-  function getApplicationStatus(c: OpenCampaign) {
-    return c.applications?.[0]?.status ?? null
-  }
 
   return (
     <div className="p-4 sm:p-8">
@@ -192,80 +358,9 @@ export default function ExplorarPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {filtered.map(c => {
-            const appStatus = getApplicationStatus(c)
-            const playerCount = c._count.members - 1
-            const slotsLeft = c.maxSlots !== null ? c.maxSlots - playerCount : null
-            const isFull = slotsLeft !== null && slotsLeft <= 0
-
-            return (
-              <div key={c.id} className="bg-surface border border-border rounded-xl overflow-hidden flex flex-col hover:border-white/20 transition-colors">
-                {/* Header */}
-                <div className="p-4 flex-1">
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <h3 className="font-cinzel font-semibold text-saga-text leading-tight">{c.name}</h3>
-                    <span className="shrink-0 text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"
-                      style={{
-                        background: c.campaignType === 'oneshot' ? 'rgba(124,58,237,0.15)' : 'rgba(201,162,42,0.12)',
-                        color: c.campaignType === 'oneshot' ? '#9d5af5' : '#c9a22a',
-                        border: `1px solid ${c.campaignType === 'oneshot' ? 'rgba(124,58,237,0.3)' : 'rgba(201,162,42,0.3)'}`,
-                      }}>
-                      {c.campaignType === 'oneshot' ? <><Zap size={9} />One-Shot</> : <><Clock size={9} />Campanha</>}
-                    </span>
-                  </div>
-
-                  {c.system && (
-                    <p className="text-[11px] text-saga-dim mb-2">{c.system.name}{c.theme ? ` · ${c.theme}` : ''}</p>
-                  )}
-
-                  {c.description && (
-                    <p className="text-[12px] text-saga-muted leading-relaxed line-clamp-3">{c.description}</p>
-                  )}
-                </div>
-
-                {/* Footer */}
-                <div className="px-4 py-3 flex items-center justify-between gap-2"
-                  style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                  <div className="flex items-center gap-3 text-[11px] text-saga-dim">
-                    <span className="flex items-center gap-1">
-                      <Users size={11} />
-                      {playerCount}{c.maxSlots ? `/${c.maxSlots}` : ''} jogadores
-                    </span>
-                    {c.members[0] && (
-                      <span>GM: {c.members[0].user.username}</span>
-                    )}
-                  </div>
-
-                  {appStatus === 'approved' ? (
-                    <span className="text-[11px] text-saga-success flex items-center gap-1 font-medium">
-                      <CheckCircle size={12} />Aprovado
-                    </span>
-                  ) : appStatus === 'rejected' ? (
-                    <span className="text-[11px] text-saga-danger flex items-center gap-1">
-                      <XCircle size={12} />Rejeitado
-                    </span>
-                  ) : appStatus === 'pending' ? (
-                    <span className="text-[11px] text-saga-muted flex items-center gap-1">
-                      <Clock size={12} />Aguardando
-                    </span>
-                  ) : isFull ? (
-                    <span className="text-[11px] text-saga-dim">Sem vagas</span>
-                  ) : successId === c.id ? (
-                    <span className="text-[11px] text-saga-success flex items-center gap-1 font-medium">
-                      <CheckCircle size={12} />Enviado!
-                    </span>
-                  ) : (
-                    <button
-                      onClick={() => setApplying(c)}
-                      className="text-[11px] font-medium px-3 py-1.5 rounded transition-all"
-                      style={{ background: 'rgba(201,162,42,0.12)', color: '#c9a22a', border: '1px solid rgba(201,162,42,0.3)' }}>
-                      Inscrever-se
-                    </button>
-                  )}
-                </div>
-              </div>
-            )
-          })}
+          {filtered.map(c => (
+            <CampaignCard key={c.id} c={c} onApply={setApplying} successId={successId} />
+          ))}
         </div>
       )}
 

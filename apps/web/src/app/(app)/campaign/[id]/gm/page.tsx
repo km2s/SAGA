@@ -7,10 +7,11 @@ import Link from 'next/link'
 import { NPCVisibilityRow } from '@/components/gm/NPCVisibilityRow'
 import { SessionControls } from '@/components/gm/SessionControls'
 import { GMActions } from '@/components/gm/GMActions'
-import { Map, Users, ScrollText, FileText } from 'lucide-react'
+import { Map, Users, ScrollText, FileText, ClipboardList } from 'lucide-react'
 import { MarkTutorialVisited } from '@/components/tutorial/MarkTutorialVisited'
 import { ApplicationsPanel } from '@/components/gm/ApplicationsPanel'
 import { CampaignStatusToggle } from '@/components/gm/CampaignStatusToggle'
+import { CustomSheetBuilder } from '@/components/gm/CustomSheetBuilder'
 
 export default async function GmPanelPage({ params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
@@ -24,8 +25,8 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
         orderBy: { role: 'asc' },
       },
       sessions: { where: { isActive: true }, take: 1 },
+      system: true,
     },
-    // isOpen is a plain field — selected by default
   }).catch(() => null)
 
   if (!campaign) notFound()
@@ -137,6 +138,20 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
           )}
         </div>
       </section>
+
+      {/* Custom sheet template — only for campaigns without a preset system */}
+      {(!campaign.system || !campaign.system.isPreset) && (
+        <section>
+          <div className="flex items-center gap-2 mb-3">
+            <ClipboardList size={16} className="text-saga-muted" />
+            <h2 className="font-cinzel text-base font-semibold">Template de Ficha</h2>
+          </div>
+          <p className="text-[12px] text-saga-dim mb-3">
+            Defina os grupos de atributos e seções de texto que novos personagens receberão automaticamente ao entrar na campanha.
+          </p>
+          <CustomSheetBuilder campaignId={params.id} />
+        </section>
+      )}
 
       {/* Applications */}
       <section>
