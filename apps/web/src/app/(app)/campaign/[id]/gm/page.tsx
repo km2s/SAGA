@@ -8,6 +8,7 @@ import { NPCVisibilityRow } from '@/components/gm/NPCVisibilityRow'
 import { SessionControls } from '@/components/gm/SessionControls'
 import { GMActions } from '@/components/gm/GMActions'
 import { Map, Users, ScrollText, FileText, ClipboardList } from 'lucide-react'
+import { CopyButton } from '@/components/ui/CopyButton'
 import { MarkTutorialVisited } from '@/components/tutorial/MarkTutorialVisited'
 import { ApplicationsPanel } from '@/components/gm/ApplicationsPanel'
 import { CampaignStatusToggle } from '@/components/gm/CampaignStatusToggle'
@@ -133,7 +134,7 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
           ))}
           {players.length === 0 && (
             <div className="col-span-2 text-sm text-saga-muted bg-surface border border-border rounded-lg px-4 py-8 text-center">
-              Nenhum jogador ainda. Compartilhe o ID da campanha: <code className="font-mono text-gold">{params.id}</code>
+              Nenhum jogador ainda. Compartilhe o ID da campanha: <CopyButton value={params.id} />
             </div>
           )}
         </div>

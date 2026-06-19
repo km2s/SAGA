@@ -49,7 +49,7 @@ export default async function CampaignLayout({
         <div className="flex gap-2 shrink-0">
           {isGM && (
             <Link href={`/campaign/${params.id}/gm`}>
-              <Button variant="secondary">
+              <Button variant="secondary" className="border-white/25 bg-white/8 hover:bg-white/15 hover:border-white/40">
                 <Crown size={14} className="inline mr-1.5 -mt-0.5" />
                 <span className="hidden sm:inline">Painel do Mestre</span>
                 <span className="sm:hidden">Mestre</span>

@@ -55,6 +55,11 @@ export async function PATCH(req: Request, { params }: { params: { id: string; np
     return NextResponse.json({ error: 'imageUrl inválida' }, { status: 400 })
   }
 
+  const VALID_NPC_TYPES = ['ALLY', 'NEUTRAL', 'ENEMY']
+  if (body.type !== undefined && !VALID_NPC_TYPES.includes(body.type)) {
+    return NextResponse.json({ error: 'type deve ser ALLY, NEUTRAL ou ENEMY' }, { status: 400 })
+  }
+
   const updated = await prisma.nPC.update({
     where: { id: params.npcId },
     data: {

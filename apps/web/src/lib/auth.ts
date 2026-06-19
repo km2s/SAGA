@@ -51,9 +51,6 @@ export const authOptions: NextAuthOptions = {
       session.user.discordId = token.discordId as string
       session.user.username = token.username as string
       if (token.avatar) session.user.image = token.avatar as string
-      // Garante que email e name nunca sejam expostos ao browser
-      session.user.email = undefined as unknown as string
-      session.user.name = undefined as unknown as string
       return session
     },
   },

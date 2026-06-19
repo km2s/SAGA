@@ -68,6 +68,9 @@ export async function POST(req: Request) {
   })
 
   if (body.importedAttributes && body.importedAttributes.length > 0) {
+    if (body.importedAttributes.length > 200) {
+      return NextResponse.json({ error: 'Máximo de 200 atributos por importação' }, { status: 400 })
+    }
     // ── Imported attributes: find or create a user system to hold them ──────
     const imported = body.importedAttributes.filter(a => a.name.trim())
     const sysName = body.systemName?.trim().slice(0, 100) || 'Ficha Importada'

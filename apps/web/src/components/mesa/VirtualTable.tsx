@@ -816,7 +816,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
           ref={canvasRef}
           className={`flex-1 relative overflow-hidden ${cursor}`}
           style={{
-            backgroundImage:`linear-gradient(rgba(80,80,120,0.18) 1px,transparent 1px),linear-gradient(90deg,rgba(80,80,120,0.18) 1px,transparent 1px)`,
+            backgroundImage:`linear-gradient(rgba(90,90,140,0.28) 1px,transparent 1px),linear-gradient(90deg,rgba(90,90,140,0.28) 1px,transparent 1px)`,
             backgroundSize:`${GRID*zoom}px ${GRID*zoom}px`,
             backgroundPosition:`${pan.x%(GRID*zoom)}px ${pan.y%(GRID*zoom)}px`,
             backgroundColor:'#0a0a18',
@@ -1076,6 +1076,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
               campaignId={campaign.id}
               isGM={isGM}
               onClose={() => setHandoutsOpen(false)}
+              activeSessionId={activeSession?.id}
             />
           )}
 

@@ -57,11 +57,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
+  const newMaxHp = body.maxHp !== undefined ? Math.max(1, body.maxHp) : sheet.maxHp
   const updated = await prisma.characterSheet.update({
     where: { id: params.id },
     data: {
-      ...(body.hp !== undefined && { hp: Math.min(sheet.maxHp, Math.max(0, body.hp)) }),
-      ...(body.maxHp !== undefined && { maxHp: Math.max(1, body.maxHp) }),
+      ...(body.hp !== undefined && { hp: Math.min(newMaxHp, Math.max(0, body.hp)) }),
+      ...(body.maxHp !== undefined && { maxHp: newMaxHp }),
       ...(body.level !== undefined && { level: Math.min(20, Math.max(1, body.level)) }),
       ...(body.isPublic !== undefined && { isPublic: body.isPublic }),
       ...('imageUrl' in body && { imageUrl: body.imageUrl ?? null }),

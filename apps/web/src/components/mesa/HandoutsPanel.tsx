@@ -18,9 +18,10 @@ interface HandoutsPanelProps {
   campaignId: string
   isGM: boolean
   onClose: () => void
+  activeSessionId?: string | null
 }
 
-export function HandoutsPanel({ campaignId, isGM, onClose }: HandoutsPanelProps) {
+export function HandoutsPanel({ campaignId, isGM, onClose, activeSessionId }: HandoutsPanelProps) {
   const [handouts, setHandouts] = useState<HandoutEntry[]>([])
   const [form, setForm] = useState({ title: '', content: '', imageUrl: '' })
   const [posting, setPosting] = useState(false)
@@ -36,9 +37,10 @@ export function HandoutsPanel({ campaignId, isGM, onClose }: HandoutsPanelProps)
 
   useEffect(() => {
     load()
+    if (!activeSessionId) return
     const iv = setInterval(load, 5000)
     return () => clearInterval(iv)
-  }, [load])
+  }, [load, activeSessionId])
 
   async function shareHandout() {
     if (posting) return

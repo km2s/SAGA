@@ -27,6 +27,9 @@ export async function PATCH(req: Request, { params }: { params: { id: string; ap
   if (!application || application.campaignId !== params.id) {
     return NextResponse.json({ error: 'Inscrição não encontrada' }, { status: 404 })
   }
+  if (application.status !== 'pending') {
+    return NextResponse.json({ error: 'Inscrição já processada' }, { status: 409 })
+  }
 
   const updated = await prisma.campaignApplication.update({
     where: { id: params.appId },

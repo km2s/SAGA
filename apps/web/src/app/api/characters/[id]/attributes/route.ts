@@ -43,10 +43,8 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     if (!systemAttr) {
       let system = sheet.member.campaign.system
       if (!system) {
-        system = await prisma.rPGSystem.upsert({
-          where: { id: sheet.member.campaign.systemId ?? 'none' },
-          update: {},
-          create: { name: `${sheet.member.campaign.name} (personalizado)` },
+        system = await prisma.rPGSystem.create({
+          data: { name: `${sheet.member.campaign.name} (personalizado)` },
         }).catch(() => null)
         if (!system) return NextResponse.json({ error: 'Erro ao criar sistema' }, { status: 500 })
         if (!sheet.member.campaign.systemId) {
@@ -143,7 +141,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
     if (!isMine && !isGM) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
     await prisma.characterAttribute.delete({
-      where: { id: body.charAttributeId },
+      where: { id: body.charAttributeId, sheetId: params.id },
     }).catch(() => null)
     return NextResponse.json({ ok: true })
   }
@@ -160,7 +158,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
   if (!gmMember) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   await prisma.nPCAttribute.delete({
-    where: { id: body.charAttributeId },
+    where: { id: body.charAttributeId, npcId: npc.id },
   }).catch(() => null)
 
   return NextResponse.json({ ok: true })

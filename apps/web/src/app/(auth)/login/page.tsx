@@ -9,7 +9,7 @@ export default async function LoginPage() {
   if (session) redirect('/dashboard')
 
   return (
-    <main className="min-h-screen bg-bg bg-gradient-login flex flex-col items-center justify-center gap-0 pt-8">
+    <main className="min-h-screen bg-bg bg-gradient-login flex flex-col items-center justify-center pt-8">
       {/* Logo */}
       <h1 className="font-cinzel text-7xl font-bold tracking-[20px] text-gold-gradient mb-1">
         SAGA
@@ -28,7 +28,7 @@ export default async function LoginPage() {
       </div>
 
       {/* Features */}
-      <div className="flex flex-wrap justify-center gap-4 sm:gap-6 mt-10 px-4">
+      <div className="grid grid-cols-3 sm:grid-cols-5 gap-4 sm:gap-6 mt-10 px-4">
         {[
           { Icon: Dice6,     label: 'Rolagem inteligente' },
           { Icon: Map,       label: 'Mesa virtual' },
