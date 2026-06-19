@@ -4,18 +4,19 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
+import { useLocale } from '@/lib/i18n/context'
 
-const NPC_TYPES = [
-  { value: 'NEUTRAL', label: 'Neutro',    emoji: '⚪' },
-  { value: 'ALLY',    label: 'Aliado',    emoji: '🟢' },
-  { value: 'ENEMY',   label: 'Inimigo',   emoji: '🔴' },
-  { value: 'VILLAIN', label: 'Vilão',     emoji: '⚫' },
-  { value: 'MERCHANT',label: 'Mercador',  emoji: '🟡' },
-  { value: 'FAMILIAR',label: 'Familiar',  emoji: '💜' },
-  { value: 'MOUNT',   label: 'Montaria',  emoji: '🟤' },
-  { value: 'SERVANT', label: 'Servo',     emoji: '🔵' },
-  { value: 'OTHER',   label: 'Outro',     emoji: '⬜' },
-]
+const NPC_TYPE_VALUES = [
+  { value: 'NEUTRAL', emoji: '⚪' },
+  { value: 'ALLY',    emoji: '🟢' },
+  { value: 'ENEMY',   emoji: '🔴' },
+  { value: 'VILLAIN', emoji: '⚫' },
+  { value: 'MERCHANT',emoji: '🟡' },
+  { value: 'FAMILIAR',emoji: '💜' },
+  { value: 'MOUNT',   emoji: '🟤' },
+  { value: 'SERVANT', emoji: '🔵' },
+  { value: 'OTHER',   emoji: '⬜' },
+] as const
 
 export function CreateNPCModal({ campaignId, players: _players, open, onClose }: {
   campaignId: string
@@ -24,6 +25,7 @@ export function CreateNPCModal({ campaignId, players: _players, open, onClose }:
   onClose: () => void
 }) {
   const router = useRouter()
+  const { t } = useLocale()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [name, setName] = useState('')
@@ -33,7 +35,7 @@ export function CreateNPCModal({ campaignId, players: _players, open, onClose }:
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!name.trim()) { setError('Nome obrigatório'); return }
+    if (!name.trim()) { setError(t.errors.nameRequired); return }
     setError('')
     setLoading(true)
     const res = await fetch(`/api/campaigns/${campaignId}/npcs`, {
@@ -44,7 +46,7 @@ export function CreateNPCModal({ campaignId, players: _players, open, onClose }:
     setLoading(false)
     if (!res?.ok) {
       const data = await res?.json().catch(() => ({})) as { error?: string }
-      setError(data.error ?? 'Erro ao criar NPC')
+      setError(data.error ?? t.errors.createNpc)
       return
     }
     const data = await res.json() as { id: string }
@@ -54,40 +56,40 @@ export function CreateNPCModal({ campaignId, players: _players, open, onClose }:
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Criar NPC">
+    <Modal open={open} onClose={onClose} title={t.createNpc.title}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
 
         {/* Name */}
         <div>
           <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">
-            Nome <span className="text-saga-danger">*</span>
+            {t.createNpc.nameLabel} <span className="text-saga-danger">*</span>
           </label>
           <input
             autoFocus
             value={name}
             onChange={e => setName(e.target.value)}
-            placeholder="Malachor, o Lich..."
+            placeholder={t.createNpc.namePlaceholder}
             className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm focus:outline-none focus:border-gold/60 transition-colors"
           />
         </div>
 
         {/* Type chips */}
         <div>
-          <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-2">Tipo</label>
+          <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-2">{t.createNpc.typeLabel}</label>
           <div className="flex flex-wrap gap-1.5">
-            {NPC_TYPES.map(t => (
+            {NPC_TYPE_VALUES.map(npc => (
               <button
-                key={t.value}
+                key={npc.value}
                 type="button"
-                onClick={() => setType(t.value)}
+                onClick={() => setType(npc.value)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium border transition-all ${
-                  type === t.value
+                  type === npc.value
                     ? 'bg-gold/15 border-gold/50 text-gold'
                     : 'bg-surface-2 border-border text-saga-muted hover:border-white/20 hover:text-saga-text'
                 }`}
               >
-                <span>{t.emoji}</span>
-                {t.label}
+                <span>{npc.emoji}</span>
+                {t.npcTypes[npc.value]}
               </button>
             ))}
           </div>
@@ -95,7 +97,7 @@ export function CreateNPCModal({ campaignId, players: _players, open, onClose }:
 
         {/* Max HP */}
         <div>
-          <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">HP Máximo</label>
+          <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">{t.createNpc.maxHpLabel}</label>
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -125,19 +127,17 @@ export function CreateNPCModal({ campaignId, players: _players, open, onClose }:
           >
             <div className={`w-3.5 h-3.5 rounded-full bg-white absolute top-[3px] transition-all ${isPublic ? 'right-[3px]' : 'left-[3px]'}`} />
           </div>
-          <span className="text-sm text-saga-muted">{isPublic ? 'Visível para todos os jogadores' : 'Restrito ao Mestre'}</span>
+          <span className="text-sm text-saga-muted">{isPublic ? t.createNpc.visibleLabel : t.createNpc.restrictedLabel}</span>
         </label>
 
-        <p className="text-[11px] text-saga-dim -mt-2">
-          Raça, classe, imagem e atributos podem ser configurados na ficha do NPC após a criação.
-        </p>
+        <p className="text-[11px] text-saga-dim -mt-2">{t.createNpc.hint}</p>
 
         {error && <p className="text-sm text-saga-danger">{error}</p>}
 
         <div className="flex justify-end gap-2">
-          <Button variant="secondary" type="button" onClick={onClose}>Cancelar</Button>
+          <Button variant="secondary" type="button" onClick={onClose}>{t.common.cancel}</Button>
           <Button variant="primary" type="submit" disabled={loading}>
-            {loading ? 'Criando...' : 'Criar NPC'}
+            {loading ? t.createNpc.creating : t.createNpc.createBtn}
           </Button>
         </div>
       </form>

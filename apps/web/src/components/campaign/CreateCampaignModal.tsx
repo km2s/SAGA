@@ -5,66 +5,32 @@ import { useRouter } from 'next/navigation'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { ChevronRight, ChevronLeft, ChevronDown, BookOpen } from 'lucide-react'
+import { useLocale } from '@/lib/i18n/context'
 
 interface RPGSystem { id: string; name: string; category: string }
 
-const SYSTEM_CATEGORIES = [
-  { value: 'fantasy',           label: 'Fantasia' },
-  { value: 'world-of-darkness', label: 'World of Darkness' },
-  { value: 'horror',            label: 'Horror' },
-  { value: 'scifi',             label: 'Sci-Fi / Cyberpunk' },
-  { value: 'generic',           label: 'Genérico / Indie' },
-  { value: 'custom',            label: 'Personalizado / Homebrew' },
-]
-
-const CATEGORY_LABELS: Record<string, string> = {
-  fantasy: 'Fantasia',
-  'world-of-darkness': 'World of Darkness',
-  horror: 'Horror',
-  scifi: 'Sci-Fi / Cyberpunk',
-  generic: 'Genérico / Indie',
-  custom: 'Personalizado',
-}
 const CATEGORY_ORDER = ['fantasy', 'world-of-darkness', 'horror', 'scifi', 'generic', 'custom']
 
 const TONES = [
-  { value: 'epic',      label: 'Épico',              emoji: '⚔️' },
-  { value: 'dark',      label: 'Sombrio',             emoji: '🌑' },
-  { value: 'horror',    label: 'Terror',              emoji: '💀' },
-  { value: 'political', label: 'Intrigas Políticas',  emoji: '👑' },
-  { value: 'adventure', label: 'Aventura',            emoji: '🗺️' },
-  { value: 'lighthearted', label: 'Leve / Casual',   emoji: '🎲' },
-]
+  { value: 'epic',         emoji: '⚔️' },
+  { value: 'dark',         emoji: '🌑' },
+  { value: 'horror',       emoji: '💀' },
+  { value: 'political',    emoji: '👑' },
+  { value: 'adventure',    emoji: '🗺️' },
+  { value: 'lighthearted', emoji: '🎲' },
+] as const
 
-const PLAY_STYLES = [
-  { value: 'roleplay',    label: 'Roleplay Intenso' },
-  { value: 'combat',      label: 'Foco em Combate' },
-  { value: 'exploration', label: 'Exploração' },
-  { value: 'mystery',     label: 'Mistério' },
-  { value: 'sandbox',     label: 'Sandbox' },
-  { value: 'drama',       label: 'Drama' },
-  { value: 'comedy',      label: 'Comédia' },
-  { value: 'horror',      label: 'Terror' },
-]
+const PLAY_STYLES = ['roleplay', 'combat', 'exploration', 'mystery', 'sandbox', 'drama', 'comedy', 'horror'] as const
 
-const FREQUENCIES = [
-  { value: 'weekly',    label: 'Semanal' },
-  { value: 'biweekly',  label: 'Quinzenal' },
-  { value: 'monthly',   label: 'Mensal' },
-  { value: 'sporadic',  label: 'Esporádico' },
-]
+const FREQUENCIES = ['weekly', 'biweekly', 'monthly', 'sporadic'] as const
 
-const MIN_XP = [
-  { value: 'none',         label: 'Qualquer nível' },
-  { value: 'beginner',     label: 'Iniciante ou mais' },
-  { value: 'intermediate', label: 'Intermediário ou mais' },
-  { value: 'advanced',     label: 'Apenas avançados' },
-]
+const MIN_XP = ['none', 'beginner', 'intermediate', 'advanced'] as const
 
 interface Props { open: boolean; onClose: () => void }
 
 export function CreateCampaignModal({ open, onClose }: Props) {
   const router = useRouter()
+  const { t } = useLocale()
   const [step, setStep] = useState<1 | 2>(1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -90,6 +56,8 @@ export function CreateCampaignModal({ open, onClose }: Props) {
     customSystemName: '',
   })
 
+  const SYSTEM_CATEGORIES = CATEGORY_ORDER.map(v => ({ value: v, label: (t.systemCategories as Record<string, string>)[v] ?? v }))
+  const CATEGORY_LABELS: Record<string, string> = Object.fromEntries(SYSTEM_CATEGORIES.map(c => [c.value, c.label]))
   const isPersonalizado = form.systemName === 'Personalizado'
 
   useEffect(() => {
@@ -129,7 +97,7 @@ export function CreateCampaignModal({ open, onClose }: Props) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.name.trim()) { setError('Nome é obrigatório'); setStep(1); return }
+    if (!form.name.trim()) { setError(t.errors.nameRequired); setStep(1); return }
     setError('')
     setLoading(true)
     try {
@@ -156,7 +124,7 @@ export function CreateCampaignModal({ open, onClose }: Props) {
       })
       if (!res.ok) {
         const data = await res.json()
-        setError(data.error ?? 'Erro ao criar campanha')
+        setError(data.error ?? t.errors.createCampaign)
         return
       }
       const campaign = await res.json()
@@ -164,7 +132,7 @@ export function CreateCampaignModal({ open, onClose }: Props) {
       router.push(`/campaign/${campaign.id}`)
       router.refresh()
     } catch {
-      setError('Erro de conexão')
+      setError(t.errors.connection)
     } finally {
       setLoading(false)
     }
@@ -177,7 +145,7 @@ export function CreateCampaignModal({ open, onClose }: Props) {
   const inputCls = 'w-full bg-surface-2 border border-border rounded px-3 py-2.5 text-sm text-saga-text placeholder:text-saga-dim focus:outline-none focus:border-gold/60 transition-colors'
 
   return (
-    <Modal open={open} onClose={handleClose} title="Nova Campanha">
+    <Modal open={open} onClose={handleClose} title={t.createCampaign.title}>
       {/* Step indicator */}
       <div className="flex items-center gap-2 mb-5">
         {([1, 2] as const).map(n => (
@@ -190,7 +158,7 @@ export function CreateCampaignModal({ open, onClose }: Props) {
                   : 'bg-surface-2 text-saga-dim'
             }`}>{n}</div>
             <span className={`text-[11px] transition-colors ${step === n ? 'text-saga-text font-medium' : 'text-saga-dim'}`}>
-              {n === 1 ? 'Básico' : 'Detalhes'}
+              {n === 1 ? t.createCampaign.stepBasic : t.createCampaign.stepDetails}
             </span>
             {n < 2 && <ChevronRight size={13} className="text-saga-dim" />}
           </div>
@@ -204,7 +172,7 @@ export function CreateCampaignModal({ open, onClose }: Props) {
           <>
             {/* Tipo */}
             <div>
-              <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-2">Tipo de Aventura</label>
+              <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-2">{t.createCampaign.adventureType}</label>
               <div className="grid grid-cols-2 gap-2">
                 {(['campaign', 'oneshot'] as const).map(type => {
                   const sel = form.campaignType === type
@@ -215,10 +183,10 @@ export function CreateCampaignModal({ open, onClose }: Props) {
                         sel ? 'bg-gold/10 border-gold/45' : 'bg-white/[0.03] border-white/10'
                       }`}>
                       <span className={`text-[12px] font-semibold ${sel ? 'text-gold' : 'text-saga-muted'}`}>
-                        {type === 'campaign' ? 'Campanha' : 'One-Shot'}
+                        {type === 'campaign' ? t.createCampaign.typeCampaign : t.createCampaign.typeOneshot}
                       </span>
                       <span className="text-[10px] text-saga-dim leading-tight">
-                        {type === 'campaign' ? 'Múltiplas sessões, personagens evoluem' : 'Sessão única e completa'}
+                        {type === 'campaign' ? t.createCampaign.typeCampaignDesc : t.createCampaign.typeOneshotDesc}
                       </span>
                     </button>
                   )
@@ -227,13 +195,13 @@ export function CreateCampaignModal({ open, onClose }: Props) {
             </div>
 
             <div>
-              <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">Nome *</label>
+              <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">{t.createCampaign.nameLabel} *</label>
               <input name="name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                placeholder="A Maldição dos Dragões..." className={inputCls} />
+                placeholder={t.createCampaign.namePlaceholder} className={inputCls} />
             </div>
 
             <div>
-              <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">Sistema</label>
+              <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">{t.createCampaign.systemLabel}</label>
               <div ref={systemDropdownRef} className="relative">
                 <button
                   type="button"
@@ -241,7 +209,7 @@ export function CreateCampaignModal({ open, onClose }: Props) {
                   className={`${inputCls} flex items-center justify-between gap-2 cursor-pointer`}
                 >
                   <span className={form.systemName ? 'text-saga-text' : 'text-saga-dim'}>
-                    {form.systemName || 'Nenhum / Livre'}
+                    {form.systemName || t.createCampaign.systemNone}
                   </span>
                   <ChevronDown size={14} className={`text-saga-dim shrink-0 transition-transform duration-150 ${systemDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -253,7 +221,7 @@ export function CreateCampaignModal({ open, onClose }: Props) {
                       onClick={() => { setForm(f => ({ ...f, systemName: '', addToSystems: false, customSystemName: '', systemDescription: '' })); setSystemDropdownOpen(false) }}
                       className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${!form.systemName ? 'text-gold bg-gold/10' : 'text-saga-muted hover:bg-white/5 hover:text-saga-text'}`}
                     >
-                      Nenhum / Livre
+                      {t.createCampaign.systemNone}
                     </button>
                     {grouped.map(({ cat, items }) => (
                       <div key={cat}>
@@ -282,12 +250,12 @@ export function CreateCampaignModal({ open, onClose }: Props) {
 
                   <div>
                     <label className="text-[10px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">
-                      Nome do sistema <span className="font-normal normal-case tracking-normal text-saga-dim">(opcional)</span>
+                      {t.createCampaign.customSystemName} <span className="font-normal normal-case tracking-normal text-saga-dim">({t.common.optional})</span>
                     </label>
                     <input
                       value={form.customSystemName}
                       onChange={e => setForm(f => ({ ...f, customSystemName: e.target.value }))}
-                      placeholder="Ex: Sistema Homebrew da Karine…"
+                      placeholder={t.createCampaign.customSystemNamePlaceholder}
                       className={`${inputCls} w-full`}
                     />
                   </div>
@@ -296,10 +264,8 @@ export function CreateCampaignModal({ open, onClose }: Props) {
                     <div className="flex items-start gap-3">
                       <BookOpen size={14} className="text-saga-muted shrink-0 mt-0.5" />
                       <div className="flex-1">
-                        <p className="text-[12px] text-saga-text font-medium leading-snug">Adicionar ao catálogo do Saga</p>
-                        <p className="text-[11px] text-saga-dim mt-0.5">
-                          Sistema ficará visível na aba de Sistemas para outros usuários.
-                        </p>
+                        <p className="text-[12px] text-saga-text font-medium leading-snug">{t.createCampaign.addToCatalog}</p>
+                        <p className="text-[11px] text-saga-dim mt-0.5">{t.createCampaign.addToCatalogDesc}</p>
                       </div>
                       <button
                         type="button"
@@ -312,7 +278,7 @@ export function CreateCampaignModal({ open, onClose }: Props) {
                     {form.addToSystems && (
                       <div className="space-y-3 mt-3">
                         <div>
-                          <label className="text-[10px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">Categoria</label>
+                          <label className="text-[10px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">{t.createCampaign.categoryLabel}</label>
                           <div className="flex flex-wrap gap-1.5">
                             {SYSTEM_CATEGORIES.map(cat => {
                               const sel = form.systemCategory === cat.value
@@ -330,14 +296,14 @@ export function CreateCampaignModal({ open, onClose }: Props) {
                         </div>
                         <div>
                           <label className="text-[10px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">
-                            Descrição <span className="font-normal normal-case tracking-normal text-saga-dim">(opcional)</span>
+                            {t.createCampaign.systemDescLabel} <span className="font-normal normal-case tracking-normal text-saga-dim">({t.common.optional})</span>
                           </label>
                           <textarea
                             value={form.systemDescription}
                             onChange={e => setForm(f => ({ ...f, systemDescription: e.target.value }))}
                             rows={2}
                             maxLength={500}
-                            placeholder="Descreva as mecânicas, ambientação e estilo de jogo deste sistema…"
+                            placeholder={t.createCampaign.systemDescPlaceholder}
                             className={`${inputCls} resize-none w-full`}
                           />
                         </div>
@@ -349,17 +315,17 @@ export function CreateCampaignModal({ open, onClose }: Props) {
             </div>
 
             <div>
-              <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">Tema / Ambientação</label>
+              <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">{t.createCampaign.themeLabel}</label>
               <input value={form.theme} onChange={e => setForm(f => ({ ...f, theme: e.target.value }))}
-                placeholder="Medieval, sci-fi, horror..." className={inputCls} />
+                placeholder={t.createCampaign.themePlaceholder} className={inputCls} />
             </div>
 
             {error && <p className="text-sm text-saga-danger">{error}</p>}
 
             <div className="flex justify-end pt-1">
               <Button variant="primary" type="button"
-                onClick={() => { if (!form.name.trim()) { setError('Nome é obrigatório'); return }; setError(''); setStep(2) }}>
-                Próximo <ChevronRight size={14} className="ml-1" />
+                onClick={() => { if (!form.name.trim()) { setError(t.errors.nameRequired); return }; setError(''); setStep(2) }}>
+                {t.common.next} <ChevronRight size={14} className="ml-1" />
               </Button>
             </div>
           </>
@@ -369,69 +335,73 @@ export function CreateCampaignModal({ open, onClose }: Props) {
         {step === 2 && (
           <>
             <div>
-              <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">Descrição da Campanha</label>
+              <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">{t.createCampaign.descLabel}</label>
               <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
                 rows={4} maxLength={2000}
-                placeholder="Descreva a temática, o cenário, o que os jogadores podem esperar..."
+                placeholder={t.createCampaign.descPlaceholder}
                 className={`${inputCls} resize-none`} />
               <p className="text-[9px] text-saga-dim mt-1 text-right">{form.description.length}/2000</p>
             </div>
 
-            {/* Tom */}
+            {/* Tone */}
             <div>
-              <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-2">Tom da Campanha</label>
+              <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-2">{t.createCampaign.toneLabel}</label>
               <div className="grid grid-cols-3 gap-2">
-                {TONES.map(t => {
-                  const sel = form.contentTone === t.value
+                {TONES.map(tone => {
+                  const sel = form.contentTone === tone.value
                   return (
-                    <button key={t.value} type="button"
-                      onClick={() => setForm(f => ({ ...f, contentTone: sel ? '' : t.value }))}
+                    <button key={tone.value} type="button"
+                      onClick={() => setForm(f => ({ ...f, contentTone: sel ? '' : tone.value }))}
                       className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-left transition-all ${
                         sel ? 'bg-gold/10 border-gold/45' : 'bg-white/[0.03] border-white/10'
                       }`}>
-                      <span className="text-base leading-none">{t.emoji}</span>
-                      <span className={`text-[11px] font-medium ${sel ? 'text-gold' : 'text-saga-muted'}`}>{t.label}</span>
+                      <span className="text-base leading-none">{tone.emoji}</span>
+                      <span className={`text-[11px] font-medium ${sel ? 'text-gold' : 'text-saga-muted'}`}>
+                        {(t.createCampaign.tones as Record<string, string>)[tone.value]}
+                      </span>
                     </button>
                   )
                 })}
               </div>
             </div>
 
-            {/* Estilo de jogo */}
+            {/* Play style */}
             <div>
               <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-2">
-                Estilo de Jogo <span className="text-saga-dim font-normal normal-case tracking-normal">(escolha quantos quiser)</span>
+                {t.createCampaign.playStyleLabel} <span className="text-saga-dim font-normal normal-case tracking-normal">{t.createCampaign.playStyleHint}</span>
               </label>
               <div className="flex flex-wrap gap-2">
-                {PLAY_STYLES.map(s => {
-                  const sel = form.playStyle.includes(s.value)
+                {PLAY_STYLES.map(style => {
+                  const sel = form.playStyle.includes(style)
                   return (
-                    <button key={s.value} type="button" onClick={() => toggleStyle(s.value)}
+                    <button key={style} type="button" onClick={() => toggleStyle(style)}
                       className={`px-3 py-1.5 rounded-full text-[11px] font-medium border transition-all ${
                         sel ? 'bg-purple/15 border-purple/50 text-purple-bright' : 'bg-white/[0.04] border-white/10 text-saga-muted'
                       }`}>
-                      {s.label}
+                      {(t.createCampaign.styles as Record<string, string>)[style]}
                     </button>
                   )
                 })}
               </div>
             </div>
 
-            {/* Frequência e Experiência mínima */}
+            {/* Frequency & Min XP */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-2">Frequência de Sessões</label>
+                <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-2">{t.createCampaign.frequencyLabel}</label>
                 <div className="space-y-1.5">
-                  {FREQUENCIES.map(f => {
-                    const sel = form.sessionFrequency === f.value
+                  {FREQUENCIES.map(freq => {
+                    const sel = form.sessionFrequency === freq
                     return (
-                      <button key={f.value} type="button"
-                        onClick={() => setForm(fm => ({ ...fm, sessionFrequency: sel ? '' : f.value }))}
+                      <button key={freq} type="button"
+                        onClick={() => setForm(fm => ({ ...fm, sessionFrequency: sel ? '' : freq }))}
                         className={`w-full flex items-center gap-2 px-3 py-2 rounded border text-left transition-all ${
                           sel ? 'bg-gold/[0.08] border-gold/40' : 'bg-white/[0.03] border-white/8'
                         }`}>
                         <span className={`w-2 h-2 rounded-full shrink-0 ${sel ? 'bg-gold' : 'bg-white/20'}`} />
-                        <span className={`text-[11px] ${sel ? 'text-gold font-medium' : 'text-saga-muted'}`}>{f.label}</span>
+                        <span className={`text-[11px] ${sel ? 'text-gold font-medium' : 'text-saga-muted'}`}>
+                          {(t.createCampaign.frequencies as Record<string, string>)[freq]}
+                        </span>
                       </button>
                     )
                   })}
@@ -439,18 +409,20 @@ export function CreateCampaignModal({ open, onClose }: Props) {
               </div>
 
               <div>
-                <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-2">Experiência Mínima</label>
+                <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-2">{t.createCampaign.minXpLabel}</label>
                 <div className="space-y-1.5">
-                  {MIN_XP.map(x => {
-                    const sel = form.minExperience === x.value
+                  {MIN_XP.map(xp => {
+                    const sel = form.minExperience === xp
                     return (
-                      <button key={x.value} type="button"
-                        onClick={() => setForm(f => ({ ...f, minExperience: x.value }))}
+                      <button key={xp} type="button"
+                        onClick={() => setForm(f => ({ ...f, minExperience: xp }))}
                         className={`w-full flex items-center gap-2 px-3 py-2 rounded border text-left transition-all ${
                           sel ? 'bg-gold/[0.08] border-gold/40' : 'bg-white/[0.03] border-white/8'
                         }`}>
                         <span className={`w-2 h-2 rounded-full shrink-0 ${sel ? 'bg-gold' : 'bg-white/20'}`} />
-                        <span className={`text-[11px] ${sel ? 'text-gold font-medium' : 'text-saga-muted'}`}>{x.label}</span>
+                        <span className={`text-[11px] ${sel ? 'text-gold font-medium' : 'text-saga-muted'}`}>
+                          {(t.createCampaign.minXp as Record<string, string>)[xp]}
+                        </span>
                       </button>
                     )
                   })}
@@ -458,12 +430,12 @@ export function CreateCampaignModal({ open, onClose }: Props) {
               </div>
             </div>
 
-            {/* Inscrições */}
+            {/* Applications */}
             <div className="rounded-lg p-3 bg-white/[0.03] border border-white/8">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-[12px] font-medium text-saga-text">Aberta para inscrições</p>
-                  <p className="text-[10px] text-saga-dim mt-0.5">Aparece em &quot;Explorar Campanhas&quot; para novos jogadores</p>
+                  <p className="text-[12px] font-medium text-saga-text">{t.createCampaign.openLabel}</p>
+                  <p className="text-[10px] text-saga-dim mt-0.5">{t.createCampaign.openDesc}</p>
                 </div>
                 <button type="button" onClick={() => setForm(f => ({ ...f, isOpen: !f.isOpen }))}
                   className={`relative w-9 h-5 rounded-full transition-all shrink-0 ${form.isOpen ? 'bg-gold' : 'bg-white/10'}`}>
@@ -473,11 +445,11 @@ export function CreateCampaignModal({ open, onClose }: Props) {
               {form.isOpen && (
                 <div className="mt-3 pt-3 border-t border-white/[0.07]">
                   <label className="text-[10px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">
-                    Número máximo de vagas (opcional)
+                    {t.createCampaign.maxSlotsLabel} <span className="font-normal normal-case tracking-normal text-saga-dim">({t.common.optional})</span>
                   </label>
                   <input type="number" min="1" max="20" value={form.maxSlots}
                     onChange={e => setForm(f => ({ ...f, maxSlots: e.target.value }))}
-                    placeholder="Sem limite"
+                    placeholder={t.createCampaign.maxSlotsPlaceholder}
                     className={inputCls} />
                 </div>
               )}
@@ -487,10 +459,10 @@ export function CreateCampaignModal({ open, onClose }: Props) {
 
             <div className="flex justify-between pt-1">
               <Button variant="secondary" type="button" onClick={() => setStep(1)}>
-                <ChevronLeft size={14} className="mr-1" /> Voltar
+                <ChevronLeft size={14} className="mr-1" /> {t.common.back}
               </Button>
               <Button variant="primary" type="submit" disabled={loading}>
-                {loading ? 'Criando...' : 'Criar Campanha'}
+                {loading ? t.common.creating : t.createCampaign.createBtn}
               </Button>
             </div>
           </>

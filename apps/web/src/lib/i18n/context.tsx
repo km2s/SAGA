@@ -3,6 +3,8 @@
 import { createContext, useContext, useState, useCallback } from 'react'
 import { type Locale, type T, translations } from './translations'
 
+export { translations }
+
 interface LocaleContextType {
   locale: Locale
   setLocale: (l: Locale) => void

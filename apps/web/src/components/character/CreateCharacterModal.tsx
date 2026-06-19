@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
+import { useLocale } from '@/lib/i18n/context'
 import {
   Swords, Moon, Skull, Rocket, Dice6, Pencil,
   Sword, Flame, Globe, Castle, Sparkles, Target, Leaf, Zap, Ghost, Eye, Shield, Cpu, Monitor, Compass,
@@ -47,6 +48,7 @@ export function CreateCharacterModal({ campaigns, open, onClose }: {
   onClose: () => void
 }) {
   const router = useRouter()
+  const { t } = useLocale()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [form, setForm] = useState({
@@ -71,8 +73,8 @@ export function CreateCharacterModal({ campaigns, open, onClose }: {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.name.trim()) { setError('Nome obrigatório'); return }
-    if (!form.campaignId) { setError('Selecione uma campanha'); return }
+    if (!form.name.trim()) { setError(t.errors.nameRequired); return }
+    if (!form.campaignId) { setError(t.errors.selectCampaign); return }
     setError('')
     setLoading(true)
 
@@ -95,7 +97,7 @@ export function CreateCharacterModal({ campaigns, open, onClose }: {
     setLoading(false)
     if (!res?.ok) {
       const data = await res?.json().catch(() => ({})) as { error?: string }
-      setError(data.error ?? 'Erro ao criar personagem')
+      setError(data.error ?? t.errors.createCharacter)
       return
     }
     handleClose()
@@ -104,26 +106,24 @@ export function CreateCharacterModal({ campaigns, open, onClose }: {
 
   if (campaigns.length === 0) {
     return (
-      <Modal open={open} onClose={handleClose} title="Criar Personagem">
+      <Modal open={open} onClose={handleClose} title={t.createCharacter.title}>
         <div className="flex flex-col items-center gap-4 py-8 text-center">
           <Dice6 size={40} className="text-saga-dim opacity-40" />
-          <p className="text-sm text-saga-muted">
-            Você não está em nenhuma campanha como jogador, ou já tem um personagem em todas elas.
-          </p>
-          <Button variant="secondary" type="button" onClick={handleClose}>Fechar</Button>
+          <p className="text-sm text-saga-muted">{t.createCharacter.noCampaigns}</p>
+          <Button variant="secondary" type="button" onClick={handleClose}>{t.common.close}</Button>
         </div>
       </Modal>
     )
   }
 
   return (
-    <Modal open={open} onClose={handleClose} title="Criar Personagem">
+    <Modal open={open} onClose={handleClose} title={t.createCharacter.title}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
-        {/* Campanha — ao selecionar, sistema é derivado automaticamente */}
+        {/* Campaign — system is derived automatically */}
         <div>
           <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">
-            Campanha *
+            {t.createCharacter.campaignLabel} *
           </label>
           {campaigns.length === 1 ? (
             // Uma única campanha — não precisa de dropdown
@@ -146,43 +146,43 @@ export function CreateCharacterModal({ campaigns, open, onClose }: {
           <SystemIcon size={16} style={{ color: systemColor }} className="shrink-0" />
           <div className="flex-1 min-w-0">
             <p className="text-xs font-medium truncate" style={{ color: systemColor }}>
-              {system?.name ?? 'Personalizado'}
+              {system?.name ?? t.createCharacter.customSystemLabel}
             </p>
             <p className="text-[10px] text-saga-dim">
-              {system ? 'Sistema da campanha — atributos adicionados automaticamente' : 'Sem sistema — adicione atributos manualmente depois'}
+              {system ? t.createCharacter.systemPreset : t.createCharacter.systemCustom}
             </p>
           </div>
         </div>
 
-        {/* Nome */}
+        {/* Name */}
         <div>
-          <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">Nome *</label>
+          <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">{t.createCharacter.nameLabel} *</label>
           <input value={form.name} onChange={e => set('name', e.target.value)}
-            placeholder="Lyra Sombramoon…"
+            placeholder={t.createCharacter.namePlaceholder}
             className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm focus:outline-none focus:border-gold/60" />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">Raça / Clã</label>
+            <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">{t.createCharacter.raceLabel}</label>
             <input value={form.race} onChange={e => set('race', e.target.value)}
-              placeholder="Meio-Elfo, Gangrel…"
+              placeholder={t.createCharacter.racePlaceholder}
               className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm focus:outline-none focus:border-gold/60" />
           </div>
           <div>
-            <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">Classe / Conceito</label>
+            <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">{t.createCharacter.classLabel}</label>
             <input value={form.class} onChange={e => set('class', e.target.value)}
-              placeholder="Feiticeiro, Toreador…"
+              placeholder={t.createCharacter.classPlaceholder}
               className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm focus:outline-none focus:border-gold/60" />
           </div>
           <div>
-            <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">Nível / Geração</label>
+            <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">{t.createCharacter.levelLabel}</label>
             <input value={form.level} onChange={e => set('level', e.target.value)}
               type="number" min="1" max="20"
               className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm focus:outline-none focus:border-gold/60" />
           </div>
           <div>
-            <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">HP / Vitalidade</label>
+            <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">{t.createCharacter.hpLabel}</label>
             <input value={form.maxHp} onChange={e => set('maxHp', e.target.value)}
               type="number" min="1"
               className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm focus:outline-none focus:border-gold/60" />
@@ -190,7 +190,7 @@ export function CreateCharacterModal({ campaigns, open, onClose }: {
         </div>
 
         <div>
-          <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">URL da Imagem</label>
+          <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">{t.createCharacter.imageLabel}</label>
           <input value={form.imageUrl} onChange={e => set('imageUrl', e.target.value)}
             placeholder="https://…"
             className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm focus:outline-none focus:border-gold/60" />
@@ -199,9 +199,9 @@ export function CreateCharacterModal({ campaigns, open, onClose }: {
         {error && <p className="text-sm text-saga-danger">{error}</p>}
 
         <div className="flex justify-end gap-2 pt-1">
-          <Button variant="secondary" type="button" onClick={handleClose}>Cancelar</Button>
+          <Button variant="secondary" type="button" onClick={handleClose}>{t.common.cancel}</Button>
           <Button variant="primary" type="submit" disabled={loading}>
-            {loading ? 'Criando…' : 'Criar Personagem'}
+            {loading ? t.createCharacter.creating : t.createCharacter.createBtn}
           </Button>
         </div>
       </form>

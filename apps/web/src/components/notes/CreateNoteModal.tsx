@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
+import { useLocale } from '@/lib/i18n/context'
 
 interface Props {
   open: boolean
@@ -17,6 +18,7 @@ export function CreateNoteModal({ open, onClose, campaignId, isGM }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [form, setForm] = useState({ title: '', content: '', visibility: 'PRIVATE' })
+  const { t } = useLocale()
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     setForm(f => ({ ...f, [e.target.name]: e.target.value }))
@@ -35,52 +37,52 @@ export function CreateNoteModal({ open, onClose, campaignId, isGM }: Props) {
       })
       if (!res.ok) {
         const data = await res.json()
-        setError(data.error ?? 'Erro ao salvar nota')
+        setError(data.error ?? t.errors.saveNote)
         return
       }
       onClose()
       setForm({ title: '', content: '', visibility: 'PRIVATE' })
       router.refresh()
     } catch {
-      setError('Erro de conexão')
+      setError(t.errors.connection)
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Nova Nota">
+    <Modal open={open} onClose={onClose} title={t.createNote.title}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div>
           <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">
-            Título (opcional)
+            {t.createNote.titleLabel} <span className="font-normal normal-case tracking-normal text-saga-dim">({t.common.optional})</span>
           </label>
           <input
             name="title"
             value={form.title}
             onChange={handleChange}
-            placeholder="Nome da nota..."
+            placeholder={t.createNote.titlePlaceholder}
             className="w-full bg-surface-2 border border-border rounded px-3 py-2.5 text-sm text-saga-text placeholder:text-saga-dim focus:outline-none focus:border-gold/60 transition-colors"
           />
         </div>
 
         <div>
           <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">
-            Conteúdo *
+            {t.createNote.contentLabel} *
           </label>
           <textarea
             name="content"
             value={form.content}
             onChange={handleChange}
             rows={5}
-            placeholder="Escreva sua nota aqui..."
+            placeholder={t.createNote.contentPlaceholder}
             className="w-full bg-surface-2 border border-border rounded px-3 py-2.5 text-sm text-saga-text placeholder:text-saga-dim focus:outline-none focus:border-gold/60 transition-colors resize-none"
           />
         </div>
 
         <div>
           <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">
-            Visibilidade
+            {t.createNote.visibilityLabel}
           </label>
           <select
             name="visibility"
@@ -88,18 +90,18 @@ export function CreateNoteModal({ open, onClose, campaignId, isGM }: Props) {
             onChange={handleChange}
             className="w-full bg-surface-2 border border-border rounded px-3 py-2.5 text-sm text-saga-text focus:outline-none focus:border-gold/60 transition-colors"
           >
-            <option value="PRIVATE">Privada — só você</option>
-            <option value="CAMPAIGN">Campanha — todos os jogadores</option>
-            {isGM && <option value="GM_ONLY">Só Mestre</option>}
+            <option value="PRIVATE">{t.createNote.visPrivate}</option>
+            <option value="CAMPAIGN">{t.createNote.visCampaign}</option>
+            {isGM && <option value="GM_ONLY">{t.createNote.visGmOnly}</option>}
           </select>
         </div>
 
         {error && <p className="text-sm text-saga-danger">{error}</p>}
 
         <div className="flex justify-end gap-2 pt-1">
-          <Button variant="secondary" type="button" onClick={onClose}>Cancelar</Button>
+          <Button variant="secondary" type="button" onClick={onClose}>{t.common.cancel}</Button>
           <Button variant="primary" type="submit" disabled={loading}>
-            {loading ? 'Salvando...' : 'Salvar Nota'}
+            {loading ? t.createNote.saving : t.createNote.saveBtn}
           </Button>
         </div>
       </form>

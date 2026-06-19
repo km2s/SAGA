@@ -4,6 +4,7 @@ import { prisma } from 'database'
 import { notFound, redirect } from 'next/navigation'
 import { Badge } from '@/components/ui/Badge'
 import Link from 'next/link'
+import { getServerT } from '@/lib/i18n/getServerT'
 
 function formatDuration(startedAt: Date, endedAt: Date | null) {
   const end = endedAt ?? new Date()
@@ -16,6 +17,7 @@ function formatDuration(startedAt: Date, endedAt: Date | null) {
 export default async function CampaignSessionsPage({ params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
   if (!session) redirect('/login')
+  const t = getServerT()
 
   const campaign = await prisma.campaign.findUnique({
     where: { id: params.id },
@@ -38,29 +40,29 @@ export default async function CampaignSessionsPage({ params }: { params: { id: s
 
   return (
     <div className="p-4 sm:p-8 sm:pt-5">
-      <h2 className="font-cinzel text-lg font-semibold mb-4">Sessões</h2>
+      <h2 className="font-cinzel text-lg font-semibold mb-4">{t.sessions.title}</h2>
 
       {/* Active session */}
       {activeSession && (
         <div className="mb-6">
-          <p className="text-[11px] text-saga-muted font-bold uppercase tracking-widest mb-2">Em andamento</p>
+          <p className="text-[11px] text-saga-muted font-bold uppercase tracking-widest mb-2">{t.sessions.active}</p>
           <Link href={`/campaign/${params.id}/sessions/${activeSession.id}`}>
             <div className="bg-surface border border-saga-success/30 rounded-lg p-5 hover:border-saga-success/50 transition-all cursor-pointer">
               <div className="flex items-start justify-between">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <div className="pulse-dot" />
-                    <h3 className="font-cinzel font-semibold">{activeSession.name ?? 'Sessão sem título'}</h3>
-                    <Badge variant="success">Ativa</Badge>
+                    <h3 className="font-cinzel font-semibold">{activeSession.name ?? t.sessions.noTitle}</h3>
+                    <Badge variant="success">{t.sessions.activeBadge}</Badge>
                   </div>
                   <p className="text-[12px] text-saga-muted">
-                    Iniciada em {new Date(activeSession.startedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
-                    {' · '}Duração: {formatDuration(activeSession.startedAt, null)}
+                    {t.sessions.startedAt} {new Date(activeSession.startedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
+                    {' · '}{t.sessions.duration} {formatDuration(activeSession.startedAt, null)}
                   </p>
                 </div>
                 <div className="text-right">
                   <p className="text-2xl font-bold text-gold font-cinzel">{activeSession._count.rollLogs}</p>
-                  <p className="text-[11px] text-saga-muted">rolagens</p>
+                  <p className="text-[11px] text-saga-muted">{t.sessions.rolls}</p>
                 </div>
               </div>
             </div>
@@ -71,11 +73,11 @@ export default async function CampaignSessionsPage({ params }: { params: { id: s
       {/* Past sessions */}
       <div>
         <p className="text-[11px] text-saga-muted font-bold uppercase tracking-widest mb-2">
-          Histórico · {pastSessions.length} sessão{pastSessions.length !== 1 ? 'ões' : ''}
+          {t.sessions.historyTitle} · {pastSessions.length} {pastSessions.length !== 1 ? t.sessions.sessions : t.sessions.session}
         </p>
         {pastSessions.length === 0 ? (
           <div className="text-sm text-saga-muted bg-surface border border-border rounded-lg px-4 py-10 text-center">
-            Nenhuma sessão encerrada ainda.
+            {t.sessions.noHistory}
           </div>
         ) : (
           <div className="space-y-2">
@@ -88,7 +90,7 @@ export default async function CampaignSessionsPage({ params }: { params: { id: s
                     </div>
                     <div>
                       <p className="font-medium group-hover:text-gold transition-colors">
-                        {s.name ?? `Sessão ${pastSessions.length - i}`}
+                        {s.name ?? `${t.sessions.sessionNumber} ${pastSessions.length - i}`}
                       </p>
                       <p className="text-[11px] text-saga-muted">
                         {new Date(s.startedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}
@@ -99,12 +101,12 @@ export default async function CampaignSessionsPage({ params }: { params: { id: s
                   <div className="flex items-center gap-4">
                     <div className="text-right">
                       <p className="font-bold text-gold">{s._count.rollLogs}</p>
-                      <p className="text-[11px] text-saga-muted">rolagens</p>
+                      <p className="text-[11px] text-saga-muted">{t.sessions.rolls}</p>
                     </div>
                     {s.summary ? (
-                      <Badge variant="purple">Resumo</Badge>
+                      <Badge variant="purple">{t.sessions.summaryBadge}</Badge>
                     ) : (
-                      <Badge variant="muted">Sem resumo</Badge>
+                      <Badge variant="muted">{t.sessions.noSummaryBadge}</Badge>
                     )}
                     <span className="text-saga-muted group-hover:text-gold transition-colors text-sm">→</span>
                   </div>
