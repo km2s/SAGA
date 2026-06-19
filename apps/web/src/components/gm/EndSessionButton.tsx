@@ -5,28 +5,26 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { Square } from 'lucide-react'
-import { useLocale } from '@/lib/i18n/context'
 
 export function EndSessionButton({ campaignId, compact }: { campaignId: string; compact?: boolean }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [confirmOpen, setConfirmOpen] = useState(false)
   const router = useRouter()
-  const { t } = useLocale()
 
   async function handleEnd() {
     setConfirmOpen(false)
     setLoading(true)
     setError('')
-
+    
     try {
       const res = await fetch(`/api/campaigns/${campaignId}/sessions/end`, {
         method: 'POST',
       })
-
+      
       if (!res.ok) {
         setLoading(false)
-        setError(t.errors.connection)
+        setError('Erro ao encerrar sessão. Tente novamente.')
         return
       }
 
@@ -38,15 +36,13 @@ export function EndSessionButton({ campaignId, compact }: { campaignId: string; 
           ? `/campaign/${campaignId}/sessions/${sessionId}`
           : `/campaign/${campaignId}/sessions`
       )
-    } catch {
+    } catch (err) {
       setLoading(false)
-      setError(t.errors.connection)
+      setError('Erro de conexão. Verifique sua conexão e tente novamente.')
     }
   }
 
-  const label = loading
-    ? t.endSession.ending
-    : <span className="flex items-center gap-1.5"><Square size={12} />{t.endSession.btnCompact}</span>
+  const label = loading ? 'Encerrando...' : <span className="flex items-center gap-1.5"><Square size={12} />Encerrar</span>
 
   return (
     <>
@@ -60,19 +56,17 @@ export function EndSessionButton({ campaignId, compact }: { campaignId: string; 
         </button>
       ) : (
         <Button variant="danger" disabled={loading} onClick={() => setConfirmOpen(true)}>
-          {loading
-            ? t.endSession.ending
-            : <span className="flex items-center gap-1.5"><Square size={14} />{t.endSession.btnFull}</span>}
+          {loading ? 'Encerrando...' : <span className="flex items-center gap-1.5"><Square size={14} />Encerrar Sessão</span>}
         </Button>
       )}
 
       <ConfirmModal
         open={confirmOpen}
         variant="danger"
-        title={t.endSession.confirmTitle}
-        description={error || t.endSession.confirmDesc}
-        confirmLabel={loading ? t.endSession.ending : t.endSession.confirmBtn}
-        cancelLabel={t.endSession.cancelBtn}
+        title="Encerrar sessão?"
+        description={error || "Todos os jogadores perderão acesso à mesa. Você poderá escrever o resumo da sessão em seguida."}
+        confirmLabel={loading ? 'Encerrando...' : 'Encerrar e ir ao resumo'}
+        cancelLabel="Continuar jogando"
         onConfirm={() => { void handleEnd() }}
         onCancel={() => { setConfirmOpen(false); setError('') }}
       />

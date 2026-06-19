@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from 'database'
 import { notFound, redirect } from 'next/navigation'
+import { Badge } from '@/components/ui/Badge'
 import Link from 'next/link'
 import { NPCVisibilityRow } from '@/components/gm/NPCVisibilityRow'
 import { SessionControls } from '@/components/gm/SessionControls'
@@ -12,12 +13,10 @@ import { MarkTutorialVisited } from '@/components/tutorial/MarkTutorialVisited'
 import { ApplicationsPanel } from '@/components/gm/ApplicationsPanel'
 import { CampaignStatusToggle } from '@/components/gm/CampaignStatusToggle'
 import { CustomSheetBuilder } from '@/components/gm/CustomSheetBuilder'
-import { getServerT } from '@/lib/i18n/getServerT'
 
 export default async function GmPanelPage({ params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
   if (!session) redirect('/login')
-  const t = getServerT()
 
   const campaign = await prisma.campaign.findUnique({
     where: { id: params.id },
@@ -52,7 +51,7 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
       {/* Session control */}
       <section>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-cinzel text-base font-semibold">{t.gmPanel.sessionControl}</h2>
+          <h2 className="font-cinzel text-base font-semibold">Controle de Sessão</h2>
           <SessionControls campaignId={params.id} hasActiveSession={!!activeSession} />
         </div>
         <div className="bg-surface border border-border rounded-lg p-5">
@@ -61,22 +60,22 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
               <div className="flex items-center gap-3">
                 <div className="pulse-dot" />
                 <div>
-                  <p className="font-medium">{activeSession.name ?? t.sessions.noTitle}</p>
+                  <p className="font-medium">{activeSession.name ?? 'Sessão em andamento'}</p>
                   <p className="text-[12px] text-saga-muted">
-                    {t.gmPanel.sessionStartedAt} {new Date(activeSession.startedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                    Iniciada às {new Date(activeSession.startedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                   </p>
                 </div>
               </div>
               <Link href={`/campaign/${params.id}/mesa`}>
                 <div className="flex items-center gap-1.5 px-3 py-1.5 rounded text-sm font-medium bg-purple-dim border border-purple/30 text-purple-bright hover:bg-purple/20 transition-colors cursor-pointer">
                   <Map size={14} />
-                  {t.gmPanel.openTable}
+                  Abrir Mesa
                 </div>
               </Link>
             </div>
           ) : (
             <div className="text-center py-4">
-              <p className="text-saga-muted text-sm">{t.gmPanel.sessionNone}</p>
+              <p className="text-saga-muted text-sm">Nenhuma sessão ativa. Clique em &quot;Iniciar Sessão&quot; para começar.</p>
             </div>
           )}
         </div>
@@ -85,12 +84,12 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
       {/* NPC section */}
       <section>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-cinzel text-base font-semibold">{t.gmPanel.npcsTitle}</h2>
+          <h2 className="font-cinzel text-base font-semibold">NPCs · Visibilidade</h2>
           <GMActions campaignId={params.id} players={players} />
         </div>
         {npcs.length === 0 ? (
           <div className="text-sm text-saga-muted bg-surface border border-border rounded-lg px-4 py-8 text-center">
-            {t.gmPanel.npcsNone}
+            Nenhum NPC criado. Clique em &quot;+ Criar NPC&quot; acima para adicionar o primeiro.
           </div>
         ) : (
           <div className="space-y-2">
@@ -103,7 +102,7 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
 
       {/* Players overview */}
       <section>
-        <h2 className="font-cinzel text-base font-semibold mb-3">{t.gmPanel.playersTitle}</h2>
+        <h2 className="font-cinzel text-base font-semibold mb-3">Jogadores</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {players.map(m => (
             <div key={m.id} className="bg-surface border border-border rounded-lg p-4 flex items-center gap-3">
@@ -115,7 +114,7 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
                 {m.character ? (
                   <>
                     <p className="text-[11px] text-saga-muted truncate">
-                      {m.character.name} · {m.character.race ?? ''} {m.character.class ?? ''} · {t.common.level}{m.character.level}
+                      {m.character.name} · {m.character.race ?? ''} {m.character.class ?? ''} · Nv.{m.character.level}
                     </p>
                     <div className="flex items-center gap-2 mt-1">
                       <div className="flex-1 bg-surface-2 rounded-full h-1.5 overflow-hidden">
@@ -128,14 +127,14 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
                     </div>
                   </>
                 ) : (
-                  <p className="text-[11px] text-saga-muted">{t.gmPanel.playersNoChar}</p>
+                  <p className="text-[11px] text-saga-muted">Sem personagem</p>
                 )}
               </div>
             </div>
           ))}
           {players.length === 0 && (
             <div className="col-span-2 text-sm text-saga-muted bg-surface border border-border rounded-lg px-4 py-8 text-center">
-              {t.gmPanel.playersNone} <CopyButton value={params.id} />
+              Nenhum jogador ainda. Compartilhe o ID da campanha: <CopyButton value={params.id} />
             </div>
           )}
         </div>
@@ -146,15 +145,18 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
         <section>
           <div className="flex items-center gap-2 mb-3">
             <ClipboardList size={16} className="text-saga-muted" />
-            <h2 className="font-cinzel text-base font-semibold">{t.gmPanel.templateTitle}</h2>
+            <h2 className="font-cinzel text-base font-semibold">Template de Ficha</h2>
           </div>
+          <p className="text-[12px] text-saga-dim mb-3">
+            Defina os grupos de atributos e seções de texto que novos personagens receberão automaticamente ao entrar na campanha.
+          </p>
           <CustomSheetBuilder campaignId={params.id} />
         </section>
       )}
 
       {/* Applications */}
       <section>
-        <h2 className="font-cinzel text-base font-semibold mb-3">{t.gmPanel.applicationsTitle}</h2>
+        <h2 className="font-cinzel text-base font-semibold mb-3">Inscrições de Jogadores</h2>
         <div className="space-y-3">
           <CampaignStatusToggle
             campaignId={params.id}
@@ -167,13 +169,13 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
 
       {/* Quick links */}
       <section>
-        <h2 className="font-cinzel text-base font-semibold mb-3">{t.gmPanel.shortcutsTitle}</h2>
+        <h2 className="font-cinzel text-base font-semibold mb-3">Atalhos</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { href: `/campaign/${params.id}/npcs`,     label: t.campaign.npcs,         Icon: Users },
-            { href: `/campaign/${params.id}/sessions`, label: t.campaign.sessions,     Icon: ScrollText },
-            { href: `/campaign/${params.id}/notes`,    label: t.campaign.notes,        Icon: FileText },
-            { href: `/campaign/${params.id}/mesa`,     label: t.campaign.virtualTable, Icon: Map },
+            { href: `/campaign/${params.id}/npcs`,     label: 'Ver NPCs',     Icon: Users },
+            { href: `/campaign/${params.id}/sessions`, label: 'Sessões',      Icon: ScrollText },
+            { href: `/campaign/${params.id}/notes`,    label: 'Notas',        Icon: FileText },
+            { href: `/campaign/${params.id}/mesa`,     label: 'Mesa Virtual', Icon: Map },
           ].map(link => (
             <Link key={link.href} href={link.href}>
               <div className="bg-surface border border-border rounded-lg p-4 hover:border-gold/40 hover:bg-surface-2 transition-all cursor-pointer text-center">

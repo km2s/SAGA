@@ -7,7 +7,6 @@ import {
   X, Swords, Sparkles,
 } from 'lucide-react'
 import { CreateCampaignModal } from '@/components/campaign/CreateCampaignModal'
-import { useLocale } from '@/lib/i18n/context'
 
 const KEY_DISMISSED   = 'saga_checklist_dismissed'
 const KEY_VISITED_GM  = 'saga_visited_gm'
@@ -23,7 +22,6 @@ interface Props {
 export function OnboardingChecklist({ hasCampaign, firstCampaignId, firstGMCampaignId }: Props) {
   const router   = useRouter()
   const pathname = usePathname()
-  const { t }    = useLocale()
   const [mounted, setMounted]         = useState(false)
   const [open, setOpen]               = useState(false)
   const [minimized, setMinimized]     = useState(false)
@@ -68,22 +66,22 @@ export function OnboardingChecklist({ hasCampaign, firstCampaignId, firstGMCampa
   const tasks = [
     {
       id: 'account',
-      label: t.onboarding.taskAccount,
-      sublabel: t.onboarding.taskAccountSub,
+      label: 'Criar sua conta',
+      sublabel: 'Login via Discord realizado',
       done: true,
       action: null as (() => void) | null,
     },
     {
       id: 'campaign',
-      label: t.onboarding.taskCampaign,
-      sublabel: t.onboarding.taskCampaignSub,
+      label: 'Criar uma campanha',
+      sublabel: 'Reúna sua mesa e defina o sistema',
       done: hasCampaign,
       action: hasCampaign ? null : (() => setCreateOpen(true)),
     },
     {
       id: 'gm',
-      label: t.onboarding.taskGm,
-      sublabel: t.onboarding.taskGmSub,
+      label: 'Explorar o Painel do Mestre',
+      sublabel: 'Sessões, NPCs e controles de GM',
       done: visitedGm,
       action: firstGMCampaignId
         ? (() => router.push(`/campaign/${firstGMCampaignId}/gm`))
@@ -91,8 +89,8 @@ export function OnboardingChecklist({ hasCampaign, firstCampaignId, firstGMCampa
     },
     {
       id: 'npc',
-      label: t.onboarding.taskNpc,
-      sublabel: t.onboarding.taskNpcSub,
+      label: 'Criar um NPC',
+      sublabel: 'Fichas para personagens não-jogáveis',
       done: visitedNpc,
       action: firstGMCampaignId
         ? (() => router.push(`/campaign/${firstGMCampaignId}/npcs`))
@@ -100,8 +98,8 @@ export function OnboardingChecklist({ hasCampaign, firstCampaignId, firstGMCampa
     },
     {
       id: 'mesa',
-      label: t.onboarding.taskMesa,
-      sublabel: t.onboarding.taskMesaSub,
+      label: 'Abrir a Mesa Virtual',
+      sublabel: 'Tokens, mapa e rolagem ao vivo',
       done: visitedMesa,
       action: firstCampaignId
         ? (() => router.push(`/campaign/${firstCampaignId}/mesa`))
@@ -127,8 +125,8 @@ export function OnboardingChecklist({ hasCampaign, firstCampaignId, firstGMCampa
         <div className="px-4 py-3 flex items-center gap-2">
           <Swords size={14} className="text-gold shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="font-cinzel text-[13px] font-semibold leading-none">{t.onboarding.title}</p>
-            <p className="text-[10px] text-saga-muted mt-0.5">{done} {t.onboarding.completed} {total} {t.onboarding.completedSuffix}</p>
+            <p className="font-cinzel text-[13px] font-semibold leading-none">Primeiros Passos</p>
+            <p className="text-[10px] text-saga-muted mt-0.5">{done} de {total} concluídos</p>
           </div>
           <button
             onClick={() => setMinimized(m => !m)}
@@ -158,8 +156,8 @@ export function OnboardingChecklist({ hasCampaign, firstCampaignId, firstGMCampa
             {allDone ? (
               <div className="py-5 flex flex-col items-center gap-2 text-center">
                 <Sparkles size={24} className="text-gold" />
-                <p className="font-cinzel text-sm font-bold text-gold">{t.onboarding.allDoneTitle}</p>
-                <p className="text-[11px] text-saga-muted">{t.onboarding.allDoneDesc}</p>
+                <p className="font-cinzel text-sm font-bold text-gold">Aventura Iniciada!</p>
+                <p className="text-[11px] text-saga-muted">Você está pronto para jogar.</p>
               </div>
             ) : (
               <div className="flex flex-col gap-0.5">

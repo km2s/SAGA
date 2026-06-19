@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LayoutGrid, Users, Ghost, CalendarDays, BookOpen } from 'lucide-react'
-import { useLocale } from '@/lib/i18n/context'
 
 interface Tab {
   label: string
@@ -14,15 +13,14 @@ interface Tab {
 
 export function CampaignTabs({ campaignId, isGM: _isGM }: { campaignId: string; isGM: boolean }) {
   const pathname = usePathname()
-  const { t } = useLocale()
   const base = `/campaign/${campaignId}`
 
   const tabs: Tab[] = [
-    { label: t.campaignTabs.overview,  href: base,               Icon: LayoutGrid,   exact: true },
-    { label: t.campaignTabs.members,   href: `${base}/members`,  Icon: Users },
-    { label: t.campaignTabs.npcs,      href: `${base}/npcs`,     Icon: Ghost },
-    { label: t.campaignTabs.sessions,  href: `${base}/sessions`, Icon: CalendarDays },
-    { label: t.campaignTabs.notes,     href: `${base}/notes`,    Icon: BookOpen },
+    { label: 'Visão Geral', href: base,               Icon: LayoutGrid,   exact: true },
+    { label: 'Membros',     href: `${base}/members`,  Icon: Users },
+    { label: 'NPCs',        href: `${base}/npcs`,     Icon: Ghost },
+    { label: 'Sessões',     href: `${base}/sessions`, Icon: CalendarDays },
+    { label: 'Notas',       href: `${base}/notes`,    Icon: BookOpen },
   ]
 
   function isActive(tab: Tab) {

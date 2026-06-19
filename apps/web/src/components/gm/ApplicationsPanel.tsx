@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { CheckCircle, XCircle, ChevronDown, ChevronUp } from 'lucide-react'
-import { useLocale } from '@/lib/i18n/context'
+import { CheckCircle, XCircle, Clock, ChevronDown, ChevronUp } from 'lucide-react'
 
 interface Application {
   id: string
@@ -13,18 +12,17 @@ interface Application {
   user: { id: string; username: string; avatar: string | null }
 }
 
+const XP_LABELS: Record<string, string> = {
+  beginner: 'Iniciante',
+  intermediate: 'Intermediário',
+  advanced: 'Avançado',
+}
+
 export function ApplicationsPanel({ campaignId }: { campaignId: string }) {
   const [applications, setApplications] = useState<Application[]>([])
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState<string | null>(null)
   const [acting, setActing] = useState<string | null>(null)
-  const { t } = useLocale()
-
-  const XP_LABELS: Record<string, string> = {
-    beginner:     t.applications.xpBeginner,
-    intermediate: t.applications.xpIntermediate,
-    advanced:     t.applications.xpAdvanced,
-  }
 
   function load() {
     fetch(`/api/campaigns/${campaignId}/applications`)
@@ -55,11 +53,11 @@ export function ApplicationsPanel({ campaignId }: { campaignId: string }) {
     <section>
       <div className="flex items-center justify-between mb-3">
         <h2 className="font-cinzel text-base font-semibold flex items-center gap-2">
-          {t.applications.title}
+          Inscrições
           {pending.length > 0 && (
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
               style={{ background: 'rgba(201,162,42,0.15)', color: '#c9a22a', border: '1px solid rgba(201,162,42,0.35)' }}>
-              {pending.length} {pending.length !== 1 ? t.applications.pendingPlural : t.applications.pending}
+              {pending.length} pendente{pending.length !== 1 ? 's' : ''}
             </span>
           )}
         </h2>
@@ -67,7 +65,7 @@ export function ApplicationsPanel({ campaignId }: { campaignId: string }) {
 
       {applications.length === 0 ? (
         <div className="bg-surface border border-border rounded-lg px-4 py-8 text-center text-sm text-saga-muted">
-          {t.applications.noneYet}
+          Nenhuma inscrição recebida ainda.
         </div>
       ) : (
         <div className="space-y-2">
@@ -100,9 +98,9 @@ export function ApplicationsPanel({ campaignId }: { campaignId: string }) {
                       </button>
                     </>
                   ) : app.status === 'approved' ? (
-                    <span className="text-[11px] text-saga-success flex items-center gap-1"><CheckCircle size={11} />{t.applications.approved}</span>
+                    <span className="text-[11px] text-saga-success flex items-center gap-1"><CheckCircle size={11} />Aprovado</span>
                   ) : (
-                    <span className="text-[11px] text-saga-dim flex items-center gap-1"><XCircle size={11} />{t.applications.rejected}</span>
+                    <span className="text-[11px] text-saga-dim flex items-center gap-1"><XCircle size={11} />Rejeitado</span>
                   )}
                   {app.characterDesc && (
                     <button
@@ -115,7 +113,7 @@ export function ApplicationsPanel({ campaignId }: { campaignId: string }) {
               </div>
               {expanded === app.id && app.characterDesc && (
                 <div className="px-4 pb-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                  <p className="text-[11px] text-saga-dim uppercase font-bold tracking-widest mt-2.5 mb-1">{t.applications.charDescLabel}</p>
+                  <p className="text-[11px] text-saga-dim uppercase font-bold tracking-widest mt-2.5 mb-1">Descrição do personagem</p>
                   <p className="text-sm text-saga-muted leading-relaxed whitespace-pre-wrap">{app.characterDesc}</p>
                 </div>
               )}

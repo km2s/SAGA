@@ -4,18 +4,16 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
-import { useLocale } from '@/lib/i18n/context'
 
 export function JoinCampaignModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const router = useRouter()
   const [campaignId, setCampaignId] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const { t } = useLocale()
 
   async function handleJoin(e: React.FormEvent) {
     e.preventDefault()
-    if (!campaignId.trim()) { setError(t.errors.campaignIdRequired); return }
+    if (!campaignId.trim()) { setError('ID da campanha obrigatório'); return }
     setError('')
     setLoading(true)
     const res = await fetch(`/api/campaigns/${campaignId.trim()}/join`, {
@@ -24,7 +22,7 @@ export function JoinCampaignModal({ open, onClose }: { open: boolean; onClose: (
     setLoading(false)
     if (!res?.ok) {
       const data = await res?.json().catch(() => ({})) as { error?: string }
-      setError(data.error ?? t.errors.campaignNotFound)
+      setError(data.error ?? 'Campanha não encontrada')
       return
     }
     setCampaignId('')
@@ -34,12 +32,14 @@ export function JoinCampaignModal({ open, onClose }: { open: boolean; onClose: (
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={t.joinCampaign.title}>
+    <Modal open={open} onClose={onClose} title="Entrar em Campanha">
       <form onSubmit={handleJoin} className="flex flex-col gap-4">
-        <p className="text-sm text-saga-muted">{t.joinCampaign.hint}</p>
+        <p className="text-sm text-saga-muted">
+          Peça ao Mestre o ID da campanha. Você pode encontrá-lo na URL da campanha no SAGA.
+        </p>
         <div>
           <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">
-            {t.joinCampaign.idLabel}
+            ID da Campanha
           </label>
           <input
             value={campaignId}
@@ -50,9 +50,9 @@ export function JoinCampaignModal({ open, onClose }: { open: boolean; onClose: (
         </div>
         {error && <p className="text-sm text-saga-danger">{error}</p>}
         <div className="flex justify-end gap-2">
-          <Button variant="secondary" type="button" onClick={onClose}>{t.common.cancel}</Button>
+          <Button variant="secondary" type="button" onClick={onClose}>Cancelar</Button>
           <Button variant="primary" type="submit" disabled={loading}>
-            {loading ? t.joinCampaign.joining : t.joinCampaign.joinBtn}
+            {loading ? 'Entrando...' : 'Entrar na Campanha'}
           </Button>
         </div>
       </form>

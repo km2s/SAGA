@@ -4,12 +4,10 @@ import { prisma } from 'database'
 import { notFound, redirect } from 'next/navigation'
 import { Badge } from '@/components/ui/Badge'
 import { NotesActions } from '@/components/notes/NotesActions'
-import { getServerT } from '@/lib/i18n/getServerT'
 
 export default async function NotesPage({ params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
   if (!session) redirect('/login')
-  const t = getServerT()
 
   const campaign = await prisma.campaign.findUnique({ where: { id: params.id } }).catch(() => null)
   if (!campaign) notFound()
@@ -37,17 +35,17 @@ export default async function NotesPage({ params }: { params: { id: string } }) 
     orderBy: { createdAt: 'desc' },
   }).catch(() => [])
 
-  const visLabel = {
-    PRIVATE:  { label: t.notes.privateLabel,  variant: 'muted'   as const },
-    CAMPAIGN: { label: t.notes.campaignLabel, variant: 'purple'  as const },
-    GM_ONLY:  { label: t.notes.gmOnlyLabel,   variant: 'gold'    as const },
+  const visLabel: Record<string, { label: string; variant: 'muted' | 'purple' | 'gold' }> = {
+    PRIVATE:  { label: 'Privada',    variant: 'muted' },
+    CAMPAIGN: { label: 'Campanha',   variant: 'purple' },
+    GM_ONLY:  { label: 'Só Mestre', variant: 'gold' },
   }
 
   return (
     <div className="p-4 sm:p-8">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-cinzel text-xl font-semibold">{t.notes.title}</h1>
+          <h1 className="font-cinzel text-xl font-semibold">Notas</h1>
           <p className="text-sm text-saga-muted mt-1">{campaign.name}</p>
         </div>
         <NotesActions campaignId={params.id} isGM={isGM} />
@@ -55,12 +53,12 @@ export default async function NotesPage({ params }: { params: { id: string } }) 
 
       {notes.length === 0 ? (
         <div className="text-center py-16 text-saga-muted text-sm">
-          {t.notes.noNotes}
+          Nenhuma nota ainda. Clique em &quot;+ Nova Nota&quot; para começar.
         </div>
       ) : (
         <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
           {notes.map(note => {
-            const vis = visLabel[note.visibility as keyof typeof visLabel]
+            const vis = visLabel[note.visibility]
             return (
               <div key={note.id} className="bg-surface border border-border rounded-lg p-5 flex flex-col gap-3 card-hover cursor-pointer">
                 <div className="flex items-start justify-between gap-2">

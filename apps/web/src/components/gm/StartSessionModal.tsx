@@ -4,14 +4,12 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
-import { useLocale } from '@/lib/i18n/context'
 
 export function StartSessionModal({ campaignId, open, onClose }: { campaignId: string; open: boolean; onClose: () => void }) {
   const router = useRouter()
   const [name, setName] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const { t } = useLocale()
 
   async function handleStart(e: React.FormEvent) {
     e.preventDefault()
@@ -25,7 +23,7 @@ export function StartSessionModal({ campaignId, open, onClose }: { campaignId: s
     setLoading(false)
     if (!res?.ok) {
       const data = await res?.json().catch(() => ({})) as { error?: string }
-      setError(data.error ?? t.errors.startSession)
+      setError(data.error ?? 'Erro ao iniciar sessão')
       return
     }
     setName('')
@@ -34,24 +32,24 @@ export function StartSessionModal({ campaignId, open, onClose }: { campaignId: s
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={t.startSession.title}>
+    <Modal open={open} onClose={onClose} title="Iniciar Sessão">
       <form onSubmit={handleStart} className="flex flex-col gap-4">
         <div>
           <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">
-            {t.startSession.nameLabel} <span className="font-normal normal-case tracking-normal text-saga-dim">({t.common.optional})</span>
+            Nome da Sessão (opcional)
           </label>
           <input
             value={name}
             onChange={e => setName(e.target.value)}
-            placeholder={t.startSession.namePlaceholder}
+            placeholder="Sessão 1, A Floresta Proibida..."
             className="w-full bg-surface-2 border border-border rounded px-3 py-2.5 text-sm text-saga-text placeholder:text-saga-dim focus:outline-none focus:border-gold/60 transition-colors"
           />
         </div>
         {error && <p className="text-sm text-saga-danger">{error}</p>}
         <div className="flex justify-end gap-2">
-          <Button variant="secondary" type="button" onClick={onClose}>{t.common.cancel}</Button>
+          <Button variant="secondary" type="button" onClick={onClose}>Cancelar</Button>
           <Button variant="success" type="submit" disabled={loading}>
-            {loading ? t.startSession.starting : t.startSession.startBtn}
+            {loading ? 'Iniciando...' : '▶ Iniciar Sessão'}
           </Button>
         </div>
       </form>

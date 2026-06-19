@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { Badge } from '@/components/ui/Badge'
 import { CharactersActions } from './CharactersActions'
 import { GMActions } from '@/components/gm/GMActions'
-import { useLocale } from '@/lib/i18n/context'
 import {
   Swords, Sparkles, Shield, Sword, Plus, Axe, Leaf, Music, Target, Dumbbell,
   Wand2, Moon, ScrollText, User, BookOpen, ShieldAlert, UserCheck, Heart, Wind, ExternalLink,
@@ -62,7 +61,6 @@ interface Props {
 }
 
 export function CharactersView({ playerMemberships, gmCampaigns, allCampaigns }: Props) {
-  const { t } = useLocale()
   const hasGMRole = gmCampaigns.length > 0
   const [tab, setTab] = useState<'player' | 'gm'>(
     playerMemberships.filter(m => m.character).length === 0 && hasGMRole ? 'gm' : 'player'
@@ -75,9 +73,9 @@ export function CharactersView({ playerMemberships, gmCampaigns, allCampaigns }:
       {/* Header */}
       <div className="flex items-start justify-between mb-6 gap-3 flex-wrap">
         <div>
-          <h1 className="font-cinzel text-2xl font-bold">{t.characters.title}</h1>
+          <h1 className="font-cinzel text-2xl font-bold">Meus Personagens</h1>
           <p className="text-sm text-saga-muted mt-1">
-            {tab === 'player' ? t.characters.playerSubtitle : t.characters.gmSubtitle}
+            {tab === 'player' ? 'Fichas dos seus personagens em todas as campanhas' : 'NPCs das suas campanhas como Mestre'}
           </p>
         </div>
         {tab === 'player' && <CharactersActions campaigns={allCampaigns} />}
@@ -86,17 +84,17 @@ export function CharactersView({ playerMemberships, gmCampaigns, allCampaigns }:
       {/* Tabs — only show if user has GM roles */}
       {hasGMRole && (
         <div className="flex gap-1 mb-6 bg-surface border border-border rounded-lg p-1 w-fit">
-          {([
-            { key: 'player' as const, label: t.characters.tabPlayer },
-            { key: 'gm' as const, label: t.characters.tabGm },
-          ] as const).map(item => (
-            <button key={item.key} onClick={() => setTab(item.key)}
+          {[
+            { key: 'player' as const, label: 'Jogador' },
+            { key: 'gm' as const, label: 'Mestre' },
+          ].map(t => (
+            <button key={t.key} onClick={() => setTab(t.key)}
               className={`px-4 py-1.5 rounded text-sm font-medium transition-all ${
-                tab === item.key
+                tab === t.key
                   ? 'bg-gold-dim border border-gold/20 text-gold'
                   : 'text-saga-muted hover:text-saga-text'
               }`}>
-              {item.label}
+              {t.label}
             </button>
           ))}
         </div>
@@ -107,8 +105,10 @@ export function CharactersView({ playerMemberships, gmCampaigns, allCampaigns }:
         charMemberships.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <User size={52} className="text-saga-muted/30 mb-4" />
-            <p className="font-cinzel text-lg text-saga-muted">{t.characters.noCharacters}</p>
-            <p className="text-sm text-saga-muted mt-1 max-w-sm">{t.characters.noCharactersHint}</p>
+            <p className="font-cinzel text-lg text-saga-muted">Nenhum personagem ainda</p>
+            <p className="text-sm text-saga-muted mt-1 max-w-sm">
+              Clique em &quot;+ Criar Personagem&quot; para criar sua primeira ficha.
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -143,7 +143,7 @@ export function CharactersView({ playerMemberships, gmCampaigns, allCampaigns }:
                           <h3 className="font-cinzel font-semibold">{char.name}</h3>
                           <p className="text-[12px] text-saga-muted">{char.race ?? ''} {char.class ?? ''}</p>
                         </div>
-                        <Badge variant="gold">{t.common.level} {char.level}</Badge>
+                        <Badge variant="gold">Nv. {char.level}</Badge>
                       </div>
                       <div className="mt-3">
                         <div className="flex justify-between text-[10px] text-saga-muted mb-1">
@@ -173,12 +173,12 @@ export function CharactersView({ playerMemberships, gmCampaigns, allCampaigns }:
                 <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                   <div>
                     <h2 className="font-cinzel text-base font-semibold">{campaign.name}</h2>
-                    <p className="text-[12px] text-saga-muted mt-0.5">{campaign.npcs.length} NPC{campaign.npcs.length !== 1 ? 's' : ''} · {players.length} {t.dashboard.players}</p>
+                    <p className="text-[12px] text-saga-muted mt-0.5">{campaign.npcs.length} NPC{campaign.npcs.length !== 1 ? 's' : ''} · {players.length} jogador{players.length !== 1 ? 'es' : ''}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <Link href={`/campaign/${campaign.id}/npcs`}
                       className="flex items-center gap-1.5 text-[12px] text-saga-muted hover:text-gold transition-colors">
-                      <ExternalLink size={12}/> {t.common.seeAll}
+                      <ExternalLink size={12}/> Ver todos
                     </Link>
                     <GMActions campaignId={campaign.id} players={players}/>
                   </div>
@@ -186,7 +186,7 @@ export function CharactersView({ playerMemberships, gmCampaigns, allCampaigns }:
 
                 {campaign.npcs.length === 0 ? (
                   <div className="bg-surface border border-border rounded-lg px-4 py-8 text-center text-sm text-saga-muted">
-                    {t.characters.noNpcs}
+                    Nenhum NPC criado ainda. Clique em &quot;+ Criar NPC&quot; acima.
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
@@ -207,10 +207,10 @@ export function CharactersView({ playerMemberships, gmCampaigns, allCampaigns }:
                               <h3 className="font-cinzel text-sm font-semibold truncate">{npc.name}</h3>
                               <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                                 <Badge variant={npc.type === 'VILLAIN' ? 'gold' : npc.type === 'ALLY' ? 'success' : 'muted'}>
-                                  {(t.npcTypes as Record<string, string>)[npc.type] ?? npc.type}
+                                  {NPC_TYPE_LABELS[npc.type] ?? npc.type}
                                 </Badge>
                                 <Badge variant={npc.isPublic ? 'success' : 'muted'}>
-                                  {npc.isPublic ? t.characters.npcVisible : t.characters.npcRestricted}
+                                  {npc.isPublic ? 'Visível' : 'Restrito'}
                                 </Badge>
                               </div>
                               {npc.description && (

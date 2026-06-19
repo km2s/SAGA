@@ -2,15 +2,14 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from 'database'
 import { notFound, redirect } from 'next/navigation'
+import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import Link from 'next/link'
 import { MembersOnlineStatus } from '@/components/campaign/MembersOnlineStatus'
-import { getServerT } from '@/lib/i18n/getServerT'
 
 export default async function CampaignOverviewPage({ params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
   if (!session) redirect('/login')
-  const t = getServerT()
 
   const campaign = await prisma.campaign.findUnique({
     where: { id: params.id },
@@ -46,18 +45,18 @@ export default async function CampaignOverviewPage({ params }: { params: { id: s
           <div className="flex items-center gap-3">
             <div className="pulse-dot" />
             <div>
-              <p className="text-sm font-semibold">{activeSession.name ?? t.campaignOverview.sessionActive}</p>
+              <p className="text-sm font-semibold">{activeSession.name ?? 'Sessão em andamento'}</p>
               <p className="text-[11px] text-saga-muted">
-                {t.campaignOverview.sessionStartedAt} {new Date(activeSession.startedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                Iniciada às {new Date(activeSession.startedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
               </p>
             </div>
           </div>
           <div className="flex gap-2">
             <Link href={`/campaign/${params.id}/sessions`}>
-              <Button variant="secondary">{t.campaignOverview.viewSummary}</Button>
+              <Button variant="secondary">Ver resumo</Button>
             </Link>
             <Link href={`/campaign/${params.id}/mesa`}>
-              <Button variant="primary">{t.campaignOverview.joinSession}</Button>
+              <Button variant="primary">Entrar na sessão →</Button>
             </Link>
           </div>
         </div>
@@ -67,13 +66,13 @@ export default async function CampaignOverviewPage({ params }: { params: { id: s
         {/* Roll log */}
         <div className="bg-surface border border-border rounded-lg overflow-hidden">
           <div className="px-4 py-3 border-b border-border text-[11px] font-bold text-saga-muted uppercase tracking-widest">
-            {t.campaignOverview.rollLogTitle} — {activeSession ? t.campaignOverview.rollLogCurrent : t.campaignOverview.rollLogNone}
+            Log de Rolagens — {activeSession ? 'Sessão atual' : 'Nenhuma sessão ativa'}
           </div>
           {recentRolls.length === 0 ? (
             <div className="px-4 py-10 text-center text-sm text-saga-muted">
               {activeSession
-                ? t.campaignOverview.noRolls
-                : t.campaignOverview.startSessionHint}
+                ? 'Nenhuma rolagem ainda nesta sessão.'
+                : 'Inicie uma sessão pelo bot ou pelo Painel do Mestre.'}
             </div>
           ) : (
             recentRolls.map(r => (
