@@ -852,12 +852,13 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
               const isCurrentTurn=initiativeOrder[currentTurnIdx]?.tokenId===t.id && initiativeOpen
               const hpPct = t.hp !== undefined && t.maxHp && t.maxHp > 0
                 ? Math.max(0, Math.min(100, (t.hp / t.maxHp) * 100)) : null
+              const canMoveToken = isGM || (liveMembers.includes(currentMemberId) && (t.id === currentMemberId || (t.allowedPlayers?.includes(currentMemberId) ?? false)))
               return (
                 <div key={t.id}
                   data-token-id={t.id}
                   className="absolute flex flex-col items-center gap-1 select-none"
                   style={{left:t.x,top:t.y,transform:'translate(-50%,-50%)',
-                    cursor:tool==='select'?(isDragging?'grabbing':'grab'):'default',
+                    cursor:tool==='select'?(isDragging?'grabbing':canMoveToken?'grab':'default'):'default',
                     zIndex:isDragging?100:10}}
                   onMouseDown={e=>onTokenDown(e,t.id)}
                   onContextMenu={e=>{e.preventDefault();if(tool==='select'&&isGM)removeToken(t.id)}}

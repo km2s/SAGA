@@ -71,7 +71,19 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       if (!isValidTokensJson(body.tokensJson)) {
         return NextResponse.json({ error: 'tokensJson inválido' }, { status: 400 })
       }
-      data.tokensJson = body.tokensJson
+      if (isGM) {
+        data.tokensJson = body.tokensJson
+      } else {
+        // Non-GM players may only move tokens — preserve GM-managed fields (allowedPlayers, hp, label, etc.)
+        type TR = Record<string, unknown> & { id: string; x: number; y: number }
+        const existing: TR[] = (() => { try { return JSON.parse(activeSession.tokensJson ?? '[]') } catch { return [] } })()
+        const incoming: TR[] = JSON.parse(body.tokensJson)
+        const merged = incoming.map(t => {
+          const prev = existing.find(e => e.id === t.id)
+          return prev ? { ...prev, x: t.x, y: t.y } : t
+        })
+        data.tokensJson = JSON.stringify(merged)
+      }
     }
   }
 
