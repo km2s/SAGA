@@ -26,8 +26,8 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
       />
-      <div className="relative bg-surface border border-border rounded-lg p-6 w-[500px] max-w-[92vw] shadow-2xl">
-        <div className="flex items-center justify-between mb-5">
+      <div className="relative bg-surface border border-border rounded-lg w-[500px] max-w-[92vw] max-h-[90vh] shadow-2xl flex flex-col">
+        <div className="flex items-center justify-between px-6 pt-6 pb-5 shrink-0">
           <h2 className="font-cinzel text-lg font-semibold text-saga-text">{title}</h2>
           <button
             onClick={onClose}
@@ -36,7 +36,9 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
             <X size={18} />
           </button>
         </div>
-        {children}
+        <div className="overflow-y-auto px-6 pb-6 flex-1">
+          {children}
+        </div>
       </div>
     </div>
   )
