@@ -1,5 +1,55 @@
-export { default } from 'next-auth/middleware'
+import { NextRequest, NextResponse } from 'next/server'
+import { getToken } from 'next-auth/jwt'
+
+const PROTECTED = ['/dashboard', '/campaign']
+
+function buildCsp(nonce: string): string {
+  return [
+    "default-src 'self'",
+    // strict-dynamic permite que scripts com nonce carreguem outros scripts (ex: chunks Next.js)
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' https://cdn.discordapp.com https://media.discordapp.net https://res.cloudinary.com https://i.imgur.com data: blob:",
+    "font-src 'self'",
+    "connect-src 'self'",
+    "media-src 'self' https://www.youtube-nocookie.com",
+    "frame-src https://www.youtube-nocookie.com",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "upgrade-insecure-requests",
+  ].join('; ')
+}
+
+export async function middleware(req: NextRequest) {
+  const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
+  const csp   = buildCsp(nonce)
+
+  const { pathname } = req.nextUrl
+  const isProtected = PROTECTED.some(p => pathname.startsWith(p))
+
+  if (isProtected) {
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
+    if (!token) {
+      const url = req.nextUrl.clone()
+      url.pathname = '/login'
+      url.searchParams.set('callbackUrl', req.url)
+      const res = NextResponse.redirect(url)
+      res.headers.set('content-security-policy', csp)
+      return res
+    }
+  }
+
+  // Passa o nonce para o Next.js via request header (lido pelo layout.tsx e pelo próprio Next.js)
+  const reqHeaders = new Headers(req.headers)
+  reqHeaders.set('x-nonce', nonce)
+
+  const res = NextResponse.next({ request: { headers: reqHeaders } })
+  res.headers.set('content-security-policy', csp)
+  return res
+}
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/campaign/:path*'],
+  // Exclui arquivos estáticos e rotas de API (não servem HTML, não precisam de CSP)
+  matcher: ['/((?!_next/static|_next/image|favicon\\.ico|api/).*)',],
 }
