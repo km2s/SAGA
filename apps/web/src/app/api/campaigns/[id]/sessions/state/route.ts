@@ -2,20 +2,46 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from 'database'
 import { NextResponse } from 'next/server'
+import { validateImageUrlOrError } from '@/lib/validate-url'
+import { applyRateLimit, RATE_LIMITS } from '@/lib/rate-limit'
+import { logSecurity } from '@/lib/security-log'
 
-const TOKENS_JSON_MAX_BYTES = 200_000 // 200 KB — suficiente para centenas de tokens
+const TOKENS_JSON_MAX_BYTES  = 200_000
+const MARKERS_JSON_MAX_BYTES = 10_000
+const MARKERS_MAX_COUNT      = 50
 
 function isValidTokensJson(raw: string): boolean {
   try {
     const parsed = JSON.parse(raw)
     if (!Array.isArray(parsed)) return false
-    // Valida estrutura mínima de cada token
     return parsed.every(t =>
       t !== null &&
       typeof t === 'object' &&
       typeof t.id === 'string' &&
       typeof t.x === 'number' &&
-      typeof t.y === 'number'
+      typeof t.y === 'number' &&
+      isFinite(t.x) &&
+      isFinite(t.y),
+    )
+  } catch {
+    return false
+  }
+}
+
+function isValidMarkersJson(raw: string): boolean {
+  try {
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return false
+    if (parsed.length > MARKERS_MAX_COUNT) return false
+    return parsed.every(m =>
+      m !== null &&
+      typeof m === 'object' &&
+      typeof m.x === 'number' &&
+      typeof m.y === 'number' &&
+      isFinite(m.x) &&
+      isFinite(m.y) &&
+      (m.color  === undefined || (typeof m.color === 'string'  && m.color.length  <= 20)) &&
+      (m.id     === undefined || (typeof m.id    === 'string'  && m.id.length     <= 64)),
     )
   } catch {
     return false
@@ -26,6 +52,16 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  // Rate limit por membro
+  const rateLimitRes = applyRateLimit(
+    `state:${session.user.discordId}:${params.id}`,
+    RATE_LIMITS.sessionState,
+  )
+  if (rateLimitRes) {
+    logSecurity({ event: 'rate_limit.exceeded', userId: session.user.discordId, campaignId: params.id, path: '/api/campaigns/[id]/sessions/state' })
+    return rateLimitRes
+  }
+
   const member = await prisma.campaignMember.findFirst({
     where: { campaignId: params.id, user: { discordId: session.user.discordId } },
   }).catch(() => null)
@@ -33,7 +69,6 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
   const isGM = member.role === 'GM'
 
-  // Salva na sessão mais recente (ativa ou encerrada) — estado do canvas persiste entre sessões
   const activeSession = await prisma.session.findFirst({
     where: { campaignId: params.id },
     orderBy: { startedAt: 'desc' },
@@ -52,12 +87,12 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   const data: Record<string, unknown> = {}
 
   if ('tokensJson' in body) {
-    // Non-GM token sync requires live permission
     if (!isGM) {
       const currentLive = activeSession.liveMembersJson
         ? (JSON.parse(activeSession.liveMembersJson) as string[])
         : []
       if (!currentLive.includes(member.id)) {
+        logSecurity({ event: 'auth.forbidden', userId: session.user.discordId, campaignId: params.id, details: { action: 'token_sync_no_live_permission' } })
         return NextResponse.json({ error: 'Sem permissão para sincronizar ao vivo' }, { status: 403 })
       }
     }
@@ -74,7 +109,6 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       if (isGM) {
         data.tokensJson = body.tokensJson
       } else {
-        // Non-GM players may only move tokens — preserve GM-managed fields (allowedPlayers, hp, label, etc.)
         type TR = Record<string, unknown> & { id: string; x: number; y: number }
         const existing: TR[] = (() => { try { return JSON.parse(activeSession.tokensJson ?? '[]') } catch { return [] } })()
         const incoming: TR[] = JSON.parse(body.tokensJson)
@@ -87,11 +121,17 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     }
   }
 
-  // Any member can broadcast markers/pings
+  // Qualquer membro pode enviar marcadores/pings — mas estrutura é validada
   if ('markersJson' in body) {
     if (body.markersJson === null) {
       data.markersJson = null
-    } else if (typeof body.markersJson === 'string' && body.markersJson.length < 10000) {
+    } else if (typeof body.markersJson === 'string') {
+      if (Buffer.byteLength(body.markersJson, 'utf8') > MARKERS_JSON_MAX_BYTES) {
+        return NextResponse.json({ error: 'markersJson excede o tamanho máximo' }, { status: 413 })
+      }
+      if (!isValidMarkersJson(body.markersJson)) {
+        return NextResponse.json({ error: 'markersJson inválido' }, { status: 400 })
+      }
       data.markersJson = body.markersJson
     }
   }
@@ -113,7 +153,6 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     if ('musicYoutubeId' in body) {
       const ytId = body.musicYoutubeId
       if (ytId !== null && ytId !== undefined) {
-        // Aceita ID curto ou URL; extrai apenas o ID alfanumérico
         const match = String(ytId).match(/[a-zA-Z0-9_-]{11}/)
         data.musicYoutubeId = match ? match[0] : null
       } else {
@@ -124,15 +163,14 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       data.musicVolume = Math.max(0, Math.min(100, Math.round(body.musicVolume)))
     }
     if ('mapImageUrl' in body) {
-      const url = body.mapImageUrl
-      if (url === null || url === undefined) {
+      if (body.mapImageUrl === null || body.mapImageUrl === undefined) {
         data.mapImageUrl = null
       } else {
-        const trimmed = String(url).trim()
-        if (trimmed && !/^https?:\/\//i.test(trimmed)) {
-          return NextResponse.json({ error: 'mapImageUrl inválida' }, { status: 400 })
+        const { value, error } = validateImageUrlOrError(body.mapImageUrl, 'mapImageUrl')
+        if (error) {
+          return NextResponse.json({ error }, { status: 400 })
         }
-        data.mapImageUrl = trimmed || null
+        data.mapImageUrl = value
       }
     }
   }
@@ -144,7 +182,14 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   const updated = await prisma.session.update({
     where: { id: activeSession.id },
     data,
-    select: { tokensJson: true, musicYoutubeId: true, musicVolume: true, mapImageUrl: true, liveMembersJson: true, markersJson: true },
+    select: {
+      tokensJson: true,
+      musicYoutubeId: true,
+      musicVolume: true,
+      mapImageUrl: true,
+      liveMembersJson: true,
+      markersJson: true,
+    },
   })
 
   return NextResponse.json(updated)

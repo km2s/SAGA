@@ -2,6 +2,8 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from 'database'
 import { NextResponse } from 'next/server'
+import { validateImageUrlOrError } from '@/lib/validate-url'
+import { withNoCache } from '@/lib/no-cache'
 
 async function resolveAccess(campaignId: string, npcId: string, discordId: string) {
   const member = await prisma.campaignMember.findFirst({
@@ -33,7 +35,7 @@ export async function GET(_req: Request, { params }: { params: { id: string; npc
   const access = await resolveAccess(params.id, params.npcId, session.user.discordId)
   if (!access || !access.canView) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  return NextResponse.json(access.npc)
+  return withNoCache(NextResponse.json(access.npc))
 }
 
 export async function PATCH(req: Request, { params }: { params: { id: string; npcId: string } }) {
@@ -50,9 +52,13 @@ export async function PATCH(req: Request, { params }: { params: { id: string; np
     isPublic?: boolean; linkedMemberId?: string | null
   }
 
-  const imageUrl = body.imageUrl?.trim() || null
-  if (imageUrl && !/^https?:\/\//i.test(imageUrl)) {
-    return NextResponse.json({ error: 'imageUrl inválida' }, { status: 400 })
+  let imageUrl: string | null = null
+  if (body.imageUrl !== undefined) {
+    if (body.imageUrl) {
+      const { value, error } = validateImageUrlOrError(body.imageUrl, 'imageUrl')
+      if (error) return NextResponse.json({ error }, { status: 400 })
+      imageUrl = value
+    }
   }
 
   const VALID_NPC_TYPES = ['ALLY', 'NEUTRAL', 'ENEMY']
@@ -65,7 +71,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string; np
     data: {
       ...(body.name !== undefined && { name: body.name.trim().slice(0, 100) }),
       ...(body.description !== undefined && { description: body.description?.trim().slice(0, 500) || null }),
-      ...(body.imageUrl !== undefined && { imageUrl }),
+      ...(body.imageUrl !== undefined && { imageUrl: imageUrl }),
       ...(body.type !== undefined && { type: body.type }),
       ...(body.race !== undefined && { race: body.race?.trim() || null }),
       ...(body.class !== undefined && { class: body.class?.trim() || null }),

@@ -2,6 +2,8 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from 'database'
 import { NextResponse } from 'next/server'
+import { applyRateLimit, RATE_LIMITS } from '@/lib/rate-limit'
+import { logSecurity } from '@/lib/security-log'
 
 const ONLINE_THRESHOLD_MS = 45_000
 
@@ -9,6 +11,16 @@ const ONLINE_THRESHOLD_MS = 45_000
 export async function POST(_req: Request, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  // Rate limit: 40 heartbeats/minuto por usuário
+  const rateLimitRes = applyRateLimit(
+    `presence:${session.user.discordId}:${params.id}`,
+    RATE_LIMITS.presence,
+  )
+  if (rateLimitRes) {
+    logSecurity({ event: 'rate_limit.exceeded', userId: session.user.discordId, campaignId: params.id, path: '/api/campaigns/[id]/presence' })
+    return rateLimitRes
+  }
 
   const updated = await prisma.campaignMember.updateMany({
     where: {

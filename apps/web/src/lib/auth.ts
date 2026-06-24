@@ -2,6 +2,16 @@ import type { NextAuthOptions } from 'next-auth'
 import DiscordProvider from 'next-auth/providers/discord'
 import { prisma } from 'database'
 
+// Valida em startup que o secret tem entropia mínima em produção
+if (process.env.NODE_ENV === 'production') {
+  const secret = process.env.NEXTAUTH_SECRET ?? ''
+  if (secret.length < 32) {
+    throw new Error(
+      'NEXTAUTH_SECRET deve ter pelo menos 32 caracteres. Gere um com: openssl rand -base64 32',
+    )
+  }
+}
+
 interface DiscordProfile {
   id: string
   username: string
@@ -17,8 +27,22 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.DISCORD_CLIENT_SECRET!,
     }),
   ],
-  session: { strategy: 'jwt' },
+  session: {
+    strategy: 'jwt',
+    maxAge: 7 * 24 * 60 * 60, // 7 dias em vez do padrão de 30
+  },
   pages: { signIn: '/login' },
+  cookies: {
+    sessionToken: {
+      name: 'next-auth.session-token',
+      options: {
+        httpOnly: true,
+        sameSite: 'strict',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
+  },
   callbacks: {
     async signIn({ profile }) {
       const p = profile as DiscordProfile | undefined
@@ -48,8 +72,8 @@ export const authOptions: NextAuthOptions = {
       return token
     },
     async session({ session, token }) {
-      session.user.discordId = token.discordId as string
-      session.user.username = token.username as string
+      if (token.discordId) session.user.discordId = token.discordId as string
+      if (token.username) session.user.username = token.username as string
       if (token.avatar) session.user.image = token.avatar as string
       return session
     },
