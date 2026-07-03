@@ -108,7 +108,7 @@ function Hero() {
 
       {/* Mapa em pergaminho */}
       <div className="relative h-[460px] w-full md:h-[560px] lg:h-[620px]">
-        <div className="parchment-card animate-float-slow absolute inset-0 overflow-hidden rounded-2xl">
+        <div className="parchment-card animate-float-slow relative h-full w-full overflow-hidden rounded-2xl">
           <ParchmentMap />
           <CornerOrnament className="left-3 top-3" />
           <CornerOrnament className="right-3 top-3 rotate-90" />
