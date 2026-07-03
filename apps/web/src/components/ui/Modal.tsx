@@ -26,12 +26,12 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
       />
-      <div className="relative bg-surface border border-border rounded-lg w-[500px] max-w-[92vw] max-h-[90vh] shadow-2xl flex flex-col">
+      <div className="parchment-card relative rounded-lg w-[500px] max-w-[92vw] max-h-[90vh] flex flex-col text-ink">
         <div className="flex items-center justify-between px-6 pt-6 pb-5 shrink-0">
-          <h2 className="font-cinzel text-lg font-semibold text-saga-text">{title}</h2>
+          <h2 className="font-cinzel text-lg font-semibold text-ink">{title}</h2>
           <button
             onClick={onClose}
-            className="text-saga-muted hover:text-saga-text transition-colors"
+            className="text-ink-soft hover:text-wax transition-colors"
           >
             <X size={18} />
           </button>

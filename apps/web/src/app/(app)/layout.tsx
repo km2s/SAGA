@@ -21,7 +21,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const firstGMId       = gmMemberships[0]?.campaign.id ?? null
 
   return (
-    <div className="flex h-screen overflow-hidden bg-bg">
+    <div className="parchment-bg flex h-screen overflow-hidden text-ink">
       <Sidebar campaigns={campaigns} discordClientId={process.env.DISCORD_CLIENT_ID} />
       <main className="flex-1 overflow-y-auto pt-14 md:pt-0">{children}</main>
       <OnboardingChecklist

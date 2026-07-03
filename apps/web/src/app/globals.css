@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Almendra+SC&family=Cinzel:wght@400;600;700&family=Cinzel+Decorative:wght@400;700;900&family=IM+Fell+English:ital@0;1&family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Almendra+SC&family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=IM+Fell+English:ital@0;1&family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
 
 :root {
   --gold-dim: rgba(201, 162, 42, 0.12);
@@ -91,3 +91,168 @@ select optgroup {
   transform: translateY(-2px);
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
 }
+
+/* ============================================================
+   SAGA — Design System Medieval "Pergaminho & Cripta"
+   (portado do template; usado em landing, login e superfícies
+   pergaminho. Não altera o tema escuro do app interno.)
+   ============================================================ */
+:root {
+  --parchment: #f3e9d2;
+  --parchment-deep: #e6d5ac;
+  --ink: #33291d;
+  --ink-soft: #5f5040;
+  --wax: #8f3a24;
+  --wax-deep: #6a2817;
+  --gold: #c9a22a;
+  --gold-deep: #9c7a2a;
+  --gold-light: #f0d060;
+  --ember: #d9662b;
+  --crypt: #16171f;
+  --crypt-deep: #0b0c11;
+}
+
+/* Fundo pergaminho com textura de fibra e manchas */
+.parchment-bg {
+  background-color: var(--parchment);
+  background-image:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(143, 58, 36, 0.08), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 90% 90%, rgba(51, 41, 29, 0.10), transparent 55%),
+    radial-gradient(circle at 35% 65%, rgba(217, 102, 43, 0.06), transparent 25%),
+    radial-gradient(circle at 75% 30%, rgba(106, 40, 23, 0.06), transparent 22%),
+    repeating-linear-gradient(92deg, transparent 0 2px, rgba(51, 41, 29, 0.02) 2px 3px),
+    repeating-linear-gradient(2deg, transparent 0 3px, rgba(51, 41, 29, 0.015) 3px 4px);
+}
+
+/* Cartão pergaminho com sombra e vinheta interna */
+.parchment-card {
+  position: relative;
+  background: linear-gradient(180deg, #f7efdd 0%, var(--parchment) 100%);
+  border: 1px solid rgba(51, 41, 29, 0.18);
+  box-shadow:
+    0 30px 60px -20px rgba(51, 41, 29, 0.35),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.5);
+}
+.parchment-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background-image:
+    radial-gradient(ellipse at 10% 0%, rgba(51, 41, 29, 0.14), transparent 35%),
+    radial-gradient(ellipse at 90% 100%, rgba(51, 41, 29, 0.10), transparent 40%);
+  mix-blend-mode: multiply;
+}
+
+/* Sub-cartão de pergaminho envelhecido */
+.scroll-card {
+  background: linear-gradient(180deg, #f8f0de 0%, #ecdcb8 100%);
+  border: 1px solid rgba(51, 41, 29, 0.22);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 6px 14px -8px rgba(51, 41, 29, 0.5);
+}
+
+/* Selo de cera bordô */
+.wax-seal {
+  background: radial-gradient(circle at 35% 30%, #b45a3e 0%, var(--wax) 40%, var(--wax-deep) 100%);
+  box-shadow:
+    0 8px 24px -6px rgba(106, 40, 23, 0.6),
+    inset 0 -4px 8px rgba(0, 0, 0, 0.25);
+  color: var(--parchment);
+  border: none;
+}
+
+/* Texto em gradiente de ouro */
+.gold-text {
+  background: linear-gradient(180deg, var(--gold-light) 0%, var(--gold-deep) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* Filete fino com fade nas pontas */
+.hairline {
+  background: linear-gradient(90deg, transparent 0%, rgba(51, 41, 29, 0.4) 20%, rgba(51, 41, 29, 0.4) 80%, transparent 100%);
+}
+
+/* Moldura ornamentada em ouro */
+.ornate-frame {
+  position: relative;
+  border: 1px solid rgba(156, 122, 42, 0.55);
+  box-shadow:
+    inset 0 0 0 1px rgba(243, 233, 210, 0.5),
+    inset 0 0 0 5px rgba(156, 122, 42, 0.25),
+    inset 0 0 0 6px rgba(51, 41, 29, 0.15),
+    0 20px 40px -20px rgba(51, 41, 29, 0.6);
+}
+
+/* Título em faixa/estandarte de cera */
+.banner-heading {
+  position: relative;
+  display: inline-block;
+  padding: 0.75rem 2.5rem;
+  background: linear-gradient(180deg, var(--wax) 0%, var(--wax-deep) 100%);
+  color: var(--parchment);
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  box-shadow:
+    inset 0 -3px 6px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(201, 162, 42, 0.6),
+    0 6px 16px -6px rgba(106, 40, 23, 0.8);
+}
+.banner-heading::before,
+.banner-heading::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 18px;
+  height: 100%;
+  background: inherit;
+}
+.banner-heading::before { left: -14px; clip-path: polygon(100% 0, 100% 100%, 0 50%); }
+.banner-heading::after  { right: -14px; clip-path: polygon(0 0, 100% 50%, 0 100%); }
+
+/* Halo de luz de vela/tocha */
+.candle-glow {
+  box-shadow:
+    0 0 30px rgba(217, 102, 43, 0.4),
+    0 0 80px rgba(217, 102, 43, 0.2),
+    0 0 160px rgba(201, 162, 42, 0.12);
+}
+
+/* Divisória com losango central */
+.rule-diamond {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: rgba(51, 41, 29, 0.5);
+}
+.rule-diamond::before,
+.rule-diamond::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(51, 41, 29, 0.4), transparent);
+}
+
+/* Capitular iluminada (dropcap) */
+.dropcap::first-letter {
+  font-family: 'Cinzel', serif;
+  float: left;
+  font-size: 4.5rem;
+  line-height: 0.85;
+  padding: 0.35rem 0.6rem 0.1rem 0;
+  margin-right: 0.35rem;
+  background: linear-gradient(180deg, var(--gold) 0%, var(--wax-deep) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 700;
+}
+
+/* Cria .font-cormorant como utilidade explícita (fonte serifada do template) */
+.font-cormorant { font-family: 'Cormorant Garamond', serif; }

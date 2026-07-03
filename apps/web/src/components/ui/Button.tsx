@@ -3,11 +3,11 @@ import { type ButtonHTMLAttributes, type ReactNode } from 'react'
 type Variant = 'primary' | 'secondary' | 'danger' | 'success' | 'ghost'
 
 const styles: Record<Variant, string> = {
-  primary:   'bg-gold text-bg font-semibold hover:bg-gold-dark',
-  secondary: 'bg-surface-3 text-saga-text border border-border hover:border-border-bright',
-  danger:    'bg-danger-dim text-saga-danger border border-saga-danger/30 hover:bg-saga-danger/20',
-  success:   'bg-success-dim text-saga-success border border-saga-success/30',
-  ghost:     'bg-transparent text-saga-muted hover:text-saga-text hover:bg-surface-2',
+  primary:   'bg-wax text-parchment font-semibold shadow-sm hover:bg-wax-deep',
+  secondary: 'bg-parchment/70 text-ink border border-ink/25 hover:border-wax hover:text-wax',
+  danger:    'bg-wax/10 text-wax border border-wax/40 hover:bg-wax/20',
+  success:   'bg-green-700/10 text-green-800 border border-green-700/30 hover:bg-green-700/20',
+  ghost:     'bg-transparent text-ink-soft hover:text-ink hover:bg-ink/5',
 }
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {

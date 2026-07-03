@@ -1,46 +1,51 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import LoginButton from './LoginButton'
 import { Dice6, Map, ScrollText, Swords, Music } from 'lucide-react'
+import { Crest, Divider } from '@/components/landing/Ornament'
 
 export default async function LoginPage() {
   const session = await getServerSession(authOptions)
   if (session) redirect('/dashboard')
 
   return (
-    <main className="min-h-screen bg-bg bg-gradient-login flex flex-col items-center justify-center pt-8">
-      {/* Logo */}
-      <h1 className="font-cinzel text-7xl font-bold tracking-[20px] text-gold-gradient mb-1">
-        SAGA
-      </h1>
-      <p className="text-[11px] text-saga-muted tracking-[5px] uppercase mb-12">
-        Gerencie suas aventuras
-      </p>
+    <main className="parchment-bg flex min-h-screen flex-col items-center justify-center px-4 py-16 text-ink">
+      <Link href="/" className="mb-10 flex flex-col items-center gap-3">
+        <Crest className="h-14 w-14" />
+        <h1 className="gold-text font-cinzel text-6xl font-bold tracking-[16px]">SAGA</h1>
+        <p className="text-[11px] uppercase tracking-[5px] text-ink-soft">Gerencie suas aventuras</p>
+      </Link>
 
-      {/* Card */}
-      <div className="bg-surface border border-border rounded-lg p-8 sm:p-10 w-[calc(100%-2rem)] sm:w-[380px] flex flex-col items-center gap-4">
-        <h2 className="font-cinzel text-lg font-semibold text-saga-text">Entrar no SAGA</h2>
-        <p className="text-[13px] text-saga-muted text-center leading-relaxed">
+      <div className="parchment-card flex w-full max-w-md flex-col items-center gap-5 rounded-lg p-10">
+        <h2 className="font-cinzel text-xl text-ink">Entrar no Saga</h2>
+        <p className="text-center font-cormorant text-base leading-relaxed text-ink-soft">
           Conecte sua conta do Discord para acessar suas campanhas, fichas e mesas virtuais.
         </p>
+
         <LoginButton />
+
+        <Divider className="w-full" />
+
+        <p className="text-center font-cormorant text-sm italic text-ink-soft">
+          "Toda grande saga começa com um simples passo na estrada."
+        </p>
       </div>
 
-      {/* Features */}
-      <div className="grid grid-cols-3 sm:grid-cols-5 gap-4 sm:gap-6 mt-10 px-4">
+      <div className="mt-12 grid max-w-3xl grid-cols-3 gap-5 md:grid-cols-5">
         {[
-          { Icon: Dice6,     label: 'Rolagem inteligente' },
-          { Icon: Map,       label: 'Mesa virtual' },
-          { Icon: ScrollText,label: 'Fichas completas' },
-          { Icon: Swords,    label: 'Gestão de NPCs' },
-          { Icon: Music,     label: 'Trilha sonora' },
-        ].map(f => (
-          <div key={f.label} className="flex flex-col items-center gap-2 text-saga-muted text-[11px]">
-            <div className="w-10 h-10 rounded bg-surface-2 border border-border flex items-center justify-center">
-              <f.Icon size={18} />
+          { i: Dice6, l: 'Dados' },
+          { i: Map, l: 'Mesa virtual' },
+          { i: ScrollText, l: 'Fichas' },
+          { i: Swords, l: 'Combate' },
+          { i: Music, l: 'Ambientação' },
+        ].map(({ i: Icon, l }) => (
+          <div key={l} className="flex flex-col items-center gap-2 text-ink-soft">
+            <div className="flex h-11 w-11 items-center justify-center rounded-md border border-ink/20 bg-parchment/60">
+              <Icon className="h-5 w-5" />
             </div>
-            {f.label}
+            <span className="text-[11px] uppercase tracking-[2px]">{l}</span>
           </div>
         ))}
       </div>
