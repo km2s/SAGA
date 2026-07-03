@@ -192,7 +192,7 @@ function DisciplineRow({ name, characterId, textFields, canEdit, onRefresh, remo
         </div>
         {removable && canEdit && (
           <button type="button" onClick={onRemove}
-            className="opacity-0 group-hover:opacity-100 text-[10px] text-red-500 hover:text-red-300 transition-all ml-1">✕</button>
+            className="opacity-0 group-hover:opacity-100 text-[10px] text-red-500 hover:text-red-300 transition-all ml-1"><X size={11} /></button>
         )}
       </div>
     </div>
@@ -232,7 +232,7 @@ function BackgroundRow({ name, characterId, textFields, canEdit, onRefresh, remo
         </div>
         {removable && canEdit && (
           <button type="button" onClick={onRemove}
-            className="opacity-0 group-hover:opacity-100 text-[10px] text-amber-500 hover:text-amber-300 transition-all ml-1">✕</button>
+            className="opacity-0 group-hover:opacity-100 text-[10px] text-amber-500 hover:text-amber-300 transition-all ml-1"><X size={11} /></button>
         )}
       </div>
     </div>
@@ -518,7 +518,7 @@ export function VtMV20Sheet({ characterId, attributes, textFields, canEdit }: Pr
                       style={{ background: 'rgba(180,83,9,0.2)', border: '1px solid rgba(180,83,9,0.3)', color: '#fcd34d' }}>
                       Adicionar
                     </button>
-                    <button type="button" onClick={() => setShowBgInput(false)} className="text-[10px] text-ink-soft hover:text-ink-soft">✕</button>
+                    <button type="button" onClick={() => setShowBgInput(false)} className="text-[10px] text-ink-soft hover:text-ink-soft"><X size={11} /></button>
                   </div>
                 ) : (
                   <button type="button" onClick={() => setShowBgInput(true)}

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Search, Users, Zap, BookOpen, Clock, CheckCircle, XCircle, Send, ChevronDown, ChevronUp } from 'lucide-react'
+import { Search, Users, Zap, BookOpen, Clock, CheckCircle, XCircle, Send, ChevronDown, ChevronUp, Compass, Swords, Moon, Skull, Crown, Map, Dice6 } from 'lucide-react'
 
 interface OpenCampaign {
   id: string
@@ -26,13 +26,13 @@ const XP_LABELS: Record<string, string> = {
   advanced:     'Avançado',
 }
 
-const TONE_LABELS: Record<string, { label: string; emoji: string }> = {
-  epic:         { label: 'Épico',             emoji: '⚔️' },
-  dark:         { label: 'Sombrio',           emoji: '🌑' },
-  horror:       { label: 'Terror',            emoji: '💀' },
-  political:    { label: 'Político',          emoji: '👑' },
-  adventure:    { label: 'Aventura',          emoji: '🗺️' },
-  lighthearted: { label: 'Leve',              emoji: '🎲' },
+const TONE_LABELS: Record<string, { label: string; Icon: React.ElementType }> = {
+  epic:         { label: 'Épico',             Icon: Swords },
+  dark:         { label: 'Sombrio',           Icon: Moon },
+  horror:       { label: 'Terror',            Icon: Skull },
+  political:    { label: 'Político',          Icon: Crown },
+  adventure:    { label: 'Aventura',          Icon: Map },
+  lighthearted: { label: 'Leve',              Icon: Dice6 },
 }
 
 const FREQ_LABELS: Record<string, string> = {
@@ -211,8 +211,8 @@ function CampaignCard({ c, onApply, successId }: {
         {hasExtra && (
           <div className="flex flex-wrap gap-1.5 mt-1">
             {tone && (
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-ink/5 text-ink-soft border border-ink/15">
-                {tone.emoji} {tone.label}
+              <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-ink/5 text-ink-soft border border-ink/15">
+                <tone.Icon className="h-3 w-3" /> {tone.label}
               </span>
             )}
             {playStyles.map(s => (
@@ -309,7 +309,7 @@ export default function ExplorarPage() {
   return (
     <div className="p-4 sm:p-8">
       <div className="mb-8">
-        <p className="font-cinzel text-[11px] tracking-[0.35em] text-wax uppercase">⚜ Taverna</p>
+        <p className="flex items-center gap-2 font-cinzel text-[11px] tracking-[0.35em] text-wax uppercase"><Compass className="h-3.5 w-3.5" /> Taverna</p>
         <h1 className="font-cinzel text-3xl font-bold text-ink">Explorar Campanhas</h1>
         <p className="text-sm text-ink-soft mt-1 font-cormorant italic">Encontre campanhas abertas e se inscreva para participar</p>
       </div>

@@ -1,3 +1,5 @@
+import { Swords, Dice6, Play } from 'lucide-react'
+
 /**
  * Mock visual da mesa virtual — grid com tokens, ordem de iniciativa
  * e chat de dados. Puro visual.
@@ -65,7 +67,7 @@ export function TablePreview() {
       {/* Painel lateral */}
       <div className="flex flex-col gap-4">
         <div className="parchment-card rounded-xl p-5">
-          <p className="font-cinzel text-[10px] tracking-[0.3em] text-wax">⚔ INICIATIVA</p>
+          <p className="flex items-center gap-1.5 font-cinzel text-[10px] tracking-[0.3em] text-wax"><Swords className="h-3 w-3" /> INICIATIVA</p>
           <ul className="mt-3 space-y-2">
             {initiative.map((c) => (
               <li
@@ -75,7 +77,7 @@ export function TablePreview() {
                 }`}
               >
                 <span className="flex items-center gap-2">
-                  {c.active && <span className="text-wax">▶</span>}
+                  {c.active && <Play className="h-2.5 w-2.5 fill-wax text-wax" />}
                   <span className={c.active ? 'font-semibold text-ink' : 'text-ink-soft'}>{c.n}</span>
                 </span>
                 <span className="font-cinzel text-ink">{c.v}</span>
@@ -85,7 +87,7 @@ export function TablePreview() {
         </div>
 
         <div className="parchment-card rounded-xl p-5">
-          <p className="font-cinzel text-[10px] tracking-[0.3em] text-wax">🎲 ROLAGENS</p>
+          <p className="flex items-center gap-1.5 font-cinzel text-[10px] tracking-[0.3em] text-wax"><Dice6 className="h-3 w-3" /> ROLAGENS</p>
           <ul className="mt-3 space-y-2 font-cormorant text-sm">
             {rolls.map((r, i) => (
               <li key={i} className="border-b border-ink/10 pb-2 last:border-0">

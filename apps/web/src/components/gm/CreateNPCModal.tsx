@@ -4,17 +4,18 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
+import { Circle, UserCheck, Swords, Skull, Coins, Heart, PawPrint, User, HelpCircle } from 'lucide-react'
 
 const NPC_TYPES = [
-  { value: 'NEUTRAL', label: 'Neutro',    emoji: '⚪' },
-  { value: 'ALLY',    label: 'Aliado',    emoji: '🟢' },
-  { value: 'ENEMY',   label: 'Inimigo',   emoji: '🔴' },
-  { value: 'VILLAIN', label: 'Vilão',     emoji: '⚫' },
-  { value: 'MERCHANT',label: 'Mercador',  emoji: '🟡' },
-  { value: 'FAMILIAR',label: 'Familiar',  emoji: '💜' },
-  { value: 'MOUNT',   label: 'Montaria',  emoji: '🟤' },
-  { value: 'SERVANT', label: 'Servo',     emoji: '🔵' },
-  { value: 'OTHER',   label: 'Outro',     emoji: '⬜' },
+  { value: 'NEUTRAL', label: 'Neutro',    Icon: Circle,    color: 'text-ink-soft' },
+  { value: 'ALLY',    label: 'Aliado',    Icon: UserCheck, color: 'text-green-600' },
+  { value: 'ENEMY',   label: 'Inimigo',   Icon: Swords,    color: 'text-red-600' },
+  { value: 'VILLAIN', label: 'Vilão',     Icon: Skull,     color: 'text-ink' },
+  { value: 'MERCHANT',label: 'Mercador',  Icon: Coins,     color: 'text-amber-500' },
+  { value: 'FAMILIAR',label: 'Familiar',  Icon: Heart,     color: 'text-purple-500' },
+  { value: 'MOUNT',   label: 'Montaria',  Icon: PawPrint,  color: 'text-amber-700' },
+  { value: 'SERVANT', label: 'Servo',     Icon: User,      color: 'text-blue-500' },
+  { value: 'OTHER',   label: 'Outro',     Icon: HelpCircle,color: 'text-ink-soft' },
 ]
 
 export function CreateNPCModal({ campaignId, players: _players, open, onClose }: {
@@ -86,7 +87,7 @@ export function CreateNPCModal({ campaignId, players: _players, open, onClose }:
                     : 'bg-parchment/50 border-ink/20 text-ink-soft hover:border-wax hover:text-wax'
                 }`}
               >
-                <span>{t.emoji}</span>
+                <t.Icon className={`h-3.5 w-3.5 ${type === t.value ? '' : t.color}`} />
                 {t.label}
               </button>
             ))}

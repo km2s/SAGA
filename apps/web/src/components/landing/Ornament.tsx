@@ -4,7 +4,7 @@ export function Divider({ className = '' }: { className?: string }) {
   return (
     <div className={`flex items-center justify-center gap-4 ${className}`}>
       <span className="h-px w-24 bg-gradient-to-r from-transparent via-ink/40 to-transparent" />
-      <Fleuron />
+      <Fleuron className="text-wax" />
       <span className="h-px w-24 bg-gradient-to-r from-transparent via-ink/40 to-transparent" />
     </div>
   )
@@ -12,13 +12,24 @@ export function Divider({ className = '' }: { className?: string }) {
 
 export function Fleuron({ className = '' }: { className?: string }) {
   return (
-    <svg width="32" height="20" viewBox="0 0 32 20" className={`text-wax ${className}`} aria-hidden>
+    <svg width="32" height="20" viewBox="0 0 32 20" className={className} aria-hidden>
       <path
         fill="currentColor"
         d="M16 2c2 3 5 5 8 5-3 0-6 2-8 5-2-3-5-5-8-5 3 0 6-2 8-5zM2 10h28v.5c-3 0-5 1-7 2-2-1-4-2-7-2-3 0-5 1-7 2-2-1-4-2-7-2V10z"
         opacity="0.85"
       />
     </svg>
+  )
+}
+
+/** Eyebrow de seção — texto com fleurões (ornamento SVG) nos flancos, herdando a cor. */
+export function Eyebrow({ children, className = '' }: { children: ReactNode; className?: string }) {
+  return (
+    <p className={`flex items-center justify-center gap-2.5 ${className}`}>
+      <Fleuron className="h-2.5 w-auto opacity-80" />
+      <span>{children}</span>
+      <Fleuron className="h-2.5 w-auto opacity-80" />
+    </p>
   )
 }
 

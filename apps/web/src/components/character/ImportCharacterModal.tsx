@@ -4,7 +4,7 @@ import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   X, Upload, FileText, Loader2, AlertTriangle,
-  Check, Trash2, ChevronDown, ChevronUp, Info,
+  Check, Trash2, ChevronDown, ChevronUp, Info, ArrowLeft,
 } from 'lucide-react'
 
 interface ExtractedAttr { name: string; value: number | null }
@@ -334,7 +334,7 @@ export function ImportCharacterModal({ open, onClose, campaigns }: Props) {
         <div className="flex gap-3 px-6 py-4 border-t border-ink/10 shrink-0">
           <button onClick={() => { setStep('upload'); setError('') }}
             className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs border border-ink/20 text-ink-soft hover:text-ink hover:border-wax transition-all">
-            ← Voltar
+            <ArrowLeft size={12} /> Voltar
           </button>
           <button
             onClick={handleSave}

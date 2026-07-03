@@ -1,3 +1,5 @@
+import { Eyebrow } from './Ornament'
+
 /**
  * Vitrine visual de dados (d4 a d20) em CSS estilizado, com brilho de ouro.
  */
@@ -18,7 +20,7 @@ export function DiceShowcase() {
 
       <div className="relative mx-auto max-w-7xl px-6">
         <div className="text-center">
-          <p className="font-cinzel text-xs tracking-[0.45em] text-gold">🎲 FORJA · DE · DADOS 🎲</p>
+          <Eyebrow className="font-cinzel text-xs tracking-[0.45em] text-gold">FORJA · DE · DADOS</Eyebrow>
           <h2 className="mt-4 font-cinzel text-4xl font-bold text-parchment md:text-5xl">
             Cada rolagem,
             <br />

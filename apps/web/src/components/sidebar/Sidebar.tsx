@@ -96,12 +96,12 @@ export function Sidebar({ campaigns = [], discordClientId }: SidebarProps) {
               Codex Magistri
             </div>
           </Link>
-          <Fleuron className="mx-auto mt-3 opacity-60" />
+          <Fleuron className="mx-auto mt-3 text-gold/70" />
         </div>
 
         {/* Nav principal */}
         <div className="px-4 pt-5 flex flex-col gap-1">
-          <p className="text-[9px] uppercase tracking-[3px] text-gold/50 px-3 mb-1">⚜ Câmaras</p>
+          <p className="flex items-center gap-1.5 text-[9px] uppercase tracking-[3px] text-gold/50 px-3 mb-1"><Fleuron className="h-1.5 w-auto" /> Câmaras</p>
           {[
             { href: '/dashboard', label: 'Salão', Icon: LayoutDashboard },
             { href: '/characters', label: 'Meus Bravos', Icon: ScrollText },
@@ -128,7 +128,7 @@ export function Sidebar({ campaigns = [], discordClientId }: SidebarProps) {
         {/* Campanhas */}
         {campaigns.length > 0 && (
           <div className="px-4 mt-4">
-            <p className="text-[9px] uppercase tracking-[3px] text-gold/50 px-3 mb-1">⚔ Crônicas</p>
+            <p className="flex items-center gap-1.5 text-[9px] uppercase tracking-[3px] text-gold/50 px-3 mb-1"><Fleuron className="h-1.5 w-auto" /> Crônicas</p>
             <div className="flex flex-col gap-1">
               {campaigns.map(c => (
                 <Link key={c.id} href={`/campaign/${c.id}`} onClick={() => setMobileOpen(false)}>

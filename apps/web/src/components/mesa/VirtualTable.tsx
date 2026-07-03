@@ -886,7 +886,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
                     }
                     {isDragging&&<div className="absolute inset-0 rounded-full animate-ping opacity-30" style={{background:t.color}}/>}
                     {isCurrentTurn&&<div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-yellow-300 border border-yellow-500 flex items-center justify-center">
-                      <span className="text-[5px] font-black text-yellow-900">▶</span>
+                      <Play className="h-1.5 w-1.5 fill-yellow-900 text-yellow-900" />
                     </div>}
                   </div>
                   <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-sm whitespace-nowrap max-w-[80px] truncate bg-black/70 backdrop-blur-sm border"
@@ -1045,7 +1045,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
                         {/* Name */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5">
-                            {isCurrent&&<span className="text-[8px] text-yellow-300 font-bold">▶</span>}
+                            {isCurrent&&<Play className="h-2 w-2 fill-yellow-300 text-yellow-300" />}
                             <span className={`text-[12px] font-medium truncate ${isCurrent?'text-saga-text':'text-saga-muted'}`}>
                               {entry.label}
                             </span>
@@ -1350,7 +1350,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
                   </button>
                   {rollModifier!==0&&(
                     <button onClick={()=>setRollModifier(0)}
-                      className="text-[8px] text-saga-dim hover:text-saga-danger transition-colors ml-0.5">✕</button>
+                      className="text-saga-dim hover:text-saga-danger transition-colors ml-0.5"><X size={11} /></button>
                   )}
                 </div>
               </div>

@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import Link from 'next/link'
 import { MembersOnlineStatus } from '@/components/campaign/MembersOnlineStatus'
+import { ArrowRight } from 'lucide-react'
 
 export default async function CampaignOverviewPage({ params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
@@ -56,7 +57,7 @@ export default async function CampaignOverviewPage({ params }: { params: { id: s
               <Button variant="secondary">Ver resumo</Button>
             </Link>
             <Link href={`/campaign/${params.id}/mesa`}>
-              <Button variant="primary">Entrar na sessão →</Button>
+              <Button variant="primary">Entrar na sessão <ArrowRight size={14} /></Button>
             </Link>
           </div>
         </div>

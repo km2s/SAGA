@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { ChevronRight, X } from 'lucide-react'
+import { ChevronRight, X, Check } from 'lucide-react'
 
 const STORAGE_KEY = 'saga_mesa_spotlight_done'
 
@@ -297,7 +297,7 @@ export function MesaSpotlight({ isGM }: { isGM: boolean }) {
                 className="flex items-center gap-1.5 text-[12px] font-semibold transition-colors"
                 style={{ color: '#c9a22a' }}
               >
-                {stepIdx < availableSteps.length - 1 ? <>Próximo <ChevronRight size={13} /></> : 'Concluir ✓'}
+                {stepIdx < availableSteps.length - 1 ? <>Próximo <ChevronRight size={13} /></> : <>Concluir <Check size={13} /></>}
               </button>
             </div>
           </div>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { X, Trash2, Image as ImageIcon, FileText, Send, BookOpen, Eye } from 'lucide-react'
+import { X, Trash2, Image as ImageIcon, FileText, Send, BookOpen, Eye, ChevronDown } from 'lucide-react'
 import { safeImageUrl } from '@/lib/safe-url'
 
 interface HandoutEntry {
@@ -230,7 +230,7 @@ export function HandoutsPanel({ campaignId, isGM, onClose, activeSessionId }: Ha
                     </div>
                   </div>
                   {/* Chevron */}
-                  <span className={`text-saga-dim text-[10px] shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`}>▾</span>
+                  <ChevronDown className={`text-saga-dim shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} size={13} />
                 </button>
 
                 {/* Expanded content */}

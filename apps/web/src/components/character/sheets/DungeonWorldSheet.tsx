@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Check } from 'lucide-react'
 
 interface Attr { id: string; value: number; customDie: string | null; attribute: { name: string; defaultDie: string; description?: string | null } }
 interface TextField { id: string; key: string; label: string; value: string; order: number }
@@ -114,7 +115,7 @@ export function DungeonWorldSheet({ characterId, characterLevel, attributes, tex
       <div className={card} style={cardStyle}>
         <div className="flex items-center justify-between mb-2">
           <span className="text-[10px] font-bold text-ink-soft uppercase tracking-wider">Experiência</span>
-          <span className="text-[10px] text-ink-soft">{xpVal} / {xpMax} {xpVal >= xpMax && <span style={{ color: ACCENT }}>✓ Suba de Nível!</span>}</span>
+          <span className="text-[10px] text-ink-soft">{xpVal} / {xpMax} {xpVal >= xpMax && <span style={{ color: ACCENT }} className="inline-flex items-center gap-1"><Check size={11} /> Suba de Nível!</span>}</span>
         </div>
         <div className="flex gap-1">
           {Array.from({ length: xpMax }).map((_, i) => (

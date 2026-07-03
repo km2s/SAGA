@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
-import { ChevronRight, ChevronLeft, ChevronDown, BookOpen } from 'lucide-react'
+import { ChevronRight, ChevronLeft, ChevronDown, BookOpen, Swords, Moon, Skull, Crown, Map, Dice6 } from 'lucide-react'
 
 interface RPGSystem { id: string; name: string; category: string }
 
@@ -28,12 +28,12 @@ const CATEGORY_LABELS: Record<string, string> = {
 const CATEGORY_ORDER = ['fantasy', 'world-of-darkness', 'horror', 'scifi', 'generic', 'custom']
 
 const TONES = [
-  { value: 'epic',      label: 'Épico',              emoji: '⚔️' },
-  { value: 'dark',      label: 'Sombrio',             emoji: '🌑' },
-  { value: 'horror',    label: 'Terror',              emoji: '💀' },
-  { value: 'political', label: 'Intrigas Políticas',  emoji: '👑' },
-  { value: 'adventure', label: 'Aventura',            emoji: '🗺️' },
-  { value: 'lighthearted', label: 'Leve / Casual',   emoji: '🎲' },
+  { value: 'epic',      label: 'Épico',              Icon: Swords },
+  { value: 'dark',      label: 'Sombrio',             Icon: Moon },
+  { value: 'horror',    label: 'Terror',              Icon: Skull },
+  { value: 'political', label: 'Intrigas Políticas',  Icon: Crown },
+  { value: 'adventure', label: 'Aventura',            Icon: Map },
+  { value: 'lighthearted', label: 'Leve / Casual',   Icon: Dice6 },
 ]
 
 const PLAY_STYLES = [
@@ -389,7 +389,7 @@ export function CreateCampaignModal({ open, onClose }: Props) {
                       className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-left transition-all ${
                         sel ? 'bg-wax/10 border-wax/45' : 'bg-ink/[0.03] border-ink/15'
                       }`}>
-                      <span className="text-base leading-none">{t.emoji}</span>
+                      <t.Icon className={`h-4 w-4 shrink-0 ${sel ? 'text-wax' : 'text-ink-soft'}`} />
                       <span className={`text-[11px] font-medium ${sel ? 'text-wax' : 'text-ink-soft'}`}>{t.label}</span>
                     </button>
                   )

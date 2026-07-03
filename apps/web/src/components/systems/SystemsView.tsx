@@ -194,7 +194,7 @@ export function SystemsView({ systems: initial, currentUserDiscordId }: Props) {
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
-          <p className="font-cinzel text-[11px] tracking-[0.35em] text-wax uppercase">⚜ Códices</p>
+          <p className="flex items-center gap-2 font-cinzel text-[11px] tracking-[0.35em] text-wax uppercase"><BookOpen className="h-3.5 w-3.5" /> Códices</p>
           <h1 className="font-cinzel text-3xl font-bold text-ink">Sistemas de RPG</h1>
           <p className="text-sm text-ink-soft mt-1 font-cormorant italic">
             {systems.filter(s => s.isPreset).length} oficiais · {systems.filter(s => !s.isPreset).length} da comunidade

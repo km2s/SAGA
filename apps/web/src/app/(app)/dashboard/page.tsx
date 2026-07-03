@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/Badge'
 import { DashboardActions } from '@/components/campaign/DashboardActions'
-import { Swords } from 'lucide-react'
+import { Swords, Crown } from 'lucide-react'
 
 const COVER_GRADIENTS = [
   'from-[#1a0533] via-[#4a1080] to-[#7c3aed]',
@@ -39,7 +39,7 @@ export default async function DashboardPage() {
       {/* Header */}
       <div className="flex items-start justify-between mb-8">
         <div>
-          <p className="font-cinzel text-[11px] tracking-[0.35em] text-wax uppercase">⚜ Salão do Mestre</p>
+          <p className="flex items-center gap-2 font-cinzel text-[11px] tracking-[0.35em] text-wax uppercase"><Crown className="h-3.5 w-3.5" /> Salão do Mestre</p>
           <h1 className="font-cinzel text-3xl font-bold text-ink mt-1">
             Bem-vindo, {session.user.username}
           </h1>

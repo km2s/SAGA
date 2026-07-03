@@ -2,7 +2,8 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Crest, Divider } from '@/components/landing/Ornament'
+import { Crest, Divider, Eyebrow, Fleuron } from '@/components/landing/Ornament'
+import { ScrollText, Map, Dice6, Feather, Bot, DoorOpen, ArrowRight } from 'lucide-react'
 import { ParchmentMap } from '@/components/landing/ParchmentMap'
 import { SheetPreview } from '@/components/landing/SheetPreview'
 import { TablePreview } from '@/components/landing/TablePreview'
@@ -61,9 +62,9 @@ function Hero() {
   return (
     <section className="relative mx-auto grid max-w-7xl gap-10 px-6 pb-20 pt-8 lg:grid-cols-[1.05fr_1fr] lg:gap-14 lg:pt-14">
       <div className="relative z-10 flex flex-col justify-center">
-        <p className="animate-ink-in font-cinzel text-sm tracking-[0.45em] text-wax">
-          ⚜ CRÔNICAS · DOS · BRAVOS ⚜
-        </p>
+        <Eyebrow className="animate-ink-in font-cinzel text-sm tracking-[0.45em] text-wax">
+          CRÔNICAS · DOS · BRAVOS
+        </Eyebrow>
         <h1 className="animate-ink-in mt-6 text-balance font-cinzel text-5xl font-bold leading-[1.05] text-ink md:text-6xl lg:text-7xl">
           Reúna sua mesa.
           <br />
@@ -84,7 +85,7 @@ function Hero() {
             className="wax-seal group relative inline-flex items-center gap-3 rounded-md px-7 py-3.5 font-cinzel text-sm font-semibold tracking-[0.2em] transition hover:scale-[1.02]"
           >
             ABRIR O GRIMÓRIO
-            <span className="transition group-hover:translate-x-1">→</span>
+            <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
           </Link>
           <a
             href="#features"
@@ -114,8 +115,10 @@ function Hero() {
           <CornerOrnament className="right-3 top-3 rotate-90" />
           <CornerOrnament className="bottom-3 left-3 -rotate-90" />
           <CornerOrnament className="bottom-3 right-3 rotate-180" />
-          <div className="absolute bottom-4 left-1/2 z-10 -translate-x-1/2 rounded-md border border-ink/20 bg-parchment/80 px-4 py-1.5 font-cinzel text-[10px] tracking-[0.3em] text-ink-soft backdrop-blur-sm">
-            ☩ MAPA · DAS · CAMPANHAS ☩
+          <div className="absolute bottom-4 left-1/2 z-10 inline-flex -translate-x-1/2 items-center gap-2 rounded-md border border-ink/20 bg-parchment/80 px-4 py-1.5 font-cinzel text-[10px] tracking-[0.3em] text-ink-soft backdrop-blur-sm">
+            <Fleuron className="h-2 w-auto opacity-80" />
+            MAPA · DAS · CAMPANHAS
+            <Fleuron className="h-2 w-auto opacity-80" />
           </div>
         </div>
         <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-ember/30 blur-3xl" />
@@ -152,32 +155,32 @@ function Features() {
   const items = [
     {
       title: 'Fichas Vivas',
-      icon: '📜',
+      Icon: ScrollText,
       desc: 'Atributos, perícias, magias, disciplinas. Editáveis em tempo real durante a sessão, com habilidades criáveis para qualquer ideia.',
     },
     {
       title: 'Mesa Virtual',
-      icon: '♟',
+      Icon: Map,
       desc: 'Mapas com tokens arrastáveis, barras de HP, névoa de guerra, pings, iniciativa e música ambiente — tudo sincronizado.',
     },
     {
       title: 'Dados Forjados',
-      icon: '🎲',
+      Icon: Dice6,
       desc: 'Role 1d20, 2d6+3, ou direto de um atributo da ficha. Críticos e falhas com destaque dramático no chat da mesa.',
     },
     {
       title: 'Crônicas Compartilhadas',
-      icon: '🪶',
+      Icon: Feather,
       desc: 'Notas privadas, handouts, resumos de sessão e histórico. Sua campanha vira um livro que vocês escrevem juntos.',
     },
     {
       title: 'Companhia do Bot',
-      icon: '⚜',
+      Icon: Bot,
       desc: 'Bot do Discord integrado: role dados, consulte fichas e veja sua campanha sem sair do servidor da mesa.',
     },
     {
       title: 'Salão Aberto',
-      icon: '🏛',
+      Icon: DoorOpen,
       desc: 'Torne sua campanha pública na taverna do /explorar — jogadores encontram mesas e se inscrevem por código de convite.',
     },
   ]
@@ -185,7 +188,7 @@ function Features() {
   return (
     <section id="features" className="relative mx-auto max-w-7xl px-6 py-24">
       <div className="text-center">
-        <p className="font-cinzel text-xs tracking-[0.45em] text-wax">⚜ ARSENAL DO MESTRE ⚜</p>
+        <Eyebrow className="font-cinzel text-xs tracking-[0.45em] text-wax">ARSENAL DO MESTRE</Eyebrow>
         <h2 className="mt-4 font-cinzel text-4xl font-bold text-ink md:text-5xl">
           Tudo que sua mesa precisa,
           <br />
@@ -201,8 +204,8 @@ function Features() {
             className="parchment-card group relative rounded-xl p-7 transition hover:-translate-y-1 hover:shadow-[0_40px_60px_-30px_rgba(60,30,10,0.45)]"
           >
             <div className="flex items-start gap-4">
-              <div className="wax-seal flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-xl">
-                {it.icon}
+              <div className="wax-seal flex h-12 w-12 shrink-0 items-center justify-center rounded-full">
+                <it.Icon className="h-6 w-6" />
               </div>
               <div>
                 <h3 className="font-cinzel text-xl font-bold text-ink">{it.title}</h3>
@@ -234,7 +237,7 @@ function Systems() {
 
       <div className="relative mx-auto max-w-7xl px-6">
         <div className="text-center">
-          <p className="font-cinzel text-xs tracking-[0.45em] text-gold">⚔ CINCO REINOS ⚔</p>
+          <Eyebrow className="font-cinzel text-xs tracking-[0.45em] text-gold">CINCO REINOS</Eyebrow>
           <h2 className="mt-4 font-cinzel text-4xl font-bold text-parchment md:text-5xl">
             Um sistema para
             <br />
@@ -269,7 +272,7 @@ function SheetSection() {
     <section className="relative mx-auto max-w-7xl px-6 py-24">
       <div className="grid items-center gap-12 lg:grid-cols-[1fr_1.1fr]">
         <div>
-          <p className="font-cinzel text-xs tracking-[0.45em] text-wax">📜 FICHA · VIVA 📜</p>
+          <Eyebrow className="justify-start font-cinzel text-xs tracking-[0.45em] text-wax">FICHA · VIVA</Eyebrow>
           <h2 className="mt-4 font-cinzel text-4xl font-bold text-ink md:text-5xl">
             O personagem que
             <br />
@@ -304,7 +307,7 @@ function TableSection() {
   return (
     <section className="relative mx-auto max-w-7xl px-6 py-24">
       <div className="text-center">
-        <p className="font-cinzel text-xs tracking-[0.45em] text-wax">♟ MESA · VIRTUAL ♟</p>
+        <Eyebrow className="font-cinzel text-xs tracking-[0.45em] text-wax">MESA · VIRTUAL</Eyebrow>
         <h2 className="mt-4 font-cinzel text-4xl font-bold text-ink md:text-5xl">
           Onde a batalha
           <br />
@@ -341,7 +344,7 @@ function HowItWorks() {
   return (
     <section id="como-funciona" className="relative mx-auto max-w-7xl px-6 py-24">
       <div className="text-center">
-        <p className="font-cinzel text-xs tracking-[0.45em] text-wax">📖 TRÊS PASSOS 📖</p>
+        <Eyebrow className="font-cinzel text-xs tracking-[0.45em] text-wax">TRÊS PASSOS</Eyebrow>
         <h2 className="mt-4 font-cinzel text-4xl font-bold text-ink md:text-5xl">
           Do primeiro dado
           <br />
@@ -388,7 +391,7 @@ function CTA() {
             className="wax-seal group inline-flex items-center gap-3 rounded-md px-8 py-4 font-cinzel text-sm font-semibold tracking-[0.25em] transition hover:scale-[1.02]"
           >
             COMEÇAR A SAGA
-            <span className="transition group-hover:translate-x-1">→</span>
+            <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
           </Link>
         </div>
       </div>

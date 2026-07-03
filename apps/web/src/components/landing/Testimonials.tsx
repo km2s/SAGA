@@ -1,3 +1,6 @@
+import { Quote } from 'lucide-react'
+import { Eyebrow } from './Ornament'
+
 /**
  * Depoimentos em estilo "carta lacrada" — mockados.
  */
@@ -20,7 +23,7 @@ export function Testimonials() {
   return (
     <section className="relative mx-auto max-w-7xl px-6 py-24">
       <div className="text-center">
-        <p className="font-cinzel text-xs tracking-[0.45em] text-wax">✒ VOZES · DA · TAVERNA ✒</p>
+        <Eyebrow className="font-cinzel text-xs tracking-[0.45em] text-wax">VOZES · DA · TAVERNA</Eyebrow>
         <h2 className="mt-4 font-cinzel text-4xl font-bold text-ink md:text-5xl">
           O que dizem os
           <br />
@@ -38,8 +41,8 @@ export function Testimonials() {
             <span className="absolute -top-3 left-6 bg-parchment px-2 font-cinzel text-3xl text-wax">"</span>
             <blockquote className="font-cormorant text-lg italic leading-relaxed text-ink">{q.q}</blockquote>
             <figcaption className="mt-5 flex items-center gap-3">
-              <span className="wax-seal flex h-9 w-9 items-center justify-center rounded-full font-cinzel text-xs">
-                ⚜
+              <span className="wax-seal flex h-9 w-9 items-center justify-center rounded-full">
+                <Quote className="h-4 w-4" />
               </span>
               <span className="font-cinzel text-xs tracking-wider text-ink-soft">{q.a}</span>
             </figcaption>

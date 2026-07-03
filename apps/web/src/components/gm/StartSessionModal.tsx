@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
+import { Play } from 'lucide-react'
 
 export function StartSessionModal({ campaignId, open, onClose }: { campaignId: string; open: boolean; onClose: () => void }) {
   const router = useRouter()
@@ -49,7 +50,7 @@ export function StartSessionModal({ campaignId, open, onClose }: { campaignId: s
         <div className="flex justify-end gap-2">
           <Button variant="secondary" type="button" onClick={onClose}>Cancelar</Button>
           <Button variant="success" type="submit" disabled={loading}>
-            {loading ? 'Iniciando...' : '▶ Iniciar Sessão'}
+            {loading ? 'Iniciando...' : <><Play size={13} className="fill-current" /> Iniciar Sessão</>}
           </Button>
         </div>
       </form>
