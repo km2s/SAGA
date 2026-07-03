@@ -64,13 +64,13 @@ export function ApplicationsPanel({ campaignId }: { campaignId: string }) {
       </div>
 
       {applications.length === 0 ? (
-        <div className="bg-surface border border-border rounded-lg px-4 py-8 text-center text-sm text-saga-muted">
+        <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg px-4 py-8 text-center text-sm text-ink-soft">
           Nenhuma inscrição recebida ainda.
         </div>
       ) : (
         <div className="space-y-2">
           {[...pending, ...resolved].map(app => (
-            <div key={app.id} className="bg-surface border border-border rounded-lg overflow-hidden">
+            <div key={app.id} className="bg-[#f5ecd6] border border-ink/20 rounded-lg overflow-hidden">
               <div className="flex items-center justify-between px-4 py-3">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 bg-gradient-to-br from-purple to-gold">
@@ -78,7 +78,7 @@ export function ApplicationsPanel({ campaignId }: { campaignId: string }) {
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-medium truncate">{app.user.username}</p>
-                    <p className="text-[10px] text-saga-dim">{XP_LABELS[app.experienceLevel] ?? app.experienceLevel}</p>
+                    <p className="text-[10px] text-ink-soft">{XP_LABELS[app.experienceLevel] ?? app.experienceLevel}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
@@ -87,34 +87,34 @@ export function ApplicationsPanel({ campaignId }: { campaignId: string }) {
                       <button
                         disabled={acting === app.id}
                         onClick={() => void decide(app.id, 'rejected')}
-                        className="w-7 h-7 rounded flex items-center justify-center transition-all text-saga-dim hover:text-saga-danger hover:bg-saga-danger/10 disabled:opacity-40">
+                        className="w-7 h-7 rounded flex items-center justify-center transition-all text-ink-soft hover:text-red-700 hover:bg-saga-danger/10 disabled:opacity-40">
                         <XCircle size={15} />
                       </button>
                       <button
                         disabled={acting === app.id}
                         onClick={() => void decide(app.id, 'approved')}
-                        className="w-7 h-7 rounded flex items-center justify-center transition-all text-saga-dim hover:text-saga-success hover:bg-saga-success/10 disabled:opacity-40">
+                        className="w-7 h-7 rounded flex items-center justify-center transition-all text-ink-soft hover:text-green-700 hover:bg-saga-success/10 disabled:opacity-40">
                         <CheckCircle size={15} />
                       </button>
                     </>
                   ) : app.status === 'approved' ? (
-                    <span className="text-[11px] text-saga-success flex items-center gap-1"><CheckCircle size={11} />Aprovado</span>
+                    <span className="text-[11px] text-green-700 flex items-center gap-1"><CheckCircle size={11} />Aprovado</span>
                   ) : (
-                    <span className="text-[11px] text-saga-dim flex items-center gap-1"><XCircle size={11} />Rejeitado</span>
+                    <span className="text-[11px] text-ink-soft flex items-center gap-1"><XCircle size={11} />Rejeitado</span>
                   )}
                   {app.characterDesc && (
                     <button
                       onClick={() => setExpanded(expanded === app.id ? null : app.id)}
-                      className="w-7 h-7 rounded flex items-center justify-center text-saga-dim hover:text-saga-text transition-all">
+                      className="w-7 h-7 rounded flex items-center justify-center text-ink-soft hover:text-ink transition-all">
                       {expanded === app.id ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                     </button>
                   )}
                 </div>
               </div>
               {expanded === app.id && app.characterDesc && (
-                <div className="px-4 pb-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                  <p className="text-[11px] text-saga-dim uppercase font-bold tracking-widest mt-2.5 mb-1">Descrição do personagem</p>
-                  <p className="text-sm text-saga-muted leading-relaxed whitespace-pre-wrap">{app.characterDesc}</p>
+                <div className="px-4 pb-3" style={{ borderTop: '1px solid rgba(51,41,29,0.06)' }}>
+                  <p className="text-[11px] text-ink-soft uppercase font-bold tracking-widest mt-2.5 mb-1">Descrição do personagem</p>
+                  <p className="text-sm text-ink-soft leading-relaxed whitespace-pre-wrap">{app.characterDesc}</p>
                 </div>
               )}
             </div>

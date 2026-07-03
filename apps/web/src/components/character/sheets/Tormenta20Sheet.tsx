@@ -13,7 +13,7 @@ const GOLD = '#c9a22a'
 function SectionDivider({ title }: { title: string }) {
   return (
     <div className="flex items-center gap-3 mb-4">
-      <p className="font-almendra text-[9px] font-bold text-saga-dim uppercase tracking-[0.2em] whitespace-nowrap">{title}</p>
+      <p className="font-almendra text-[9px] font-bold text-ink-soft uppercase tracking-[0.2em] whitespace-nowrap">{title}</p>
       <div className="flex-1 h-px" style={{ background: `${GOLD}33` }} />
     </div>
   )
@@ -59,10 +59,10 @@ function TFField({ characterId, textFields, tfKey, label, placeholder, multiline
     }).catch(() => null)
     setSaving(false); onRefresh()
   }
-  const cls = 'w-full bg-surface-2/50 border border-white/10 rounded-lg text-sm text-saga-muted placeholder-saga-dim/40 focus:outline-none focus:border-red-700/50 focus:bg-surface-2 px-3 py-2 transition-colors'
+  const cls = 'w-full bg-parchment/40 border border-ink/15 rounded-lg text-sm text-ink-soft placeholder-ink-soft/40 focus:outline-none focus:border-red-700/50 focus:bg-parchment/60 px-3 py-2 transition-colors'
   return (
     <div className="space-y-1">
-      <label className="text-[10px] font-bold text-saga-dim uppercase tracking-wider">{label}</label>
+      <label className="text-[10px] font-bold text-ink-soft uppercase tracking-wider">{label}</label>
       {multiline
         ? <textarea rows={3} value={val} onChange={e => setVal(e.target.value)} onBlur={e => void save(e.target.value)}
             disabled={!canEdit || saving} placeholder={placeholder} className={cls} />
@@ -90,7 +90,7 @@ export function Tormenta20Sheet({ characterId, characterLevel, attributes, textF
   function getStat(idx: number) { return baseStats.find(a => a.attribute.name === BASE_STATS[idx])?.value ?? 10 }
 
   const card = 'rounded-xl p-4' as const
-  const cardStyle = { background: 'rgba(17,17,30,0.6)', border: '1px solid rgba(255,255,255,0.07)' }
+  const cardStyle = { background: 'rgba(247,239,221,0.92)', border: '1px solid rgba(51,41,29,0.14)' }
   const tabs = [
     { id: 'atributos', label: 'Atributos' },
     { id: 'combate', label: 'Combate' },
@@ -106,14 +106,14 @@ export function Tormenta20Sheet({ characterId, characterLevel, attributes, textF
           <div className="w-2 h-2 rounded-full" style={{ background: RED }} />
           <span className="font-cinzel text-sm font-bold" style={{ color: RED }}>Tormenta20</span>
         </div>
-        <span className="text-xs text-saga-dim">Nível {characterLevel}</span>
+        <span className="text-xs text-ink-soft">Nível {characterLevel}</span>
       </div>
 
-      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.05)' }}>
+      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgba(51,41,29,0.08)', border: '1px solid rgba(51,41,29,0.05)' }}>
         {tabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className="flex-1 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all"
-            style={tab === t.id ? { background: RED, color: '#fff' } : { color: 'rgba(255,255,255,0.4)' }}>
+            style={tab === t.id ? { background: RED, color: '#fff' } : { color: 'rgba(51,41,29,0.4)' }}>
             {t.label}
           </button>
         ))}
@@ -127,10 +127,10 @@ export function Tormenta20Sheet({ characterId, characterLevel, attributes, textF
               const a = baseStats.find(x => x.attribute.name === name)
               const m = mod(a?.value ?? 10)
               return (
-                <div key={name} className="rounded-lg p-3 text-center space-y-1" style={{ background: 'rgba(0,0,0,0.3)' }}>
-                  <div className="text-[10px] font-bold text-saga-dim uppercase">{STAT_ABBR[i]}</div>
+                <div key={name} className="rounded-lg p-3 text-center space-y-1" style={{ background: 'rgba(51,41,29,0.08)' }}>
+                  <div className="text-[10px] font-bold text-ink-soft uppercase">{STAT_ABBR[i]}</div>
                   <div className="text-2xl font-cinzel font-bold" style={{ color: RED }}>{a?.value ?? 10}</div>
-                  <div className="text-sm font-bold text-saga-muted">{fmtMod(m)}</div>
+                  <div className="text-sm font-bold text-ink-soft">{fmtMod(m)}</div>
                   {a && <Dots value={a.value} max={20} editable={canEdit} attrId={a.id} characterId={characterId} onSaved={onRefresh} color={RED} />}
                 </div>
               )
@@ -140,8 +140,8 @@ export function Tormenta20Sheet({ characterId, characterLevel, attributes, textF
             <div className="mt-4">
               <SectionDivider title="Outros" />
               {other.map(a => (
-                <div key={a.id} className="flex items-center justify-between py-1.5 border-b border-white/5 last:border-0">
-                  <span className="text-sm text-saga-muted">{a.attribute.name}</span>
+                <div key={a.id} className="flex items-center justify-between py-1.5 border-b border-ink/10 last:border-0">
+                  <span className="text-sm text-ink-soft">{a.attribute.name}</span>
                   <Dots value={a.value} editable={canEdit} attrId={a.id} characterId={characterId} onSaved={onRefresh} color={RED} />
                 </div>
               ))}
@@ -167,8 +167,8 @@ export function Tormenta20Sheet({ characterId, characterLevel, attributes, textF
             <SectionDivider title="Testes de Resistência" />
             {saves.length > 0
               ? saves.map(a => (
-                  <div key={a.id} className="flex items-center justify-between py-1.5 border-b border-white/5 last:border-0">
-                    <span className="text-sm text-saga-muted">{a.attribute.name.replace(/^Salvaguarda — /, '')}</span>
+                  <div key={a.id} className="flex items-center justify-between py-1.5 border-b border-ink/10 last:border-0">
+                    <span className="text-sm text-ink-soft">{a.attribute.name.replace(/^Salvaguarda — /, '')}</span>
                     <Dots value={a.value} editable={canEdit} attrId={a.id} characterId={characterId} onSaved={onRefresh} color={RED} />
                   </div>
                 ))
@@ -189,8 +189,8 @@ export function Tormenta20Sheet({ characterId, characterLevel, attributes, textF
           <SectionDivider title="Perícias" />
           {skills.length > 0
             ? skills.map(a => (
-                <div key={a.id} className="flex items-center justify-between py-1.5 border-b border-white/5 last:border-0">
-                  <span className="text-sm text-saga-muted">{a.attribute.name.replace(/^Perícia — /, '')}</span>
+                <div key={a.id} className="flex items-center justify-between py-1.5 border-b border-ink/10 last:border-0">
+                  <span className="text-sm text-ink-soft">{a.attribute.name.replace(/^Perícia — /, '')}</span>
                   <Dots value={a.value} editable={canEdit} attrId={a.id} characterId={characterId} onSaved={onRefresh} color={RED} />
                 </div>
               ))

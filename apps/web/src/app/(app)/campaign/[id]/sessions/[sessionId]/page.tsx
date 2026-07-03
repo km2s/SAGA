@@ -65,12 +65,12 @@ export default async function SessionDetailPage({
   return (
     <div className="p-4 sm:p-8 sm:pt-5">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-saga-muted mb-5">
+      <div className="flex items-center gap-2 text-sm text-ink-soft mb-5">
         <Link href={`/campaign/${params.id}/sessions`} className="hover:text-gold transition-colors">
           ← Sessões
         </Link>
         <span>/</span>
-        <span className="text-saga-text">{gameSession.name ?? 'Sessão sem título'}</span>
+        <span className="text-ink">{gameSession.name ?? 'Sessão sem título'}</span>
       </div>
 
       {/* Header */}
@@ -82,7 +82,7 @@ export default async function SessionDetailPage({
               ? <Badge variant="success">● Ativa</Badge>
               : <Badge variant="muted">Encerrada</Badge>}
           </div>
-          <p className="text-sm text-saga-muted">
+          <p className="text-sm text-ink-soft">
             {new Date(gameSession.startedAt).toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}
             {' · '}
             {formatDuration(gameSession.startedAt, gameSession.endedAt ?? null)}
@@ -94,14 +94,14 @@ export default async function SessionDetailPage({
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         {[
           { label: 'Rolagens',   value: gameSession._count.rollLogs, Icon: Dice6,    color: 'text-gold' },
-          { label: 'Críticos',   value: critCount,                   Icon: Sparkles, color: 'text-saga-success' },
+          { label: 'Críticos',   value: critCount,                   Icon: Sparkles, color: 'text-green-700' },
           { label: 'Maior total',value: highestRoll?.total ?? '—',   Icon: Trophy,   color: 'text-purple-bright' },
-          { label: 'Jogadores',  value: campaign.members.length,     Icon: Users,    color: 'text-saga-muted' },
+          { label: 'Jogadores',  value: campaign.members.length,     Icon: Users,    color: 'text-ink-soft' },
         ].map(stat => (
-          <div key={stat.label} className="bg-surface border border-border rounded-lg p-4 text-center">
-            <div className="flex justify-center mb-1 text-saga-muted/50"><stat.Icon size={20} /></div>
+          <div key={stat.label} className="bg-[#f5ecd6] border border-ink/20 rounded-lg p-4 text-center">
+            <div className="flex justify-center mb-1 text-ink-soft/50"><stat.Icon size={20} /></div>
             <p className={`font-cinzel text-2xl font-bold ${stat.color}`}>{stat.value}</p>
-            <p className="text-[11px] text-saga-muted mt-0.5">{stat.label}</p>
+            <p className="text-[11px] text-ink-soft mt-0.5">{stat.label}</p>
           </div>
         ))}
       </div>
@@ -118,13 +118,13 @@ export default async function SessionDetailPage({
 
           {/* Highlights */}
           {highestRoll && (
-            <div className="bg-surface border border-border rounded-lg p-5">
+            <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg p-5">
               <h3 className="font-cinzel text-sm font-semibold mb-3 flex items-center gap-2"><Trophy size={14} className="text-gold" /> Destaque da Sessão</h3>
               <div className="flex items-center gap-4 p-3 rounded-lg bg-gold/6 border border-gold/20">
                 <p className="font-cinzel text-4xl font-bold text-gold">{highestRoll.total}</p>
                 <div>
                   <p className="text-sm font-medium">{highestRoll.rolledBy}</p>
-                  <p className="text-[11px] text-saga-muted">{highestRoll.expression} — maior rolagem da sessão</p>
+                  <p className="text-[11px] text-ink-soft">{highestRoll.expression} — maior rolagem da sessão</p>
                 </div>
               </div>
             </div>
@@ -135,18 +135,18 @@ export default async function SessionDetailPage({
         <div className="space-y-5">
           {/* Top rollers */}
           {topRollers.length > 0 && (
-            <div className="bg-surface border border-border rounded-lg overflow-hidden">
-              <div className="px-4 py-3 border-b border-border">
+            <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg overflow-hidden">
+              <div className="px-4 py-3 border-b border-ink/20">
                 <h3 className="font-cinzel text-sm font-semibold">Mais Ativos</h3>
               </div>
               <div className="divide-y divide-border">
                 {topRollers.map(([name, count], i) => (
                   <div key={name} className="flex items-center gap-3 px-4 py-3">
-                    <span className="text-[11px] text-saga-dim w-4 text-center">{i + 1}</span>
+                    <span className="text-[11px] text-ink-soft w-4 text-center">{i + 1}</span>
                     <div className="w-6 h-6 rounded-full bg-purple/50 flex items-center justify-center text-[9px] font-bold text-white shrink-0">
                       {name[0]?.toUpperCase()}
                     </div>
-                    <p className="flex-1 text-sm text-saga-text truncate">{name}</p>
+                    <p className="flex-1 text-sm text-ink truncate">{name}</p>
                     <span className="text-[11px] text-gold font-bold">{count}</span>
                   </div>
                 ))}
@@ -155,25 +155,25 @@ export default async function SessionDetailPage({
           )}
 
           {/* Roll log */}
-          <div className="bg-surface border border-border rounded-lg overflow-hidden">
-            <div className="px-4 py-3 border-b border-border">
+          <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg overflow-hidden">
+            <div className="px-4 py-3 border-b border-ink/20">
               <h3 className="font-cinzel text-sm font-semibold">Log de Rolagens</h3>
             </div>
             <div className="divide-y divide-border max-h-80 overflow-y-auto">
               {gameSession.rollLogs.length === 0 ? (
-                <p className="text-sm text-saga-muted text-center py-8">Nenhuma rolagem.</p>
+                <p className="text-sm text-ink-soft text-center py-8">Nenhuma rolagem.</p>
               ) : (
                 gameSession.rollLogs.slice().reverse().map(roll => {
                   const arr = Array.isArray(roll.rolls) ? (roll.rolls as number[]) : []
                   const isCrit = arr.length === 1 && arr[0] === 20 && roll.expression.includes('d20')
                   return (
                     <div key={roll.id} className={`flex items-center gap-3 px-4 py-2.5 ${isCrit ? 'bg-gold/5' : ''}`}>
-                      <p className={`font-cinzel text-xl font-bold w-10 text-right shrink-0 ${isCrit ? 'text-gold' : 'text-saga-text'}`}>
+                      <p className={`font-cinzel text-xl font-bold w-10 text-right shrink-0 ${isCrit ? 'text-gold' : 'text-ink'}`}>
                         {roll.total}
                       </p>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[11px] text-saga-muted truncate">{roll.rolledBy}</p>
-                        <p className="text-[10px] text-saga-dim font-mono">{roll.expression}</p>
+                        <p className="text-[11px] text-ink-soft truncate">{roll.rolledBy}</p>
+                        <p className="text-[10px] text-ink-soft font-mono">{roll.expression}</p>
                       </div>
                       {isCrit && <Sparkles size={10} className="text-gold shrink-0" />}
                     </div>

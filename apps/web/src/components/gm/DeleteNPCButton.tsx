@@ -26,7 +26,7 @@ export function DeleteNPCButton({ campaignId, npcId, npcName }: {
     <>
       <button
         onClick={e => { e.preventDefault(); e.stopPropagation(); setOpen(true) }}
-        className="p-1.5 rounded text-saga-muted hover:text-saga-danger hover:bg-saga-danger/10 transition-colors"
+        className="p-1.5 rounded text-ink-soft hover:text-red-700 hover:bg-saga-danger/10 transition-colors"
         title="Deletar NPC"
       >
         <Trash2 size={13} />

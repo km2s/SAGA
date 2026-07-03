@@ -61,8 +61,8 @@ const SYSTEM_COLOR: Record<string, string> = {
   'world-of-darkness':'text-[#9d5af5]',
   horror:             'text-[#5a9e8f]',
   scifi:              'text-[#5b8dd9]',
-  generic:            'text-saga-muted',
-  custom:             'text-saga-muted',
+  generic:            'text-ink-soft',
+  custom:             'text-ink-soft',
 }
 
 function profBonus(level: number) {
@@ -108,7 +108,7 @@ export default async function CharacterDetailPage({ params }: { params: { id: st
 
   const category: SheetCategory = detectCategory(system?.name)
   const SystemIcon = system?.isPreset ? ClipboardList : Pencil
-  const systemColor = SYSTEM_COLOR[category] ?? 'text-saga-muted'
+  const systemColor = SYSTEM_COLOR[category] ?? 'text-ink-soft'
 
   // Compute quick stats for fantasy systems
   const dexAttr = char.attributes.find(a => a.attribute.name === 'Destreza')
@@ -130,10 +130,10 @@ export default async function CharacterDetailPage({ params }: { params: { id: st
         <div>
           <h1 className="font-cinzel text-2xl font-bold">Ficha de Personagem</h1>
           <div className="flex items-center gap-2 mt-1">
-            <p className="text-sm text-saga-muted">{campaign.name}</p>
+            <p className="text-sm text-ink-soft">{campaign.name}</p>
             {system && (
               <>
-                <span className="text-saga-dim">·</span>
+                <span className="text-ink-soft">·</span>
                 <span className={`flex items-center gap-1 text-sm font-medium ${systemColor}`}>
                   <SystemIcon size={13} />
                   {system.name}
@@ -151,7 +151,7 @@ export default async function CharacterDetailPage({ params }: { params: { id: st
         {/* LEFT — portrait + stats */}
         <div className="space-y-4">
           {/* Portrait card */}
-          <div className="bg-surface border border-border rounded-lg overflow-hidden">
+          <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg overflow-hidden">
             <CharacterPortrait
               characterId={char.id}
               imageUrl={char.imageUrl}
@@ -163,13 +163,13 @@ export default async function CharacterDetailPage({ params }: { params: { id: st
               <h2 className="font-cinzel-deco text-base font-bold text-center leading-snug">{char.name}</h2>
               {char.race && (
                 <div className="flex justify-between text-[12px] mt-2">
-                  <span className="text-saga-muted">Raça</span>
+                  <span className="text-ink-soft">Raça</span>
                   <span className="font-fell">{char.race}</span>
                 </div>
               )}
               {char.class && (
                 <div className="flex justify-between text-[12px] mt-1">
-                  <span className="text-saga-muted">Classe</span>
+                  <span className="text-ink-soft">Classe</span>
                   <span className="font-fell">{char.class}</span>
                 </div>
               )}
@@ -191,9 +191,9 @@ export default async function CharacterDetailPage({ params }: { params: { id: st
           {quickStats.length > 0 && (
             <div className="grid grid-cols-2 gap-2">
               {quickStats.map(s => (
-                <div key={s.label} className="bg-surface border border-border rounded-lg p-3 text-center">
+                <div key={s.label} className="bg-[#f5ecd6] border border-ink/20 rounded-lg p-3 text-center">
                   <p className="font-cinzel text-lg font-bold">{s.value}</p>
-                  <p className="font-almendra text-[9px] text-saga-muted mt-0.5 uppercase tracking-widest">{s.label}</p>
+                  <p className="font-almendra text-[9px] text-ink-soft mt-0.5 uppercase tracking-widest">{s.label}</p>
                 </div>
               ))}
             </div>
@@ -201,13 +201,13 @@ export default async function CharacterDetailPage({ params }: { params: { id: st
 
           {/* System info */}
           {system && (
-            <div className="bg-surface border border-border rounded-lg p-4">
-              <p className="font-almendra text-[9px] font-bold text-saga-dim uppercase tracking-widest mb-2">Sistema</p>
+            <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg p-4">
+              <p className="font-almendra text-[9px] font-bold text-ink-soft uppercase tracking-widest mb-2">Sistema</p>
               <div className="flex items-center gap-2">
-                <SystemIcon size={16} className="text-saga-muted shrink-0" />
+                <SystemIcon size={16} className="text-ink-soft shrink-0" />
                 <div>
                   <p className={`text-sm font-medium ${systemColor}`}>{system.name}</p>
-                  <p className="text-[10px] text-saga-dim">
+                  <p className="text-[10px] text-ink-soft">
                     {system.isPreset ? 'Ficha pré-definida' : 'Ficha personalizada'}
                   </p>
                 </div>

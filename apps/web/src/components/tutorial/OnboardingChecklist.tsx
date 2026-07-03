@@ -116,7 +116,7 @@ export function OnboardingChecklist({ hasCampaign, firstCampaignId, firstGMCampa
 
   return (
     <>
-      <div className="fixed bottom-5 right-5 z-40 w-[300px] bg-surface border border-border rounded-xl shadow-2xl overflow-hidden">
+      <div className="fixed bottom-5 right-5 z-40 w-[300px] bg-[#f5ecd6] border border-ink/20 rounded-xl shadow-2xl overflow-hidden">
 
         {/* Top accent */}
         <div className="h-0.5 bg-gradient-to-r from-purple via-gold to-purple" />
@@ -126,24 +126,24 @@ export function OnboardingChecklist({ hasCampaign, firstCampaignId, firstGMCampa
           <Swords size={14} className="text-gold shrink-0" />
           <div className="flex-1 min-w-0">
             <p className="font-cinzel text-[13px] font-semibold leading-none">Primeiros Passos</p>
-            <p className="text-[10px] text-saga-muted mt-0.5">{done} de {total} concluídos</p>
+            <p className="text-[10px] text-ink-soft mt-0.5">{done} de {total} concluídos</p>
           </div>
           <button
             onClick={() => setMinimized(m => !m)}
-            className="p-1 rounded text-saga-dim hover:text-saga-text transition-colors"
+            className="p-1 rounded text-ink-soft hover:text-ink transition-colors"
           >
             {minimized ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
           </button>
           <button
             onClick={dismiss}
-            className="p-1 rounded text-saga-dim hover:text-saga-danger transition-colors"
+            className="p-1 rounded text-ink-soft hover:text-red-700 transition-colors"
           >
             <X size={13} />
           </button>
         </div>
 
         {/* Progress bar */}
-        <div className="h-1 bg-surface-2 mx-4 rounded-full overflow-hidden">
+        <div className="h-1 bg-parchment/60 mx-4 rounded-full overflow-hidden">
           <div
             className="h-full bg-gradient-to-r from-gold to-gold-dark rounded-full transition-all duration-700"
             style={{ width: `${pct}%` }}
@@ -157,7 +157,7 @@ export function OnboardingChecklist({ hasCampaign, firstCampaignId, firstGMCampa
               <div className="py-5 flex flex-col items-center gap-2 text-center">
                 <Sparkles size={24} className="text-gold" />
                 <p className="font-cinzel text-sm font-bold text-gold">Aventura Iniciada!</p>
-                <p className="text-[11px] text-saga-muted">Você está pronto para jogar.</p>
+                <p className="text-[11px] text-ink-soft">Você está pronto para jogar.</p>
               </div>
             ) : (
               <div className="flex flex-col gap-0.5">
@@ -169,25 +169,25 @@ export function OnboardingChecklist({ hasCampaign, firstCampaignId, firstGMCampa
                       disabled={task.done || !task.action}
                       onClick={task.action ?? undefined}
                       className={`flex items-start gap-3 px-3 py-2.5 rounded-lg text-left w-full transition-all
-                        ${clickable ? 'hover:bg-surface-2 cursor-pointer group' : 'cursor-default'}`}
+                        ${clickable ? 'hover:bg-parchment/60 cursor-pointer group' : 'cursor-default'}`}
                     >
                       {task.done ? (
-                        <CheckCircle2 size={16} className="text-saga-success shrink-0 mt-0.5" />
+                        <CheckCircle2 size={16} className="text-green-700 shrink-0 mt-0.5" />
                       ) : (
-                        <Circle size={16} className={`shrink-0 mt-0.5 transition-colors ${clickable ? 'text-saga-dim group-hover:text-gold' : 'text-saga-dim/40'}`} />
+                        <Circle size={16} className={`shrink-0 mt-0.5 transition-colors ${clickable ? 'text-ink-soft group-hover:text-gold' : 'text-ink-soft/40'}`} />
                       )}
                       <div className="flex-1 min-w-0">
                         <p className={`text-[13px] leading-snug transition-colors ${
                           task.done
-                            ? 'text-saga-dim line-through'
+                            ? 'text-ink-soft line-through'
                             : clickable
-                            ? 'text-saga-text group-hover:text-gold'
-                            : 'text-saga-dim'
+                            ? 'text-ink group-hover:text-gold'
+                            : 'text-ink-soft'
                         }`}>
                           {task.label}
                         </p>
                         {!task.done && (
-                          <p className="text-[10px] text-saga-dim mt-0.5 leading-snug">{task.sublabel}</p>
+                          <p className="text-[10px] text-ink-soft mt-0.5 leading-snug">{task.sublabel}</p>
                         )}
                       </div>
                       {clickable && (

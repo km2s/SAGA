@@ -70,8 +70,8 @@ const SYSTEM_COLOR: Record<string, string> = {
   'world-of-darkness': 'text-[#9d5af5]',
   horror:              'text-[#5a9e8f]',
   scifi:               'text-[#5b8dd9]',
-  generic:             'text-saga-muted',
-  custom:              'text-saga-muted',
+  generic:             'text-ink-soft',
+  custom:              'text-ink-soft',
 }
 
 export default async function NPCDetailPage({ params }: { params: { id: string; npcId: string } }) {
@@ -159,7 +159,7 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
   const system = npc.campaign.system
   const category: SheetCategory = detectCategory(system?.name)
   const SystemIcon = system?.isPreset ? ClipboardList : Pencil
-  const systemColor = SYSTEM_COLOR[category] ?? 'text-saga-muted'
+  const systemColor = SYSTEM_COLOR[category] ?? 'text-ink-soft'
 
   const sheetAttributes = npc.attributes.map(a => ({
     id: a.id,
@@ -173,13 +173,13 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
   }))
 
   const systemCard = system && (
-    <div className="bg-surface border border-border rounded-lg p-4">
-      <p className="font-almendra text-[9px] font-bold text-saga-dim uppercase tracking-widest mb-2">Sistema</p>
+    <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg p-4">
+      <p className="font-almendra text-[9px] font-bold text-ink-soft uppercase tracking-widest mb-2">Sistema</p>
       <div className="flex items-center gap-2">
-        <SystemIcon size={16} className="text-saga-muted shrink-0" />
+        <SystemIcon size={16} className="text-ink-soft shrink-0" />
         <div>
           <p className={`text-sm font-medium ${systemColor}`}>{system.name}</p>
-          <p className="text-[10px] text-saga-dim">
+          <p className="text-[10px] text-ink-soft">
             {system.isPreset ? 'Ficha pré-definida' : 'Ficha personalizada'}
           </p>
         </div>
@@ -192,7 +192,7 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 mb-6">
         <Link href={`/campaign/${params.id}/npcs`}
-          className="flex items-center gap-1.5 text-sm text-saga-muted hover:text-gold transition-colors">
+          className="flex items-center gap-1.5 text-sm text-ink-soft hover:text-gold transition-colors">
           <ChevronLeft size={15}/>
           NPCs de {npc.campaign.name}
         </Link>
@@ -203,10 +203,10 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
         <div>
           <h1 className="font-cinzel text-2xl font-bold">Ficha do NPC</h1>
           <div className="flex items-center gap-2 mt-1">
-            <p className="text-sm text-saga-muted">{npc.campaign.name}</p>
+            <p className="text-sm text-ink-soft">{npc.campaign.name}</p>
             {system && (
               <>
-                <span className="text-saga-dim">·</span>
+                <span className="text-ink-soft">·</span>
                 <span className={`flex items-center gap-1 text-sm font-medium ${systemColor}`}>
                   <SystemIcon size={13} />
                   {system.name}
@@ -249,7 +249,7 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
           ) : (
             <>
               {/* Portrait (read-only for players) */}
-              <div className="bg-surface border border-border rounded-lg overflow-hidden">
+              <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg overflow-hidden">
                 {safeImageUrl(npc.imageUrl) ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={safeImageUrl(npc.imageUrl)!} alt={npc.name} className="w-full h-52 object-cover object-top" />
@@ -262,13 +262,13 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
                   <h2 className="font-cinzel-deco text-base font-bold text-center leading-snug">{npc.name}</h2>
                   {npc.race && (
                     <div className="flex justify-between text-[12px] mt-2">
-                      <span className="text-saga-muted">Raça</span>
+                      <span className="text-ink-soft">Raça</span>
                       <span className="font-fell">{npc.race}</span>
                     </div>
                   )}
                   {npc.class && (
                     <div className="flex justify-between text-[12px] mt-1">
-                      <span className="text-saga-muted">Classe</span>
+                      <span className="text-ink-soft">Classe</span>
                       <span className="font-fell">{npc.class}</span>
                     </div>
                   )}
@@ -276,8 +276,8 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
                     <Badge variant="gold">Nível {npc.level}</Badge>
                   </div>
                   {npc.linkedMember && (
-                    <p className="text-[11px] text-saga-muted mt-3 text-center border-t border-border pt-2">
-                      Ligado a <span className="text-saga-text">{npc.linkedMember.user.username}</span>
+                    <p className="text-[11px] text-ink-soft mt-3 text-center border-t border-ink/20 pt-2">
+                      Ligado a <span className="text-ink">{npc.linkedMember.user.username}</span>
                     </p>
                   )}
                 </div>
@@ -290,17 +290,17 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
                 maxHp={npc.maxHp}
               />
 
-              <div className="bg-surface border border-border rounded-lg p-3 text-center">
+              <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg p-3 text-center">
                 <p className="font-cinzel text-base font-bold">{NPC_TYPE_LABELS[npc.type] ?? npc.type}</p>
-                <p className="font-almendra text-[9px] text-saga-muted mt-0.5 uppercase tracking-widest">Tipo de NPC</p>
+                <p className="font-almendra text-[9px] text-ink-soft mt-0.5 uppercase tracking-widest">Tipo de NPC</p>
               </div>
 
               {systemCard}
 
               {npc.description && (
-                <div className="bg-surface border border-border rounded-lg p-4">
-                  <p className="font-almendra text-[9px] font-bold text-saga-dim uppercase tracking-widest mb-2">Descrição</p>
-                  <p className="text-sm text-saga-muted leading-relaxed">{npc.description}</p>
+                <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg p-4">
+                  <p className="font-almendra text-[9px] font-bold text-ink-soft uppercase tracking-widest mb-2">Descrição</p>
+                  <p className="text-sm text-ink-soft leading-relaxed">{npc.description}</p>
                 </div>
               )}
             </>

@@ -50,7 +50,7 @@ export function EndSessionButton({ campaignId, compact }: { campaignId: string; 
         <button
           disabled={loading}
           onClick={() => setConfirmOpen(true)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-sm font-medium bg-saga-danger/10 text-saga-danger border border-saga-danger/40 hover:bg-saga-danger/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-sm font-medium bg-saga-danger/10 text-red-700 border border-saga-danger/40 hover:bg-saga-danger/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {label}
         </button>

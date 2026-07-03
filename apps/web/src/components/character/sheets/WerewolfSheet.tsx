@@ -12,7 +12,7 @@ const GREEN = '#4ade80'
 function SectionDivider({ title }: { title: string }) {
   return (
     <div className="flex items-center gap-3 mb-4">
-      <p className="font-almendra text-[9px] font-bold text-saga-dim uppercase tracking-[0.2em] whitespace-nowrap">{title}</p>
+      <p className="font-almendra text-[9px] font-bold text-ink-soft uppercase tracking-[0.2em] whitespace-nowrap">{title}</p>
       <div className="flex-1 h-px" style={{ background: 'rgba(74,222,128,0.2)' }} />
     </div>
   )
@@ -61,8 +61,8 @@ function Dots({ value, max = 5, editable = false, attrId, characterId, onSaved, 
 
 function AttrRow({ a, characterId, canEdit, onSaved, color }: { a: Attr; characterId: string; canEdit: boolean; onSaved: () => void; color?: string }) {
   return (
-    <div className="flex items-center justify-between py-1.5 border-b border-white/5 last:border-0">
-      <span className="text-sm text-saga-muted">{a.attribute.name}</span>
+    <div className="flex items-center justify-between py-1.5 border-b border-ink/10 last:border-0">
+      <span className="text-sm text-ink-soft">{a.attribute.name}</span>
       <Dots value={a.value} editable={canEdit} attrId={a.id} characterId={characterId} onSaved={onSaved} color={color} />
     </div>
   )
@@ -82,10 +82,10 @@ function TFField({ characterId, textFields, tfKey, label, placeholder, multiline
     }).catch(() => null)
     setSaving(false); onRefresh()
   }
-  const cls = 'w-full bg-surface-2/50 border border-white/10 rounded-lg text-sm text-saga-muted placeholder-saga-dim/40 focus:outline-none focus:border-green-700/50 focus:bg-surface-2 px-3 py-2 transition-colors'
+  const cls = 'w-full bg-parchment/40 border border-ink/15 rounded-lg text-sm text-ink-soft placeholder-ink-soft/40 focus:outline-none focus:border-green-700/50 focus:bg-parchment/60 px-3 py-2 transition-colors'
   return (
     <div className="space-y-1">
-      <label className="text-[10px] font-bold text-saga-dim uppercase tracking-wider">{label}</label>
+      <label className="text-[10px] font-bold text-ink-soft uppercase tracking-wider">{label}</label>
       {multiline
         ? <textarea rows={3} value={val} onChange={e => setVal(e.target.value)} onBlur={e => void save(e.target.value)}
             disabled={!canEdit || saving} placeholder={placeholder} className={cls} />
@@ -111,7 +111,7 @@ function BoxTrack({ label, tfKey, textFields, characterId, canEdit, onRefresh, m
   }
   return (
     <div className="space-y-1.5">
-      <label className="text-[10px] font-bold text-saga-dim uppercase tracking-wider">{label}</label>
+      <label className="text-[10px] font-bold text-ink-soft uppercase tracking-wider">{label}</label>
       <div className="flex gap-1 flex-wrap">
         {Array.from({ length: max }).map((_, i) => (
           <button key={i} type="button" onClick={() => void set(i + 1 === existing ? i : i + 1)}
@@ -144,7 +144,7 @@ export function WerewolfSheet({ characterId, attributes, textFields, canEdit }: 
   const gnosisAttr = resources.find(a => a.attribute.name.toLowerCase().includes('gnosis'))
 
   const card = 'rounded-xl p-4' as const
-  const cardStyle = { background: 'rgba(17,17,30,0.6)', border: '1px solid rgba(255,255,255,0.07)' }
+  const cardStyle = { background: 'rgba(247,239,221,0.92)', border: '1px solid rgba(51,41,29,0.14)' }
   const tabs = [
     { id: 'atributos', label: 'Atributos' },
     { id: 'habilidades', label: 'Habilidades' },
@@ -160,11 +160,11 @@ export function WerewolfSheet({ characterId, attributes, textFields, canEdit }: 
         <span className="font-cinzel text-sm font-bold" style={{ color: GREEN }}>Werewolf: The Apocalypse</span>
       </div>
 
-      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.05)' }}>
+      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgba(51,41,29,0.08)', border: '1px solid rgba(51,41,29,0.05)' }}>
         {tabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className="flex-1 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all"
-            style={tab === t.id ? { background: GREEN, color: '#000' } : { color: 'rgba(255,255,255,0.4)' }}>
+            style={tab === t.id ? { background: GREEN, color: '#000' } : { color: 'rgba(51,41,29,0.4)' }}>
             {t.label}
           </button>
         ))}
@@ -216,22 +216,22 @@ export function WerewolfSheet({ characterId, attributes, textFields, canEdit }: 
             <div className="overflow-x-auto">
               <table className="w-full text-[11px]">
                 <thead>
-                  <tr className="border-b border-white/10">
+                  <tr className="border-b border-ink/15">
                     {['Forma', 'For', 'Des', 'Vig', 'Man', 'Apa', 'Notas'].map(h => (
-                      <th key={h} className="text-left py-1.5 px-1 text-saga-dim font-bold uppercase tracking-wider">{h}</th>
+                      <th key={h} className="text-left py-1.5 px-1 text-ink-soft font-bold uppercase tracking-wider">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {FORMS.map(f => (
-                    <tr key={f.name} className="border-b border-white/5">
+                    <tr key={f.name} className="border-b border-ink/10">
                       <td className="py-1.5 px-1 font-bold" style={{ color: GREEN }}>{f.name}</td>
-                      <td className="py-1.5 px-1 text-saga-muted">{f.str}</td>
-                      <td className="py-1.5 px-1 text-saga-muted">{f.dex}</td>
-                      <td className="py-1.5 px-1 text-saga-muted">{f.sta}</td>
-                      <td className="py-1.5 px-1 text-saga-muted">{f.man}</td>
-                      <td className="py-1.5 px-1 text-saga-muted">{f.app}</td>
-                      <td className="py-1.5 px-1 text-saga-dim text-[10px]">{f.notes}</td>
+                      <td className="py-1.5 px-1 text-ink-soft">{f.str}</td>
+                      <td className="py-1.5 px-1 text-ink-soft">{f.dex}</td>
+                      <td className="py-1.5 px-1 text-ink-soft">{f.sta}</td>
+                      <td className="py-1.5 px-1 text-ink-soft">{f.man}</td>
+                      <td className="py-1.5 px-1 text-ink-soft">{f.app}</td>
+                      <td className="py-1.5 px-1 text-ink-soft text-[10px]">{f.notes}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -248,11 +248,11 @@ export function WerewolfSheet({ characterId, attributes, textFields, canEdit }: 
             <SectionDivider title="Raiva / Gnosis / Força de Vontade" />
             <div className="space-y-4">
               {rageAttr
-                ? <div className="flex items-center justify-between"><span className="text-sm text-saga-muted">Raiva</span><Dots value={rageAttr.value} max={10} editable={canEdit} attrId={rageAttr.id} characterId={characterId} onSaved={onRefresh} color="#ef4444" /></div>
+                ? <div className="flex items-center justify-between"><span className="text-sm text-ink-soft">Raiva</span><Dots value={rageAttr.value} max={10} editable={canEdit} attrId={rageAttr.id} characterId={characterId} onSaved={onRefresh} color="#ef4444" /></div>
                 : <BoxTrack label="Raiva (atual)" tfKey="rage_current" textFields={textFields} characterId={characterId} canEdit={canEdit} onRefresh={onRefresh} color="#ef4444" />
               }
               {gnosisAttr
-                ? <div className="flex items-center justify-between"><span className="text-sm text-saga-muted">Gnosis</span><Dots value={gnosisAttr.value} max={10} editable={canEdit} attrId={gnosisAttr.id} characterId={characterId} onSaved={onRefresh} /></div>
+                ? <div className="flex items-center justify-between"><span className="text-sm text-ink-soft">Gnosis</span><Dots value={gnosisAttr.value} max={10} editable={canEdit} attrId={gnosisAttr.id} characterId={characterId} onSaved={onRefresh} /></div>
                 : <BoxTrack label="Gnosis (atual)" tfKey="gnosis_current" textFields={textFields} characterId={characterId} canEdit={canEdit} onRefresh={onRefresh} />
               }
               <BoxTrack label="Força de Vontade (atual)" tfKey="willpower_current" textFields={textFields} characterId={characterId} canEdit={canEdit} onRefresh={onRefresh} color="#a78bfa" />

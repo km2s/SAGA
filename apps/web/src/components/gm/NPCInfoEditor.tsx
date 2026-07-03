@@ -40,7 +40,7 @@ interface NPCData {
   maxHp: number
 }
 
-const INPUT = 'bg-surface-2 border border-gold/40 rounded px-2 py-1 focus:outline-none text-sm'
+const INPUT = 'bg-parchment/60 border border-gold/40 rounded px-2 py-1 focus:outline-none text-sm'
 
 export function NPCInfoEditor({ campaignId, npc: initial, players }: {
   campaignId: string
@@ -100,7 +100,7 @@ export function NPCInfoEditor({ campaignId, npc: initial, players }: {
   return (
     <div className="space-y-4">
       {/* Portrait card */}
-      <div className="bg-surface border border-border rounded-lg overflow-hidden">
+      <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg overflow-hidden">
         <div className="relative group">
           {imgSafe ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -141,7 +141,7 @@ export function NPCInfoEditor({ campaignId, npc: initial, players }: {
 
           {/* Race */}
           <div className="flex justify-between items-center text-[12px]">
-            <span className="text-saga-muted">Raça</span>
+            <span className="text-ink-soft">Raça</span>
             {editingField === 'race' ? (
               <input
                 autoFocus value={draft}
@@ -156,14 +156,14 @@ export function NPCInfoEditor({ campaignId, npc: initial, players }: {
                 title="Clique para editar"
                 className="font-fell cursor-pointer hover:text-gold transition-colors"
               >
-                {npc.race ?? <span className="text-saga-dim italic">—</span>}
+                {npc.race ?? <span className="text-ink-soft italic">—</span>}
               </span>
             )}
           </div>
 
           {/* Class */}
           <div className="flex justify-between items-center text-[12px]">
-            <span className="text-saga-muted">Classe</span>
+            <span className="text-ink-soft">Classe</span>
             {editingField === 'class' ? (
               <input
                 autoFocus value={draft}
@@ -178,7 +178,7 @@ export function NPCInfoEditor({ campaignId, npc: initial, players }: {
                 title="Clique para editar"
                 className="font-fell cursor-pointer hover:text-gold transition-colors"
               >
-                {npc.class ?? <span className="text-saga-dim italic">—</span>}
+                {npc.class ?? <span className="text-ink-soft italic">—</span>}
               </span>
             )}
           </div>
@@ -187,22 +187,22 @@ export function NPCInfoEditor({ campaignId, npc: initial, players }: {
           <div className="flex justify-center items-center gap-2 mt-3">
             <button
               onClick={() => void patch({ level: Math.max(1, npc.level - 1) })}
-              className="w-6 h-6 text-saga-muted hover:text-gold transition-colors text-xl leading-none flex items-center justify-center"
+              className="w-6 h-6 text-ink-soft hover:text-gold transition-colors text-xl leading-none flex items-center justify-center"
             >−</button>
             <Badge variant="gold">Nível {npc.level}</Badge>
             <button
               onClick={() => void patch({ level: Math.min(100, npc.level + 1) })}
-              className="w-6 h-6 text-saga-muted hover:text-gold transition-colors text-xl leading-none flex items-center justify-center"
+              className="w-6 h-6 text-ink-soft hover:text-gold transition-colors text-xl leading-none flex items-center justify-center"
             >+</button>
           </div>
 
           {/* Linked member */}
-          <div className="border-t border-border pt-2 mt-2">
-            <p className="text-[10px] text-saga-dim mb-1">Ligado ao jogador</p>
+          <div className="border-t border-ink/20 pt-2 mt-2">
+            <p className="text-[10px] text-ink-soft mb-1">Ligado ao jogador</p>
             <select
               value={npc.linkedMemberId ?? ''}
               onChange={e => void patch({ linkedMemberId: e.target.value || null })}
-              className="w-full bg-surface-2 border border-border rounded px-2 py-1 text-[11px] focus:outline-none focus:border-gold/40 transition-colors"
+              className="w-full bg-parchment/60 border border-ink/20 rounded px-2 py-1 text-[11px] focus:outline-none focus:border-wax transition-colors"
             >
               <option value="">Nenhum</option>
               {players.map(p => <option key={p.id} value={p.id}>{p.user.username}</option>)}
@@ -215,20 +215,20 @@ export function NPCInfoEditor({ campaignId, npc: initial, players }: {
       <NPCHPEditor campaignId={campaignId} npcId={npc.id} hp={npc.hp} maxHp={npc.maxHp} />
 
       {/* Type */}
-      <div className="bg-surface border border-border rounded-lg p-3">
-        <p className="font-almendra text-[9px] font-bold text-saga-dim uppercase tracking-widest mb-2">Tipo de NPC</p>
+      <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg p-3">
+        <p className="font-almendra text-[9px] font-bold text-ink-soft uppercase tracking-widest mb-2">Tipo de NPC</p>
         <select
           value={npc.type}
           onChange={e => void patch({ type: e.target.value })}
-          className="w-full bg-surface-2 border border-border rounded px-2 py-1.5 text-sm focus:outline-none focus:border-gold/40 transition-colors"
+          className="w-full bg-parchment/60 border border-ink/20 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-wax transition-colors"
         >
           {NPC_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
         </select>
       </div>
 
       {/* Visibility */}
-      <div className="bg-surface border border-border rounded-lg p-3">
-        <p className="font-almendra text-[9px] font-bold text-saga-dim uppercase tracking-widest mb-2">Visibilidade</p>
+      <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg p-3">
+        <p className="font-almendra text-[9px] font-bold text-ink-soft uppercase tracking-widest mb-2">Visibilidade</p>
         <button
           onClick={() => void patch({ isPublic: !npc.isPublic })}
           className="flex items-center gap-3 w-full text-left"
@@ -241,8 +241,8 @@ export function NPCInfoEditor({ campaignId, npc: initial, players }: {
       </div>
 
       {/* Description */}
-      <div className="bg-surface border border-border rounded-lg p-4">
-        <p className="font-almendra text-[9px] font-bold text-saga-dim uppercase tracking-widest mb-2 flex items-center gap-1">
+      <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg p-4">
+        <p className="font-almendra text-[9px] font-bold text-ink-soft uppercase tracking-widest mb-2 flex items-center gap-1">
           <Shield size={9} /> Descrição
         </p>
         {editingField === 'description' ? (
@@ -257,9 +257,9 @@ export function NPCInfoEditor({ campaignId, npc: initial, players }: {
           <p
             onClick={() => startEdit('description', npc.description ?? '')}
             title="Clique para editar"
-            className="text-sm text-saga-muted leading-relaxed cursor-pointer hover:text-saga-text transition-colors min-h-[1.5rem]"
+            className="text-sm text-ink-soft leading-relaxed cursor-pointer hover:text-ink transition-colors min-h-[1.5rem]"
           >
-            {npc.description ?? <span className="text-saga-dim italic">Clique para adicionar descrição...</span>}
+            {npc.description ?? <span className="text-ink-soft italic">Clique para adicionar descrição...</span>}
           </p>
         )}
       </div>
@@ -267,7 +267,7 @@ export function NPCInfoEditor({ campaignId, npc: initial, players }: {
       {/* Delete */}
       <button
         onClick={() => setDeleteOpen(true)}
-        className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded text-sm text-saga-danger border border-saga-danger/30 hover:bg-saga-danger/10 transition-colors"
+        className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded text-sm text-red-700 border border-saga-danger/30 hover:bg-saga-danger/10 transition-colors"
       >
         <Trash2 size={13} />
         Deletar NPC
@@ -280,7 +280,7 @@ export function NPCInfoEditor({ campaignId, npc: initial, players }: {
           onClick={() => setImgOpen(false)}
         >
           <div
-            className="bg-surface border border-border rounded-lg p-5 w-80 shadow-xl"
+            className="bg-[#f5ecd6] border border-ink/20 rounded-lg p-5 w-80 shadow-xl"
             onClick={e => e.stopPropagation()}
           >
             <p className="font-cinzel text-sm font-semibold mb-3">URL da Imagem</p>
@@ -292,10 +292,10 @@ export function NPCInfoEditor({ campaignId, npc: initial, players }: {
                 if (e.key === 'Escape') setImgOpen(false)
               }}
               placeholder="https://..."
-              className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm focus:outline-none focus:border-gold/60 mb-3"
+              className="w-full bg-parchment/60 border border-ink/20 rounded px-3 py-2 text-sm focus:outline-none focus:border-wax mb-3"
             />
             <div className="flex justify-end gap-2">
-              <button onClick={() => setImgOpen(false)} className="px-3 py-1.5 text-sm text-saga-muted hover:text-saga-text transition-colors">
+              <button onClick={() => setImgOpen(false)} className="px-3 py-1.5 text-sm text-ink-soft hover:text-ink transition-colors">
                 Cancelar
               </button>
               <button

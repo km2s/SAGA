@@ -102,14 +102,14 @@ export function NpcGMControls({ campaignId, npc, players }: {
     <>
       <button
         onClick={() => setEditOpen(true)}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded text-sm text-saga-text border border-border hover:border-border-bright transition-colors"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded text-sm text-ink border border-ink/20 hover:border-wax transition-colors"
       >
         <Pencil size={13} />
         Editar NPC
       </button>
       <button
         onClick={() => setDeleteOpen(true)}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded text-sm text-saga-danger border border-saga-danger/30 hover:bg-saga-danger/10 transition-colors"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded text-sm text-red-700 border border-saga-danger/30 hover:bg-saga-danger/10 transition-colors"
       >
         <Trash2 size={13} />
         Deletar
@@ -120,21 +120,21 @@ export function NpcGMControls({ campaignId, npc, players }: {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="col-span-2">
-              <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">Nome *</label>
+              <label className="text-[11px] text-ink-soft font-bold uppercase tracking-widest block mb-1.5">Nome *</label>
               <input value={form.name} onChange={e => set('name', e.target.value)}
-                className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm focus:outline-none focus:border-gold/60 transition-colors" />
+                className="w-full bg-parchment/60 border border-ink/20 rounded px-3 py-2 text-sm focus:outline-none focus:border-wax transition-colors" />
             </div>
             <div>
-              <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">Tipo</label>
+              <label className="text-[11px] text-ink-soft font-bold uppercase tracking-widest block mb-1.5">Tipo</label>
               <select value={form.type} onChange={e => set('type', e.target.value)}
-                className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm focus:outline-none focus:border-gold/60 transition-colors">
+                className="w-full bg-parchment/60 border border-ink/20 rounded px-3 py-2 text-sm focus:outline-none focus:border-wax transition-colors">
                 {NPC_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">Ligado ao Jogador</label>
+              <label className="text-[11px] text-ink-soft font-bold uppercase tracking-widest block mb-1.5">Ligado ao Jogador</label>
               <select value={form.linkedMemberId} onChange={e => set('linkedMemberId', e.target.value)}
-                className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm focus:outline-none focus:border-gold/60 transition-colors">
+                className="w-full bg-parchment/60 border border-ink/20 rounded px-3 py-2 text-sm focus:outline-none focus:border-wax transition-colors">
                 <option value="">Nenhum</option>
                 {players.map(p => <option key={p.id} value={p.id}>{p.user.username}</option>)}
               </select>
@@ -143,32 +143,32 @@ export function NpcGMControls({ campaignId, npc, players }: {
 
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">Raça</label>
+              <label className="text-[11px] text-ink-soft font-bold uppercase tracking-widest block mb-1.5">Raça</label>
               <input value={form.race} onChange={e => set('race', e.target.value)}
-                className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm focus:outline-none focus:border-gold/60 transition-colors" />
+                className="w-full bg-parchment/60 border border-ink/20 rounded px-3 py-2 text-sm focus:outline-none focus:border-wax transition-colors" />
             </div>
             <div>
-              <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">Classe</label>
+              <label className="text-[11px] text-ink-soft font-bold uppercase tracking-widest block mb-1.5">Classe</label>
               <input value={form.class} onChange={e => set('class', e.target.value)}
-                className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm focus:outline-none focus:border-gold/60 transition-colors" />
+                className="w-full bg-parchment/60 border border-ink/20 rounded px-3 py-2 text-sm focus:outline-none focus:border-wax transition-colors" />
             </div>
             <div>
-              <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">Nível</label>
+              <label className="text-[11px] text-ink-soft font-bold uppercase tracking-widest block mb-1.5">Nível</label>
               <input type="number" min={1} max={30} value={form.level} onChange={e => set('level', Number(e.target.value))}
-                className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm focus:outline-none focus:border-gold/60 transition-colors" />
+                className="w-full bg-parchment/60 border border-ink/20 rounded px-3 py-2 text-sm focus:outline-none focus:border-wax transition-colors" />
             </div>
           </div>
 
           <div>
-            <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">Descrição</label>
+            <label className="text-[11px] text-ink-soft font-bold uppercase tracking-widest block mb-1.5">Descrição</label>
             <textarea value={form.description} onChange={e => set('description', e.target.value)} rows={3}
-              className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm focus:outline-none focus:border-gold/60 transition-colors resize-none" />
+              className="w-full bg-parchment/60 border border-ink/20 rounded px-3 py-2 text-sm focus:outline-none focus:border-wax transition-colors resize-none" />
           </div>
 
           <div>
-            <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">URL da Imagem</label>
+            <label className="text-[11px] text-ink-soft font-bold uppercase tracking-widest block mb-1.5">URL da Imagem</label>
             <input value={form.imageUrl} onChange={e => set('imageUrl', e.target.value)} placeholder="https://..."
-              className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm focus:outline-none focus:border-gold/60 transition-colors" />
+              className="w-full bg-parchment/60 border border-ink/20 rounded px-3 py-2 text-sm focus:outline-none focus:border-wax transition-colors" />
           </div>
 
           <label className="flex items-center gap-3 cursor-pointer">
@@ -179,7 +179,7 @@ export function NpcGMControls({ campaignId, npc, players }: {
             <span className="text-sm">Visível para todos os jogadores</span>
           </label>
 
-          {editError && <p className="text-sm text-saga-danger">{editError}</p>}
+          {editError && <p className="text-sm text-red-700">{editError}</p>}
           <div className="flex justify-end gap-2">
             <Button variant="secondary" type="button" onClick={() => setEditOpen(false)}>Cancelar</Button>
             <Button variant="primary" type="submit" disabled={editLoading}>

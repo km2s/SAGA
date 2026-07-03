@@ -20,6 +20,12 @@ interface DiscordProfile {
   email?: string
 }
 
+// Em produção (HTTPS) o cookie de sessão usa o prefixo __Secure-, igual ao padrão
+// do NextAuth e ao que o getToken do middleware espera. Sem isso, o middleware não
+// encontrava o token e devolvia o usuário ao /login (loop de login após o OAuth).
+export const USE_SECURE_COOKIES = process.env.NODE_ENV === 'production'
+export const SESSION_COOKIE_NAME = `${USE_SECURE_COOKIES ? '__Secure-' : ''}next-auth.session-token`
+
 export const authOptions: NextAuthOptions = {
   providers: [
     DiscordProvider({
@@ -34,12 +40,14 @@ export const authOptions: NextAuthOptions = {
   pages: { signIn: '/login' },
   cookies: {
     sessionToken: {
-      name: 'next-auth.session-token',
+      name: SESSION_COOKIE_NAME,
       options: {
         httpOnly: true,
-        sameSite: 'strict',
+        // 'lax' (não 'strict'): o cookie precisa acompanhar o redirect de volta do
+        // Discord para a sessão ser reconhecida na primeira carga do /dashboard.
+        sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production',
+        secure: USE_SECURE_COOKIES,
       },
     },
   },

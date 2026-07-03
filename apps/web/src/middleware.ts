@@ -3,6 +3,11 @@ import { getToken } from 'next-auth/jwt'
 
 const PROTECTED = ['/dashboard', '/campaign']
 
+// Deve casar exatamente com a config de cookies em src/lib/auth.ts, senão o
+// getToken procura um nome de cookie diferente e nunca encontra a sessão.
+const USE_SECURE_COOKIES = process.env.NODE_ENV === 'production'
+const SESSION_COOKIE_NAME = `${USE_SECURE_COOKIES ? '__Secure-' : ''}next-auth.session-token`
+
 function buildCsp(nonce: string): string {
   return [
     "default-src 'self'",
@@ -31,7 +36,12 @@ export async function middleware(req: NextRequest) {
   const isProtected = PROTECTED.some(p => pathname.startsWith(p))
 
   if (isProtected) {
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
+    const token = await getToken({
+      req,
+      secret: process.env.NEXTAUTH_SECRET,
+      cookieName: SESSION_COOKIE_NAME,
+      secureCookie: USE_SECURE_COOKIES,
+    })
     if (!token) {
       const url = req.nextUrl.clone()
       url.pathname = '/login'

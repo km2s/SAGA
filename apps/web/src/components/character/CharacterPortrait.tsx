@@ -59,9 +59,9 @@ export function CharacterPortrait({ characterId, imageUrl, name, charClass, canE
           onClick={() => { setValue(imageUrl ?? ''); setEditing(true) }}
           title="Trocar imagem"
           className="absolute bottom-2 right-2 p-1.5 rounded-full transition-all"
-          style={{ background: 'rgba(0,0,0,0.65)', color: 'rgba(255,255,255,0.6)' }}
+          style={{ background: 'rgba(0,0,0,0.65)', color: 'rgba(255,255,255,0.75)' }}
           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'white' }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.6)' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.75)' }}
         >
           <Camera size={14} />
         </button>
@@ -78,7 +78,7 @@ export function CharacterPortrait({ characterId, imageUrl, name, charClass, canE
               onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') setEditing(false) }}
               placeholder="https://exemplo.com/imagem.jpg"
               className="flex-1 px-2 py-1.5 rounded text-xs text-white placeholder:text-white/30 focus:outline-none min-w-0"
-              style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)' }}
+              style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)' }}
             />
             <button
               onClick={save}
@@ -92,7 +92,7 @@ export function CharacterPortrait({ characterId, imageUrl, name, charClass, canE
               onClick={() => setEditing(false)}
               title="Cancelar"
               className="p-1.5 rounded text-white transition-all"
-              style={{ background: 'rgba(255,255,255,0.12)' }}>
+              style={{ background: 'rgba(255,255,255,0.15)' }}>
               <X size={12} />
             </button>
           </div>

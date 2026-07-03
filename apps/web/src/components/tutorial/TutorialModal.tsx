@@ -55,14 +55,14 @@ export function TutorialModal({
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onSkip} />
 
-      <div className="relative w-full max-w-md bg-surface border border-border rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
+      <div className="relative w-full max-w-md bg-[#f5ecd6] border border-ink/20 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
         {/* Top gradient bar */}
         <div className="h-0.5 bg-gradient-to-r from-purple via-gold to-purple" />
 
         {/* Close */}
         <button
           onClick={onSkip}
-          className="absolute top-4 right-4 text-saga-muted hover:text-saga-text transition-colors z-10"
+          className="absolute top-4 right-4 text-ink-soft hover:text-ink transition-colors z-10"
         >
           <X size={16} />
         </button>
@@ -91,12 +91,12 @@ export function TutorialModal({
           </div>
 
           {/* Title */}
-          <h2 className="font-cinzel text-xl font-bold text-saga-text mb-3 leading-snug">
+          <h2 className="font-cinzel text-xl font-bold text-ink mb-3 leading-snug">
             {step.title}
           </h2>
 
           {/* Description */}
-          <p className="text-sm text-saga-muted leading-relaxed">
+          <p className="text-sm text-ink-soft leading-relaxed">
             {step.description}
           </p>
 
@@ -104,7 +104,7 @@ export function TutorialModal({
           {step.actionLabel && step.onAction && (
             <button
               onClick={step.onAction}
-              className="mt-5 w-full bg-gold text-bg font-semibold py-2.5 rounded-lg hover:bg-gold-dark transition-colors text-sm"
+              className="mt-5 w-full bg-gold text-crypt-deep font-semibold py-2.5 rounded-lg hover:bg-gold-dark transition-colors text-sm"
             >
               {step.actionLabel}
             </button>
@@ -114,7 +114,7 @@ export function TutorialModal({
           {step.skipActionLabel && step.onSkipAction && (
             <button
               onClick={step.onSkipAction}
-              className="mt-2.5 text-sm text-saga-dim hover:text-saga-muted transition-colors"
+              className="mt-2.5 text-sm text-ink-soft hover:text-ink-soft transition-colors"
             >
               {step.skipActionLabel}
             </button>
@@ -122,17 +122,17 @@ export function TutorialModal({
         </div>
 
         {/* Navigation footer */}
-        <div className="border-t border-border px-6 py-3.5 flex items-center justify-between">
+        <div className="border-t border-ink/20 px-6 py-3.5 flex items-center justify-between">
           <button
             onClick={onPrev}
             disabled={isFirst}
-            className="flex items-center gap-1 text-sm text-saga-muted hover:text-saga-text disabled:opacity-0 transition-colors"
+            className="flex items-center gap-1 text-sm text-ink-soft hover:text-ink disabled:opacity-0 transition-colors"
           >
             <ChevronLeft size={14} />
             Anterior
           </button>
 
-          <span className="text-[11px] text-saga-dim">
+          <span className="text-[11px] text-ink-soft">
             {currentStep + 1} / {steps.length}
           </span>
 

@@ -16,7 +16,7 @@ const VOW_PROGRESS: Record<string, number> = {
 function SectionDivider({ title }: { title: string }) {
   return (
     <div className="flex items-center gap-3 mb-4">
-      <p className="font-almendra text-[9px] font-bold text-saga-dim uppercase tracking-[0.2em] whitespace-nowrap">{title}</p>
+      <p className="font-almendra text-[9px] font-bold text-ink-soft uppercase tracking-[0.2em] whitespace-nowrap">{title}</p>
       <div className="flex-1 h-px" style={{ background: `${ACCENT}33` }} />
     </div>
   )
@@ -37,10 +37,10 @@ function EditableVal({ attrId, value, characterId, onSaved, large = false }: { a
   if (editing) return (
     <input autoFocus type="number" value={val} onChange={e => setVal(e.target.value)}
       onBlur={save} onKeyDown={e => { if (e.key === 'Enter') void save(); if (e.key === 'Escape') setEditing(false) }}
-      className={`bg-surface-2 border border-amber-600/40 rounded text-center font-bold focus:outline-none ${large ? 'w-16 text-2xl' : 'w-12 text-base'}`} />
+      className={`bg-parchment/60 border border-amber-600/40 rounded text-center font-bold focus:outline-none ${large ? 'w-16 text-2xl' : 'w-12 text-base'}`} />
   )
   return (
-    <span className={`cursor-pointer hover:text-amber-400 font-mono font-bold text-saga-text transition-colors ${large ? 'text-2xl' : 'text-base'}`}
+    <span className={`cursor-pointer hover:text-amber-400 font-mono font-bold text-ink transition-colors ${large ? 'text-2xl' : 'text-base'}`}
       onClick={() => { setEditing(true); setVal(String(value)) }}>{value}</span>
   )
 }
@@ -59,10 +59,10 @@ function TFField({ characterId, textFields, tfKey, label, placeholder, multiline
     }).catch(() => null)
     setSaving(false); onRefresh()
   }
-  const cls = 'w-full bg-surface-2/50 border border-white/10 rounded-lg text-sm text-saga-muted placeholder-saga-dim/40 focus:outline-none focus:border-amber-500/50 focus:bg-surface-2 px-3 py-2 transition-colors'
+  const cls = 'w-full bg-parchment/40 border border-ink/15 rounded-lg text-sm text-ink-soft placeholder-ink-soft/40 focus:outline-none focus:border-amber-500/50 focus:bg-parchment/60 px-3 py-2 transition-colors'
   return (
     <div className="space-y-1">
-      <label className="text-[10px] font-bold text-saga-dim uppercase tracking-wider">{label}</label>
+      <label className="text-[10px] font-bold text-ink-soft uppercase tracking-wider">{label}</label>
       {multiline
         ? <textarea rows={3} value={val} onChange={e => setVal(e.target.value)} onBlur={e => void save(e.target.value)}
             disabled={!canEdit || saving} placeholder={placeholder} className={cls} />
@@ -78,14 +78,14 @@ function ResourceTrack({ label, value, max, color = ACCENT, onSet, canEdit }: {
 }) {
   return (
     <div className="space-y-1">
-      <div className="flex justify-between text-[10px] font-bold text-saga-dim uppercase tracking-wider">
+      <div className="flex justify-between text-[10px] font-bold text-ink-soft uppercase tracking-wider">
         <span>{label}</span><span>{value}/{max}</span>
       </div>
       <div className="flex gap-1">
         {Array.from({ length: max + 1 }).map((_, i) => (
           <button key={i} type="button" onClick={() => canEdit && onSet(i)}
             className="flex-1 h-3 rounded transition-all"
-            style={{ background: i <= value ? color : 'rgba(255,255,255,0.1)' }} />
+            style={{ background: i <= value ? color : 'rgba(51,41,29,0.1)' }} />
         ))}
       </div>
     </div>
@@ -98,7 +98,7 @@ function MomentumTrack({ value, canEdit, onSet }: { value: number; canEdit: bool
   const total = max - min + 1
   return (
     <div className="space-y-1">
-      <div className="flex justify-between text-[10px] font-bold text-saga-dim uppercase tracking-wider">
+      <div className="flex justify-between text-[10px] font-bold text-ink-soft uppercase tracking-wider">
         <span>Momentum</span>
         <span className="font-bold" style={{ color: value > 0 ? '#22c55e' : value < 0 ? '#ef4444' : 'inherit' }}>
           {value >= 0 ? `+${value}` : value}
@@ -108,17 +108,17 @@ function MomentumTrack({ value, canEdit, onSet }: { value: number; canEdit: bool
         {Array.from({ length: total }).map((_, i) => {
           const v = i + min
           const filled = v <= value
-          const bg = v === 0 ? 'rgba(255,255,255,0.3)' : v > 0 ? (filled ? '#22c55e' : 'rgba(255,255,255,0.08)') : (filled ? '#ef4444' : 'rgba(255,255,255,0.08)')
+          const bg = v === 0 ? 'rgba(51,41,29,0.3)' : v > 0 ? (filled ? '#22c55e' : 'rgba(51,41,29,0.08)') : (filled ? '#ef4444' : 'rgba(51,41,29,0.08)')
           return (
             <button key={i} type="button" onClick={() => canEdit && onSet(v)}
               className="flex-1 h-3 rounded transition-all relative"
               style={{ background: bg }}>
-              {v === 0 && <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[8px] text-saga-dim">0</span>}
+              {v === 0 && <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[8px] text-ink-soft">0</span>}
             </button>
           )
         })}
       </div>
-      <div className="flex justify-between text-[9px] text-saga-dim">
+      <div className="flex justify-between text-[9px] text-ink-soft">
         <span>-6</span><span>0</span><span>+10</span>
       </div>
     </div>
@@ -169,24 +169,24 @@ function VowSlot({ num, characterId, textFields, canEdit, onRefresh }: { num: nu
   const partialTicks = Math.round(((localProgress / maxTicks) * boxes - filledBoxes) * 4)
 
   return (
-    <div className="p-3 rounded-lg space-y-2" style={{ background: 'rgba(0,0,0,0.3)', border: `1px solid ${ACCENT}30` }}>
+    <div className="p-3 rounded-lg space-y-2" style={{ background: 'rgba(51,41,29,0.08)', border: `1px solid ${ACCENT}30` }}>
       <div className="flex items-center gap-2">
-        <span className="text-[9px] font-bold text-saga-dim uppercase">Jura {num}</span>
+        <span className="text-[9px] font-bold text-ink-soft uppercase">Jura {num}</span>
         {localRank && <span className="text-[9px] px-2 py-0.5 rounded" style={{ background: `${ACCENT}20`, color: ACCENT }}>{localRank}</span>}
       </div>
       <input type="text" value={localTitle} onChange={e => setLocalTitle(e.target.value)}
         onBlur={e => void saveTF(titleKey, `Jura ${num}`, e.target.value)}
         disabled={!canEdit} placeholder="Nome da jura..."
-        className="w-full bg-surface-2/50 border border-white/10 rounded px-2 py-1 text-sm text-saga-muted focus:outline-none focus:border-amber-500/50" />
+        className="w-full bg-parchment/40 border border-ink/15 rounded px-2 py-1 text-sm text-ink-soft focus:outline-none focus:border-amber-500/50" />
       <select value={localRank} onChange={e => { setLocalRank(e.target.value); void saveTF(rankKey, `Jura ${num} — Dificuldade`, e.target.value) }}
         disabled={!canEdit}
-        className="w-full bg-surface-2/50 border border-white/10 rounded px-2 py-1 text-[11px] text-saga-muted focus:outline-none">
+        className="w-full bg-parchment/40 border border-ink/15 rounded px-2 py-1 text-[11px] text-ink-soft focus:outline-none">
         {VOW_RANKS.map(r => <option key={r} value={r}>{r} ({VOW_PROGRESS[r] ?? '?'} ticks/caixa)</option>)}
       </select>
       {/* Progress Track */}
       <div className="space-y-1">
         <div className="flex items-center justify-between">
-          <span className="text-[9px] text-saga-dim">Progresso: {localProgress}/{maxTicks}</span>
+          <span className="text-[9px] text-ink-soft">Progresso: {localProgress}/{maxTicks}</span>
           <div className="flex gap-1">
             <button type="button" onClick={removeProgress} disabled={!canEdit || localProgress === 0}
               className="px-2 py-0.5 rounded text-[10px] font-bold disabled:opacity-30" style={{ background: `${ACCENT}20`, color: ACCENT }}>−</button>
@@ -200,7 +200,7 @@ function VowSlot({ num, characterId, textFields, canEdit, onRefresh }: { num: nu
             const partial = i === filledBoxes && partialTicks > 0
             return (
               <div key={i} className="flex-1 h-4 rounded border relative overflow-hidden"
-                style={{ borderColor: `${ACCENT}50`, background: full ? ACCENT : 'rgba(0,0,0,0.3)' }}>
+                style={{ borderColor: `${ACCENT}50`, background: full ? ACCENT : 'rgba(51,41,29,0.08)' }}>
                 {partial && (
                   <div className="absolute inset-0 flex items-center justify-center">
                     {partialTicks === 1 && <div className="w-px h-3 bg-amber-500" />}
@@ -212,7 +212,7 @@ function VowSlot({ num, characterId, textFields, canEdit, onRefresh }: { num: nu
             )
           })}
         </div>
-        <div className="w-full h-1 rounded" style={{ background: 'rgba(255,255,255,0.1)' }}>
+        <div className="w-full h-1 rounded" style={{ background: 'rgba(51,41,29,0.1)' }}>
           <div className="h-full rounded transition-all" style={{ width: `${progressPct * 100}%`, background: ACCENT }} />
         </div>
       </div>
@@ -252,7 +252,7 @@ export function IronswornSheet({ characterId, attributes, textFields, canEdit }:
   }
 
   const card = 'rounded-xl p-4' as const
-  const cardStyle = { background: 'rgba(17,17,30,0.6)', border: '1px solid rgba(255,255,255,0.07)' }
+  const cardStyle = { background: 'rgba(247,239,221,0.92)', border: '1px solid rgba(51,41,29,0.14)' }
   const tabs = [
     { id: 'stats', label: 'Stats' }, { id: 'juras', label: 'Juras' },
     { id: 'estado', label: 'Estado' }, { id: 'personagem', label: 'Personagem' },
@@ -265,11 +265,11 @@ export function IronswornSheet({ characterId, attributes, textFields, canEdit }:
         <span className="font-cinzel text-sm font-bold" style={{ color: ACCENT }}>Ironsworn</span>
       </div>
 
-      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.05)' }}>
+      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgba(51,41,29,0.08)', border: '1px solid rgba(51,41,29,0.05)' }}>
         {tabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className="flex-1 py-1.5 rounded-md text-[11px] font-bold uppercase tracking-wider transition-all"
-            style={tab === t.id ? { background: ACCENT, color: '#000' } : { color: 'rgba(255,255,255,0.4)' }}>
+            style={tab === t.id ? { background: ACCENT, color: '#000' } : { color: 'rgba(51,41,29,0.4)' }}>
             {t.label}
           </button>
         ))}
@@ -281,8 +281,8 @@ export function IronswornSheet({ characterId, attributes, textFields, canEdit }:
             <SectionDivider title="Estatísticas" />
             <div className="grid grid-cols-5 gap-3">
               {stats.map(a => (
-                <div key={a.id} className="text-center p-2 rounded-lg" style={{ background: 'rgba(0,0,0,0.3)' }}>
-                  <div className="text-[9px] font-bold text-saga-dim uppercase mb-1">{a.attribute.name}</div>
+                <div key={a.id} className="text-center p-2 rounded-lg" style={{ background: 'rgba(51,41,29,0.08)' }}>
+                  <div className="text-[9px] font-bold text-ink-soft uppercase mb-1">{a.attribute.name}</div>
                   <EditableVal attrId={a.id} value={a.value} characterId={characterId} onSaved={onRefresh} large />
                 </div>
               ))}
@@ -298,7 +298,7 @@ export function IronswornSheet({ characterId, attributes, textFields, canEdit }:
 
       {tab === 'juras' && (
         <div className="space-y-3">
-          <p className="text-[11px] text-saga-dim px-1">As juras são o coração do Ironsworn. Marque progresso cumprindo-as.</p>
+          <p className="text-[11px] text-ink-soft px-1">As juras são o coração do Ironsworn. Marque progresso cumprindo-as.</p>
           {[1, 2, 3, 4, 5].map(n => (
             <VowSlot key={n} num={n} characterId={characterId} textFields={textFields} canEdit={canEdit} onRefresh={onRefresh} />
           ))}
@@ -333,7 +333,7 @@ export function IronswornSheet({ characterId, attributes, textFields, canEdit }:
                         onRefresh()
                       }}
                       className="w-4 h-4 accent-amber-500" />
-                    <span className="text-sm text-saga-muted">{label}</span>
+                    <span className="text-sm text-ink-soft">{label}</span>
                   </div>
                 )
               })}

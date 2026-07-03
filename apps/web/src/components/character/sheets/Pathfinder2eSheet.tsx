@@ -12,7 +12,7 @@ const RED = '#f87171'
 function SectionDivider({ title }: { title: string }) {
   return (
     <div className="flex items-center gap-3 mb-4">
-      <p className="font-almendra text-[9px] font-bold text-saga-dim uppercase tracking-[0.2em] whitespace-nowrap">{title}</p>
+      <p className="font-almendra text-[9px] font-bold text-ink-soft uppercase tracking-[0.2em] whitespace-nowrap">{title}</p>
       <div className="flex-1 h-px" style={{ background: `${RED}33` }} />
     </div>
   )
@@ -62,10 +62,10 @@ function TFField({ characterId, textFields, tfKey, label, placeholder, multiline
     }).catch(() => null)
     setSaving(false); onRefresh()
   }
-  const cls = 'w-full bg-surface-2/50 border border-white/10 rounded-lg text-sm text-saga-muted placeholder-saga-dim/40 focus:outline-none focus:border-red-700/50 focus:bg-surface-2 px-3 py-2 transition-colors'
+  const cls = 'w-full bg-parchment/40 border border-ink/15 rounded-lg text-sm text-ink-soft placeholder-ink-soft/40 focus:outline-none focus:border-red-700/50 focus:bg-parchment/60 px-3 py-2 transition-colors'
   return (
     <div className="space-y-1">
-      <label className="text-[10px] font-bold text-saga-dim uppercase tracking-wider">{label}</label>
+      <label className="text-[10px] font-bold text-ink-soft uppercase tracking-wider">{label}</label>
       {multiline
         ? <textarea rows={3} value={val} onChange={e => setVal(e.target.value)} onBlur={e => void save(e.target.value)}
             disabled={!canEdit || saving} placeholder={placeholder} className={cls} />
@@ -90,7 +90,7 @@ function ProfSelector({ attrId, value, characterId, canEdit, onSaved }: { attrId
   return (
     <button type="button" onClick={() => void next()} title={PROF_LABEL[value]}
       className="w-8 h-6 rounded text-[11px] font-bold transition-colors"
-      style={{ background: value ? `${RED}30` : 'rgba(0,0,0,0.4)', color: value ? RED : 'rgba(255,255,255,0.2)', border: `1px solid ${value ? RED : 'rgba(255,255,255,0.1)'}` }}>
+      style={{ background: value ? `${RED}30` : 'rgba(51,41,29,0.1)', color: value ? RED : 'rgba(51,41,29,0.2)', border: `1px solid ${value ? RED : 'rgba(51,41,29,0.1)'}` }}>
       {PROF[value]}
     </button>
   )
@@ -113,7 +113,7 @@ export function Pathfinder2eSheet({ characterId, characterLevel, attributes, tex
   const heroPoints = parseInt(textFields.find(f => f.key === 'hero_points')?.value ?? '0')
 
   const card = 'rounded-xl p-4' as const
-  const cardStyle = { background: 'rgba(17,17,30,0.6)', border: '1px solid rgba(255,255,255,0.07)' }
+  const cardStyle = { background: 'rgba(247,239,221,0.92)', border: '1px solid rgba(51,41,29,0.14)' }
   const tabs = [
     { id: 'atributos', label: 'Atributos' },
     { id: 'combate', label: 'Combate' },
@@ -138,9 +138,9 @@ export function Pathfinder2eSheet({ characterId, characterLevel, attributes, tex
           <span className="font-cinzel text-sm font-bold" style={{ color: RED }}>Pathfinder 2e</span>
         </div>
         <div className="flex items-center gap-4 text-xs">
-          <span className="text-saga-dim">Nível {characterLevel}</span>
+          <span className="text-ink-soft">Nível {characterLevel}</span>
           <div className="flex items-center gap-1">
-            <span className="text-saga-dim">Hero Points</span>
+            <span className="text-ink-soft">Hero Points</span>
             {[1, 2, 3].map(n => (
               <button key={n} type="button" onClick={() => canEdit && void saveNum('hero_points', 'Hero Points', n === heroPoints ? n - 1 : n)}
                 className="w-5 h-5 rounded-full border transition-colors"
@@ -150,11 +150,11 @@ export function Pathfinder2eSheet({ characterId, characterLevel, attributes, tex
         </div>
       </div>
 
-      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.05)' }}>
+      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgba(51,41,29,0.08)', border: '1px solid rgba(51,41,29,0.05)' }}>
         {tabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className="flex-1 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all"
-            style={tab === t.id ? { background: RED, color: '#fff' } : { color: 'rgba(255,255,255,0.4)' }}>
+            style={tab === t.id ? { background: RED, color: '#fff' } : { color: 'rgba(51,41,29,0.4)' }}>
             {t.label}
           </button>
         ))}
@@ -171,8 +171,8 @@ export function Pathfinder2eSheet({ characterId, characterLevel, attributes, tex
               const a = baseStats.find(x => x.attribute.name.includes(name!.split(' ')[0]!))
               const m = mod(a?.value ?? 10)
               return (
-                <div key={abbr} className="rounded-lg p-3 text-center space-y-1" style={{ background: 'rgba(0,0,0,0.3)' }}>
-                  <div className="text-[10px] font-bold text-saga-dim uppercase">{abbr}</div>
+                <div key={abbr} className="rounded-lg p-3 text-center space-y-1" style={{ background: 'rgba(51,41,29,0.08)' }}>
+                  <div className="text-[10px] font-bold text-ink-soft uppercase">{abbr}</div>
                   <div className="text-2xl font-cinzel font-bold" style={{ color: RED }}>{fmtMod(m)}</div>
                   {a && <Dots value={a.value} max={20} editable={canEdit} attrId={a.id} characterId={characterId} onSaved={onRefresh} />}
                 </div>
@@ -183,8 +183,8 @@ export function Pathfinder2eSheet({ characterId, characterLevel, attributes, tex
             <div className="mt-4">
               <SectionDivider title="Outros" />
               {other.map(a => (
-                <div key={a.id} className="flex items-center justify-between py-1.5 border-b border-white/5 last:border-0">
-                  <span className="text-sm text-saga-muted">{a.attribute.name}</span>
+                <div key={a.id} className="flex items-center justify-between py-1.5 border-b border-ink/10 last:border-0">
+                  <span className="text-sm text-ink-soft">{a.attribute.name}</span>
                   <Dots value={a.value} editable={canEdit} attrId={a.id} characterId={characterId} onSaved={onRefresh} />
                 </div>
               ))}
@@ -209,12 +209,12 @@ export function Pathfinder2eSheet({ characterId, characterLevel, attributes, tex
             <SectionDivider title="Moribundo / Ferido" />
             <div className="space-y-3">
               <div>
-                <label className="text-[10px] font-bold text-saga-dim uppercase tracking-wider mb-1.5 block">Moribundo (Dying 0-4)</label>
+                <label className="text-[10px] font-bold text-ink-soft uppercase tracking-wider mb-1.5 block">Moribundo (Dying 0-4)</label>
                 <div className="flex gap-2">
                   {[0, 1, 2, 3, 4].map(n => (
                     <button key={n} type="button" onClick={() => canEdit && void saveNum('dying', 'Moribundo', n)}
                       className="flex-1 py-1.5 rounded text-[11px] font-bold transition-all"
-                      style={{ background: n === dying ? RED : 'rgba(0,0,0,0.4)', color: n === dying ? '#fff' : 'rgba(255,255,255,0.4)', border: `1px solid ${n === dying ? RED : 'rgba(255,255,255,0.1)'}` }}>
+                      style={{ background: n === dying ? RED : 'rgba(51,41,29,0.1)', color: n === dying ? '#fff' : 'rgba(51,41,29,0.4)', border: `1px solid ${n === dying ? RED : 'rgba(51,41,29,0.1)'}` }}>
                       {n}
                     </button>
                   ))}
@@ -239,11 +239,11 @@ export function Pathfinder2eSheet({ characterId, characterLevel, attributes, tex
           <SectionDivider title="Perícias (clique no rank para ciclar)" />
           {skills.length > 0
             ? skills.map(a => (
-                <div key={a.id} className="flex items-center justify-between py-1.5 border-b border-white/5 last:border-0">
-                  <span className="text-sm text-saga-muted">{a.attribute.name}</span>
+                <div key={a.id} className="flex items-center justify-between py-1.5 border-b border-ink/10 last:border-0">
+                  <span className="text-sm text-ink-soft">{a.attribute.name}</span>
                   <div className="flex items-center gap-2">
                     <ProfSelector attrId={a.id} value={Math.min(a.value, 4)} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />
-                    <span className="text-[11px] text-saga-dim w-6 text-right">{fmtMod(mod(getStat(a.attribute.name)) + (a.value > 0 ? a.value * 2 + characterLevel : 0))}</span>
+                    <span className="text-[11px] text-ink-soft w-6 text-right">{fmtMod(mod(getStat(a.attribute.name)) + (a.value > 0 ? a.value * 2 + characterLevel : 0))}</span>
                   </div>
                 </div>
               ))

@@ -92,7 +92,7 @@ function categorize(attrs: Attr[]) {
 function SectionDivider({ title }: { title: string }) {
   return (
     <div className="flex items-center gap-3 mb-4">
-      <p className="font-almendra text-[9px] font-bold text-saga-dim uppercase tracking-[0.2em] whitespace-nowrap">{title}</p>
+      <p className="font-almendra text-[9px] font-bold text-ink-soft uppercase tracking-[0.2em] whitespace-nowrap">{title}</p>
       <div className="flex-1 h-px" style={{ background: 'rgba(201,162,42,0.2)' }} />
     </div>
   )
@@ -124,8 +124,8 @@ function Dots({ value, max = 5, editable = false, attrId, characterId, onSaved, 
 
 function AttrRow({ a, characterId, canEdit, onSaved }: { a: Attr; characterId: string; canEdit: boolean; onSaved: () => void }) {
   return (
-    <div className="flex items-center justify-between py-1.5 border-b border-white/5 last:border-0">
-      <span className="text-sm text-saga-muted">{a.attribute.name}</span>
+    <div className="flex items-center justify-between py-1.5 border-b border-ink/10 last:border-0">
+      <span className="text-sm text-ink-soft">{a.attribute.name}</span>
       <Dots value={a.value} editable={canEdit} attrId={a.id} characterId={characterId} onSaved={onSaved} />
     </div>
   )
@@ -145,10 +145,10 @@ function TFField({ characterId, textFields, tfKey, label, placeholder, multiline
     }).catch(() => null)
     setSaving(false); onRefresh()
   }
-  const cls = 'w-full bg-surface-2/50 border border-white/10 rounded-lg text-sm text-saga-muted placeholder-saga-dim/40 focus:outline-none focus:border-red-900/50 focus:bg-surface-2 px-3 py-2 transition-colors'
+  const cls = 'w-full bg-parchment/40 border border-ink/15 rounded-lg text-sm text-ink-soft placeholder-ink-soft/40 focus:outline-none focus:border-red-900/50 focus:bg-parchment/60 px-3 py-2 transition-colors'
   return (
     <div className="space-y-1">
-      <label className="text-[10px] font-bold text-saga-dim uppercase tracking-wider">{label}</label>
+      <label className="text-[10px] font-bold text-ink-soft uppercase tracking-wider">{label}</label>
       {multiline
         ? <textarea rows={3} value={val} onChange={e => setVal(e.target.value)} onBlur={e => void save(e.target.value)}
             disabled={!canEdit || saving} placeholder={placeholder} className={cls} />
@@ -180,8 +180,8 @@ function DisciplineRow({ name, characterId, textFields, canEdit, onRefresh, remo
   }
 
   return (
-    <div className="flex items-center justify-between py-2 border-b border-white/5 last:border-0 group">
-      <span className="text-sm text-saga-muted">{name}</span>
+    <div className="flex items-center justify-between py-2 border-b border-ink/10 last:border-0 group">
+      <span className="text-sm text-ink-soft">{name}</span>
       <div className="flex items-center gap-2">
         <div className="flex gap-1">
           {Array.from({ length: 5 }).map((_, i) => (
@@ -220,8 +220,8 @@ function BackgroundRow({ name, characterId, textFields, canEdit, onRefresh, remo
   }
 
   return (
-    <div className="flex items-center justify-between py-2 border-b border-white/5 last:border-0 group">
-      <span className="text-sm text-saga-muted">{name}</span>
+    <div className="flex items-center justify-between py-2 border-b border-ink/10 last:border-0 group">
+      <span className="text-sm text-ink-soft">{name}</span>
       <div className="flex items-center gap-2">
         <div className="flex gap-1">
           {Array.from({ length: 5 }).map((_, i) => (
@@ -263,7 +263,7 @@ function HealthTrack({ characterId, textFields, canEdit, onRefresh }: { characte
           <button type="button" onClick={() => void toggle(i)} disabled={!canEdit}
             className={`w-4 h-4 rounded border-2 flex-shrink-0 transition-colors ${track[i] ? 'bg-red-800' : 'bg-transparent'}`}
             style={{ borderColor: RED }} />
-          <span className="text-[11px] text-saga-dim">{lbl}</span>
+          <span className="text-[11px] text-ink-soft">{lbl}</span>
         </div>
       ))}
     </div>
@@ -366,7 +366,7 @@ export function VtMV20Sheet({ characterId, attributes, textFields, canEdit }: Pr
   const genRow = GEN_TABLE[genNum]
 
   const card = 'rounded-xl p-4' as const
-  const cardStyle = { background: 'rgba(17,17,30,0.6)', border: '1px solid rgba(255,255,255,0.07)' }
+  const cardStyle = { background: 'rgba(247,239,221,0.92)', border: '1px solid rgba(51,41,29,0.14)' }
   const tabs = [
     { id: 'atributos',   label: 'Atributos' },
     { id: 'habilidades', label: 'Habilidades' },
@@ -392,11 +392,11 @@ export function VtMV20Sheet({ characterId, attributes, textFields, canEdit }: Pr
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.05)' }}>
+      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgba(51,41,29,0.08)', border: '1px solid rgba(51,41,29,0.05)' }}>
         {tabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className="flex-1 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all"
-            style={tab === t.id ? { background: RED, color: '#fff' } : { color: 'rgba(255,255,255,0.4)' }}>
+            style={tab === t.id ? { background: RED, color: '#fff' } : { color: 'rgba(51,41,29,0.4)' }}>
             {t.label}
           </button>
         ))}
@@ -409,7 +409,7 @@ export function VtMV20Sheet({ characterId, attributes, textFields, canEdit }: Pr
             <div key={String(title)} className={card} style={cardStyle}>
               <SectionDivider title={String(title)} />
               {(list as Attr[]).length === 0
-                ? <p className="text-[11px] text-saga-dim italic">Nenhum atributo encontrado</p>
+                ? <p className="text-[11px] text-ink-soft italic">Nenhum atributo encontrado</p>
                 : (list as Attr[]).map(a => <AttrRow key={a.id} a={a} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />)
               }
             </div>
@@ -424,7 +424,7 @@ export function VtMV20Sheet({ characterId, attributes, textFields, canEdit }: Pr
             <div key={String(title)} className={card} style={cardStyle}>
               <SectionDivider title={String(title)} />
               {(list as Attr[]).length === 0
-                ? <p className="text-[11px] text-saga-dim italic">Nenhuma habilidade encontrada</p>
+                ? <p className="text-[11px] text-ink-soft italic">Nenhuma habilidade encontrada</p>
                 : (list as Attr[]).map(a => <AttrRow key={a.id} a={a} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />)
               }
             </div>
@@ -441,7 +441,7 @@ export function VtMV20Sheet({ characterId, attributes, textFields, canEdit }: Pr
             <SectionDivider title="Disciplinas" />
 
             {clanValue && clanDisciplines.length > 0 && (
-              <p className="text-[10px] text-saga-dim mb-3 italic">
+              <p className="text-[10px] text-ink-soft mb-3 italic">
                 Disciplinas do clã <span className="text-amber-400 font-bold not-italic">{clanValue}</span> preenchidas automaticamente.
               </p>
             )}
@@ -451,7 +451,7 @@ export function VtMV20Sheet({ characterId, attributes, textFields, canEdit }: Pr
               </p>
             )}
             {clanValue && clanDisciplines.length === 0 && (
-              <p className="text-[10px] text-saga-dim mb-3 italic">
+              <p className="text-[10px] text-ink-soft mb-3 italic">
                 Clã não reconhecido ou sem disciplinas mapeadas. Adicione manualmente abaixo.
               </p>
             )}
@@ -482,7 +482,7 @@ export function VtMV20Sheet({ characterId, attributes, textFields, canEdit }: Pr
                       ))}
                     </div>
                     <button type="button" onClick={() => setShowDiscPicker(false)}
-                      className="text-[10px] text-saga-dim hover:text-saga-muted mt-1">Cancelar</button>
+                      className="text-[10px] text-ink-soft hover:text-ink-soft mt-1">Cancelar</button>
                   </div>
                 ) : (
                   <button type="button" onClick={() => setShowDiscPicker(true)}
@@ -512,13 +512,13 @@ export function VtMV20Sheet({ characterId, attributes, textFields, canEdit }: Pr
                     <input type="text" value={newBgInput} onChange={e => setNewBgInput(e.target.value)}
                       onKeyDown={e => { if (e.key === 'Enter') void addExtraBg(newBgInput); if (e.key === 'Escape') setShowBgInput(false) }}
                       placeholder="Nome do antecedente..."
-                      className="flex-1 bg-surface-2/50 border border-white/10 rounded px-2 py-1 text-xs text-saga-muted focus:outline-none focus:border-amber-700/40" />
+                      className="flex-1 bg-parchment/40 border border-ink/15 rounded px-2 py-1 text-xs text-ink-soft focus:outline-none focus:border-amber-700/40" />
                     <button type="button" onClick={() => void addExtraBg(newBgInput)}
                       className="text-[10px] font-bold px-2 py-1 rounded transition-all hover:opacity-80"
                       style={{ background: 'rgba(180,83,9,0.2)', border: '1px solid rgba(180,83,9,0.3)', color: '#fcd34d' }}>
                       Adicionar
                     </button>
-                    <button type="button" onClick={() => setShowBgInput(false)} className="text-[10px] text-saga-dim hover:text-saga-muted">✕</button>
+                    <button type="button" onClick={() => setShowBgInput(false)} className="text-[10px] text-ink-soft hover:text-ink-soft">✕</button>
                   </div>
                 ) : (
                   <button type="button" onClick={() => setShowBgInput(true)}
@@ -581,25 +581,25 @@ export function VtMV20Sheet({ characterId, attributes, textFields, canEdit }: Pr
                 {isNamedPath ? (
                   <div className="rounded px-3 py-2 text-[10px]" style={{ background: 'rgba(120,20,20,0.25)', border: '1px solid rgba(220,38,38,0.3)' }}>
                     <span className="font-bold text-red-300">Via de Iluminação: </span>
-                    <span className="text-saga-dim">{moralityVal}</span>
+                    <span className="text-ink-soft">{moralityVal}</span>
                     <span className="text-red-400/60 ml-2">— virtudes podem diferir da Humanidade</span>
                   </div>
                 ) : isNumericLow ? (
                   <div className="rounded px-3 py-2 text-[10px]" style={{ background: 'rgba(120,80,0,0.2)', border: '1px solid rgba(200,130,0,0.3)' }}>
                     <span className="font-bold text-amber-400">Humanidade {moralityVal} </span>
-                    <span className="text-saga-dim">— nível crítico; elegível para adotar uma Via de Iluminação (V20 p.315)</span>
+                    <span className="text-ink-soft">— nível crítico; elegível para adotar uma Via de Iluminação (V20 p.315)</span>
                   </div>
                 ) : (
                   <div className="rounded px-3 py-2 text-[10px]" style={{ background: 'rgba(20,40,20,0.3)', border: '1px solid rgba(60,120,60,0.25)' }}>
                     <span className="font-bold text-green-400">Humanidade </span>
-                    <span className="text-saga-dim">— virtudes padrão: Consciência · Autocontrole · Coragem</span>
+                    <span className="text-ink-soft">— virtudes padrão: Consciência · Autocontrole · Coragem</span>
                   </div>
                 )}
 
                 {/* Seletor de virtudes alternativas (só aparece em Via nomeada) */}
                 {isNamedPath && canEdit && (
                   <div className="space-y-1">
-                    <p className="text-[9px] text-saga-dim uppercase tracking-wider">Virtudes alternativas desta Via</p>
+                    <p className="text-[9px] text-ink-soft uppercase tracking-wider">Virtudes alternativas desta Via</p>
                     <div className="flex flex-wrap gap-1.5">
                       {[
                         { val: 'none',       label: 'Consciência + Autocontrole' },
@@ -617,9 +617,9 @@ export function VtMV20Sheet({ characterId, attributes, textFields, canEdit }: Pr
                           }}
                           className="px-2 py-0.5 rounded text-[10px] font-bold transition-all"
                           style={{
-                            background: override === opt.val ? 'rgba(220,38,38,0.2)' : 'rgba(255,255,255,0.04)',
-                            border: `1px solid ${override === opt.val ? 'rgba(220,38,38,0.5)' : 'rgba(255,255,255,0.08)'}`,
-                            color: override === opt.val ? '#fca5a5' : '#7878a0',
+                            background: override === opt.val ? 'rgba(220,38,38,0.2)' : 'rgba(51,41,29,0.04)',
+                            border: `1px solid ${override === opt.val ? 'rgba(220,38,38,0.5)' : 'rgba(51,41,29,0.08)'}`,
+                            color: override === opt.val ? '#fca5a5' : '#5f5040',
                           }}>
                           {opt.label}
                         </button>
@@ -631,21 +631,21 @@ export function VtMV20Sheet({ characterId, attributes, textFields, canEdit }: Pr
                 {/* Linhas de virtude */}
                 <div className="space-y-0">
                   {virtueRows.map(({ label, attr, tooltip }) => (
-                    <div key={label} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0" title={tooltip}>
+                    <div key={label} className="flex items-center justify-between py-2 border-b border-ink/10 last:border-0" title={tooltip}>
                       <div>
-                        <span className="text-sm text-saga-muted">{label}</span>
-                        <span className="text-[9px] text-saga-dim/60 ml-1.5">{tooltip.split('—')[1]?.trim().slice(0, 45)}…</span>
+                        <span className="text-sm text-ink-soft">{label}</span>
+                        <span className="text-[9px] text-ink-soft/60 ml-1.5">{tooltip.split('—')[1]?.trim().slice(0, 45)}…</span>
                       </div>
                       {attr
                         ? <Dots value={attr.value} max={5} editable={canEdit} attrId={attr.id} characterId={characterId} onSaved={onRefresh} />
-                        : <span className="text-[10px] text-saga-dim italic">não encontrada</span>
+                        : <span className="text-[10px] text-ink-soft italic">não encontrada</span>
                       }
                     </div>
                   ))}
                 </div>
 
                 {/* Nota de regra */}
-                <p className="text-[9px] text-saga-dim/50 italic">
+                <p className="text-[9px] text-ink-soft/50 italic">
                   {isNamedPath
                     ? 'V20 p.312–315: Vias substituem virtudes. Convicção ↔ Consciência; Instinto ↔ Autocontrole.'
                     : 'V20 p.289: Consciência + Autocontrole = Humanidade inicial. Coragem = Força de Vontade inicial.'
@@ -676,7 +676,7 @@ export function VtMV20Sheet({ characterId, attributes, textFields, canEdit }: Pr
             <div className={card} style={cardStyle}>
               <SectionDivider title="Geração" />
               <div className="flex items-center justify-between mb-3">
-                <span className="text-sm text-saga-muted">Geração</span>
+                <span className="text-sm text-ink-soft">Geração</span>
                 <div className="flex items-center gap-2">
                   <Dots value={genAttr.value} max={15} editable={canEdit} attrId={genAttr.id} characterId={characterId} onSaved={onRefresh} color={RED} />
                   <span className="font-cinzel font-bold text-red-400 text-sm ml-2">{genAttr.value}ª</span>
@@ -685,8 +685,8 @@ export function VtMV20Sheet({ characterId, attributes, textFields, canEdit }: Pr
               {genRow && (
                 <div className="grid grid-cols-3 gap-2 text-center">
                   {[['Pool Máx.', genRow[0]], ['Traço Máx.', genRow[1]], ['Sangue/Round', genRow[2]]].map(([lbl, v]) => (
-                    <div key={String(lbl)} className="rounded p-2" style={{ background: 'rgba(0,0,0,0.3)' }}>
-                      <div className="text-[8px] text-saga-dim uppercase tracking-wider">{lbl}</div>
+                    <div key={String(lbl)} className="rounded p-2" style={{ background: 'rgba(51,41,29,0.08)' }}>
+                      <div className="text-[8px] text-ink-soft uppercase tracking-wider">{lbl}</div>
                       <div className="text-sm font-bold text-red-300 mt-0.5">{v}</div>
                     </div>
                   ))}

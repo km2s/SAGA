@@ -54,20 +54,20 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
           <h2 className="font-cinzel text-base font-semibold">Controle de Sessão</h2>
           <SessionControls campaignId={params.id} hasActiveSession={!!activeSession} />
         </div>
-        <div className="bg-surface border border-border rounded-lg p-5">
+        <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg p-5">
           {activeSession ? (
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="pulse-dot" />
                 <div>
                   <p className="font-medium">{activeSession.name ?? 'Sessão em andamento'}</p>
-                  <p className="text-[12px] text-saga-muted">
+                  <p className="text-[12px] text-ink-soft">
                     Iniciada às {new Date(activeSession.startedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                   </p>
                 </div>
               </div>
               <Link href={`/campaign/${params.id}/mesa`}>
-                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded text-sm font-medium bg-purple-dim border border-purple/30 text-purple-bright hover:bg-purple/20 transition-colors cursor-pointer">
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded text-sm font-medium bg-purple/10 border border-purple/30 text-purple-bright hover:bg-purple/20 transition-colors cursor-pointer">
                   <Map size={14} />
                   Abrir Mesa
                 </div>
@@ -75,7 +75,7 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
             </div>
           ) : (
             <div className="text-center py-4">
-              <p className="text-saga-muted text-sm">Nenhuma sessão ativa. Clique em &quot;Iniciar Sessão&quot; para começar.</p>
+              <p className="text-ink-soft text-sm">Nenhuma sessão ativa. Clique em &quot;Iniciar Sessão&quot; para começar.</p>
             </div>
           )}
         </div>
@@ -88,7 +88,7 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
           <GMActions campaignId={params.id} players={players} />
         </div>
         {npcs.length === 0 ? (
-          <div className="text-sm text-saga-muted bg-surface border border-border rounded-lg px-4 py-8 text-center">
+          <div className="text-sm text-ink-soft bg-[#f5ecd6] border border-ink/20 rounded-lg px-4 py-8 text-center">
             Nenhum NPC criado. Clique em &quot;+ Criar NPC&quot; acima para adicionar o primeiro.
           </div>
         ) : (
@@ -105,7 +105,7 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
         <h2 className="font-cinzel text-base font-semibold mb-3">Jogadores</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {players.map(m => (
-            <div key={m.id} className="bg-surface border border-border rounded-lg p-4 flex items-center gap-3">
+            <div key={m.id} className="bg-[#f5ecd6] border border-ink/20 rounded-lg p-4 flex items-center gap-3">
               <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple to-gold flex items-center justify-center text-sm font-bold shrink-0">
                 {m.user.username[0]?.toUpperCase()}
               </div>
@@ -113,27 +113,27 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
                 <p className="font-medium text-sm truncate">{m.user.username}</p>
                 {m.character ? (
                   <>
-                    <p className="text-[11px] text-saga-muted truncate">
+                    <p className="text-[11px] text-ink-soft truncate">
                       {m.character.name} · {m.character.race ?? ''} {m.character.class ?? ''} · Nv.{m.character.level}
                     </p>
                     <div className="flex items-center gap-2 mt-1">
-                      <div className="flex-1 bg-surface-2 rounded-full h-1.5 overflow-hidden">
+                      <div className="flex-1 bg-parchment/60 rounded-full h-1.5 overflow-hidden">
                         <div
                           className="bg-saga-success h-full rounded-full"
                           style={{ width: `${Math.round((m.character.hp / m.character.maxHp) * 100)}%` }}
                         />
                       </div>
-                      <p className="text-[10px] text-saga-muted shrink-0">{m.character.hp}/{m.character.maxHp}</p>
+                      <p className="text-[10px] text-ink-soft shrink-0">{m.character.hp}/{m.character.maxHp}</p>
                     </div>
                   </>
                 ) : (
-                  <p className="text-[11px] text-saga-muted">Sem personagem</p>
+                  <p className="text-[11px] text-ink-soft">Sem personagem</p>
                 )}
               </div>
             </div>
           ))}
           {players.length === 0 && (
-            <div className="col-span-2 text-sm text-saga-muted bg-surface border border-border rounded-lg px-4 py-8 text-center">
+            <div className="col-span-2 text-sm text-ink-soft bg-[#f5ecd6] border border-ink/20 rounded-lg px-4 py-8 text-center">
               Nenhum jogador ainda. Compartilhe o ID da campanha: <CopyButton value={params.id} />
             </div>
           )}
@@ -144,10 +144,10 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
       {(!campaign.system || !campaign.system.isPreset) && (
         <section>
           <div className="flex items-center gap-2 mb-3">
-            <ClipboardList size={16} className="text-saga-muted" />
+            <ClipboardList size={16} className="text-ink-soft" />
             <h2 className="font-cinzel text-base font-semibold">Template de Ficha</h2>
           </div>
-          <p className="text-[12px] text-saga-dim mb-3">
+          <p className="text-[12px] text-ink-soft mb-3">
             Defina os grupos de atributos e seções de texto que novos personagens receberão automaticamente ao entrar na campanha.
           </p>
           <CustomSheetBuilder campaignId={params.id} />
@@ -178,9 +178,9 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
             { href: `/campaign/${params.id}/mesa`,     label: 'Mesa Virtual', Icon: Map },
           ].map(link => (
             <Link key={link.href} href={link.href}>
-              <div className="bg-surface border border-border rounded-lg p-4 hover:border-gold/40 hover:bg-surface-2 transition-all cursor-pointer text-center">
+              <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg p-4 hover:border-gold/40 hover:bg-parchment/60 transition-all cursor-pointer text-center">
                 <div className="flex justify-center mb-2">
-                  <link.Icon size={22} className="text-saga-muted" />
+                  <link.Icon size={22} className="text-ink-soft" />
                 </div>
                 <p className="text-sm font-medium">{link.label}</p>
               </div>

@@ -12,7 +12,7 @@ const GOLD = '#f59e0b'
 function SectionDivider({ title }: { title: string }) {
   return (
     <div className="flex items-center gap-3 mb-4">
-      <p className="font-almendra text-[9px] font-bold text-saga-dim uppercase tracking-[0.2em] whitespace-nowrap">{title}</p>
+      <p className="font-almendra text-[9px] font-bold text-ink-soft uppercase tracking-[0.2em] whitespace-nowrap">{title}</p>
       <div className="flex-1 h-px" style={{ background: 'rgba(245,158,11,0.2)' }} />
     </div>
   )
@@ -61,8 +61,8 @@ function Dots({ value, max = 5, editable = false, attrId, characterId, onSaved, 
 
 function AttrRow({ a, characterId, canEdit, onSaved, color }: { a: Attr; characterId: string; canEdit: boolean; onSaved: () => void; color?: string }) {
   return (
-    <div className="flex items-center justify-between py-1.5 border-b border-white/5 last:border-0">
-      <span className="text-sm text-saga-muted">{a.attribute.name}</span>
+    <div className="flex items-center justify-between py-1.5 border-b border-ink/10 last:border-0">
+      <span className="text-sm text-ink-soft">{a.attribute.name}</span>
       <Dots value={a.value} editable={canEdit} attrId={a.id} characterId={characterId} onSaved={onSaved} color={color} />
     </div>
   )
@@ -82,10 +82,10 @@ function TFField({ characterId, textFields, tfKey, label, placeholder, multiline
     }).catch(() => null)
     setSaving(false); onRefresh()
   }
-  const cls = 'w-full bg-surface-2/50 border border-white/10 rounded-lg text-sm text-saga-muted placeholder-saga-dim/40 focus:outline-none focus:border-amber-700/50 focus:bg-surface-2 px-3 py-2 transition-colors'
+  const cls = 'w-full bg-parchment/40 border border-ink/15 rounded-lg text-sm text-ink-soft placeholder-ink-soft/40 focus:outline-none focus:border-amber-700/50 focus:bg-parchment/60 px-3 py-2 transition-colors'
   return (
     <div className="space-y-1">
-      <label className="text-[10px] font-bold text-saga-dim uppercase tracking-wider">{label}</label>
+      <label className="text-[10px] font-bold text-ink-soft uppercase tracking-wider">{label}</label>
       {multiline
         ? <textarea rows={3} value={val} onChange={e => setVal(e.target.value)} onBlur={e => void save(e.target.value)}
             disabled={!canEdit || saving} placeholder={placeholder} className={cls} />
@@ -110,7 +110,7 @@ function BoxTrack({ label, tfKey, textFields, characterId, canEdit, onRefresh, m
   }
   return (
     <div className="space-y-1.5">
-      <label className="text-[10px] font-bold text-saga-dim uppercase tracking-wider">{label}</label>
+      <label className="text-[10px] font-bold text-ink-soft uppercase tracking-wider">{label}</label>
       <div className="flex gap-1 flex-wrap">
         {Array.from({ length: max }).map((_, i) => (
           <button key={i} type="button" onClick={() => void set(i + 1 === existing ? i : i + 1)}
@@ -129,7 +129,7 @@ export function HunterSheet({ characterId, attributes, textFields, canEdit }: Pr
   const { physical, social, mental, talents, skills, knowledges, resources } = categorize(attributes)
 
   const card = 'rounded-xl p-4' as const
-  const cardStyle = { background: 'rgba(17,17,30,0.6)', border: '1px solid rgba(255,255,255,0.07)' }
+  const cardStyle = { background: 'rgba(247,239,221,0.92)', border: '1px solid rgba(51,41,29,0.14)' }
   const tabs = [
     { id: 'atributos', label: 'Atributos' },
     { id: 'habilidades', label: 'Habilidades' },
@@ -145,11 +145,11 @@ export function HunterSheet({ characterId, attributes, textFields, canEdit }: Pr
         <span className="font-cinzel text-sm font-bold" style={{ color: GOLD }}>Hunter: The Reckoning</span>
       </div>
 
-      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.05)' }}>
+      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgba(51,41,29,0.08)', border: '1px solid rgba(51,41,29,0.05)' }}>
         {tabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className="flex-1 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all"
-            style={tab === t.id ? { background: GOLD, color: '#000' } : { color: 'rgba(255,255,255,0.4)' }}>
+            style={tab === t.id ? { background: GOLD, color: '#000' } : { color: 'rgba(51,41,29,0.4)' }}>
             {t.label}
           </button>
         ))}

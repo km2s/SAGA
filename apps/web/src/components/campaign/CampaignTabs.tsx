@@ -28,14 +28,14 @@ export function CampaignTabs({ campaignId, isGM: _isGM }: { campaignId: string; 
   }
 
   return (
-    <div className="flex border-b border-border px-8 shrink-0 bg-bg">
+    <div className="flex border-b border-ink/20 px-8 shrink-0 bg-parchment">
       {tabs.map(tab => (
         <Link key={tab.href} href={tab.href}>
           <button
             className={`flex items-center gap-2 px-4 py-3.5 text-sm font-medium border-b-2 transition-all whitespace-nowrap
               ${isActive(tab)
-                ? 'text-gold border-gold'
-                : 'text-saga-muted border-transparent hover:text-saga-text'
+                ? 'text-wax border-wax font-cinzel'
+                : 'text-ink-soft border-transparent hover:text-wax'
               }`}
           >
             <tab.Icon size={14} strokeWidth={1.8} />

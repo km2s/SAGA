@@ -33,7 +33,7 @@ function patchAttr(characterId: string, attrId: string, value: number) {
 function SectionDivider({ title }: { title: string }) {
   return (
     <div className="flex items-center gap-3 mb-4">
-      <p className="font-almendra text-[9px] font-bold text-saga-dim uppercase tracking-[0.2em] whitespace-nowrap">{title}</p>
+      <p className="font-almendra text-[9px] font-bold text-ink-soft uppercase tracking-[0.2em] whitespace-nowrap">{title}</p>
       <div className="flex-1 h-px" style={{ background: `${ACCENT}50` }} />
     </div>
   )
@@ -53,7 +53,7 @@ function NumericAttr({ attr, characterId, canEdit, onSaved }: {
   if (editing) return (
     <input autoFocus type="number" value={val} onChange={e => setVal(e.target.value)} onBlur={save}
       onKeyDown={e => { if (e.key === 'Enter') void save() }}
-      className="w-12 bg-surface-2 border border-gold/40 rounded text-center font-cinzel font-bold text-sm focus:outline-none"
+      className="w-12 bg-parchment/60 border border-gold/40 rounded text-center font-cinzel font-bold text-sm focus:outline-none"
       style={{ color: ACCENT }} />
   )
   return (
@@ -71,15 +71,15 @@ function TfField({ tfKey, label, characterId, textFields, canEdit, onRefresh, mu
   const field = textFields.find(f => f.key === tfKey)
   async function save(v: string) { await saveTextField(characterId, tfKey, label, v); onRefresh() }
   return (
-    <div className="rounded p-3" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
-      <p className="font-almendra text-[9px] uppercase tracking-widest text-saga-dim mb-2">{label}</p>
+    <div className="rounded p-3" style={{ background: 'rgba(51,41,29,0.02)', border: '1px solid rgba(51,41,29,0.05)' }}>
+      <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft mb-2">{label}</p>
       {canEdit
         ? multi
           ? <textarea defaultValue={field?.value ?? ''} rows={3} onBlur={e => void save(e.target.value)}
-              className="w-full bg-surface-2 border border-border rounded px-2 py-1.5 text-sm focus:outline-none resize-none text-saga-text" />
+              className="w-full bg-parchment/60 border border-ink/20 rounded px-2 py-1.5 text-sm focus:outline-none resize-none text-ink" />
           : <input type="text" defaultValue={field?.value ?? ''} onBlur={e => void save(e.target.value)}
-              className="w-full bg-surface-2 border border-border rounded px-2 py-1.5 text-sm focus:outline-none text-saga-text" />
-        : <p className="text-sm text-saga-text px-2 whitespace-pre-wrap">{field?.value || <span className="text-saga-dim italic text-xs">—</span>}</p>
+              className="w-full bg-parchment/60 border border-ink/20 rounded px-2 py-1.5 text-sm focus:outline-none text-ink" />
+        : <p className="text-sm text-ink px-2 whitespace-pre-wrap">{field?.value || <span className="text-ink-soft italic text-xs">—</span>}</p>
       }
     </div>
   )
@@ -113,8 +113,8 @@ function StatsTab({ attributes, textFields, characterId, canEdit, onRefresh }: {
         <div className="grid grid-cols-2 gap-2">
           {mains.filter(a => a !== stressAttr).map(a => (
             <div key={a.id} className="flex items-center justify-between px-3 py-2 rounded"
-              style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)' }}>
-              <span className="text-sm text-saga-text">{a.attribute.name}</span>
+              style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.06)' }}>
+              <span className="text-sm text-ink">{a.attribute.name}</span>
               <NumericAttr attr={a} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />
             </div>
           ))}
@@ -122,13 +122,13 @@ function StatsTab({ attributes, textFields, characterId, canEdit, onRefresh }: {
       </div>
 
       {stressAttr && (
-        <div className="rounded p-4" style={{ background: 'rgba(255,255,255,0.025)', border: `1px solid ${stress > 10 ? '#f97316' : 'rgba(255,255,255,0.07)'}` }}>
+        <div className="rounded p-4" style={{ background: 'rgba(51,41,29,0.025)', border: `1px solid ${stress > 10 ? '#f97316' : 'rgba(51,41,29,0.14)'}` }}>
           <div className="flex items-center justify-between mb-2">
-            <p className="font-almendra text-[9px] uppercase tracking-widest text-saga-dim">Estresse</p>
+            <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft">Estresse</p>
             <div className="flex items-center gap-2">
-              {canEdit && <button onClick={() => void setStress(stress - 1)} className="w-5 h-5 text-saga-dim hover:text-saga-text">−</button>}
+              {canEdit && <button onClick={() => void setStress(stress - 1)} className="w-5 h-5 text-ink-soft hover:text-ink">−</button>}
               <span className="font-cinzel font-bold" style={{ color: stress > 10 ? '#f97316' : ACCENT }}>{stress} / {MAX_STRESS}</span>
-              {canEdit && <button onClick={() => void setStress(stress + 1)} className="w-5 h-5 text-saga-dim hover:text-saga-text">+</button>}
+              {canEdit && <button onClick={() => void setStress(stress + 1)} className="w-5 h-5 text-ink-soft hover:text-ink">+</button>}
             </div>
           </div>
           <div className="flex gap-0.5 flex-wrap">
@@ -139,7 +139,7 @@ function StatsTab({ attributes, textFields, characterId, canEdit, onRefresh }: {
                 style={{
                   width: 14, height: 14,
                   background: i < stress ? (stress > 10 ? '#f97316' : ACCENT) : 'transparent',
-                  borderColor: i < stress ? (stress > 10 ? '#f97316' : ACCENT) : 'rgba(255,255,255,0.15)',
+                  borderColor: i < stress ? (stress > 10 ? '#f97316' : ACCENT) : 'rgba(51,41,29,0.15)',
                   cursor: canEdit ? 'pointer' : 'default',
                 }} />
             ))}
@@ -148,12 +148,12 @@ function StatsTab({ attributes, textFields, characterId, canEdit, onRefresh }: {
         </div>
       )}
 
-      <div className="rounded p-3" style={{ background: 'rgba(255,255,255,0.015)', border: '1px solid rgba(255,255,255,0.05)' }}>
-        <p className="font-almendra text-[9px] uppercase tracking-widest text-saga-dim mb-3">Tabela de Pânico</p>
+      <div className="rounded p-3" style={{ background: 'rgba(51,41,29,0.015)', border: '1px solid rgba(51,41,29,0.05)' }}>
+        <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft mb-3">Tabela de Pânico</p>
         {[['0–2', 'Sem pânico'], ['3–5', 'Suado: −1 em todas as ações'], ['6–8', 'Fuja ou congele'], ['9–11', 'Breakdown total'], ['12+', 'Pânico máximo']].map(([range, effect]) => (
-          <div key={range} className="flex gap-3 py-1 text-xs border-b last:border-0" style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
+          <div key={range} className="flex gap-3 py-1 text-xs border-b last:border-0" style={{ borderColor: 'rgba(51,41,29,0.04)' }}>
             <span className="font-cinzel font-bold w-10 flex-shrink-0" style={{ color: ACCENT }}>{range}</span>
-            <span className="text-saga-muted">{effect}</span>
+            <span className="text-ink-soft">{effect}</span>
           </div>
         ))}
       </div>
@@ -173,12 +173,12 @@ function PericiasTab({ attributes, characterId, canEdit, onRefresh }: {
       <div className="space-y-1">
         {skills.map(a => (
           <div key={a.id} className="flex items-center justify-between px-3 py-2 rounded"
-            style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}>
-            <span className="text-sm text-saga-text">{a.attribute.name}</span>
+            style={{ background: 'rgba(51,41,29,0.02)', border: '1px solid rgba(51,41,29,0.04)' }}>
+            <span className="text-sm text-ink">{a.attribute.name}</span>
             <NumericAttr attr={a} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />
           </div>
         ))}
-        {skills.length === 0 && <p className="text-sm text-saga-dim text-center py-8">Nenhuma perícia cadastrada.</p>}
+        {skills.length === 0 && <p className="text-sm text-ink-soft text-center py-8">Nenhuma perícia cadastrada.</p>}
       </div>
     </div>
   )
@@ -199,15 +199,15 @@ function SalvaguardasTab({ attributes, textFields, characterId, canEdit, onRefre
       <div className="space-y-2">
         {saves.map(a => (
           <div key={a.id} className="flex items-center justify-between px-4 py-3 rounded"
-            style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)' }}>
+            style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
             <div>
-              <p className="text-sm text-saga-text">{a.attribute.name}</p>
-              {a.attribute.description && <p className="text-[10px] text-saga-dim mt-0.5">{a.attribute.description}</p>}
+              <p className="text-sm text-ink">{a.attribute.name}</p>
+              {a.attribute.description && <p className="text-[10px] text-ink-soft mt-0.5">{a.attribute.description}</p>}
             </div>
             <NumericAttr attr={a} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />
           </div>
         ))}
-        {saves.length === 0 && <p className="text-sm text-saga-dim text-center py-6">Nenhuma salvaguarda cadastrada.</p>}
+        {saves.length === 0 && <p className="text-sm text-ink-soft text-center py-6">Nenhuma salvaguarda cadastrada.</p>}
       </div>
       <TfField tfKey="wounds" label="Ferimentos" characterId={characterId} textFields={textFields} canEdit={canEdit} onRefresh={onRefresh} multi />
     </div>
@@ -247,14 +247,14 @@ export function MothershipSheet({ characterId, characterLevel, attributes, textF
   function refresh() { router.refresh() }
 
   return (
-    <div className="rounded-lg overflow-hidden" style={{ background: 'rgba(17,17,30,0.6)', border: '1px solid rgba(255,255,255,0.07)' }}>
-      <div className="flex border-b" style={{ borderColor: 'rgba(255,255,255,0.07)', background: 'rgba(0,0,0,0.18)' }}>
+    <div className="rounded-lg overflow-hidden" style={{ background: 'rgba(247,239,221,0.92)', border: '1px solid rgba(51,41,29,0.14)' }}>
+      <div className="flex border-b" style={{ borderColor: 'rgba(51,41,29,0.14)', background: 'rgba(51,41,29,0.05)' }}>
         {TABS.map(tab => {
           const isActive = tab.id === activeTab
           return (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
               className="relative px-4 py-3.5 font-almendra text-[10px] uppercase tracking-[0.15em] transition-colors"
-              style={{ color: isActive ? ACCENT : '#7878a0', background: isActive ? `${ACCENT}18` : 'transparent' }}>
+              style={{ color: isActive ? ACCENT : '#5f5040', background: isActive ? `${ACCENT}18` : 'transparent' }}>
               {tab.label}
               {isActive && <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-t" style={{ background: `linear-gradient(90deg, transparent, ${ACCENT}, transparent)` }} />}
             </button>

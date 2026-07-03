@@ -14,7 +14,7 @@ const DEFENSES = ['Esquiva', 'Aparar', 'Bloqueio']
 function SectionDivider({ title }: { title: string }) {
   return (
     <div className="flex items-center gap-3 mb-4">
-      <p className="font-almendra text-[9px] font-bold text-saga-dim uppercase tracking-[0.2em] whitespace-nowrap">{title}</p>
+      <p className="font-almendra text-[9px] font-bold text-ink-soft uppercase tracking-[0.2em] whitespace-nowrap">{title}</p>
       <div className="flex-1 h-px" style={{ background: `${ACCENT}33` }} />
     </div>
   )
@@ -35,10 +35,10 @@ function EditableVal({ attrId, value, characterId, onSaved }: { attrId: string; 
   if (editing) return (
     <input autoFocus type="number" value={val} onChange={e => setVal(e.target.value)}
       onBlur={save} onKeyDown={e => { if (e.key === 'Enter') void save(); if (e.key === 'Escape') setEditing(false) }}
-      className="w-14 bg-surface-2 border border-red-600/40 rounded text-center font-bold focus:outline-none text-sm" />
+      className="w-14 bg-parchment/60 border border-red-600/40 rounded text-center font-bold focus:outline-none text-sm" />
   )
   return (
-    <span className="cursor-pointer hover:text-red-400 font-mono font-bold text-saga-text transition-colors text-sm"
+    <span className="cursor-pointer hover:text-red-400 font-mono font-bold text-ink transition-colors text-sm"
       onClick={() => { setEditing(true); setVal(String(value)) }}>{value}</span>
   )
 }
@@ -57,10 +57,10 @@ function TFField({ characterId, textFields, tfKey, label, placeholder, multiline
     }).catch(() => null)
     setSaving(false); onRefresh()
   }
-  const cls = 'w-full bg-surface-2/50 border border-white/10 rounded-lg text-sm text-saga-muted placeholder-saga-dim/40 focus:outline-none focus:border-red-500/50 focus:bg-surface-2 px-3 py-2 transition-colors'
+  const cls = 'w-full bg-parchment/40 border border-ink/15 rounded-lg text-sm text-ink-soft placeholder-ink-soft/40 focus:outline-none focus:border-red-500/50 focus:bg-parchment/60 px-3 py-2 transition-colors'
   return (
     <div className="space-y-1">
-      <label className="text-[10px] font-bold text-saga-dim uppercase tracking-wider">{label}</label>
+      <label className="text-[10px] font-bold text-ink-soft uppercase tracking-wider">{label}</label>
       {multiline
         ? <textarea rows={4} value={val} onChange={e => setVal(e.target.value)} onBlur={e => void save(e.target.value)}
             disabled={!canEdit || saving} placeholder={placeholder} className={cls} />
@@ -82,7 +82,7 @@ export function GURPSSheet({ characterId, attributes, textFields, canEdit }: Pro
   const other = attributes.filter(a => !PRIMARY.includes(a.attribute.name) && !SECONDARY.includes(a.attribute.name) && !DEFENSES.includes(a.attribute.name))
 
   const card = 'rounded-xl p-4' as const
-  const cardStyle = { background: 'rgba(17,17,30,0.6)', border: '1px solid rgba(255,255,255,0.07)' }
+  const cardStyle = { background: 'rgba(247,239,221,0.92)', border: '1px solid rgba(51,41,29,0.14)' }
   const tabs = [
     { id: 'atributos', label: 'Atributos' }, { id: 'pericias', label: 'Perícias' },
     { id: 'vantagens', label: 'Vantagens' }, { id: 'personagem', label: 'Personagem' },
@@ -100,16 +100,16 @@ export function GURPSSheet({ characterId, attributes, textFields, canEdit }: Pro
           <span className="font-cinzel text-sm font-bold" style={{ color: ACCENT }}>GURPS 4e</span>
         </div>
         <div className="flex items-center gap-4 text-xs">
-          <span className="text-saga-dim">Pontos: <span className="font-bold text-saga-text">{pointsSpent}</span> / <span className="font-bold" style={{ color: ACCENT }}>{pointsTotal}</span></span>
+          <span className="text-ink-soft">Pontos: <span className="font-bold text-ink">{pointsSpent}</span> / <span className="font-bold" style={{ color: ACCENT }}>{pointsTotal}</span></span>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.05)' }}>
+      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgba(51,41,29,0.08)', border: '1px solid rgba(51,41,29,0.05)' }}>
         {tabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className="flex-1 py-1.5 rounded-md text-[11px] font-bold uppercase tracking-wider transition-all"
-            style={tab === t.id ? { background: ACCENT, color: '#fff' } : { color: 'rgba(255,255,255,0.4)' }}>
+            style={tab === t.id ? { background: ACCENT, color: '#fff' } : { color: 'rgba(51,41,29,0.4)' }}>
             {t.label}
           </button>
         ))}
@@ -122,12 +122,12 @@ export function GURPSSheet({ characterId, attributes, textFields, canEdit }: Pro
             <SectionDivider title="Atributos Primários" />
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {primary.map(a => (
-                <div key={a.id} className="text-center space-y-1 p-3 rounded-lg" style={{ background: 'rgba(0,0,0,0.3)' }}>
-                  <div className="text-[10px] font-bold text-saga-dim uppercase">{a.attribute.name}</div>
+                <div key={a.id} className="text-center space-y-1 p-3 rounded-lg" style={{ background: 'rgba(51,41,29,0.08)' }}>
+                  <div className="text-[10px] font-bold text-ink-soft uppercase">{a.attribute.name}</div>
                   <div className="text-2xl font-bold" style={{ color: ACCENT }}>
                     <EditableVal attrId={a.id} value={a.value} characterId={characterId} onSaved={onRefresh} />
                   </div>
-                  <div className="text-[10px] text-saga-dim">{a.attribute.name === 'Força' ? 'FOR' : a.attribute.name === 'Destreza' ? 'DX' : a.attribute.name === 'Inteligência' ? 'IQ' : 'HT'}</div>
+                  <div className="text-[10px] text-ink-soft">{a.attribute.name === 'Força' ? 'FOR' : a.attribute.name === 'Destreza' ? 'DX' : a.attribute.name === 'Inteligência' ? 'IQ' : 'HT'}</div>
                 </div>
               ))}
             </div>
@@ -137,8 +137,8 @@ export function GURPSSheet({ characterId, attributes, textFields, canEdit }: Pro
             <SectionDivider title="Atributos Secundários" />
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {secondary.map(a => (
-                <div key={a.id} className="flex items-center justify-between py-1.5 border-b border-white/5 last:border-0 col-span-2">
-                  <span className="text-sm text-saga-muted">{a.attribute.name}</span>
+                <div key={a.id} className="flex items-center justify-between py-1.5 border-b border-ink/10 last:border-0 col-span-2">
+                  <span className="text-sm text-ink-soft">{a.attribute.name}</span>
                   <EditableVal attrId={a.id} value={a.value} characterId={characterId} onSaved={onRefresh} />
                 </div>
               ))}
@@ -149,8 +149,8 @@ export function GURPSSheet({ characterId, attributes, textFields, canEdit }: Pro
             <SectionDivider title="Defesas Ativas" />
             <div className="grid grid-cols-3 gap-4">
               {defenses.map(a => (
-                <div key={a.id} className="text-center p-2 rounded-lg" style={{ background: 'rgba(0,0,0,0.3)' }}>
-                  <div className="text-[10px] font-bold text-saga-dim uppercase mb-1">{a.attribute.name}</div>
+                <div key={a.id} className="text-center p-2 rounded-lg" style={{ background: 'rgba(51,41,29,0.08)' }}>
+                  <div className="text-[10px] font-bold text-ink-soft uppercase mb-1">{a.attribute.name}</div>
                   <EditableVal attrId={a.id} value={a.value} characterId={characterId} onSaved={onRefresh} />
                 </div>
               ))}
@@ -161,8 +161,8 @@ export function GURPSSheet({ characterId, attributes, textFields, canEdit }: Pro
             <div className={card} style={cardStyle}>
               <SectionDivider title="Outros" />
               {other.map(a => (
-                <div key={a.id} className="flex items-center justify-between py-1.5 border-b border-white/5 last:border-0">
-                  <span className="text-sm text-saga-muted">{a.attribute.name}</span>
+                <div key={a.id} className="flex items-center justify-between py-1.5 border-b border-ink/10 last:border-0">
+                  <span className="text-sm text-ink-soft">{a.attribute.name}</span>
                   <EditableVal attrId={a.id} value={a.value} characterId={characterId} onSaved={onRefresh} />
                 </div>
               ))}
@@ -174,7 +174,7 @@ export function GURPSSheet({ characterId, attributes, textFields, canEdit }: Pro
       {tab === 'pericias' && (
         <div className={card} style={cardStyle}>
           <SectionDivider title="Perícias" />
-          <p className="text-[11px] text-saga-dim mb-3">Anote cada perícia com nível relativo, nível efetivo e pontos gastos.</p>
+          <p className="text-[11px] text-ink-soft mb-3">Anote cada perícia com nível relativo, nível efetivo e pontos gastos.</p>
           <TFField characterId={characterId} textFields={textFields} tfKey="skills_list"
             label="Lista de Perícias (Nome | Atributo | Nível Relativo | Nível | Pontos)"
             placeholder="Ex: Espadas (DX+1) — Nível 12 — 4 pts&#10;Arco (DX) — Nível 11 — 1 pt"

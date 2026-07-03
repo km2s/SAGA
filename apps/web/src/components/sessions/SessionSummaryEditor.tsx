@@ -42,12 +42,12 @@ export function SessionSummaryEditor({ campaignId, sessionId, initialContent, is
   }
 
   return (
-    <div className="bg-surface border border-border rounded-lg overflow-hidden">
-      <div className="px-5 py-4 border-b border-border flex items-center justify-between">
+    <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg overflow-hidden">
+      <div className="px-5 py-4 border-b border-ink/20 flex items-center justify-between">
         <h3 className="font-cinzel text-base font-semibold">Resumo da Sessão</h3>
         {isGM && !editing && (
           <button onClick={() => { setDraft(content); setEditing(true) }}
-            className="text-[11px] text-saga-muted hover:text-gold transition-colors">
+            className="text-[11px] text-ink-soft hover:text-gold transition-colors">
             {content ? 'Editar' : '+ Escrever resumo'}
           </button>
         )}
@@ -61,15 +61,15 @@ export function SessionSummaryEditor({ campaignId, sessionId, initialContent, is
             rows={10}
             autoFocus
             placeholder="Escreva aqui o que aconteceu nesta sessão. Use markdown se quiser: **negrito**, *itálico*, ## títulos..."
-            className="w-full bg-surface-2 border border-border rounded px-4 py-3 text-sm text-saga-text placeholder:text-saga-dim focus:outline-none focus:border-gold/50 resize-y leading-relaxed"
+            className="w-full bg-parchment/60 border border-ink/20 rounded px-4 py-3 text-sm text-ink placeholder:text-ink-soft focus:outline-none focus:border-gold/50 resize-y leading-relaxed"
           />
-          {error && <p className="text-sm text-saga-danger">{error}</p>}
+          {error && <p className="text-sm text-red-700">{error}</p>}
           <div className="flex justify-end gap-2">
-            <button onClick={cancel} className="px-3 py-1.5 rounded text-sm text-saga-muted hover:text-saga-text bg-surface-2 border border-border transition-colors">
+            <button onClick={cancel} className="px-3 py-1.5 rounded text-sm text-ink-soft hover:text-ink bg-parchment/60 border border-ink/20 transition-colors">
               Cancelar
             </button>
             <button onClick={() => void save()} disabled={saving}
-              className="px-4 py-1.5 rounded text-sm font-medium text-bg disabled:opacity-50 bg-gradient-gold">
+              className="px-4 py-1.5 rounded text-sm font-medium text-crypt-deep disabled:opacity-50 bg-gradient-gold">
               {saving ? 'Salvando...' : <span className="flex items-center gap-1.5"><Save size={13} />Salvar Resumo</span>}
             </button>
           </div>
@@ -78,14 +78,14 @@ export function SessionSummaryEditor({ campaignId, sessionId, initialContent, is
         <div className="px-5 py-5 prose prose-sm prose-invert max-w-none"
              style={{ lineHeight: '1.75' }}>
           {content.split('\n').map((line, i) => {
-            if (line.startsWith('## ')) return <h3 key={i} className="font-cinzel text-base font-semibold text-saga-text mt-4 mb-2">{line.slice(3)}</h3>
+            if (line.startsWith('## ')) return <h3 key={i} className="font-cinzel text-base font-semibold text-ink mt-4 mb-2">{line.slice(3)}</h3>
             if (line.startsWith('# '))  return <h2 key={i} className="font-cinzel text-lg font-bold text-gold mt-5 mb-2">{line.slice(2)}</h2>
             if (line === '') return <div key={i} className="h-3" />
-            return <p key={i} className="text-sm text-saga-muted leading-relaxed">{line}</p>
+            return <p key={i} className="text-sm text-ink-soft leading-relaxed">{line}</p>
           })}
         </div>
       ) : (
-        <div className="px-5 py-10 text-center text-sm text-saga-dim">
+        <div className="px-5 py-10 text-center text-sm text-ink-soft">
           {isGM ? 'Nenhum resumo escrito. Clique em "+ Escrever resumo" acima.' : 'O Mestre ainda não escreveu um resumo desta sessão.'}
         </div>
       )}

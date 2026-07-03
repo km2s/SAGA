@@ -43,20 +43,20 @@ export default async function PublicCharacterPage({ params }: { params: { id: st
   const hpColor = hpPercent > 60 ? 'bg-saga-success' : hpPercent > 30 ? 'bg-saga-warning' : 'bg-saga-danger'
 
   return (
-    <main className="min-h-screen bg-bg bg-gradient-login">
+    <main className="min-h-screen bg-parchment bg-gradient-login">
       {/* Header bar */}
-      <div className="border-b border-border bg-surface/80 backdrop-blur-sm px-5 py-3 flex items-center justify-between">
+      <div className="border-b border-ink/20 bg-[#f5ecd6]/80 backdrop-blur-sm px-5 py-3 flex items-center justify-between">
         <Link href="/">
           <span className="font-cinzel text-lg font-bold tracking-[6px] text-gold-gradient">SAGA</span>
         </Link>
         <Link href="/login">
-          <span className="text-[12px] text-saga-muted hover:text-gold transition-colors">Entrar →</span>
+          <span className="text-[12px] text-ink-soft hover:text-gold transition-colors">Entrar →</span>
         </Link>
       </div>
 
       <div className="max-w-2xl mx-auto px-4 py-10">
         {/* Portrait + name */}
-        <div className="bg-surface border border-border rounded-lg overflow-hidden mb-5">
+        <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg overflow-hidden mb-5">
           {safeImageUrl(char.imageUrl) ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={safeImageUrl(char.imageUrl)!} alt={char.name} className="w-full h-64 object-cover object-top" />
@@ -70,7 +70,7 @@ export default async function PublicCharacterPage({ params }: { params: { id: st
             <div className="flex items-start justify-between gap-3 flex-wrap">
               <div>
                 <h1 className="font-cinzel text-2xl font-bold">{char.name}</h1>
-                <p className="text-saga-muted text-sm mt-0.5">
+                <p className="text-ink-soft text-sm mt-0.5">
                   {[char.race, char.class].filter(Boolean).join(' · ')}
                 </p>
               </div>
@@ -78,10 +78,10 @@ export default async function PublicCharacterPage({ params }: { params: { id: st
             </div>
 
             {/* Campaign */}
-            <div className="mt-4 pt-4 border-t border-border flex items-center justify-between text-[12px] text-saga-muted">
+            <div className="mt-4 pt-4 border-t border-ink/20 flex items-center justify-between text-[12px] text-ink-soft">
               <span>{char.member.campaign.name}</span>
               {char.member.campaign.system && (
-                <span className="text-saga-dim">{char.member.campaign.system.name}</span>
+                <span className="text-ink-soft">{char.member.campaign.system.name}</span>
               )}
             </div>
           </div>
@@ -89,14 +89,14 @@ export default async function PublicCharacterPage({ params }: { params: { id: st
 
         {/* HP */}
         {char.maxHp > 0 && (
-          <div className="bg-surface border border-border rounded-lg p-5 mb-5">
+          <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg p-5 mb-5">
             <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2 text-[11px] font-bold text-saga-muted uppercase tracking-widest">
+              <div className="flex items-center gap-2 text-[11px] font-bold text-ink-soft uppercase tracking-widest">
                 <Heart size={12} /> Pontos de Vida
               </div>
-              <span className="font-cinzel text-sm font-bold text-saga-success">{char.hp} / {char.maxHp}</span>
+              <span className="font-cinzel text-sm font-bold text-green-700">{char.hp} / {char.maxHp}</span>
             </div>
-            <div className="h-2.5 bg-surface-2 rounded-full overflow-hidden">
+            <div className="h-2.5 bg-parchment/60 rounded-full overflow-hidden">
               <div className={`h-full rounded-full ${hpColor} transition-all`} style={{ width: `${hpPercent}%` }} />
             </div>
           </div>
@@ -104,15 +104,15 @@ export default async function PublicCharacterPage({ params }: { params: { id: st
 
         {/* Attributes */}
         {char.attributes.length > 0 && (
-          <div className="bg-surface border border-border rounded-lg p-5 mb-5">
-            <p className="text-[11px] font-bold text-saga-muted uppercase tracking-widest mb-4">Atributos</p>
+          <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg p-5 mb-5">
+            <p className="text-[11px] font-bold text-ink-soft uppercase tracking-widest mb-4">Atributos</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {char.attributes.map(a => (
-                <div key={a.id} className="bg-surface-2 rounded-lg p-3 text-center">
+                <div key={a.id} className="bg-parchment/60 rounded-lg p-3 text-center">
                   <p className={`font-cinzel text-2xl font-bold ${ATTRIBUTE_COLORS[a.attribute.name] ?? 'text-gold'}`}>
                     {a.value >= 0 ? '+' : ''}{a.value}
                   </p>
-                  <p className="text-[10px] text-saga-muted mt-1">{a.attribute.name}</p>
+                  <p className="text-[10px] text-ink-soft mt-1">{a.attribute.name}</p>
                 </div>
               ))}
             </div>
@@ -121,9 +121,9 @@ export default async function PublicCharacterPage({ params }: { params: { id: st
 
         {/* CTA */}
         <div className="text-center mt-8">
-          <p className="text-[12px] text-saga-dim mb-3">Criado com SAGA · Gerencie suas aventuras de RPG</p>
+          <p className="text-[12px] text-ink-soft mb-3">Criado com SAGA · Gerencie suas aventuras de RPG</p>
           <Link href="/login">
-            <span className="inline-block px-5 py-2.5 rounded bg-gold-dim border border-gold/30 text-gold text-sm font-medium hover:bg-gold/15 transition-colors">
+            <span className="inline-block px-5 py-2.5 rounded bg-gold/15 border border-gold/30 text-gold text-sm font-medium hover:bg-gold/15 transition-colors">
               Criar minha conta grátis
             </span>
           </Link>
