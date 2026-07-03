@@ -23,9 +23,9 @@ export function CopyButton({ value, label }: CopyButtonProps) {
       <button
         onClick={copy}
         title="Copiar ID"
-        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] text-saga-muted hover:text-saga-text hover:bg-surface-3 transition-all"
+        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] text-ink-soft hover:text-ink hover:bg-ink/[0.06] transition-all"
       >
-        {copied ? <Check size={11} className="text-saga-success" /> : <Copy size={11} />}
+        {copied ? <Check size={11} className="text-green-700" /> : <Copy size={11} />}
         {copied ? 'Copiado' : 'Copiar'}
       </button>
     </span>

@@ -14,7 +14,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <html lang="pt-BR">
-      <body className="bg-bg text-saga-text antialiased" nonce={nonce}>
+      <body className="bg-parchment text-ink antialiased" nonce={nonce}>
         <SessionProvider>
           {children}
         </SessionProvider>

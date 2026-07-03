@@ -75,7 +75,7 @@ function InlineEdit({ value, onSave, placeholder, multiline = false, className =
         className={`cursor-pointer group/edit inline-flex items-start gap-1 ${className}`}
         onClick={() => { setDraft(value); setEditing(true) }}
       >
-        {value || <span className="text-saga-dim italic">{placeholder}</span>}
+        {value || <span className="text-ink-soft italic">{placeholder}</span>}
         <Pencil size={11} className="opacity-0 group-hover/edit:opacity-40 mt-1 shrink-0" />
       </span>
     )
@@ -89,7 +89,7 @@ function InlineEdit({ value, onSave, placeholder, multiline = false, className =
           value={draft}
           onChange={e => setDraft(e.target.value)}
           className="flex-1 px-2 py-1 rounded text-sm border resize-none"
-          style={{ background: '#0d0d18', borderColor: 'rgba(255,255,255,0.18)', color: 'inherit', outline: 'none', minWidth: 200 }}
+          style={{ background: '#0d0d18', borderColor: 'rgba(51,41,29,0.18)', color: 'inherit', outline: 'none', minWidth: 200 }}
         />
       ) : (
         <input
@@ -97,14 +97,14 @@ function InlineEdit({ value, onSave, placeholder, multiline = false, className =
           value={draft}
           onChange={e => setDraft(e.target.value)}
           className="flex-1 px-2 py-1 rounded text-sm border"
-          style={{ background: '#0d0d18', borderColor: 'rgba(255,255,255,0.18)', color: 'inherit', outline: 'none', minWidth: 160 }}
+          style={{ background: '#0d0d18', borderColor: 'rgba(51,41,29,0.18)', color: 'inherit', outline: 'none', minWidth: 160 }}
           onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') setEditing(false) }}
         />
       )}
       <button onClick={save} disabled={loading} className="text-gold hover:text-gold/80 transition-colors mt-1">
         {loading ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
       </button>
-      <button onClick={() => setEditing(false)} className="text-saga-dim hover:text-saga-text transition-colors mt-1">
+      <button onClick={() => setEditing(false)} className="text-ink-soft hover:text-ink transition-colors mt-1">
         <X size={13} />
       </button>
     </span>
@@ -138,7 +138,7 @@ function AddAttrRow({ systemId, onAdded }: { systemId: string; onAdded: (a: Syst
   if (!open) return (
     <button
       onClick={() => setOpen(true)}
-      className="flex items-center gap-2 text-[11px] text-saga-dim hover:text-gold transition-colors py-1"
+      className="flex items-center gap-2 text-[11px] text-ink-soft hover:text-gold transition-colors py-1"
     >
       <Plus size={12} /> Adicionar atributo
     </button>
@@ -152,7 +152,7 @@ function AddAttrRow({ systemId, onAdded }: { systemId: string; onAdded: (a: Syst
         onChange={e => setName(e.target.value)}
         placeholder="Nome do atributo"
         className="flex-1 px-2 py-1 rounded text-xs border"
-        style={{ background: '#0d0d18', borderColor: 'rgba(255,255,255,0.15)', color: 'inherit', outline: 'none' }}
+        style={{ background: '#0d0d18', borderColor: 'rgba(51,41,29,0.15)', color: 'inherit', outline: 'none' }}
         onKeyDown={e => { if (e.key === 'Enter') submit(); if (e.key === 'Escape') setOpen(false) }}
       />
       <input
@@ -160,15 +160,15 @@ function AddAttrRow({ systemId, onAdded }: { systemId: string; onAdded: (a: Syst
         onChange={e => setDie(e.target.value)}
         placeholder="d20"
         className="w-16 px-2 py-1 rounded text-xs border"
-        style={{ background: '#0d0d18', borderColor: 'rgba(255,255,255,0.15)', color: 'inherit', outline: 'none' }}
+        style={{ background: '#0d0d18', borderColor: 'rgba(51,41,29,0.15)', color: 'inherit', outline: 'none' }}
       />
       <button onClick={submit} disabled={loading} className="text-gold hover:text-gold/70 transition-colors">
         {loading ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
       </button>
-      <button onClick={() => setOpen(false)} className="text-saga-dim hover:text-saga-text transition-colors">
+      <button onClick={() => setOpen(false)} className="text-ink-soft hover:text-ink transition-colors">
         <X size={13} />
       </button>
-      {error && <span className="text-saga-danger text-[10px]">{error}</span>}
+      {error && <span className="text-red-700 text-[10px]">{error}</span>}
     </div>
   )
 }
@@ -216,7 +216,7 @@ export function SystemDetailView({ system: initial, currentUserDiscordId }: Prop
       {/* Back */}
       <button
         onClick={() => router.push('/systems')}
-        className="flex items-center gap-1.5 text-xs text-saga-dim hover:text-saga-text transition-colors mb-6"
+        className="flex items-center gap-1.5 text-xs text-ink-soft hover:text-ink transition-colors mb-6"
       >
         <ArrowLeft size={13} /> Sistemas
       </button>
@@ -239,7 +239,7 @@ export function SystemDetailView({ system: initial, currentUserDiscordId }: Prop
               <Lock size={7} /> Oficial
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest border bg-white/5 text-saga-muted border-white/10">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest border bg-ink/5 text-ink-soft border-ink/15">
               <Users size={7} /> Comunidade
             </span>
           )}
@@ -248,7 +248,7 @@ export function SystemDetailView({ system: initial, currentUserDiscordId }: Prop
           <div className="absolute top-3 right-3 flex gap-1.5">
             <button
               onClick={handleDelete}
-              className="p-1.5 rounded bg-black/40 text-saga-danger/60 hover:text-saga-danger border border-saga-danger/20 hover:border-saga-danger/40 transition-all"
+              className="p-1.5 rounded bg-black/40 text-red-700/60 hover:text-red-700 border border-saga-danger/20 hover:border-saga-danger/40 transition-all"
               title="Deletar sistema"
             >
               <Trash2 size={13} />
@@ -269,7 +269,7 @@ export function SystemDetailView({ system: initial, currentUserDiscordId }: Prop
           ) : system.name}
         </h1>
 
-        <div className="text-sm text-saga-muted leading-relaxed">
+        <div className="text-sm text-ink-soft leading-relaxed">
           {isMine ? (
             <InlineEdit
               value={system.description ?? ''}
@@ -279,13 +279,13 @@ export function SystemDetailView({ system: initial, currentUserDiscordId }: Prop
               className="block w-full"
             />
           ) : (
-            system.description ?? <span className="italic text-saga-dim">Sem descrição.</span>
+            system.description ?? <span className="italic text-ink-soft">Sem descrição.</span>
           )}
         </div>
 
         {isMine && (
           <div className="mt-3">
-            <p className="text-[10px] font-bold text-saga-dim uppercase tracking-widest mb-1.5">Categoria</p>
+            <p className="text-[10px] font-bold text-ink-soft uppercase tracking-widest mb-1.5">Categoria</p>
             <div className="flex gap-1.5 flex-wrap">
               {CATEGORIES.map(c => (
                 <button
@@ -294,7 +294,7 @@ export function SystemDetailView({ system: initial, currentUserDiscordId }: Prop
                   className={`px-2.5 py-1 rounded-lg text-[10px] font-medium border transition-all ${
                     system.category === c.id
                       ? 'bg-gold/12 border-gold/35 text-gold'
-                      : 'border-border text-saga-dim hover:border-border-bright hover:text-saga-text'
+                      : 'border-ink/20 text-ink-soft hover:border-wax hover:text-ink'
                   }`}
                 >
                   {c.label}
@@ -306,12 +306,12 @@ export function SystemDetailView({ system: initial, currentUserDiscordId }: Prop
 
         {isMine && (
           <div className="mt-3">
-            <p className="text-[10px] font-bold text-saga-dim uppercase tracking-widest mb-1">URL da capa</p>
+            <p className="text-[10px] font-bold text-ink-soft uppercase tracking-widest mb-1">URL da capa</p>
             <InlineEdit
               value={system.imageUrl ?? ''}
               placeholder="https://..."
               onSave={v => patch({ imageUrl: v || null })}
-              className="text-xs text-saga-dim"
+              className="text-xs text-ink-soft"
             />
           </div>
         )}
@@ -320,36 +320,36 @@ export function SystemDetailView({ system: initial, currentUserDiscordId }: Prop
       {/* Attributes */}
       <div>
         <div className="flex items-center gap-2 mb-3">
-          <p className="text-[10px] font-bold text-saga-dim uppercase tracking-widest">
+          <p className="text-[10px] font-bold text-ink-soft uppercase tracking-widest">
             Atributos
           </p>
-          <span className="text-[10px] text-saga-dim/50">{system.attributes.length}</span>
+          <span className="text-[10px] text-ink-soft/50">{system.attributes.length}</span>
         </div>
 
         {system.attributes.length === 0 ? (
-          <p className="text-xs text-saga-dim italic mb-3">Nenhum atributo definido.</p>
+          <p className="text-xs text-ink-soft italic mb-3">Nenhum atributo definido.</p>
         ) : (
           <div className="space-y-1 mb-3">
             {system.attributes.map(attr => (
               <div
                 key={attr.id}
                 className="flex items-center justify-between py-2 px-3 rounded-lg group/attr"
-                style={{ background: 'rgba(255,255,255,0.03)' }}
+                style={{ background: 'rgba(51,41,29,0.03)' }}
               >
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="text-xs font-medium truncate">{attr.name}</span>
                   {attr.description && (
-                    <span className="text-[10px] text-saga-dim/60 truncate hidden sm:block">
+                    <span className="text-[10px] text-ink-soft/60 truncate hidden sm:block">
                       {attr.description}
                     </span>
                   )}
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-[10px] text-saga-dim font-mono">{attr.defaultDie}</span>
+                  <span className="text-[10px] text-ink-soft font-mono">{attr.defaultDie}</span>
                   {isMine && (
                     <button
                       onClick={() => handleDeleteAttr(attr.id)}
-                      className="opacity-0 group-hover/attr:opacity-100 text-saga-dim hover:text-saga-danger transition-all"
+                      className="opacity-0 group-hover/attr:opacity-100 text-ink-soft hover:text-red-700 transition-all"
                     >
                       <X size={12} />
                     </button>
@@ -369,7 +369,7 @@ export function SystemDetailView({ system: initial, currentUserDiscordId }: Prop
       </div>
 
       {!isMine && system.creator && (
-        <p className="mt-8 text-[10px] text-saga-dim/50">
+        <p className="mt-8 text-[10px] text-ink-soft/50">
           Criado por {system.creator.username}
         </p>
       )}

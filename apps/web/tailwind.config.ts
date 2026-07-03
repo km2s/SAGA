@@ -5,15 +5,17 @@ export default {
   theme: {
     extend: {
       colors: {
-        bg: '#0a0a12',
+        // Tokens escuros — hoje usados SOMENTE pela mesa virtual (cripta imersiva)
+        // e seu tutorial. Reaquecidos para couro/ouro do template Saga.
+        bg: '#0e0a06',
         surface: {
-          DEFAULT: '#11111e',
-          2: '#191926',
-          3: '#21212f',
+          DEFAULT: '#1a1410',
+          2: '#241b12',
+          3: '#2e2318',
         },
         border: {
-          DEFAULT: '#2c2c42',
-          bright: '#3d3d58',
+          DEFAULT: '#3a2e1a',
+          bright: '#4d3d22',
         },
         gold: '#c9a22a',
         'gold-dark': '#a07818',
@@ -23,9 +25,9 @@ export default {
           bright: '#9d5af5',
         },
         saga: {
-          text: '#e2e2f0',
-          muted: '#7878a0',
-          dim: '#4a4a6a',
+          text: '#ece2cc',   // parchment quente (era branco-frio)
+          muted: '#b6a682',   // tan (era azul-acinzentado)
+          dim: '#7d6f52',     // dim quente
           success: '#22c55e',
           danger: '#ef4444',
           warning: '#f59e0b',

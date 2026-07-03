@@ -22,15 +22,15 @@ const ICONS = {
 }
 
 const ICON_COLORS = {
-  danger:  'text-saga-danger',
+  danger:  'text-red-700',
   warning: 'text-gold',
   default: 'text-purple-bright',
 }
 
 const confirmStyles = {
-  danger:  'bg-saga-danger/10 text-saga-danger border border-saga-danger/40 hover:bg-saga-danger/20',
-  warning: 'bg-gold-dim text-gold border border-gold/40 hover:bg-gold/20',
-  default: 'bg-purple-dim text-purple-bright border border-purple/30 hover:bg-purple/20',
+  danger:  'bg-saga-danger/10 text-red-700 border border-saga-danger/40 hover:bg-saga-danger/20',
+  warning: 'bg-gold/15 text-gold border border-gold/40 hover:bg-gold/20',
+  default: 'bg-purple/10 text-purple-bright border border-purple/30 hover:bg-purple/20',
 }
 
 export function ConfirmModal({
@@ -72,7 +72,7 @@ export function ConfirmModal({
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={e => e.stopPropagation()} />
 
       {/* Panel */}
-      <div className="relative z-10 w-full max-w-sm mx-4 bg-surface border border-border-bright rounded-xl shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+      <div className="relative z-10 w-full max-w-sm mx-4 bg-[#f5ecd6] border border-wax rounded-xl shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
         {/* Top accent line */}
         <div className={`h-0.5 w-full ${variant === 'danger' ? 'bg-saga-danger' : variant === 'warning' ? 'bg-gold' : 'bg-purple'}`} />
 
@@ -81,9 +81,9 @@ export function ConfirmModal({
           <div className="flex items-start gap-4 mb-4">
             {(() => { const Icon = ICONS[variant]; return <Icon size={22} className={`shrink-0 mt-0.5 ${ICON_COLORS[variant]}`} /> })()}
             <div>
-              <h2 className="font-cinzel text-base font-semibold text-saga-text">{title}</h2>
+              <h2 className="font-cinzel text-base font-semibold text-ink">{title}</h2>
               {description && (
-                <p className="text-sm text-saga-muted mt-1 leading-relaxed">{description}</p>
+                <p className="text-sm text-ink-soft mt-1 leading-relaxed">{description}</p>
               )}
             </div>
           </div>
@@ -95,7 +95,7 @@ export function ConfirmModal({
           <div className="flex items-center justify-end gap-2">
             <button
               onClick={onCancel}
-              className="px-4 py-2 rounded text-sm font-medium bg-surface-3 text-saga-text border border-border hover:border-border-bright transition-all"
+              className="px-4 py-2 rounded text-sm font-medium bg-ink/[0.06] text-ink border border-ink/20 hover:border-wax transition-all"
             >
               {cancelLabel}
             </button>
