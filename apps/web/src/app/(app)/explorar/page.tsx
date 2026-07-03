@@ -90,38 +90,36 @@ function ApplyModal({ campaign, onClose, onSuccess }: {
   return (
     <div className="fixed inset-0 z-[300] flex items-center justify-center p-4"
       onClick={e => { if (e.target === e.currentTarget) onClose() }}>
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative z-10 w-full max-w-md rounded-xl border border-border shadow-2xl overflow-hidden"
-        style={{ background: 'rgba(13,13,26,0.99)' }}>
-        <div className="px-5 py-4 flex items-center justify-between">
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="parchment-card relative z-10 w-full max-w-md rounded-xl overflow-hidden text-ink">
+        <div className="px-5 py-4 flex items-center justify-between border-b border-ink/10">
           <div>
-            <h2 className="font-cinzel text-base font-semibold text-saga-text">Inscrição</h2>
-            <p className="text-[11px] text-saga-dim mt-0.5">{campaign.name}</p>
+            <h2 className="font-cinzel text-base font-bold text-ink">Inscrição</h2>
+            <p className="text-[11px] text-ink-soft mt-0.5 font-cormorant italic">{campaign.name}</p>
           </div>
-          <button onClick={onClose} className="text-saga-dim hover:text-saga-text transition-colors text-xl leading-none">×</button>
+          <button onClick={onClose} className="text-ink-soft hover:text-wax transition-colors text-xl leading-none">×</button>
         </div>
-        <form onSubmit={submit} className="px-5 pb-5 flex flex-col gap-4">
+        <form onSubmit={submit} className="px-5 pb-5 pt-4 flex flex-col gap-4">
           <div>
-            <label className="text-[10px] font-bold text-saga-muted uppercase tracking-widest block mb-1.5">
+            <label className="text-[10px] font-bold text-wax uppercase tracking-widest block mb-1.5">
               Seu nível de experiência no sistema
             </label>
             <div className="grid grid-cols-3 gap-2">
               {(['beginner', 'intermediate', 'advanced'] as const).map(lvl => (
                 <button key={lvl} type="button"
                   onClick={() => setExperienceLevel(lvl)}
-                  className="py-2 px-2 rounded border text-[11px] font-medium transition-all"
-                  style={{
-                    background: experienceLevel === lvl ? 'rgba(201,162,42,0.12)' : 'rgba(255,255,255,0.04)',
-                    border: `1px solid ${experienceLevel === lvl ? 'rgba(201,162,42,0.45)' : 'rgba(255,255,255,0.1)'}`,
-                    color: experienceLevel === lvl ? '#c9a22a' : '#7878a0',
-                  }}>
+                  className={`py-2 px-2 rounded border text-[11px] font-cinzel tracking-wide transition-all ${
+                    experienceLevel === lvl
+                      ? 'bg-wax text-parchment border-wax-deep'
+                      : 'bg-parchment/50 text-ink-soft border-ink/20 hover:border-wax'
+                  }`}>
                   {XP_LABELS[lvl]}
                 </button>
               ))}
             </div>
           </div>
           <div>
-            <label className="text-[10px] font-bold text-saga-muted uppercase tracking-widest block mb-1.5">
+            <label className="text-[10px] font-bold text-wax uppercase tracking-widest block mb-1.5">
               Descreva seu personagem / ideia (opcional)
             </label>
             <textarea
@@ -130,19 +128,18 @@ function ApplyModal({ campaign, onClose, onSuccess }: {
               rows={4}
               maxLength={1000}
               placeholder="Quem é seu personagem? Qual conceito você tem em mente?"
-              className="w-full bg-surface-2 border border-border rounded px-3 py-2.5 text-sm text-saga-text placeholder:text-saga-dim focus:outline-none focus:border-gold/60 transition-colors resize-none"
+              className="w-full bg-parchment/60 border border-ink/20 rounded px-3 py-2.5 text-sm text-ink placeholder:text-ink-soft/60 focus:outline-none focus:border-wax transition-colors resize-none font-cormorant"
             />
-            <p className="text-[9px] text-saga-dim mt-1 text-right">{characterDesc.length}/1000</p>
+            <p className="text-[9px] text-ink-soft mt-1 text-right">{characterDesc.length}/1000</p>
           </div>
-          {error && <p className="text-sm text-saga-danger">{error}</p>}
+          {error && <p className="text-sm text-wax">{error}</p>}
           <div className="flex gap-2 justify-end">
             <button type="button" onClick={onClose}
-              className="px-4 py-2 rounded text-sm text-saga-muted hover:text-saga-text transition-colors border border-white/10">
+              className="px-4 py-2 rounded text-sm text-ink-soft hover:text-ink transition-colors border border-ink/20">
               Cancelar
             </button>
             <button type="submit" disabled={loading}
-              className="px-4 py-2 rounded text-sm font-medium flex items-center gap-2 disabled:opacity-50 transition-all"
-              style={{ background: 'linear-gradient(135deg,#c9a22a,#f0d060)', color: '#0a0a12' }}>
+              className="px-4 py-2 rounded text-sm font-cinzel flex items-center gap-2 disabled:opacity-50 transition-all bg-wax text-parchment hover:bg-wax-deep shadow-sm">
               <Send size={13} />
               {loading ? 'Enviando...' : 'Enviar Inscrição'}
             </button>
@@ -174,24 +171,23 @@ function CampaignCard({ c, onApply, successId }: {
   const descLong = (c.description ?? '').length > 200
 
   return (
-    <div className="bg-surface border border-border rounded-xl overflow-hidden flex flex-col hover:border-white/20 transition-colors">
-      <div className="p-4 flex-1">
+    <div className="parchment-card rounded-xl overflow-hidden flex flex-col card-hover">
+      <div className="relative p-4 flex-1">
         {/* Title row */}
         <div className="flex items-start justify-between gap-2 mb-2">
-          <h3 className="font-cinzel font-semibold text-saga-text leading-tight">{c.name}</h3>
-          <span className="shrink-0 text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"
-            style={{
-              background: c.campaignType === 'oneshot' ? 'rgba(124,58,237,0.15)' : 'rgba(201,162,42,0.12)',
-              color: c.campaignType === 'oneshot' ? '#9d5af5' : '#c9a22a',
-              border: `1px solid ${c.campaignType === 'oneshot' ? 'rgba(124,58,237,0.3)' : 'rgba(201,162,42,0.3)'}`,
-            }}>
+          <h3 className="font-cinzel font-bold text-ink leading-tight">{c.name}</h3>
+          <span className={`shrink-0 text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 border ${
+            c.campaignType === 'oneshot'
+              ? 'bg-purple/10 text-purple border-purple/40'
+              : 'bg-gold/15 text-gold-deep border-gold/40'
+          }`}>
             {c.campaignType === 'oneshot' ? <><Zap size={9} />One-Shot</> : <><Clock size={9} />Campanha</>}
           </span>
         </div>
 
         {/* System + theme */}
         {(c.system || c.theme) && (
-          <p className="text-[11px] text-saga-dim mb-2">
+          <p className="text-[11px] text-ink-soft mb-2 font-cormorant">
             {[c.system?.name, c.theme].filter(Boolean).join(' · ')}
           </p>
         )}
@@ -199,12 +195,12 @@ function CampaignCard({ c, onApply, successId }: {
         {/* Description */}
         {c.description && (
           <div className="mb-3">
-            <p className={`text-[12px] text-saga-muted leading-relaxed ${!expanded && descLong ? 'line-clamp-3' : ''}`}>
+            <p className={`text-[13px] text-ink-soft leading-relaxed font-cormorant ${!expanded && descLong ? 'line-clamp-3' : ''}`}>
               {c.description}
             </p>
             {descLong && (
               <button onClick={() => setExpanded(v => !v)}
-                className="mt-1 text-[10px] text-saga-dim hover:text-gold transition-colors flex items-center gap-0.5">
+                className="mt-1 text-[10px] text-ink-soft hover:text-wax transition-colors flex items-center gap-0.5">
                 {expanded ? <><ChevronUp size={11} />Menos</> : <><ChevronDown size={11} />Ler mais</>}
               </button>
             )}
@@ -215,26 +211,22 @@ function CampaignCard({ c, onApply, successId }: {
         {hasExtra && (
           <div className="flex flex-wrap gap-1.5 mt-1">
             {tone && (
-              <span className="text-[10px] px-2 py-0.5 rounded-full"
-                style={{ background: 'rgba(255,255,255,0.06)', color: '#a0a0c0', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-ink/5 text-ink-soft border border-ink/15">
                 {tone.emoji} {tone.label}
               </span>
             )}
             {playStyles.map(s => (
-              <span key={s} className="text-[10px] px-2 py-0.5 rounded-full"
-                style={{ background: 'rgba(124,58,237,0.10)', color: '#9d5af5', border: '1px solid rgba(124,58,237,0.25)' }}>
+              <span key={s} className="text-[10px] px-2 py-0.5 rounded-full bg-purple/10 text-purple border border-purple/25">
                 {PLAY_LABELS[s] ?? s}
               </span>
             ))}
             {c.sessionFrequency && (
-              <span className="text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1"
-                style={{ background: 'rgba(255,255,255,0.05)', color: '#7878a0', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <span className="text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1 bg-ink/5 text-ink-soft border border-ink/12">
                 <Clock size={9} />{FREQ_LABELS[c.sessionFrequency] ?? c.sessionFrequency}
               </span>
             )}
             {c.minExperience && XP_REQ_LABELS[c.minExperience] && (
-              <span className="text-[10px] px-2 py-0.5 rounded-full"
-                style={{ background: 'rgba(255,165,0,0.08)', color: '#b8860b', border: '1px solid rgba(255,165,0,0.2)' }}>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 border border-amber-500/25">
                 {XP_REQ_LABELS[c.minExperience]}
               </span>
             )}
@@ -243,9 +235,8 @@ function CampaignCard({ c, onApply, successId }: {
       </div>
 
       {/* Footer */}
-      <div className="px-4 py-3 flex items-center justify-between gap-2"
-        style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-        <div className="flex items-center gap-3 text-[11px] text-saga-dim">
+      <div className="relative px-4 py-3 flex items-center justify-between gap-2 border-t border-ink/10">
+        <div className="flex items-center gap-3 text-[11px] text-ink-soft font-cormorant">
           <span className="flex items-center gap-1">
             <Users size={11} />
             {playerCount}{c.maxSlots ? `/${c.maxSlots}` : ''} jogadores
@@ -256,28 +247,27 @@ function CampaignCard({ c, onApply, successId }: {
         </div>
 
         {appStatus === 'approved' ? (
-          <span className="text-[11px] text-saga-success flex items-center gap-1 font-medium">
+          <span className="text-[11px] text-green-800 flex items-center gap-1 font-medium">
             <CheckCircle size={12} />Aprovado
           </span>
         ) : appStatus === 'rejected' ? (
-          <span className="text-[11px] text-saga-danger flex items-center gap-1">
+          <span className="text-[11px] text-wax flex items-center gap-1">
             <XCircle size={12} />Rejeitado
           </span>
         ) : appStatus === 'pending' ? (
-          <span className="text-[11px] text-saga-muted flex items-center gap-1">
+          <span className="text-[11px] text-ink-soft flex items-center gap-1">
             <Clock size={12} />Aguardando
           </span>
         ) : isFull ? (
-          <span className="text-[11px] text-saga-dim">Sem vagas</span>
+          <span className="text-[11px] text-ink-soft">Sem vagas</span>
         ) : successId === c.id ? (
-          <span className="text-[11px] text-saga-success flex items-center gap-1 font-medium">
+          <span className="text-[11px] text-green-800 flex items-center gap-1 font-medium">
             <CheckCircle size={12} />Enviado!
           </span>
         ) : (
           <button
             onClick={() => onApply(c)}
-            className="text-[11px] font-medium px-3 py-1.5 rounded transition-all"
-            style={{ background: 'rgba(201,162,42,0.12)', color: '#c9a22a', border: '1px solid rgba(201,162,42,0.3)' }}>
+            className="text-[11px] font-cinzel px-3 py-1.5 rounded transition-all bg-wax text-parchment hover:bg-wax-deep shadow-sm">
             Inscrever-se
           </button>
         )}
@@ -319,29 +309,29 @@ export default function ExplorarPage() {
   return (
     <div className="p-4 sm:p-8">
       <div className="mb-8">
-        <h1 className="font-cinzel text-2xl font-semibold text-saga-text">Explorar Campanhas</h1>
-        <p className="text-sm text-saga-muted mt-1">Encontre campanhas abertas e se inscreva para participar</p>
+        <p className="font-cinzel text-[11px] tracking-[0.35em] text-wax uppercase">⚜ Taverna</p>
+        <h1 className="font-cinzel text-3xl font-bold text-ink">Explorar Campanhas</h1>
+        <p className="text-sm text-ink-soft mt-1 font-cormorant italic">Encontre campanhas abertas e se inscreva para participar</p>
       </div>
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-1">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-saga-dim" />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-soft" />
           <input
             value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Buscar por nome, sistema, tema..."
-            className="w-full bg-surface border border-border rounded-lg pl-9 pr-4 py-2.5 text-sm text-saga-text placeholder:text-saga-dim focus:outline-none focus:border-gold/40 transition-colors"
+            className="w-full bg-parchment/60 border border-ink/20 rounded-lg pl-9 pr-4 py-2.5 text-sm text-ink placeholder:text-ink-soft/60 focus:outline-none focus:border-wax transition-colors font-cormorant"
           />
         </div>
         <div className="flex gap-2">
           {(['all', 'campaign', 'oneshot'] as const).map(t => (
             <button key={t} onClick={() => setTypeFilter(t)}
-              className="px-3 py-2 rounded-lg text-[12px] font-medium transition-all border"
-              style={{
-                background: typeFilter === t ? 'rgba(201,162,42,0.12)' : 'rgba(255,255,255,0.04)',
-                border: `1px solid ${typeFilter === t ? 'rgba(201,162,42,0.4)' : 'rgba(255,255,255,0.1)'}`,
-                color: typeFilter === t ? '#c9a22a' : '#7878a0',
-              }}>
+              className={`px-3 py-2 rounded-lg text-[12px] font-cinzel tracking-wide transition-all border ${
+                typeFilter === t
+                  ? 'bg-wax text-parchment border-wax-deep'
+                  : 'bg-parchment/50 text-ink-soft border-ink/20 hover:border-wax hover:text-wax'
+              }`}>
               {t === 'all' ? 'Todos' : t === 'campaign' ? 'Campanhas' : 'One-Shots'}
             </button>
           ))}
@@ -350,11 +340,11 @@ export default function ExplorarPage() {
 
       {/* Grid */}
       {loading ? (
-        <div className="text-center py-20 text-saga-dim">Carregando...</div>
+        <div className="text-center py-20 text-ink-soft font-cormorant">Carregando...</div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-20">
-          <BookOpen size={40} className="mx-auto mb-4 text-saga-dim opacity-40" />
-          <p className="text-saga-muted">Nenhuma campanha aberta encontrada.</p>
+          <BookOpen size={40} className="mx-auto mb-4 text-wax opacity-40" />
+          <p className="text-ink-soft font-cormorant">Nenhuma campanha aberta encontrada.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">

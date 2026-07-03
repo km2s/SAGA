@@ -34,21 +34,21 @@ export function JoinCampaignModal({ open, onClose }: { open: boolean; onClose: (
   return (
     <Modal open={open} onClose={onClose} title="Entrar em Campanha">
       <form onSubmit={handleJoin} className="flex flex-col gap-4">
-        <p className="text-sm text-saga-muted">
+        <p className="text-sm text-ink-soft font-cormorant">
           Peça ao Mestre o ID da campanha. Você pode encontrá-lo na URL da campanha no SAGA.
         </p>
         <div>
-          <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">
+          <label className="text-[11px] text-wax font-bold uppercase tracking-widest block mb-1.5">
             ID da Campanha
           </label>
           <input
             value={campaignId}
             onChange={e => setCampaignId(e.target.value)}
             placeholder="cm..."
-            className="w-full bg-surface-2 border border-border rounded px-3 py-2.5 text-sm font-mono text-saga-text placeholder:text-saga-dim focus:outline-none focus:border-gold/60 transition-colors"
+            className="w-full bg-parchment/60 border border-ink/20 rounded px-3 py-2.5 text-sm font-mono text-ink placeholder:text-ink-soft/60 focus:outline-none focus:border-wax transition-colors"
           />
         </div>
-        {error && <p className="text-sm text-saga-danger">{error}</p>}
+        {error && <p className="text-sm text-wax">{error}</p>}
         <div className="flex justify-end gap-2">
           <Button variant="secondary" type="button" onClick={onClose}>Cancelar</Button>
           <Button variant="primary" type="submit" disabled={loading}>

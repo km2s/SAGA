@@ -59,31 +59,31 @@ export function CreateNPCModal({ campaignId, players: _players, open, onClose }:
 
         {/* Name */}
         <div>
-          <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">
-            Nome <span className="text-saga-danger">*</span>
+          <label className="text-[11px] text-ink-soft font-bold uppercase tracking-widest block mb-1.5">
+            Nome <span className="text-wax">*</span>
           </label>
           <input
             autoFocus
             value={name}
             onChange={e => setName(e.target.value)}
             placeholder="Malachor, o Lich..."
-            className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm focus:outline-none focus:border-gold/60 transition-colors"
+            className="w-full bg-parchment/60 border border-ink/20 rounded px-3 py-2 text-sm focus:outline-none focus:border-wax transition-colors"
           />
         </div>
 
         {/* Type chips */}
         <div>
-          <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-2">Tipo</label>
+          <label className="text-[11px] text-ink-soft font-bold uppercase tracking-widest block mb-2">Tipo</label>
           <div className="flex flex-wrap gap-1.5">
             {NPC_TYPES.map(t => (
               <button
                 key={t.value}
                 type="button"
                 onClick={() => setType(t.value)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium border transition-all ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-cinzel tracking-wide border transition-all ${
                   type === t.value
-                    ? 'bg-gold/15 border-gold/50 text-gold'
-                    : 'bg-surface-2 border-border text-saga-muted hover:border-white/20 hover:text-saga-text'
+                    ? 'bg-wax border-wax-deep text-parchment'
+                    : 'bg-parchment/50 border-ink/20 text-ink-soft hover:border-wax hover:text-wax'
                 }`}
               >
                 <span>{t.emoji}</span>
@@ -95,24 +95,24 @@ export function CreateNPCModal({ campaignId, players: _players, open, onClose }:
 
         {/* Max HP */}
         <div>
-          <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">HP Máximo</label>
+          <label className="text-[11px] text-ink-soft font-bold uppercase tracking-widest block mb-1.5">HP Máximo</label>
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => setMaxHp(v => Math.max(1, v - 1))}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-saga-dim hover:text-red-400 hover:bg-red-400/10 border border-border transition-all text-lg"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-ink-soft hover:text-red-400 hover:bg-red-400/10 border border-ink/20 transition-all text-lg"
             >−</button>
             <input
               type="number"
               min={1}
               value={maxHp}
               onChange={e => setMaxHp(Math.max(1, Number(e.target.value)))}
-              className="w-20 text-center bg-surface-2 border border-border rounded px-2 py-2 text-sm font-cinzel font-bold focus:outline-none focus:border-gold/60 transition-colors"
+              className="w-20 text-center bg-parchment/60 border border-ink/20 rounded px-2 py-2 text-sm font-cinzel font-bold focus:outline-none focus:border-wax transition-colors"
             />
             <button
               type="button"
               onClick={() => setMaxHp(v => v + 1)}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-saga-dim hover:text-green-400 hover:bg-green-400/10 border border-border transition-all text-lg"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-ink-soft hover:text-green-400 hover:bg-green-400/10 border border-ink/20 transition-all text-lg"
             >+</button>
           </div>
         </div>
@@ -121,18 +121,18 @@ export function CreateNPCModal({ campaignId, players: _players, open, onClose }:
         <label className="flex items-center gap-3 cursor-pointer select-none">
           <div
             onClick={() => setIsPublic(v => !v)}
-            className={`w-9 h-5 rounded-full relative transition-colors shrink-0 ${isPublic ? 'bg-saga-success' : 'bg-border-bright'}`}
+            className={`w-9 h-5 rounded-full relative transition-colors shrink-0 ${isPublic ? 'bg-green-700' : 'bg-ink/30'}`}
           >
             <div className={`w-3.5 h-3.5 rounded-full bg-white absolute top-[3px] transition-all ${isPublic ? 'right-[3px]' : 'left-[3px]'}`} />
           </div>
-          <span className="text-sm text-saga-muted">{isPublic ? 'Visível para todos os jogadores' : 'Restrito ao Mestre'}</span>
+          <span className="text-sm text-ink-soft">{isPublic ? 'Visível para todos os jogadores' : 'Restrito ao Mestre'}</span>
         </label>
 
-        <p className="text-[11px] text-saga-dim -mt-2">
+        <p className="text-[11px] text-ink-soft -mt-2">
           Raça, classe, imagem e atributos podem ser configurados na ficha do NPC após a criação.
         </p>
 
-        {error && <p className="text-sm text-saga-danger">{error}</p>}
+        {error && <p className="text-sm text-wax">{error}</p>}
 
         <div className="flex justify-end gap-2">
           <Button variant="secondary" type="button" onClick={onClose}>Cancelar</Button>

@@ -106,8 +106,8 @@ export function CreateCharacterModal({ campaigns, open, onClose }: {
     return (
       <Modal open={open} onClose={handleClose} title="Criar Personagem">
         <div className="flex flex-col items-center gap-4 py-8 text-center">
-          <Dice6 size={40} className="text-saga-dim opacity-40" />
-          <p className="text-sm text-saga-muted">
+          <Dice6 size={40} className="text-ink-soft opacity-40" />
+          <p className="text-sm text-ink-soft">
             Você não está em nenhuma campanha como jogador, ou já tem um personagem em todas elas.
           </p>
           <Button variant="secondary" type="button" onClick={handleClose}>Fechar</Button>
@@ -122,17 +122,17 @@ export function CreateCharacterModal({ campaigns, open, onClose }: {
 
         {/* Campanha — ao selecionar, sistema é derivado automaticamente */}
         <div>
-          <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">
+          <label className="text-[11px] text-ink-soft font-bold uppercase tracking-widest block mb-1.5">
             Campanha *
           </label>
           {campaigns.length === 1 ? (
             // Uma única campanha — não precisa de dropdown
-            <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg border border-white/8 bg-white/[0.03]">
-              <span className="text-sm text-saga-text font-medium">{selectedCampaign?.name}</span>
+            <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg border border-ink/15 bg-ink/[0.03]">
+              <span className="text-sm text-ink font-medium">{selectedCampaign?.name}</span>
             </div>
           ) : (
             <select value={form.campaignId} onChange={e => set('campaignId', e.target.value)}
-              className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm focus:outline-none focus:border-gold/60">
+              className="w-full bg-parchment/60 border border-ink/20 rounded px-3 py-2 text-sm focus:outline-none focus:border-wax">
               {campaigns.map(c => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
@@ -148,7 +148,7 @@ export function CreateCharacterModal({ campaigns, open, onClose }: {
             <p className="text-xs font-medium truncate" style={{ color: systemColor }}>
               {system?.name ?? 'Personalizado'}
             </p>
-            <p className="text-[10px] text-saga-dim">
+            <p className="text-[10px] text-ink-soft">
               {system ? 'Sistema da campanha — atributos adicionados automaticamente' : 'Sem sistema — adicione atributos manualmente depois'}
             </p>
           </div>
@@ -156,47 +156,47 @@ export function CreateCharacterModal({ campaigns, open, onClose }: {
 
         {/* Nome */}
         <div>
-          <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">Nome *</label>
+          <label className="text-[11px] text-ink-soft font-bold uppercase tracking-widest block mb-1.5">Nome *</label>
           <input value={form.name} onChange={e => set('name', e.target.value)}
             placeholder="Lyra Sombramoon…"
-            className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm focus:outline-none focus:border-gold/60" />
+            className="w-full bg-parchment/60 border border-ink/20 rounded px-3 py-2 text-sm focus:outline-none focus:border-wax" />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">Raça / Clã</label>
+            <label className="text-[11px] text-ink-soft font-bold uppercase tracking-widest block mb-1.5">Raça / Clã</label>
             <input value={form.race} onChange={e => set('race', e.target.value)}
               placeholder="Meio-Elfo, Gangrel…"
-              className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm focus:outline-none focus:border-gold/60" />
+              className="w-full bg-parchment/60 border border-ink/20 rounded px-3 py-2 text-sm focus:outline-none focus:border-wax" />
           </div>
           <div>
-            <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">Classe / Conceito</label>
+            <label className="text-[11px] text-ink-soft font-bold uppercase tracking-widest block mb-1.5">Classe / Conceito</label>
             <input value={form.class} onChange={e => set('class', e.target.value)}
               placeholder="Feiticeiro, Toreador…"
-              className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm focus:outline-none focus:border-gold/60" />
+              className="w-full bg-parchment/60 border border-ink/20 rounded px-3 py-2 text-sm focus:outline-none focus:border-wax" />
           </div>
           <div>
-            <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">Nível / Geração</label>
+            <label className="text-[11px] text-ink-soft font-bold uppercase tracking-widest block mb-1.5">Nível / Geração</label>
             <input value={form.level} onChange={e => set('level', e.target.value)}
               type="number" min="1" max="20"
-              className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm focus:outline-none focus:border-gold/60" />
+              className="w-full bg-parchment/60 border border-ink/20 rounded px-3 py-2 text-sm focus:outline-none focus:border-wax" />
           </div>
           <div>
-            <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">HP / Vitalidade</label>
+            <label className="text-[11px] text-ink-soft font-bold uppercase tracking-widest block mb-1.5">HP / Vitalidade</label>
             <input value={form.maxHp} onChange={e => set('maxHp', e.target.value)}
               type="number" min="1"
-              className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm focus:outline-none focus:border-gold/60" />
+              className="w-full bg-parchment/60 border border-ink/20 rounded px-3 py-2 text-sm focus:outline-none focus:border-wax" />
           </div>
         </div>
 
         <div>
-          <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">URL da Imagem</label>
+          <label className="text-[11px] text-ink-soft font-bold uppercase tracking-widest block mb-1.5">URL da Imagem</label>
           <input value={form.imageUrl} onChange={e => set('imageUrl', e.target.value)}
             placeholder="https://…"
-            className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm focus:outline-none focus:border-gold/60" />
+            className="w-full bg-parchment/60 border border-ink/20 rounded px-3 py-2 text-sm focus:outline-none focus:border-wax" />
         </div>
 
-        {error && <p className="text-sm text-saga-danger">{error}</p>}
+        {error && <p className="text-sm text-wax">{error}</p>}
 
         <div className="flex justify-end gap-2 pt-1">
           <Button variant="secondary" type="button" onClick={handleClose}>Cancelar</Button>

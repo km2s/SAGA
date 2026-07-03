@@ -67,20 +67,29 @@ body {
 .bg-danger-dim { background: var(--danger-dim); }
 .border-gold-dim { border-color: var(--gold-glow); }
 
-/* Native select dark theme — forces OS dropdown to render in dark mode */
+/* Native select — dropdown em tema pergaminho (claro) */
 select {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 select option {
-  background-color: #11111e;
-  color: #e2e2f0;
+  background-color: #f3e9d2;
+  color: #33291d;
 }
 
 select optgroup {
-  background-color: #191926;
-  color: #7878a0;
+  background-color: #e6d5ac;
+  color: #5f5040;
   font-weight: 600;
+}
+
+/* Mesa (cripta): mantém selects escuros dentro do escopo .mesa-dark */
+.mesa-dark select {
+  color-scheme: dark;
+}
+.mesa-dark select option {
+  background-color: #11111e;
+  color: #e2e2f0;
 }
 
 /* Card hover lift */
