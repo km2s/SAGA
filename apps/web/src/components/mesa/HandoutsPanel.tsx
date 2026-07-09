@@ -86,7 +86,7 @@ export function HandoutsPanel({ campaignId, isGM, onClose, activeSessionId }: Ha
       className="absolute top-3 right-3 z-40 w-80 rounded-xl overflow-hidden shadow-2xl flex flex-col"
       style={{
         maxHeight: 'calc(100vh - 80px)',
-        background: 'rgba(10,10,22,0.97)',
+        background: 'rgba(18,16,11,0.97)',
         border: '1px solid rgba(201,162,42,0.25)',
         backdropFilter: 'blur(12px)',
       }}

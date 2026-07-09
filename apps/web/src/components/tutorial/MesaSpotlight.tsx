@@ -259,7 +259,7 @@ export function MesaSpotlight({ isGM }: { isGM: boolean }) {
             className="fixed z-[9001] w-[280px] rounded-xl overflow-hidden shadow-2xl"
             style={{
               ...tStyle,
-              background: 'rgba(14,14,28,0.97)',
+              background: 'rgba(18,16,11,0.97)',
               border: '1px solid rgba(201,162,42,0.30)',
               backdropFilter: 'blur(12px)',
             }}

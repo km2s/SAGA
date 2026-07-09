@@ -407,7 +407,7 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
       <div className="absolute left-0 inset-y-0 z-50 flex flex-col overflow-hidden transition-all duration-300"
         style={{
           width: panelWidth,
-          background: 'rgba(8,8,18,0.98)',
+          background: 'rgba(18,16,11,0.98)',
           borderRight: '1px solid rgba(255,255,255,0.09)',
           backdropFilter: 'blur(20px)',
           boxShadow: '6px 0 40px rgba(0,0,0,0.7)',
@@ -555,7 +555,7 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
                 {/* Identity */}
                 <div className="flex items-start gap-4">
                   <div className="w-16 h-16 rounded-xl flex items-center justify-center text-white/40 shrink-0"
-                    style={{ background: 'linear-gradient(135deg, #1a0533, #4a1080)', border: '1px solid rgba(124,58,237,0.35)', boxShadow: '0 4px 16px rgba(124,58,237,0.2)' }}>
+                    style={{ background: 'linear-gradient(135deg, #2e2318, #5f5040)', border: '1px solid rgba(201,162,42,0.35)', boxShadow: '0 4px 16px rgba(201,162,42,0.15)' }}>
                     <ClassIcon size={32} />
                   </div>
                   <div className="flex-1 min-w-0 pt-0.5">
@@ -651,7 +651,7 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
                 <div className="p-4 space-y-4">
                   <div className="flex items-start gap-4">
                     <div className="w-16 h-16 rounded-xl flex items-center justify-center text-white/40 shrink-0"
-                      style={{ background: 'linear-gradient(135deg, #1a0520, #3d1060)', border: `1px solid ${typeColor}35`, boxShadow: `0 4px 16px ${typeColor}20` }}>
+                      style={{ background: 'linear-gradient(135deg, #1a120c, #3a2418)', border: `1px solid ${typeColor}35`, boxShadow: `0 4px 16px ${typeColor}20` }}>
                       <Skull size={28} style={{ color: typeColor, opacity: 0.7 }} />
                     </div>
                     <div className="flex-1 min-w-0 pt-0.5">
