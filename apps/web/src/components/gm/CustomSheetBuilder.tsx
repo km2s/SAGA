@@ -205,7 +205,7 @@ export function CustomSheetBuilder({ campaignId }: { campaignId: string }) {
         </p>
         <button onClick={save} disabled={saving}
           className={`flex items-center gap-2 px-4 py-2 rounded font-medium text-sm disabled:opacity-50 transition-all ${
-            saved ? 'bg-saga-success/15 text-green-700' : 'bg-gradient-gold text-crypt-deep'
+            saved ? 'bg-saga-success/15 text-green-700' : 'bg-gradient-gold text-ink'
           }`}>
           {saving ? <Loader2 size={14} className="animate-spin" /> : saved ? <Check size={14} /> : null}
           {saving ? 'Salvando...' : saved ? 'Salvo!' : 'Salvar Template'}

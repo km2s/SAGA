@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Badge } from '@/components/ui/Badge'
 import { CharactersActions } from './CharactersActions'
 import { GMActions } from '@/components/gm/GMActions'
+import { coverFor } from '@/lib/campaign-cover'
 import {
   Swords, Sparkles, Shield, Sword, Plus, Axe, Leaf, Music, Target, Dumbbell,
   Wand2, Moon, ScrollText, User, BookOpen, ShieldAlert, UserCheck, Heart, Wind, ExternalLink,
@@ -39,15 +40,6 @@ interface Character {
   id: string; name: string; race: string | null; class: string | null
   level: number; hp: number; maxHp: number; imageUrl: string | null
 }
-const CAMPAIGN_COLORS = [
-  'from-[#3b0764] to-[#7c3aed]',
-  'from-[#1e3a5f] to-[#2563eb]',
-  'from-[#064e3b] to-[#059669]',
-  'from-[#7c2d12] to-[#d97706]',
-  'from-[#4a044e] to-[#db2777]',
-  'from-[#0c4a6e] to-[#0891b2]',
-]
-
 interface PlayerMembership {
   id: string; role: string
   character: Character | null
@@ -117,7 +109,7 @@ export function CharactersView({ playerMemberships, gmCampaigns, allCampaigns }:
               const ClassIcon = CLASS_ICONS[char.class ?? ''] ?? User
               const hpPercent = Math.round((char.hp / Math.max(1, char.maxHp)) * 100)
               const hpColor = hpPercent > 60 ? 'bg-saga-success' : hpPercent > 30 ? 'bg-saga-warning' : 'bg-saga-danger'
-              const campaignGradient = CAMPAIGN_COLORS[idx % CAMPAIGN_COLORS.length]!
+              const campaignGradient = coverFor(idx)
               return (
                 <Link key={m.id} href={`/characters/${m.id}`}>
                   <div className="parchment-card rounded-lg overflow-hidden card-hover">
@@ -133,7 +125,7 @@ export function CharactersView({ playerMemberships, gmCampaigns, allCampaigns }:
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={char.imageUrl} alt={char.name} className="w-full h-36 object-cover object-top"/>
                     ) : (
-                      <div className="w-full h-36 bg-gradient-to-br from-[#1a0533] via-[#4a1080] to-[#7c3aed] flex items-center justify-center text-white/40">
+                      <div className={`w-full h-36 bg-gradient-to-br ${campaignGradient} flex items-center justify-center text-white/40`}>
                         <ClassIcon size={48}/>
                       </div>
                     )}

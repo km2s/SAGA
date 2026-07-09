@@ -57,7 +57,7 @@ export function CreateSystemModal({ open, onClose, onCreated }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/50 backdrop-blur-sm">
       <div className="parchment-card w-full max-w-md rounded-xl overflow-hidden text-ink">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-ink/10">

@@ -6,13 +6,7 @@ import Link from 'next/link'
 import { Badge } from '@/components/ui/Badge'
 import { DashboardActions } from '@/components/campaign/DashboardActions'
 import { Swords, Crown } from 'lucide-react'
-
-const COVER_GRADIENTS = [
-  'from-[#1a0533] via-[#4a1080] to-[#7c3aed]',
-  'from-[#1a0a00] via-[#5c2800] to-[#c9622a]',
-  'from-[#001a1a] via-[#004040] to-[#0a9090]',
-  'from-[#0a1a00] via-[#2a4800] to-[#5a8800]',
-]
+import { coverFor } from '@/lib/campaign-cover'
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions)
@@ -55,7 +49,7 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-[repeat(auto-fill,minmax(230px,1fr))] gap-4">
         {memberships.map((m, i) => {
           const hasSession = m.campaign.sessions.length > 0
-          const gradient = COVER_GRADIENTS[i % COVER_GRADIENTS.length]
+          const gradient = coverFor(i)
 
           return (
             <Link key={m.campaign.id} href={`/campaign/${m.campaign.id}`}>

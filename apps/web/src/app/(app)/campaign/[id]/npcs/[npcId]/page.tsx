@@ -8,6 +8,7 @@ import { NPCHPEditor } from '@/components/gm/NPCHPEditor'
 import { NPCInfoEditor } from '@/components/gm/NPCInfoEditor'
 import { CharacterSheetView, type SheetCategory } from '@/components/character/CharacterSheetView'
 import { safeImageUrl } from '@/lib/safe-url'
+import { coverFor } from '@/lib/campaign-cover'
 import {
   ShieldAlert, UserCheck, Heart, Wind, User,
   ChevronLeft, ClipboardList, Pencil,
@@ -254,7 +255,7 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={safeImageUrl(npc.imageUrl)!} alt={npc.name} className="w-full h-52 object-cover object-top" />
                 ) : (
-                  <div className="w-full h-52 bg-gradient-to-br from-[#1a0533] via-[#2d1060] to-[#4a1080] flex items-center justify-center">
+                  <div className={`w-full h-52 bg-gradient-to-br ${coverFor(1)} flex items-center justify-center`}>
                     <TypeIcon size={72} className="text-white/30" />
                   </div>
                 )}

@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/Badge'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { NPCHPEditor } from './NPCHPEditor'
 import { safeImageUrl } from '@/lib/safe-url'
+import { coverFor } from '@/lib/campaign-cover'
 
 const NPC_TYPES = [
   { value: 'NEUTRAL', label: 'Neutro' },
@@ -106,7 +107,7 @@ export function NPCInfoEditor({ campaignId, npc: initial, players }: {
             // eslint-disable-next-line @next/next/no-img-element
             <img src={imgSafe} alt={npc.name} className="w-full h-52 object-cover object-top" />
           ) : (
-            <div className="w-full h-52 bg-gradient-to-br from-[#1a0533] via-[#2d1060] to-[#4a1080] flex items-center justify-center">
+            <div className={`w-full h-52 bg-gradient-to-br ${coverFor(1)} flex items-center justify-center`}>
               <TypeIcon size={72} className="text-white/30" />
             </div>
           )}

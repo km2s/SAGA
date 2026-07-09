@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { X, Trash2, Image as ImageIcon, FileText, Send, BookOpen, Eye, ChevronDown } from 'lucide-react'
 import { safeImageUrl } from '@/lib/safe-url'
+import { Fleuron } from '@/components/landing/Ornament'
 
 interface HandoutEntry {
   id: string
@@ -98,6 +99,7 @@ export function HandoutsPanel({ campaignId, isGM, onClose, activeSessionId }: Ha
         <div className="flex items-center gap-2">
           <BookOpen size={12} className="text-gold" />
           <span className="font-cinzel text-[11px] font-bold text-gold uppercase tracking-widest">Handouts</span>
+          <Fleuron className="h-2 w-auto text-gold/50" />
           {unread > 0 && (
             <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold text-bg"
               style={{ background: '#c9a22a' }}>

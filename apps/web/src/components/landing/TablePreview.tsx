@@ -1,4 +1,5 @@
 import { Swords, Dice6, Play } from 'lucide-react'
+import { OrnateFrame } from './Ornament'
 
 /**
  * Mock visual da mesa virtual — grid com tokens, ordem de iniciativa
@@ -26,7 +27,7 @@ export function TablePreview() {
   ]
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[1fr_280px]">
+    <OrnateFrame className="p-4 md:p-6" innerClassName="grid gap-5 lg:grid-cols-[1fr_280px]">
       {/* Mapa */}
       <div className="parchment-card relative aspect-[16/10] overflow-hidden rounded-2xl">
         <div
@@ -109,6 +110,6 @@ export function TablePreview() {
           </ul>
         </div>
       </div>
-    </div>
+    </OrnateFrame>
   )
 }

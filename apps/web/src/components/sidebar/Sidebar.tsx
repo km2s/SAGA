@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import Image from 'next/image'
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import {
   LayoutDashboard,
   ScrollText,
@@ -24,11 +24,10 @@ interface SidebarProps {
   discordClientId?: string
 }
 
-// Fundo de couro/cera do template (barra lateral "Codex Magistri")
-const leatherStyle = {
-  background: 'linear-gradient(180deg, #6a2817 0%, #2a1208 100%)',
-  boxShadow:
-    'inset -8px 0 16px -8px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(201,162,42,0.18)',
+// Fundo pergaminho da barra lateral "Codex Magistri" — funde-se com o conteúdo
+const codexStyle: CSSProperties = {
+  backgroundColor: 'var(--parchment)',
+  boxShadow: 'inset -1px 0 0 rgba(51,41,29,0.10)',
 }
 
 export function Sidebar({ campaigns = [], discordClientId }: SidebarProps) {
@@ -49,8 +48,7 @@ export function Sidebar({ campaigns = [], discordClientId }: SidebarProps) {
       {/* Botão hambúrguer mobile */}
       {!mobileOpen && (
         <button
-          className="md:hidden fixed top-3 left-3 z-50 w-9 h-9 rounded flex items-center justify-center text-parchment shadow-lg"
-          style={leatherStyle}
+          className="wax-seal md:hidden fixed top-3 left-3 z-50 w-9 h-9 rounded flex items-center justify-center text-parchment shadow-lg"
           onClick={() => setMobileOpen(true)}
           aria-label="Abrir menu"
         >
@@ -61,7 +59,7 @@ export function Sidebar({ campaigns = [], discordClientId }: SidebarProps) {
       {/* Backdrop */}
       {mobileOpen && (
         <div
-          className="md:hidden fixed inset-0 bg-black/70 z-40 backdrop-blur-sm"
+          className="md:hidden fixed inset-0 bg-ink/40 z-40 backdrop-blur-sm"
           onClick={() => setMobileOpen(false)}
         />
       )}
@@ -69,21 +67,21 @@ export function Sidebar({ campaigns = [], discordClientId }: SidebarProps) {
       {/* Sidebar */}
       <nav
         className={`
-          w-[230px] min-w-[230px] h-screen flex flex-col shrink-0 relative text-parchment
+          w-[230px] min-w-[230px] h-screen flex flex-col shrink-0 relative text-ink
           fixed md:relative z-50 md:z-auto
           transition-transform duration-300 ease-in-out
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         `}
-        style={leatherStyle}
+        style={codexStyle}
       >
         {/* filetes dourados tracejados na borda direita */}
         <div className="pointer-events-none absolute inset-y-3 right-2 w-px border-r border-dashed border-gold/40" />
         <div className="pointer-events-none absolute inset-y-3 right-3 w-px border-r border-dashed border-gold/25" />
 
         {/* Logo + fechar mobile */}
-        <div className="px-5 py-6 border-b border-gold/20 text-center relative">
+        <div className="px-5 py-6 border-b border-ink/15 text-center relative">
           <button
-            className="md:hidden absolute top-3 right-3 text-parchment/60 hover:text-parchment transition-colors"
+            className="md:hidden absolute top-3 right-3 text-ink-soft hover:text-ink transition-colors"
             onClick={() => setMobileOpen(false)}
             aria-label="Fechar menu"
           >
@@ -92,7 +90,7 @@ export function Sidebar({ campaigns = [], discordClientId }: SidebarProps) {
           <Link href="/dashboard" onClick={() => setMobileOpen(false)} className="block">
             <Crest className="h-11 w-11 mx-auto" />
             <div className="font-cinzel text-2xl font-bold tracking-[0.35em] gold-text mt-2">SAGA</div>
-            <div className="text-[10px] uppercase tracking-[4px] text-gold/60 mt-1 italic font-cormorant">
+            <div className="text-[10px] uppercase tracking-[4px] text-wax/70 mt-1 italic font-cormorant">
               Codex Magistri
             </div>
           </Link>
@@ -101,7 +99,7 @@ export function Sidebar({ campaigns = [], discordClientId }: SidebarProps) {
 
         {/* Nav principal */}
         <div className="px-4 pt-5 flex flex-col gap-1">
-          <p className="flex items-center gap-1.5 text-[9px] uppercase tracking-[3px] text-gold/50 px-3 mb-1"><Fleuron className="h-1.5 w-auto" /> Câmaras</p>
+          <p className="flex items-center gap-1.5 text-[9px] uppercase tracking-[3px] text-wax/60 px-3 mb-1"><Fleuron className="h-1.5 w-auto" /> Câmaras</p>
           {[
             { href: '/dashboard', label: 'Salão', Icon: LayoutDashboard },
             { href: '/characters', label: 'Meus Bravos', Icon: ScrollText },
@@ -111,12 +109,12 @@ export function Sidebar({ campaigns = [], discordClientId }: SidebarProps) {
               <div
                 className={`group relative flex items-center gap-3 rounded-md px-3 py-2.5 text-xs font-cinzel uppercase tracking-[0.15em] transition ${
                   isActive(href)
-                    ? 'bg-gradient-to-r from-gold/20 to-transparent text-gold'
-                    : 'text-parchment/70 hover:text-gold hover:bg-white/5'
+                    ? 'bg-wax/10 text-wax'
+                    : 'text-ink-soft hover:text-wax hover:bg-ink/5'
                 }`}
               >
                 {isActive(href) && (
-                  <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r bg-gold shadow-[0_0_8px_#c9a22a]" />
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r bg-wax shadow-[0_0_8px_rgba(143,58,36,0.4)]" />
                 )}
                 <Icon size={15} strokeWidth={1.8} className="shrink-0" />
                 {label}
@@ -128,19 +126,19 @@ export function Sidebar({ campaigns = [], discordClientId }: SidebarProps) {
         {/* Campanhas */}
         {campaigns.length > 0 && (
           <div className="px-4 mt-4">
-            <p className="flex items-center gap-1.5 text-[9px] uppercase tracking-[3px] text-gold/50 px-3 mb-1"><Fleuron className="h-1.5 w-auto" /> Crônicas</p>
+            <p className="flex items-center gap-1.5 text-[9px] uppercase tracking-[3px] text-wax/60 px-3 mb-1"><Fleuron className="h-1.5 w-auto" /> Crônicas</p>
             <div className="flex flex-col gap-1">
               {campaigns.map(c => (
                 <Link key={c.id} href={`/campaign/${c.id}`} onClick={() => setMobileOpen(false)}>
                   <div
                     className={`group relative flex items-center gap-2.5 rounded-md px-3 py-2.5 text-sm font-cormorant transition ${
                       isActive(`/campaign/${c.id}`)
-                        ? 'bg-gradient-to-r from-gold/20 to-transparent text-gold'
-                        : 'text-parchment/70 hover:text-gold hover:bg-white/5'
+                        ? 'bg-wax/10 text-wax'
+                        : 'text-ink-soft hover:text-wax hover:bg-ink/5'
                     }`}
                   >
                     {isActive(`/campaign/${c.id}`) && (
-                      <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r bg-gold shadow-[0_0_8px_#c9a22a]" />
+                      <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r bg-wax shadow-[0_0_8px_rgba(143,58,36,0.4)]" />
                     )}
                     <Swords size={13} strokeWidth={1.8} className="shrink-0" />
                     <span className="truncate flex-1">{c.name}</span>
@@ -156,7 +154,7 @@ export function Sidebar({ campaigns = [], discordClientId }: SidebarProps) {
         <div className="px-4 mt-auto mb-2 flex flex-col gap-1">
           <button
             onClick={() => window.dispatchEvent(new Event('saga:open-checklist'))}
-            className="flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm font-cormorant text-parchment/60 hover:text-gold hover:bg-white/5 transition cursor-pointer w-full"
+            className="flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm font-cormorant text-ink-soft hover:text-wax hover:bg-ink/5 transition cursor-pointer w-full"
           >
             <HelpCircle size={15} strokeWidth={1.8} className="shrink-0" />
             <span>Primeiros Passos</span>
@@ -166,7 +164,7 @@ export function Sidebar({ campaigns = [], discordClientId }: SidebarProps) {
               href={inviteUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm font-cormorant text-parchment/60 hover:text-gold hover:bg-white/5 transition cursor-pointer"
+              className="flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm font-cormorant text-ink-soft hover:text-wax hover:bg-ink/5 transition cursor-pointer"
             >
               <Bot size={15} strokeWidth={1.8} className="shrink-0" />
               <span>Convidar Bot</span>
@@ -175,8 +173,8 @@ export function Sidebar({ campaigns = [], discordClientId }: SidebarProps) {
         </div>
 
         {/* Usuário */}
-        <div className="border-t border-gold/20 p-4">
-          <div className="flex items-center gap-3 p-2 rounded-md cursor-pointer hover:bg-white/5 transition group">
+        <div className="border-t border-ink/15 p-4">
+          <div className="flex items-center gap-3 p-2 rounded-md cursor-pointer hover:bg-ink/5 transition group">
             {session?.user?.image ? (
               <Image
                 src={session.user.image}
@@ -186,19 +184,19 @@ export function Sidebar({ campaigns = [], discordClientId }: SidebarProps) {
                 className="rounded-full border border-gold/50"
               />
             ) : (
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gold to-wax grid place-items-center text-sm font-cinzel text-crypt-deep border border-gold/60 shrink-0">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gold to-wax grid place-items-center text-sm font-cinzel text-ink border border-gold/60 shrink-0">
                 {session?.user?.username?.[0]?.toUpperCase() ?? '?'}
               </div>
             )}
             <div className="flex-1 min-w-0 leading-tight">
-              <p className="text-sm font-cinzel tracking-wide text-gold truncate">
+              <p className="text-sm font-cinzel tracking-wide text-wax truncate">
                 {session?.user?.username ?? 'Carregando...'}
               </p>
-              <p className="text-[10px] uppercase tracking-[2px] text-parchment/50">Discord</p>
+              <p className="text-[10px] uppercase tracking-[2px] text-ink-soft">Discord</p>
             </div>
             <button
               onClick={() => signOut({ callbackUrl: '/login' })}
-              className="opacity-0 group-hover:opacity-100 text-parchment/50 hover:text-ember transition-all"
+              className="opacity-0 group-hover:opacity-100 text-ink-soft hover:text-ember transition-all"
               title="Sair"
             >
               <LogOut size={15} />

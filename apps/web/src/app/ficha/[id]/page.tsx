@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { Badge } from '@/components/ui/Badge'
 import Link from 'next/link'
 import { safeImageUrl } from '@/lib/safe-url'
+import { coverFor } from '@/lib/campaign-cover'
 import {
   Swords, Sparkles, Shield, Sword, Plus, Axe, Leaf, Music, Target, Dumbbell,
   Wand2, Moon, ScrollText, User, Heart,
@@ -61,7 +62,7 @@ export default async function PublicCharacterPage({ params }: { params: { id: st
             // eslint-disable-next-line @next/next/no-img-element
             <img src={safeImageUrl(char.imageUrl)!} alt={char.name} className="w-full h-64 object-cover object-top" />
           ) : (
-            <div className="w-full h-48 bg-gradient-to-br from-[#1a0533] via-[#4a1080] to-[#7c3aed] flex items-center justify-center">
+            <div className={`w-full h-48 bg-gradient-to-br ${coverFor(0)} flex items-center justify-center`}>
               <ClassIcon size={80} className="text-white/40" />
             </div>
           )}

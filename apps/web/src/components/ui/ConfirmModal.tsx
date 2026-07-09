@@ -69,7 +69,7 @@ export function ConfirmModal({
       onClick={onCancel}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={e => e.stopPropagation()} />
+      <div className="absolute inset-0 bg-ink/70 backdrop-blur-sm" onClick={e => e.stopPropagation()} />
 
       {/* Panel */}
       <div className="relative z-10 w-full max-w-sm mx-4 bg-[#f5ecd6] border border-wax rounded-xl shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>

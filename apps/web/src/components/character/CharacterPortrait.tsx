@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Camera, X, Check, User, Swords, Sparkles, Shield, Sword, Plus, Axe, Leaf, Music, Target, Dumbbell, Wand2, Moon, ScrollText } from 'lucide-react'
 import { safeImageUrl } from '@/lib/safe-url'
+import { coverFor } from '@/lib/campaign-cover'
 
 const CLASS_ICONS: Record<string, React.ElementType> = {
   Guerreiro: Swords, Mago: Sparkles, Paladino: Shield, Ladino: Sword, Clérigo: Plus,
@@ -49,7 +50,7 @@ export function CharacterPortrait({ characterId, imageUrl, name, charClass, canE
         // eslint-disable-next-line @next/next/no-img-element
         <img src={safe} alt={name} className="w-full h-52 object-cover object-top" />
       ) : (
-        <div className="w-full h-52 bg-gradient-to-br from-[#1a0533] via-[#4a1080] to-[#7c3aed] flex items-center justify-center">
+        <div className={`w-full h-52 bg-gradient-to-br ${coverFor(0)} flex items-center justify-center`}>
           <ClassIcon size={72} className="text-white/50" />
         </div>
       )}

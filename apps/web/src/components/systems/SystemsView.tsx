@@ -54,9 +54,9 @@ const CATEGORY_META: Record<string, {
   },
   generic: {
     label: 'Genérico', Icon: Dice6,
-    gradient: 'from-slate-800 via-slate-700/50 to-[#0d0d18]',
-    textColor: 'text-slate-400',
-    badgeClass: 'bg-slate-400/10 text-slate-400 border-slate-400/30',
+    gradient: 'from-[#3a2e1a] via-[#2e2318]/50 to-[#0d0d18]',
+    textColor: 'text-saga-muted',
+    badgeClass: 'bg-saga-muted/10 text-saga-muted border-saga-muted/30',
   },
   custom: {
     label: 'Personalizado', Icon: Pencil,

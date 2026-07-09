@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { Swords, Sparkles, Shield, Sword, Plus, Minus, Axe, Leaf, Music, Target, Dumbbell, Moon, ScrollText, User, ClipboardList, X, FileText, ChevronRight, Skull, ArrowLeft, StickyNote, Loader2 } from 'lucide-react'
 import { CharacterSheetView, type SheetCategory } from '@/components/character/CharacterSheetView'
+import { Fleuron } from '@/components/landing/Ornament'
 
 interface CharAttr {
   id: string
@@ -431,6 +432,7 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
                 ? (selection.kind === 'npc' ? 'Ficha do NPC' : 'Ficha Completa')
                 : 'Fichas de Personagem'}
             </span>
+            <Fleuron className="h-2 w-auto text-gold/50" />
           </div>
           <button onClick={onClose}
             className="w-6 h-6 flex items-center justify-center rounded text-saga-dim hover:text-saga-text hover:bg-white/8 transition-all">

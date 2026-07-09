@@ -28,7 +28,7 @@ const CATEGORY_META: Record<string, { label: string; Icon: React.ElementType; gr
   'world-of-darkness': { label: 'Mundo das Trevas', Icon: Moon, gradient: 'from-purple-950 via-purple-900/50 to-transparent', textColor: 'text-purple-400' },
   horror: { label: 'Horror', Icon: Skull, gradient: 'from-red-950 via-red-900/40 to-transparent', textColor: 'text-red-400' },
   scifi: { label: 'Sci-Fi', Icon: Rocket, gradient: 'from-blue-950 via-blue-800/40 to-transparent', textColor: 'text-blue-400' },
-  generic: { label: 'Genérico', Icon: Dice6, gradient: 'from-slate-800 via-slate-700/40 to-transparent', textColor: 'text-slate-400' },
+  generic: { label: 'Genérico', Icon: Dice6, gradient: 'from-[#3a2e1a] via-[#2e2318]/40 to-transparent', textColor: 'text-saga-muted' },
   custom: { label: 'Personalizado', Icon: Pencil, gradient: 'from-violet-950 via-violet-800/30 to-transparent', textColor: 'text-violet-400' },
 }
 

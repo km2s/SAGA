@@ -53,7 +53,7 @@ export function TutorialModal({
 
   const modal = (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onSkip} />
+      <div className="absolute inset-0 bg-ink/80 backdrop-blur-md" onClick={onSkip} />
 
       <div className="relative w-full max-w-md bg-[#f5ecd6] border border-ink/20 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
         {/* Top gradient bar */}
@@ -104,7 +104,7 @@ export function TutorialModal({
           {step.actionLabel && step.onAction && (
             <button
               onClick={step.onAction}
-              className="mt-5 w-full bg-gold text-crypt-deep font-semibold py-2.5 rounded-lg hover:bg-gold-dark transition-colors text-sm"
+              className="mt-5 w-full bg-gold text-ink font-semibold py-2.5 rounded-lg hover:bg-gold-dark transition-colors text-sm"
             >
               {step.actionLabel}
             </button>

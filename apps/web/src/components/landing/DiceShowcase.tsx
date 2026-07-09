@@ -14,19 +14,16 @@ const dice = [
 
 export function DiceShowcase() {
   return (
-    <section className="relative bg-crypt-deep py-24 text-parchment">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-parchment to-transparent" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-parchment to-transparent" />
-
+    <section className="relative py-24 text-ink">
       <div className="relative mx-auto max-w-7xl px-6">
         <div className="text-center">
-          <Eyebrow className="font-cinzel text-xs tracking-[0.45em] text-gold">FORJA · DE · DADOS</Eyebrow>
-          <h2 className="mt-4 font-cinzel text-4xl font-bold text-parchment md:text-5xl">
+          <Eyebrow className="font-cinzel text-xs tracking-[0.45em] text-wax">FORJA · DE · DADOS</Eyebrow>
+          <h2 className="mt-4 font-cinzel text-4xl font-bold text-ink md:text-5xl">
             Cada rolagem,
             <br />
             <span className="gold-text italic">um instante decisivo.</span>
           </h2>
-          <p className="mx-auto mt-6 max-w-2xl font-cormorant text-lg italic text-parchment/70">
+          <p className="mx-auto mt-6 max-w-2xl font-cormorant text-lg italic text-ink-soft">
             Do humilde d4 ao temido d20. Críticos brilham, falhas estremecem a mesa.
           </p>
         </div>
@@ -39,17 +36,17 @@ export function DiceShowcase() {
                 style={{ animationDelay: `${i * 0.3}s` }}
               >
                 <div
-                  className="absolute inset-0 bg-gradient-to-br from-gold via-gold-deep to-wax-deep shadow-[0_0_30px_rgba(212,168,75,0.4)]"
+                  className="absolute inset-0 bg-gradient-to-br from-gold via-gold-deep to-wax-deep shadow-[0_10px_24px_-12px_rgba(51,41,29,0.4)]"
                   style={{ clipPath: d.shape }}
                 />
                 <div
-                  className="absolute inset-[14%] flex items-center justify-center bg-crypt-deep"
+                  className="absolute inset-[14%] flex items-center justify-center bg-parchment"
                   style={{ clipPath: d.shape }}
                 >
-                  <span className="font-cinzel text-sm font-bold text-gold">{d.n}</span>
+                  <span className="font-cinzel text-sm font-bold text-gold-deep">{d.n}</span>
                 </div>
               </div>
-              <span className="font-cinzel text-[10px] tracking-[0.3em] text-parchment/60">
+              <span className="font-cinzel text-[10px] tracking-[0.3em] text-ink-soft">
                 {d.n.toUpperCase()}
               </span>
             </div>

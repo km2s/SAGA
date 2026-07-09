@@ -230,20 +230,18 @@ function Systems() {
   ]
 
   return (
-    <section id="sistemas" className="relative bg-crypt-deep py-24 text-parchment">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-parchment to-transparent" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-parchment to-transparent" />
-      <div className="animate-flicker pointer-events-none absolute left-1/2 top-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-ember/15 blur-3xl" />
+    <section id="sistemas" className="relative py-24 text-ink">
+      <div className="animate-flicker pointer-events-none absolute left-1/2 top-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-ember/10 blur-3xl" />
 
       <div className="relative mx-auto max-w-7xl px-6">
         <div className="text-center">
-          <Eyebrow className="font-cinzel text-xs tracking-[0.45em] text-gold">CINCO REINOS</Eyebrow>
-          <h2 className="mt-4 font-cinzel text-4xl font-bold text-parchment md:text-5xl">
+          <Eyebrow className="font-cinzel text-xs tracking-[0.45em] text-wax">CINCO REINOS</Eyebrow>
+          <h2 className="mt-4 font-cinzel text-4xl font-bold text-ink md:text-5xl">
             Um sistema para
             <br />
             <span className="gold-text italic">cada lenda.</span>
           </h2>
-          <p className="mx-auto mt-6 max-w-2xl font-cormorant text-lg italic text-parchment/70">
+          <p className="mx-auto mt-6 max-w-2xl font-cormorant text-lg italic text-ink-soft">
             Da masmorra à cidade neon, da casa assombrada ao covil do vampiro — o Saga adapta
             a ficha ao que sua mesa quer contar.
           </p>
@@ -253,11 +251,11 @@ function Systems() {
           {systems.map((s) => (
             <div
               key={s.name}
-              className="group relative rounded-xl border border-gold/20 bg-crypt/60 p-6 backdrop-blur-sm transition hover:-translate-y-1 hover:border-gold/60 hover:bg-crypt"
+              className="parchment-card group relative rounded-xl border border-ink/15 p-6 transition hover:-translate-y-1 hover:border-wax/40"
             >
-              <p className="font-cinzel text-[10px] tracking-[0.3em] text-gold/80">{s.cat}</p>
-              <h3 className="mt-3 font-cinzel text-xl font-bold text-parchment">{s.name}</h3>
-              <p className="mt-2 font-cormorant text-sm leading-relaxed text-parchment/65">{s.desc}</p>
+              <p className="font-cinzel text-[10px] tracking-[0.3em] text-wax">{s.cat}</p>
+              <h3 className="mt-3 font-cinzel text-xl font-bold text-ink">{s.name}</h3>
+              <p className="mt-2 font-cormorant text-sm leading-relaxed text-ink-soft">{s.desc}</p>
               <div className="mt-5 h-px bg-gradient-to-r from-transparent via-gold/50 to-transparent" />
             </div>
           ))}
