@@ -16,7 +16,11 @@ function buildCsp(nonce: string): string {
     // Google Fonts (Cinzel, Cormorant, etc.) são carregadas via @import em globals.css:
     // a folha vem de fonts.googleapis.com e os arquivos .woff2 de fonts.gstatic.com.
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "img-src 'self' https://cdn.discordapp.com https://media.discordapp.net https://res.cloudinary.com https://i.imgur.com data: blob:",
+    // Imagens de usuário (mapas, retratos, handouts) podem vir de qualquer host
+    // público (reddit, imgur, etc.). Liberar https: é seguro: imagens não
+    // executam script e o servidor não busca essas URLs. A validação de host
+    // interno/privado fica em lib/validate-url.ts.
+    "img-src 'self' https: data: blob:",
     "font-src 'self' https://fonts.gstatic.com",
     "connect-src 'self'",
     "media-src 'self' https://www.youtube-nocookie.com",
