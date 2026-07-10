@@ -288,7 +288,12 @@ export default function ExplorarPage() {
     setLoading(true)
     fetch('/api/campaigns/open')
       .then(r => r.json())
-      .then((data: OpenCampaign[]) => { if (Array.isArray(data)) setCampaigns(data) })
+      // O endpoint retorna { campaigns, page, pageSize } (paginado); toleramos
+      // também um array puro por compatibilidade.
+      .then((data: OpenCampaign[] | { campaigns?: OpenCampaign[] }) => {
+        const list = Array.isArray(data) ? data : data?.campaigns
+        if (Array.isArray(list)) setCampaigns(list)
+      })
       .catch(() => {})
       .finally(() => setLoading(false))
   }
