@@ -6,6 +6,7 @@ import {
   X, Upload, FileText, Loader2, AlertTriangle,
   Check, Trash2, ChevronDown, ChevronUp, Info, ArrowLeft,
 } from 'lucide-react'
+import { Select } from '@/components/ui/Select'
 
 interface ExtractedAttr { name: string; value: number | null }
 interface ExtractResult {
@@ -276,14 +277,12 @@ export function ImportCharacterModal({ open, onClose, campaigns }: Props) {
             </div>
             <div>
               <label className="block text-[10px] font-bold text-wax uppercase tracking-widest mb-1.5">Campanha <span className="text-ink-soft/60 normal-case">(opcional)</span></label>
-              <select
+              <Select
+                size="sm"
                 value={campaignId}
-                onChange={e => setCampaignId(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg text-xs bg-parchment/60 border border-ink/20 text-ink focus:outline-none focus:border-wax appearance-none"
-              >
-                <option value="">Nenhuma</option>
-                {campaigns.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
+                onChange={v => setCampaignId(v)}
+                options={[{ value: '', label: 'Nenhuma' }, ...campaigns.map(c => ({ value: c.id, label: c.name }))]}
+              />
             </div>
           </div>
 

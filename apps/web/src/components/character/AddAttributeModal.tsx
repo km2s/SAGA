@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
+import { Select } from '@/components/ui/Select'
 
 const COMMON_ATTRIBUTES = [
   { name: 'Força', die: 'd20' },
@@ -150,10 +151,8 @@ export function AddAttributeModal({ characterId, open, onClose }: {
           </div>
           <div>
             <label className="text-[11px] text-ink-soft font-bold uppercase tracking-widest block mb-1.5">Dado padrão</label>
-            <select value={form.defaultDie} onChange={e => set('defaultDie', e.target.value)}
-              className="w-full bg-parchment/60 border border-ink/20 rounded px-3 py-2 text-sm focus:outline-none focus:border-wax transition-colors">
-              {['d4','d6','d8','d10','d12','d20','d100'].map(d => <option key={d}>{d}</option>)}
-            </select>
+            <Select value={form.defaultDie} onChange={v => set('defaultDie', v)}
+              options={['d4','d6','d8','d10','d12','d20','d100'].map(d => ({ value: d, label: d }))} />
           </div>
           <div className="flex flex-col justify-end">
             <p className="text-[11px] text-ink-soft mb-1">Modificador calculado:</p>

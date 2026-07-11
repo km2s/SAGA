@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
+import { Select } from '@/components/ui/Select'
 import {
   Swords, Moon, Skull, Rocket, Dice6, Pencil,
   Sword, Flame, Globe, Castle, Sparkles, Target, Leaf, Zap, Ghost, Eye, Shield, Cpu, Monitor, Compass,
@@ -131,12 +132,8 @@ export function CreateCharacterModal({ campaigns, open, onClose }: {
               <span className="text-sm text-ink font-medium">{selectedCampaign?.name}</span>
             </div>
           ) : (
-            <select value={form.campaignId} onChange={e => set('campaignId', e.target.value)}
-              className="w-full bg-parchment/60 border border-ink/20 rounded px-3 py-2 text-sm focus:outline-none focus:border-wax">
-              {campaigns.map(c => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
+            <Select value={form.campaignId} onChange={v => set('campaignId', v)}
+              options={campaigns.map(c => ({ value: c.id, label: c.name }))} />
           )}
         </div>
 

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
+import { Select } from '@/components/ui/Select'
 
 const NPC_TYPES = [
   { value: 'NEUTRAL', label: 'Neutro' },
@@ -126,18 +127,13 @@ export function NpcGMControls({ campaignId, npc, players }: {
             </div>
             <div>
               <label className="text-[11px] text-ink-soft font-bold uppercase tracking-widest block mb-1.5">Tipo</label>
-              <select value={form.type} onChange={e => set('type', e.target.value)}
-                className="w-full bg-parchment/60 border border-ink/20 rounded px-3 py-2 text-sm focus:outline-none focus:border-wax transition-colors">
-                {NPC_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-              </select>
+              <Select value={form.type} onChange={v => set('type', v)}
+                options={NPC_TYPES.map(t => ({ value: t.value, label: t.label }))} />
             </div>
             <div>
               <label className="text-[11px] text-ink-soft font-bold uppercase tracking-widest block mb-1.5">Ligado ao Jogador</label>
-              <select value={form.linkedMemberId} onChange={e => set('linkedMemberId', e.target.value)}
-                className="w-full bg-parchment/60 border border-ink/20 rounded px-3 py-2 text-sm focus:outline-none focus:border-wax transition-colors">
-                <option value="">Nenhum</option>
-                {players.map(p => <option key={p.id} value={p.id}>{p.user.username}</option>)}
-              </select>
+              <Select value={form.linkedMemberId} onChange={v => set('linkedMemberId', v)}
+                options={[{ value: '', label: 'Nenhum' }, ...players.map(p => ({ value: p.id, label: p.user.username }))]} />
             </div>
           </div>
 

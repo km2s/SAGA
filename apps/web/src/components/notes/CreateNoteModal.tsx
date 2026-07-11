@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
+import { Select } from '@/components/ui/Select'
 
 interface Props {
   open: boolean
@@ -82,16 +83,15 @@ export function CreateNoteModal({ open, onClose, campaignId, isGM }: Props) {
           <label className="text-[11px] text-ink-soft font-bold uppercase tracking-widest block mb-1.5">
             Visibilidade
           </label>
-          <select
-            name="visibility"
+          <Select
             value={form.visibility}
-            onChange={handleChange}
-            className="w-full bg-parchment/60 border border-ink/20 rounded px-3 py-2.5 text-sm text-ink focus:outline-none focus:border-wax transition-colors"
-          >
-            <option value="PRIVATE">Privada — só você</option>
-            <option value="CAMPAIGN">Campanha — todos os jogadores</option>
-            {isGM && <option value="GM_ONLY">Só Mestre</option>}
-          </select>
+            onChange={v => setForm(f => ({ ...f, visibility: v }))}
+            options={[
+              { value: 'PRIVATE', label: 'Privada — só você' },
+              { value: 'CAMPAIGN', label: 'Campanha — todos os jogadores' },
+              ...(isGM ? [{ value: 'GM_ONLY', label: 'Só Mestre' }] : []),
+            ]}
+          />
         </div>
 
         {error && <p className="text-sm text-red-700">{error}</p>}

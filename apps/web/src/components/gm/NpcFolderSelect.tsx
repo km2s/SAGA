@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { FolderInput } from 'lucide-react'
+import { Select } from '@/components/ui/Select'
 
 export function NpcFolderSelect({ campaignId, npcId, folders, currentFolderId }: {
   campaignId: string
@@ -27,16 +28,14 @@ export function NpcFolderSelect({ campaignId, npcId, folders, currentFolderId }:
   return (
     <div className="flex items-center gap-1.5 px-3 pb-3 -mt-1" onClick={e => { e.preventDefault(); e.stopPropagation() }}>
       <FolderInput size={12} className="text-ink-soft/60 shrink-0" />
-      <select
-        value={currentFolderId ?? ''}
+      <Select
+        size="sm"
+        className="flex-1 min-w-0"
         disabled={saving}
-        onChange={e => move(e.target.value || null)}
-        className="flex-1 min-w-0 text-[11px] bg-parchment/60 border border-ink/20 rounded px-1.5 py-1 text-ink-soft focus:outline-none focus:border-wax"
-        title="Mover para pasta"
-      >
-        <option value="">Sem pasta</option>
-        {folders.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
-      </select>
+        value={currentFolderId ?? ''}
+        onChange={v => move(v || null)}
+        options={[{ value: '', label: 'Sem pasta' }, ...folders.map(f => ({ value: f.id, label: f.name }))]}
+      />
     </div>
   )
 }

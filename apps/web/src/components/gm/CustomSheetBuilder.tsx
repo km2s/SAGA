@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Plus, Trash2, ChevronDown, ChevronUp, Check, Loader2, FileText, Hash } from 'lucide-react'
+import { Select } from '@/components/ui/Select'
 
 interface AttrInput { name: string; dice: string }
 interface GroupInput { name: string; attributes: AttrInput[] }
@@ -137,10 +138,8 @@ export function CustomSheetBuilder({ campaignId }: { campaignId: string }) {
                         <input value={attr.name} onChange={e => setAttrField(gi, ai, 'name', e.target.value)}
                           placeholder="Nome do atributo"
                           className={`flex-1 ${inputCls}`} />
-                        <select value={attr.dice} onChange={e => setAttrField(gi, ai, 'dice', e.target.value)}
-                          className={`w-20 ${inputCls}`}>
-                          {DICE_OPTIONS.map(d => <option key={d} value={d}>{d}</option>)}
-                        </select>
+                        <Select size="sm" className="w-20" value={attr.dice} onChange={v => setAttrField(gi, ai, 'dice', v)}
+                          options={DICE_OPTIONS.map(d => ({ value: d, label: d }))} />
                         <button onClick={() => removeAttr(gi, ai)}
                           className="text-ink-soft hover:text-red-700 transition-colors p-1 shrink-0">
                           <Trash2 size={12} />

@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Select } from '@/components/ui/Select'
 
 interface Attr { id: string; value: number; customDie: string | null; attribute: { name: string; defaultDie: string; description?: string | null } }
 interface TextField { id: string; key: string; label: string; value: string; order: number }
@@ -178,11 +179,9 @@ function VowSlot({ num, characterId, textFields, canEdit, onRefresh }: { num: nu
         onBlur={e => void saveTF(titleKey, `Jura ${num}`, e.target.value)}
         disabled={!canEdit} placeholder="Nome da jura..."
         className="w-full bg-parchment/40 border border-ink/15 rounded px-2 py-1 text-sm text-ink-soft focus:outline-none focus:border-amber-500/50" />
-      <select value={localRank} onChange={e => { setLocalRank(e.target.value); void saveTF(rankKey, `Jura ${num} — Dificuldade`, e.target.value) }}
-        disabled={!canEdit}
-        className="w-full bg-parchment/40 border border-ink/15 rounded px-2 py-1 text-[11px] text-ink-soft focus:outline-none">
-        {VOW_RANKS.map(r => <option key={r} value={r}>{r} ({VOW_PROGRESS[r] ?? '?'} ticks/caixa)</option>)}
-      </select>
+      <Select size="sm" disabled={!canEdit} value={localRank}
+        onChange={v => { setLocalRank(v); void saveTF(rankKey, `Jura ${num} — Dificuldade`, v) }}
+        options={VOW_RANKS.map(r => ({ value: r, label: `${r} (${VOW_PROGRESS[r] ?? '?'} ticks/caixa)` }))} />
       {/* Progress Track */}
       <div className="space-y-1">
         <div className="flex items-center justify-between">

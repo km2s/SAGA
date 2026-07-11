@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Camera, Trash2, Shield, User, ShieldAlert, UserCheck, Heart, Wind } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
+import { Select } from '@/components/ui/Select'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { NPCHPEditor } from './NPCHPEditor'
 import { safeImageUrl } from '@/lib/safe-url'
@@ -70,6 +71,25 @@ export function NPCInfoEditor({ campaignId, npc: initial, players }: {
       setNpc(n => ({ ...n, ...updated } as NPCData))
       router.refresh()
     }
+  }
+
+  // Nível: atualização otimista (instantânea) + PATCH debounced em segundo plano,
+  // sem router.refresh — clicar em +/- não espera o servidor.
+  const levelTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const levelTarget = useRef(initial.level)
+  function changeLevel(delta: number) {
+    const level = Math.max(1, Math.min(100, levelTarget.current + delta))
+    if (level === levelTarget.current) return
+    levelTarget.current = level
+    setNpc(n => ({ ...n, level }))
+    if (levelTimer.current) clearTimeout(levelTimer.current)
+    levelTimer.current = setTimeout(() => {
+      fetch(`/api/campaigns/${campaignId}/npcs/${npc.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ level }),
+      }).catch(() => {})
+    }, 350)
   }
 
   function startEdit(field: string, value: string) {
@@ -187,12 +207,12 @@ export function NPCInfoEditor({ campaignId, npc: initial, players }: {
           {/* Level */}
           <div className="flex justify-center items-center gap-2 mt-3">
             <button
-              onClick={() => void patch({ level: Math.max(1, npc.level - 1) })}
+              onClick={() => changeLevel(-1)}
               className="w-6 h-6 text-ink-soft hover:text-gold transition-colors text-xl leading-none flex items-center justify-center"
             >−</button>
             <Badge variant="gold">Nível {npc.level}</Badge>
             <button
-              onClick={() => void patch({ level: Math.min(100, npc.level + 1) })}
+              onClick={() => changeLevel(1)}
               className="w-6 h-6 text-ink-soft hover:text-gold transition-colors text-xl leading-none flex items-center justify-center"
             >+</button>
           </div>
@@ -200,14 +220,12 @@ export function NPCInfoEditor({ campaignId, npc: initial, players }: {
           {/* Linked member */}
           <div className="border-t border-ink/20 pt-2 mt-2">
             <p className="text-[10px] text-ink-soft mb-1">Ligado ao jogador</p>
-            <select
+            <Select
+              size="sm"
               value={npc.linkedMemberId ?? ''}
-              onChange={e => void patch({ linkedMemberId: e.target.value || null })}
-              className="w-full bg-parchment/60 border border-ink/20 rounded px-2 py-1 text-[11px] focus:outline-none focus:border-wax transition-colors"
-            >
-              <option value="">Nenhum</option>
-              {players.map(p => <option key={p.id} value={p.id}>{p.user.username}</option>)}
-            </select>
+              onChange={v => void patch({ linkedMemberId: v || null })}
+              options={[{ value: '', label: 'Nenhum' }, ...players.map(p => ({ value: p.id, label: p.user.username }))]}
+            />
           </div>
         </div>
       </div>
@@ -218,13 +236,11 @@ export function NPCInfoEditor({ campaignId, npc: initial, players }: {
       {/* Type */}
       <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg p-3">
         <p className="font-almendra text-[9px] font-bold text-ink-soft uppercase tracking-widest mb-2">Tipo de NPC</p>
-        <select
+        <Select
           value={npc.type}
-          onChange={e => void patch({ type: e.target.value })}
-          className="w-full bg-parchment/60 border border-ink/20 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-wax transition-colors"
-        >
-          {NPC_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-        </select>
+          onChange={v => void patch({ type: v })}
+          options={NPC_TYPES.map(t => ({ value: t.value, label: t.label }))}
+        />
       </div>
 
       {/* Visibility */}
