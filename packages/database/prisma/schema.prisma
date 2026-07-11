@@ -47,6 +47,7 @@ model Campaign {
   system       RPGSystem?            @relation(fields: [systemId], references: [id])
   members      CampaignMember[]
   npcs         NPC[]
+  npcFolders   NpcFolder[]
   sessions     Session[]
   notes        Note[]
   handouts     Handout[]
@@ -222,16 +223,32 @@ model NPC {
   isPublic       Boolean  @default(false)
   campaignId     String
   linkedMemberId String?
+  folderId       String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   campaign     Campaign        @relation(fields: [campaignId], references: [id])
   linkedMember CampaignMember? @relation("NPCLinkedMember", fields: [linkedMemberId], references: [id])
+  folder       NpcFolder?      @relation(fields: [folderId], references: [id], onDelete: SetNull)
   attributes   NPCAttribute[]
   textFields   NPCTextField[]
   weapons      NPCWeapon[]
   spellSlots   NPCSpellSlot[]
   visibilities NPCVisibility[]
+
+  @@index([campaignId])
+  @@index([folderId])
+}
+
+model NpcFolder {
+  id         String   @id @default(cuid())
+  campaignId String
+  name       String
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  npcs     NPC[]
 
   @@index([campaignId])
 }

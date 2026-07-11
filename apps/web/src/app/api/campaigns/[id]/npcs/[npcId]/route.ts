@@ -49,7 +49,16 @@ export async function PATCH(req: Request, { params }: { params: { id: string; np
   const body = await req.json() as {
     name?: string; description?: string; imageUrl?: string; type?: string
     race?: string; class?: string; level?: number; hp?: number; maxHp?: number
-    isPublic?: boolean; linkedMemberId?: string | null
+    isPublic?: boolean; linkedMemberId?: string | null; folderId?: string | null
+  }
+
+  // folderId: valida que a pasta pertence a esta campanha (null = sem pasta)
+  if (body.folderId !== undefined && body.folderId !== null) {
+    const folder = await prisma.npcFolder.findFirst({
+      where: { id: body.folderId, campaignId: params.id },
+      select: { id: true },
+    }).catch(() => null)
+    if (!folder) return NextResponse.json({ error: 'Pasta inválida' }, { status: 400 })
   }
 
   let imageUrl: string | null = null
@@ -80,6 +89,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string; np
       ...(body.maxHp !== undefined && { maxHp: Math.max(0, body.maxHp) }),
       ...(body.isPublic !== undefined && { isPublic: body.isPublic }),
       ...(body.linkedMemberId !== undefined && { linkedMemberId: body.linkedMemberId }),
+      ...(body.folderId !== undefined && { folderId: body.folderId }),
     },
     include: {
       attributes: { include: { attribute: true } },
