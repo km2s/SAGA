@@ -106,7 +106,15 @@ export default async function CharacterDetailPage({ params }: { params: { id: st
   const campaign = member.campaign
   const system = campaign.system
 
-  const category: SheetCategory = detectCategory(system?.name)
+  // Sistemas personalizados (não-preset) respeitam a categoria escolhida pelo
+  // usuário na criação; presets continuam pela detecção por nome (precisa).
+  // Sem isso, um sistema custom com nome parecido com D&D caía em "fantasy" e
+  // aplicava o modificador (valor-10)/2 (ex.: valor 5 virava -3 em vez de 5).
+  const VALID_CATEGORIES: SheetCategory[] = ['fantasy', 'world-of-darkness', 'horror', 'scifi', 'generic', 'custom']
+  const category: SheetCategory =
+    system && !system.isPreset && system.category && (VALID_CATEGORIES as string[]).includes(system.category)
+      ? (system.category as SheetCategory)
+      : detectCategory(system?.name)
   const SystemIcon = system?.isPreset ? ClipboardList : Pencil
   const systemColor = SYSTEM_COLOR[category] ?? 'text-ink-soft'
 

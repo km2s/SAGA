@@ -7,6 +7,7 @@ import { EndSessionButton } from '@/components/gm/EndSessionButton'
 import { MusicPlayer } from './MusicPlayer'
 import { CharacterSheetPanel } from './CharacterSheetPanel'
 import { HandoutsPanel } from './HandoutsPanel'
+import type { SheetCategory } from '@/lib/system-category'
 import { InitiativeTracker } from './InitiativeTracker'
 import { LiveControlPanel } from './LiveControlPanel'
 import { RollLog } from './RollLog'
@@ -33,13 +34,14 @@ interface VirtualTableProps {
   campaign: Campaign; activeSession: ActiveSession | null
   members: Member[]; npcs: NpcData[]; initialRolls: RollLogEntry[]
   isGM: boolean; currentMemberId: string; systemName: string | null
+  systemCategory: SheetCategory
 }
 
 interface TokenDrag { tokenId: string; startMouseX: number; startMouseY: number; startTokenX: number; startTokenY: number }
 interface PanDrag   { startMouseX: number; startMouseY: number; startPanX: number; startPanY: number }
 interface PinchState { dist: number; zoom: number; panX: number; panY: number; midX: number; midY: number }
 
-export function VirtualTable({ campaign, activeSession, members, npcs, initialRolls, isGM, currentMemberId, systemName }: VirtualTableProps) {
+export function VirtualTable({ campaign, activeSession, members, npcs, initialRolls, isGM, currentMemberId, systemName, systemCategory }: VirtualTableProps) {
   const [tool, setTool] = useState<Tool>('select')
   const [tokens, setTokens] = useState<Token[]>(() => {
     if (activeSession?.tokensJson) {
@@ -422,6 +424,24 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
     setLastRollId(roll.id)
     setRolls(prev=>[roll,...prev].slice(0, 50))
     setTimeout(()=>setLastRollId(null),2000)
+  }
+
+  // Rola 1d20 + modificador para um atributo específico (de personagem ou NPC),
+  // registrando o rótulo (ex.: "Malachor · Constituição") no log.
+  async function rollAttribute(label: string, modifier: number) {
+    if (!activeSession?.isActive) return
+    const expr = modifier !== 0 ? `1d20${modifier > 0 ? '+' : ''}${modifier}` : '1d20'
+    const res = await fetch(`/api/campaigns/${campaign.id}/rolls`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ expression: expr, attribute: label }),
+    }).catch(() => null)
+    if (!res?.ok) return
+    const roll: RollLogEntry = await res.json().catch(() => null)
+    if (!roll) return
+    sinceRef.current = roll.rolledAt
+    setLastRollId(roll.id)
+    setRolls(prev => [roll, ...prev].slice(0, 50))
+    setTimeout(() => setLastRollId(null), 2000)
   }
 
   function applyMap() {
@@ -830,6 +850,9 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
               onClose={()=>setSheetsOpen(false)}
               members={members} npcs={npcs} currentMemberId={currentMemberId}
               isGM={isGM} campaignId={campaign.id} systemName={systemName}
+              systemCategory={systemCategory}
+              canRoll={!!activeSession?.isActive}
+              onRollAttribute={rollAttribute}
               hpOverrides={hpOverrides}
               onHpChange={(id, hp) => setHpOverrides(prev => ({ ...prev, [id]: hp }))}
             />

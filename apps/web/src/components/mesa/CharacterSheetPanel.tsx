@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
-import { Swords, Sparkles, Shield, Sword, Plus, Minus, Axe, Leaf, Music, Target, Dumbbell, Moon, ScrollText, User, ClipboardList, X, FileText, ChevronRight, Skull, ArrowLeft, StickyNote, Loader2 } from 'lucide-react'
+import { Swords, Sparkles, Shield, Sword, Plus, Minus, Axe, Leaf, Music, Target, Dumbbell, Moon, ScrollText, User, ClipboardList, X, FileText, ChevronRight, Skull, ArrowLeft, StickyNote, Loader2, Dice6 } from 'lucide-react'
 import { CharacterSheetView, type SheetCategory } from '@/components/character/CharacterSheetView'
+import { attributeModifier, formatModifier } from '@/lib/system-category'
 import { Fleuron } from '@/components/landing/Ornament'
 
 interface CharAttr {
@@ -64,6 +65,9 @@ interface Props {
   isGM: boolean
   campaignId: string
   systemName: string | null
+  systemCategory: SheetCategory
+  canRoll?: boolean
+  onRollAttribute?: (label: string, modifier: number) => void
   hpOverrides?: Record<string, number>
   onHpChange?: (id: string, hp: number) => void
 }
@@ -92,50 +96,6 @@ const ATTR_ABBREV: Record<string, string> = {
   'Inteligência': 'INT', 'Sabedoria': 'SAB', 'Carisma': 'CAR',
 }
 
-const SYSTEM_CATEGORIES: Record<string, SheetCategory> = {
-  'D&D 5e': 'fantasy', 'D&D 3.5e': 'fantasy', 'Pathfinder 2e': 'fantasy',
-  'Pathfinder 1e': 'fantasy', 'Tormenta20': 'fantasy', 'Old Dragon 2': 'fantasy',
-  'Dungeon World': 'fantasy', '13th Age': 'fantasy',
-  'Vampire: The Masquerade V5': 'world-of-darkness',
-  'Vampire: The Masquerade V20': 'world-of-darkness',
-  'Vampire: The Masquerade': 'world-of-darkness',
-  'Werewolf: The Apocalypse': 'world-of-darkness',
-  'Mage: The Ascension': 'world-of-darkness',
-  'Mage: The Awakening': 'world-of-darkness',
-  'Hunter: The Reckoning': 'world-of-darkness',
-  'Changeling: The Lost': 'world-of-darkness',
-  'Demon: The Descent': 'world-of-darkness',
-  'Geist: The Sin-Eaters': 'world-of-darkness',
-  'Call of Cthulhu 7e': 'horror', 'Delta Green': 'horror', 'Mothership': 'horror',
-  'Cyberpunk Red': 'scifi', 'Starfinder': 'scifi', 'Shadowrun 6e': 'scifi',
-  'Star Wars: Edge of the Empire': 'scifi',
-  'GURPS 4e': 'generic', 'Fate Core': 'generic', 'Savage Worlds': 'generic',
-  'Blades in the Dark': 'generic', 'Ironsworn': 'generic',
-  'Personalizado': 'custom',
-}
-
-function detectCategory(name: string | null | undefined): SheetCategory {
-  if (!name) return 'custom'
-  const exact = SYSTEM_CATEGORIES[name]
-  if (exact) return exact
-  const n = name.toLowerCase()
-  if (n.includes('vampire') || n.includes('werewolf') || n.includes('mage') ||
-      n.includes('hunter') || n.includes('changeling') || n.includes('demon') ||
-      n.includes('geist') || n.includes('masquerade') || n.includes('darkness'))
-    return 'world-of-darkness'
-  if (n.includes('cthulhu') || n.includes('horror') || n.includes('mothership') || n.includes('delta green'))
-    return 'horror'
-  if (n.includes('cyberpunk') || n.includes('starfinder') || n.includes('shadowrun') || n.includes('star wars'))
-    return 'scifi'
-  if (n.includes('d&d') || n.includes('pathfinder') || n.includes('tormenta') || n.includes('dungeon'))
-    return 'fantasy'
-  return 'custom'
-}
-
-function dndMod(v: number) {
-  const m = Math.floor((v - 10) / 2)
-  return m >= 0 ? `+${m}` : `${m}`
-}
 
 function HPEditor({ initialHp, maxHp, canEdit, onSave }: {
   initialHp: number; maxHp: number; canEdit: boolean; onSave: (hp: number) => void
@@ -211,27 +171,43 @@ function HPEditor({ initialHp, maxHp, canEdit, onSave }: {
   )
 }
 
-function AttributesBlock({ attributes }: { attributes: CharAttr[] }) {
+function AttributesBlock({ attributes, category, charName, canRoll, onRoll }: {
+  attributes: CharAttr[]
+  category: SheetCategory
+  charName: string
+  canRoll: boolean
+  onRoll?: (label: string, modifier: number) => void
+}) {
   const coreAttrs  = attributes.filter(a => CORE_NAMES.has(a.name))
   const otherAttrs = attributes.filter(a => !CORE_NAMES.has(a.name))
   const hasCore    = coreAttrs.length >= 4
+
+  const roll = (a: CharAttr) => {
+    if (!canRoll || !onRoll) return
+    onRoll(`${charName} · ${a.name}`, attributeModifier(a.value, category))
+  }
 
   return (
     <>
       {hasCore && (
         <div>
-          <p className="text-[10px] font-bold text-saga-dim uppercase tracking-widest mb-2">Atributos</p>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-[10px] font-bold text-saga-dim uppercase tracking-widest">Atributos</p>
+            {canRoll && <span className="text-[8px] text-saga-dim/70 flex items-center gap-1"><Dice6 size={9} /> clique p/ rolar</span>}
+          </div>
           <div className="grid grid-cols-3 gap-2">
             {coreAttrs.map(a => (
-              <div key={a.id} className="rounded-lg p-2.5 text-center"
+              <button key={a.id} type="button" disabled={!canRoll} onClick={() => roll(a)}
+                title={canRoll ? `Rolar 1d20 ${formatModifier(a.value, category)} · ${a.name}` : a.name}
+                className={`group rounded-lg p-2.5 text-center transition-all ${canRoll ? 'cursor-pointer hover:brightness-125 hover:border-[color:var(--gold)]' : 'cursor-default'}`}
                 style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                <p className="font-cinzel text-xl font-bold text-saga-text leading-none">{dndMod(a.value)}</p>
+                <p className="font-cinzel text-xl font-bold text-saga-text leading-none">{formatModifier(a.value, category)}</p>
                 <div className="w-full h-px my-1.5" style={{ background: 'rgba(255,255,255,0.1)' }} />
                 <p className="text-[12px] font-semibold text-saga-muted leading-none mb-0.5">{a.value}</p>
                 <p className="text-[8px] text-saga-dim uppercase tracking-widest font-bold">
                   {ATTR_ABBREV[a.name] ?? a.name.slice(0, 3).toUpperCase()}
                 </p>
-              </div>
+              </button>
             ))}
           </div>
         </div>
@@ -244,13 +220,20 @@ function AttributesBlock({ attributes }: { attributes: CharAttr[] }) {
           </p>
           <div className="space-y-1">
             {otherAttrs.map(a => (
-              <div key={a.id} className="flex items-center justify-between px-3 py-2 rounded"
+              <div key={a.id} className="flex items-center justify-between px-3 py-2 rounded group"
                 style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
                 <span className="text-[12px] text-saga-muted">{a.name}</span>
                 <div className="flex items-center gap-1.5">
                   <span className="font-cinzel font-bold text-sm text-saga-text">{a.value}</span>
                   {a.defaultDie && a.defaultDie !== 'd20' && (
                     <span className="text-[9px] text-saga-dim font-mono opacity-60">{a.defaultDie}</span>
+                  )}
+                  {canRoll && (
+                    <button type="button" onClick={() => roll(a)}
+                      title={`Rolar 1d20 ${formatModifier(a.value, category)}`}
+                      className="text-saga-dim hover:text-gold transition-colors opacity-0 group-hover:opacity-100">
+                      <Dice6 size={12} />
+                    </button>
                   )}
                 </div>
               </div>
@@ -328,7 +311,7 @@ type Selection =
   | { kind: 'member'; id: string }
   | { kind: 'npc';    id: string }
 
-export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, isGM, campaignId, systemName, hpOverrides = {}, onHpChange }: Props) {
+export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, isGM, campaignId, systemName, systemCategory, canRoll = false, onRollAttribute, hpOverrides = {}, onHpChange }: Props) {
   const membersWithChar = members.filter(m => m.character)
 
   const [selection, setSelection] = useState<Selection>(() => {
@@ -530,7 +513,7 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
                     weapons={fullData.weapons}
                     spellSlots={fullData.spellSlots}
                     canEdit={fullData.canEdit}
-                    category={detectCategory(fullData.systemName)}
+                    category={systemCategory}
                     systemName={fullData.systemName}
                     onRefresh={refreshFull}
                   />
@@ -595,7 +578,7 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
                   canEdit={isGM || selectedMember?.id === currentMemberId}
                 />
 
-                <AttributesBlock attributes={char.attributes} />
+                <AttributesBlock attributes={char.attributes} category={systemCategory} charName={char.name} canRoll={canRoll} onRoll={onRollAttribute} />
 
                 {/* Full sheet button */}
                 <button
@@ -628,7 +611,7 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
                     weapons={fullNpcData.weapons}
                     spellSlots={fullNpcData.spellSlots}
                     canEdit={fullNpcData.canEdit}
-                    category={detectCategory(fullNpcData.systemName)}
+                    category={systemCategory}
                     systemName={fullNpcData.systemName}
                     onRefresh={() => void refreshNpcFull(selectedNpc.id)}
                   />
@@ -687,7 +670,7 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
                       }).catch(() => {})
                     }}
                   />
-                  <AttributesBlock attributes={selectedNpc.attributes} />
+                  <AttributesBlock attributes={selectedNpc.attributes} category={systemCategory} charName={selectedNpc.name} canRoll={canRoll} onRoll={onRollAttribute} />
 
                   {isGM && (
                     <button

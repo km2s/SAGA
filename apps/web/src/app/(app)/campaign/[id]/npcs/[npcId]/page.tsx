@@ -158,7 +158,14 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
   const players = npc.campaign.members.filter(m => m.role === 'PLAYER')
   const TypeIcon = NPC_TYPE_ICONS[npc.type] ?? User
   const system = npc.campaign.system
-  const category: SheetCategory = detectCategory(system?.name)
+  // Sistemas personalizados (não-preset) respeitam a categoria escolhida pelo
+  // usuário; presets seguem a detecção por nome. Evita que um sistema custom
+  // caia em "fantasy" e aplique o modificador (valor-10)/2 indevidamente.
+  const VALID_CATEGORIES: SheetCategory[] = ['fantasy', 'world-of-darkness', 'horror', 'scifi', 'generic', 'custom']
+  const category: SheetCategory =
+    system && !system.isPreset && system.category && (VALID_CATEGORIES as string[]).includes(system.category)
+      ? (system.category as SheetCategory)
+      : detectCategory(system?.name)
   const SystemIcon = system?.isPreset ? ClipboardList : Pencil
   const systemColor = SYSTEM_COLOR[category] ?? 'text-ink-soft'
 

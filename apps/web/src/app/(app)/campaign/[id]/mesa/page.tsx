@@ -3,6 +3,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from 'database'
 import { notFound, redirect } from 'next/navigation'
 import { VirtualTable } from '@/components/mesa/VirtualTable'
+import { resolveSheetCategory } from '@/lib/system-category'
 
 export default async function VirtualTablePage({ params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
@@ -22,7 +23,7 @@ export default async function VirtualTablePage({ params }: { params: { id: strin
     select: {
       id: true,
       name: true,
-      system: { select: { name: true } },
+      system: { select: { name: true, category: true, isPreset: true } },
     },
   }).catch(() => null)
 
@@ -157,6 +158,7 @@ export default async function VirtualTablePage({ params }: { params: { id: strin
       isGM={isGM}
       currentMemberId={membership.id}
       systemName={campaign.system?.name ?? null}
+      systemCategory={resolveSheetCategory(campaign.system)}
     />
   )
 }
