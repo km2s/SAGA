@@ -99,6 +99,17 @@ export async function DELETE(_req: Request, { params }: { params: { id: string; 
   }).catch(() => null)
   if (!member) return NextResponse.json({ error: 'GM only' }, { status: 403 })
 
-  await prisma.nPC.delete({ where: { id: params.npcId } }).catch(() => null)
+  // NPCAttribute e NPCVisibility não têm onDelete: Cascade no schema, então
+  // precisam ser removidos antes do NPC — senão o delete falha por constraint
+  // de FK (as demais relações — TextField/Weapon/SpellSlot — já são cascade).
+  try {
+    await prisma.$transaction([
+      prisma.nPCAttribute.deleteMany({ where: { npcId: params.npcId } }),
+      prisma.nPCVisibility.deleteMany({ where: { npcId: params.npcId } }),
+      prisma.nPC.delete({ where: { id: params.npcId } }),
+    ])
+  } catch {
+    return NextResponse.json({ error: 'Falha ao deletar o NPC' }, { status: 500 })
+  }
   return new NextResponse(null, { status: 204 })
 }
