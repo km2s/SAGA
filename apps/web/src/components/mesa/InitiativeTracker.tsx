@@ -67,7 +67,7 @@ export function InitiativeTracker({ initiativeOrder, currentTurnIdx, isGM, onRol
                   style={{
                     background:isCurrent?`${entry.color}30`:'rgb(var(--ink) / 0.05)',
                     border:`1.5px solid ${isCurrent?entry.color:'rgb(var(--ink) / 0.1)'}`,
-                    color:isCurrent?entry.color:'#7878a0',
+                    color:isCurrent?entry.color:'rgb(var(--mesa-muted))',
                   }}>
                   {entry.initiative}
                 </div>

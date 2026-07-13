@@ -480,7 +480,7 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
                           {initial}
                         </div>
                         <span className="text-[10px] font-medium max-w-[90px] truncate"
-                          style={{ color: isSel ? color : '#7878a0' }}>
+                          style={{ color: isSel ? color : 'rgb(var(--mesa-muted))' }}>
                           {n.name}
                         </span>
                       </button>
@@ -538,7 +538,7 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
                 {/* Identity */}
                 <div className="flex items-start gap-4">
                   <div className="w-16 h-16 rounded-xl flex items-center justify-center text-ink/40 shrink-0"
-                    style={{ background: 'linear-gradient(135deg, #2e2318, rgb(var(--ink-soft)))', border: '1px solid rgba(201,162,42,0.35)', boxShadow: '0 4px 16px rgba(201,162,42,0.15)' }}>
+                    style={{ background: 'linear-gradient(135deg, rgb(var(--mesa-surface-3)), rgb(var(--ink-soft)))', border: '1px solid rgba(201,162,42,0.35)', boxShadow: '0 4px 16px rgba(201,162,42,0.15)' }}>
                     <ClassIcon size={32} />
                   </div>
                   <div className="flex-1 min-w-0 pt-0.5">
