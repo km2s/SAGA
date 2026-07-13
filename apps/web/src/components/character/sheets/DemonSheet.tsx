@@ -133,7 +133,7 @@ export function DemonSheet({ characterId, attributes, textFields, canEdit }: Pro
   const { physical, social, mental, talents, skills, knowledges, resources } = categorize(attributes)
 
   const card = 'rounded-xl p-4 space-y-1' as const
-  const cardStyle = { background: 'rgba(247,239,221,0.92)', border: '1px solid rgba(51,41,29,0.14)' }
+  const cardStyle = { background: 'rgb(var(--card) / 0.92)', border: '1px solid rgb(var(--ink) / 0.14)' }
   const tabs = ['atributos', 'habilidades', 'poderes', 'personagem'] as const
 
   return (
@@ -145,11 +145,11 @@ export function DemonSheet({ characterId, attributes, textFields, canEdit }: Pro
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgba(51,41,29,0.08)', border: '1px solid rgba(51,41,29,0.05)' }}>
+      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgb(var(--ink) / 0.08)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
         {tabs.map(t => (
           <button key={t} onClick={() => setTab(t)}
             className="flex-1 py-1.5 rounded-md text-[11px] font-bold uppercase tracking-wider transition-all capitalize"
-            style={tab === t ? { background: ACCENT, color: '#000' } : { color: 'rgba(51,41,29,0.4)' }}>
+            style={tab === t ? { background: ACCENT, color: '#000' } : { color: 'rgb(var(--ink) / 0.4)' }}>
             {t === 'atributos' ? 'Atributos' : t === 'habilidades' ? 'Habilidades' : t === 'poderes' ? 'Poderes' : 'Personagem'}
           </button>
         ))}

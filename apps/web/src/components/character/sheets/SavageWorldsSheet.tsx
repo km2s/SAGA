@@ -83,7 +83,7 @@ export function SavageWorldsSheet({ characterId, attributes, textFields, canEdit
   const bennies = parseInt(textFields.find(f => f.key === 'bennies')?.value ?? '3')
 
   const card = 'rounded-xl p-4' as const
-  const cardStyle = { background: 'rgba(247,239,221,0.92)', border: '1px solid rgba(51,41,29,0.14)' }
+  const cardStyle = { background: 'rgb(var(--card) / 0.92)', border: '1px solid rgb(var(--ink) / 0.14)' }
   const tabs = [
     { id: 'atributos', label: 'Atributos' }, { id: 'pericias', label: 'Perícias' },
     { id: 'estado', label: 'Estado' }, { id: 'personagem', label: 'Personagem' },
@@ -109,11 +109,11 @@ export function SavageWorldsSheet({ characterId, attributes, textFields, canEdit
         </div>
       </div>
 
-      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgba(51,41,29,0.08)', border: '1px solid rgba(51,41,29,0.05)' }}>
+      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgb(var(--ink) / 0.08)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
         {tabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className="flex-1 py-1.5 rounded-md text-[11px] font-bold uppercase tracking-wider transition-all"
-            style={tab === t.id ? { background: ACCENT, color: '#000' } : { color: 'rgba(51,41,29,0.4)' }}>
+            style={tab === t.id ? { background: ACCENT, color: '#000' } : { color: 'rgb(var(--ink) / 0.4)' }}>
             {t.label}
           </button>
         ))}
@@ -126,7 +126,7 @@ export function SavageWorldsSheet({ characterId, attributes, textFields, canEdit
             {mainAttrs.map(a => {
               const die = DIE_LABELS[a.value] ?? `d${a.value * 2 + 2}`
               return (
-                <div key={a.id} className="text-center p-3 rounded-lg space-y-2" style={{ background: 'rgba(51,41,29,0.08)' }}>
+                <div key={a.id} className="text-center p-3 rounded-lg space-y-2" style={{ background: 'rgb(var(--ink) / 0.08)' }}>
                   <div className="text-[10px] font-bold text-ink-soft uppercase">{a.attribute.name}</div>
                   <div className="text-xl font-bold font-mono" style={{ color: ACCENT }}>{die}</div>
                   <Dots value={a.value} max={7} editable={canEdit} attrId={a.id} characterId={characterId} onSaved={onRefresh} />
@@ -166,7 +166,7 @@ export function SavageWorldsSheet({ characterId, attributes, textFields, canEdit
               {['Ileso', 'Abalado', 'Ferimento 1', 'Ferimento 2', 'Incapacitado'].map((lbl, i) => (
                 <button key={i} type="button" onClick={() => canEdit && void saveTrack('wounds_current', 'Ferimentos', i)}
                   className={`flex-1 py-2 rounded-lg text-[10px] font-bold uppercase transition-all ${i <= woundsCurrent ? 'text-white' : 'text-ink-soft'}`}
-                  style={{ background: i <= woundsCurrent ? (i === 0 ? '#22c55e' : i === 1 ? '#eab308' : '#ef4444') : 'rgba(51,41,29,0.08)', border: '1px solid rgba(51,41,29,0.1)' }}>
+                  style={{ background: i <= woundsCurrent ? (i === 0 ? '#22c55e' : i === 1 ? '#eab308' : '#ef4444') : 'rgb(var(--ink) / 0.08)', border: '1px solid rgb(var(--ink) / 0.1)' }}>
                   {lbl}
                 </button>
               ))}
@@ -179,7 +179,7 @@ export function SavageWorldsSheet({ characterId, attributes, textFields, canEdit
               {['Normal', 'Cansado', 'Exausto'].map((lbl, i) => (
                 <button key={i} type="button" onClick={() => canEdit && void saveTrack('fatigue_current', 'Fadiga', i)}
                   className={`flex-1 py-2 rounded-lg text-[10px] font-bold uppercase transition-all ${i <= fatigueCurrent ? 'text-white' : 'text-ink-soft'}`}
-                  style={{ background: i <= fatigueCurrent ? (i === 0 ? '#22c55e' : i === 1 ? '#eab308' : '#ef4444') : 'rgba(51,41,29,0.08)', border: '1px solid rgba(51,41,29,0.1)' }}>
+                  style={{ background: i <= fatigueCurrent ? (i === 0 ? '#22c55e' : i === 1 ? '#eab308' : '#ef4444') : 'rgb(var(--ink) / 0.08)', border: '1px solid rgb(var(--ink) / 0.1)' }}>
                   {lbl}
                 </button>
               ))}
@@ -192,7 +192,7 @@ export function SavageWorldsSheet({ characterId, attributes, textFields, canEdit
               {[1, 2, 3, 4, 5].map(n => (
                 <button key={n} type="button" onClick={() => canEdit && void saveTrack('bennies', 'Bennies', n)}
                   className="w-8 h-8 rounded-full font-bold text-sm transition-all"
-                  style={{ background: n <= bennies ? ACCENT : 'rgba(51,41,29,0.1)', color: n <= bennies ? '#000' : 'rgba(51,41,29,0.3)', border: `1px solid ${n <= bennies ? ACCENT : 'rgba(51,41,29,0.1)'}` }}>
+                  style={{ background: n <= bennies ? ACCENT : 'rgb(var(--ink) / 0.1)', color: n <= bennies ? '#000' : 'rgb(var(--ink) / 0.3)', border: `1px solid ${n <= bennies ? ACCENT : 'rgb(var(--ink) / 0.1)'}` }}>
                   {n}
                 </button>
               ))}

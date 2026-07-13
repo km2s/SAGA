@@ -31,8 +31,8 @@ export function ParchmentMap() {
       >
         <defs>
           <radialGradient id="mapBase" cx="50%" cy="45%" r="75%">
-            <stop offset="0%" stopColor="#f0e0bd" />
-            <stop offset="60%" stopColor="#dec79a" />
+            <stop offset="0%" stopColor="rgb(var(--card))" />
+            <stop offset="60%" stopColor="rgb(var(--parchment-deep))" />
             <stop offset="100%" stopColor="#b89a68" />
           </radialGradient>
           <linearGradient id="d20g" x1="0" x2="1" y1="0" y2="1">
@@ -81,7 +81,7 @@ export function ParchmentMap() {
         </g>
 
         {/* rosa dos ventos */}
-        <g transform="translate(84,16)" stroke="#6a2817" strokeOpacity="0.6" fill="#6a2817" fillOpacity="0.6">
+        <g transform="translate(84,16)" stroke="rgb(var(--wax-deep))" strokeOpacity="0.6" fill="rgb(var(--wax-deep))" fillOpacity="0.6">
           <circle r="5" fill="none" strokeWidth="0.4" />
           <polygon points="0,-6 1.1,0 0,6 -1.1,0" />
           <polygon points="-6,0 0,1.1 6,0 0,-1.1" fillOpacity="0.35" />
@@ -101,7 +101,7 @@ export function ParchmentMap() {
         {PIECES.map((p) => (
           <g key={p.l}>
             {/* corpo */}
-            <circle r="3.4" fill={p.c} stroke="#f3e9d2" strokeWidth="0.6" />
+            <circle r="3.4" fill={p.c} stroke="rgb(var(--parchment))" strokeWidth="0.6" />
             {/* letra */}
             <text
               x="0"
@@ -109,14 +109,14 @@ export function ParchmentMap() {
               textAnchor="middle"
               fontSize="3.4"
               fontWeight="700"
-              fill="#f3e9d2"
+              fill="rgb(var(--parchment))"
               fontFamily="Cinzel, serif"
             >
               {p.l}
             </text>
             {/* barra de vida */}
-            <rect x="-3.4" y="4.4" width="6.8" height="1" rx="0.5" fill="#33291d" fillOpacity="0.4" />
-            <rect x="-3.4" y="4.4" width={6.8 * p.hp} height="1" rx="0.5" fill="#d9662b" />
+            <rect x="-3.4" y="4.4" width="6.8" height="1" rx="0.5" fill="rgb(var(--ink))" fillOpacity="0.4" />
+            <rect x="-3.4" y="4.4" width={6.8 * p.hp} height="1" rx="0.5" fill="rgb(var(--ember))" />
             {/* patrulha */}
             <animateMotion dur={p.dur} repeatCount="indefinite" rotate="0" calcMode="linear" path={p.path} />
             {/* leve "bob" ao andar */}
@@ -162,7 +162,7 @@ export function ParchmentMap() {
         <span
           key={pos}
           className={`animate-flicker absolute h-2 w-2 rounded-full bg-ember ${pos}`}
-          style={{ boxShadow: '0 0 10px 3px rgba(217,102,43,0.6)' }}
+          style={{ boxShadow: '0 0 10px 3px rgb(var(--ember) / 0.6)' }}
         />
       ))}
     </div>

@@ -98,7 +98,7 @@ function TfField({ tfKey, label, characterId, textFields, canEdit, onRefresh, mu
     onRefresh()
   }
   return (
-    <div className="rounded p-3" style={{ background: 'rgba(51,41,29,0.02)', border: '1px solid rgba(51,41,29,0.05)' }}>
+    <div className="rounded p-3" style={{ background: 'rgb(var(--ink) / 0.02)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
       <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft mb-2">{label}</p>
       {canEdit
         ? multi
@@ -137,14 +137,14 @@ function CaracteristicasTab({ attributes, characterId, canEdit, onRefresh }: {
     <div className="space-y-5">
       <div>
         <SectionDivider title="Características" />
-        <div className="rounded overflow-hidden" style={{ border: '1px solid rgba(51,41,29,0.14)' }}>
+        <div className="rounded overflow-hidden" style={{ border: '1px solid rgb(var(--ink) / 0.14)' }}>
           <div className="grid grid-cols-4 px-3 py-1.5 text-[9px] font-almendra uppercase tracking-widest text-ink-soft"
-            style={{ background: 'rgba(51,41,29,0.06)' }}>
+            style={{ background: 'rgb(var(--ink) / 0.06)' }}>
             <span>Nome</span><span className="text-center">Valor</span><span className="text-center">÷2</span><span className="text-center">÷5</span>
           </div>
           {chars.map(a => (
             <div key={a.id} className="grid grid-cols-4 px-3 py-2 items-center"
-              style={{ borderTop: '1px solid rgba(51,41,29,0.04)' }}>
+              style={{ borderTop: '1px solid rgb(var(--ink) / 0.04)' }}>
               <span className="text-sm text-ink">{a.attribute.name}</span>
               <div className="flex justify-center"><NumericAttr attr={a} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} /></div>
               <span className="text-center text-xs text-ink-soft">{Math.floor(a.value / 2)}</span>
@@ -168,11 +168,11 @@ function CaracteristicasTab({ attributes, characterId, canEdit, onRefresh }: {
             const pod = chars.find(c => ['POD', 'Poder'].some(n => c.attribute.name.includes(n)))
             return (
               <div key={a.id} className="flex items-center justify-between px-3 py-2 rounded"
-                style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.05)' }}>
+                style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
                 <span className="text-sm text-ink">{a.attribute.name}</span>
                 {isSan && pod ? (
                   <div className="flex items-center gap-3">
-                    <div className="w-28 h-2 rounded-full overflow-hidden" style={{ background: 'rgba(51,41,29,0.1)' }}>
+                    <div className="w-28 h-2 rounded-full overflow-hidden" style={{ background: 'rgb(var(--ink) / 0.1)' }}>
                       <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(100, (a.value / Math.max(1, pod.value)) * 100)}%`, background: ACCENT }} />
                     </div>
                     <NumericAttr attr={a} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />
@@ -210,14 +210,14 @@ function PericiasTab({ attributes, characterId, canEdit, onRefresh }: {
       {Object.entries(grouped).map(([cat, attrs]) => (
         <div key={cat}>
           <SectionDivider title={cat} />
-          <div className="rounded overflow-hidden" style={{ border: '1px solid rgba(51,41,29,0.14)' }}>
+          <div className="rounded overflow-hidden" style={{ border: '1px solid rgb(var(--ink) / 0.14)' }}>
             <div className="grid grid-cols-4 px-3 py-1 text-[9px] font-almendra uppercase tracking-widest text-ink-soft"
-              style={{ background: 'rgba(51,41,29,0.06)' }}>
+              style={{ background: 'rgb(var(--ink) / 0.06)' }}>
               <span className="col-span-2">Perícia</span><span className="text-center">÷2</span><span className="text-center">÷5</span>
             </div>
             {attrs.map(a => (
               <div key={a.id} className="grid grid-cols-4 px-3 py-2 items-center"
-                style={{ borderTop: '1px solid rgba(51,41,29,0.04)' }}>
+                style={{ borderTop: '1px solid rgb(var(--ink) / 0.04)' }}>
                 <div className="col-span-2 flex items-center gap-2">
                   <span className="text-sm text-ink">{a.attribute.name}</span>
                   <NumericAttr attr={a} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />
@@ -245,11 +245,11 @@ function CombateTab({ attributes, textFields, characterId, canEdit, onRefresh }:
   return (
     <div className="space-y-5">
       {pvAttr && (
-        <div className="rounded p-4" style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+        <div className="rounded p-4" style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
           <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft mb-3">Pontos de Vida</p>
           <div className="flex items-center gap-4">
             <NumericAttr attr={pvAttr} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />
-            <div className="flex-1 h-3 rounded-full overflow-hidden" style={{ background: 'rgba(51,41,29,0.1)' }}>
+            <div className="flex-1 h-3 rounded-full overflow-hidden" style={{ background: 'rgb(var(--ink) / 0.1)' }}>
               <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(100, (pvAttr.value / 20) * 100)}%`, background: ACCENT }} />
             </div>
           </div>
@@ -260,7 +260,7 @@ function CombateTab({ attributes, textFields, characterId, canEdit, onRefresh }:
         <div className="space-y-1">
           {combat.map(a => (
             <div key={a.id} className="flex items-center justify-between px-3 py-2 rounded"
-              style={{ background: 'rgba(51,41,29,0.02)', border: '1px solid rgba(51,41,29,0.05)' }}>
+              style={{ background: 'rgb(var(--ink) / 0.02)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
               <span className="text-sm text-ink">{a.attribute.name}</span>
               <TripleValue attr={a} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />
             </div>
@@ -269,7 +269,7 @@ function CombateTab({ attributes, textFields, characterId, canEdit, onRefresh }:
         </div>
       </div>
       <TfField tfKey="luck_current" label="Sorte Atual" characterId={characterId} textFields={textFields} canEdit={canEdit} onRefresh={onRefresh} />
-      <div className="rounded p-3 text-sm text-ink-soft" style={{ background: 'rgba(51,41,29,0.02)', border: '1px solid rgba(51,41,29,0.05)' }}>
+      <div className="rounded p-3 text-sm text-ink-soft" style={{ background: 'rgb(var(--ink) / 0.02)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
         <p className="font-almendra text-[9px] uppercase tracking-widest mb-2">Dados de Bônus/Penalidade</p>
         <p>Dado de Bônus: role 2× e fique com a dezena <span className="text-ink font-bold">mais baixa</span>.</p>
         <p>Dado de Penalidade: role 2× e fique com a dezena <span className="text-ink font-bold">mais alta</span>.</p>
@@ -317,14 +317,14 @@ export function CoC7eSheet({ characterId, characterLevel, attributes, textFields
   function refresh() { router.refresh() }
 
   return (
-    <div className="rounded-lg overflow-hidden" style={{ background: 'rgba(247,239,221,0.92)', border: '1px solid rgba(51,41,29,0.14)' }}>
-      <div className="flex border-b" style={{ borderColor: 'rgba(51,41,29,0.14)', background: 'rgba(51,41,29,0.05)' }}>
+    <div className="rounded-lg overflow-hidden" style={{ background: 'rgb(var(--card) / 0.92)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
+      <div className="flex border-b" style={{ borderColor: 'rgb(var(--ink) / 0.14)', background: 'rgb(var(--ink) / 0.05)' }}>
         {TABS.map(tab => {
           const isActive = tab.id === activeTab
           return (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
               className="relative px-4 py-3.5 font-almendra text-[10px] uppercase tracking-[0.15em] transition-colors"
-              style={{ color: isActive ? ACCENT : '#5f5040', background: isActive ? `${ACCENT}0d` : 'transparent' }}>
+              style={{ color: isActive ? ACCENT : 'rgb(var(--ink-soft))', background: isActive ? `${ACCENT}0d` : 'transparent' }}>
               {tab.label}
               {isActive && <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-t" style={{ background: `linear-gradient(90deg, transparent, ${ACCENT}, transparent)` }} />}
             </button>

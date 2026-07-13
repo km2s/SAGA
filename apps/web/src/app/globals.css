@@ -25,8 +25,8 @@ body {
 /* Scrollbar */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(51, 41, 29, 0.35); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(51, 41, 29, 0.5); }
+::-webkit-scrollbar-thumb { background: rgb(var(--ink) / 0.35); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgb(var(--ink) / 0.5); }
 
 /* RPG font utilities */
 .font-display   { font-family: 'Cinzel Decorative', serif; }  /* nomes, logo, destaque épico */
@@ -65,19 +65,22 @@ body {
 .bg-danger-dim { background: var(--danger-dim); }
 .border-gold-dim { border-color: var(--gold-glow); }
 
-/* Native select — dropdown em tema pergaminho (claro) */
+/* Native select — dropdown segue o tema (pergaminho ↔ cripta) */
 select {
   color-scheme: light;
 }
+.dark select {
+  color-scheme: dark;
+}
 
 select option {
-  background-color: #f3e9d2;
-  color: #33291d;
+  background-color: rgb(var(--card));
+  color: rgb(var(--ink));
 }
 
 select optgroup {
-  background-color: #e6d5ac;
-  color: #5f5040;
+  background-color: rgb(var(--parchment-deep));
+  color: rgb(var(--ink-soft));
   font-weight: 600;
 }
 
@@ -104,41 +107,59 @@ select optgroup {
    (portado do template; usado em landing, login e superfícies
    pergaminho. Não altera o tema escuro do app interno.)
    ============================================================ */
+/* Tokens em canais RGB "R G B" para suportar o modificador de opacidade do
+   Tailwind (rgb(var(--x) / <alpha>)) e trocar de valor com a classe .dark.
+   Uso direto em CSS: rgb(var(--token)) ou rgb(var(--token) / alpha). */
 :root {
-  --parchment: #f3e9d2;
-  --parchment-deep: #e6d5ac;
-  --ink: #33291d;
-  --ink-soft: #5f5040;
-  --wax: #8f3a24;
-  --wax-deep: #6a2817;
+  --parchment: 243 233 210;
+  --parchment-deep: 230 213 172;
+  --card: 245 236 214;
+  --ink: 51 41 29;
+  --ink-soft: 95 80 64;
+  --wax: 143 58 36;
+  --wax-deep: 106 40 23;
+  --ember: 217 102 43;
+  /* ouro e cripta seguem fixos (mesmos em ambos os modos) */
   --gold: #c9a22a;
   --gold-deep: #9c7a2a;
   --gold-light: #f0d060;
-  --ember: #d9662b;
   --crypt: #16171f;
   --crypt-deep: #0b0c11;
 }
 
-/* Fundo pergaminho com textura de fibra e manchas */
+/* ── Modo escuro "Cripta": inverte os papéis dos tokens ──
+   pergaminho→fundo de cripta, tinta→texto claro, cartão→couro. */
+.dark {
+  --parchment: 14 10 6;       /* #0e0a06 — fundo da página */
+  --parchment-deep: 36 27 18; /* #241b12 — superfície elevada */
+  --card: 26 20 16;           /* #1a1410 — cartão de couro */
+  --ink: 236 226 204;         /* #ece2cc — texto claro */
+  --ink-soft: 182 166 130;    /* #b6a682 — texto suave (tan) */
+  --wax: 176 71 46;           /* #b0472e — bordô mais vivo p/ contraste */
+  --wax-deep: 143 58 36;      /* #8f3a24 */
+  --ember: 224 116 58;        /* #e0743a — brasa levemente mais viva */
+}
+
+/* Fundo pergaminho com textura de fibra e manchas (tinta/cera via vars → flipa) */
 .parchment-bg {
-  background-color: var(--parchment);
+  background-color: rgb(var(--parchment));
   background-image:
-    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(143, 58, 36, 0.08), transparent 60%),
-    radial-gradient(ellipse 60% 50% at 90% 90%, rgba(51, 41, 29, 0.10), transparent 55%),
-    radial-gradient(circle at 35% 65%, rgba(217, 102, 43, 0.06), transparent 25%),
-    radial-gradient(circle at 75% 30%, rgba(106, 40, 23, 0.06), transparent 22%),
-    repeating-linear-gradient(92deg, transparent 0 2px, rgba(51, 41, 29, 0.02) 2px 3px),
-    repeating-linear-gradient(2deg, transparent 0 3px, rgba(51, 41, 29, 0.015) 3px 4px);
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgb(var(--wax) / 0.08), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 90% 90%, rgb(var(--ink) / 0.10), transparent 55%),
+    radial-gradient(circle at 35% 65%, rgb(var(--ember) / 0.06), transparent 25%),
+    radial-gradient(circle at 75% 30%, rgb(var(--wax-deep) / 0.06), transparent 22%),
+    repeating-linear-gradient(92deg, transparent 0 2px, rgb(var(--ink) / 0.02) 2px 3px),
+    repeating-linear-gradient(2deg, transparent 0 3px, rgb(var(--ink) / 0.015) 3px 4px);
 }
 
 /* Cartão pergaminho com sombra e vinheta interna */
 .parchment-card {
   position: relative;
-  background: linear-gradient(180deg, #f7efdd 0%, var(--parchment) 100%);
-  border: 1px solid rgba(51, 41, 29, 0.18);
+  background: linear-gradient(180deg, rgb(var(--card)) 0%, rgb(var(--parchment)) 100%);
+  border: 1px solid rgb(var(--ink) / 0.18);
   box-shadow:
-    0 30px 60px -20px rgba(51, 41, 29, 0.35),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.5);
+    0 30px 60px -20px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 0 rgb(var(--parchment) / 0.5);
 }
 .parchment-card::before {
   content: "";
@@ -147,27 +168,27 @@ select optgroup {
   pointer-events: none;
   border-radius: inherit;
   background-image:
-    radial-gradient(ellipse at 10% 0%, rgba(51, 41, 29, 0.14), transparent 35%),
-    radial-gradient(ellipse at 90% 100%, rgba(51, 41, 29, 0.10), transparent 40%);
+    radial-gradient(ellipse at 10% 0%, rgb(var(--ink) / 0.14), transparent 35%),
+    radial-gradient(ellipse at 90% 100%, rgb(var(--ink) / 0.10), transparent 40%);
   mix-blend-mode: multiply;
 }
 
 /* Sub-cartão de pergaminho envelhecido */
 .scroll-card {
-  background: linear-gradient(180deg, #f8f0de 0%, #ecdcb8 100%);
-  border: 1px solid rgba(51, 41, 29, 0.22);
+  background: linear-gradient(180deg, rgb(var(--card)) 0%, rgb(var(--parchment-deep)) 100%);
+  border: 1px solid rgb(var(--ink) / 0.22);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.4),
-    0 6px 14px -8px rgba(51, 41, 29, 0.5);
+    inset 0 1px 0 rgb(var(--parchment) / 0.4),
+    0 6px 14px -8px rgba(0, 0, 0, 0.4);
 }
 
-/* Selo de cera bordô */
+/* Selo de cera bordô — sempre texto claro (independe do tema) */
 .wax-seal {
-  background: radial-gradient(circle at 35% 30%, #b45a3e 0%, var(--wax) 40%, var(--wax-deep) 100%);
+  background: radial-gradient(circle at 35% 30%, #b45a3e 0%, rgb(var(--wax)) 40%, rgb(var(--wax-deep)) 100%);
   box-shadow:
     0 8px 24px -6px rgba(106, 40, 23, 0.6),
     inset 0 -4px 8px rgba(0, 0, 0, 0.25);
-  color: var(--parchment);
+  color: #f3e9d2;
   border: none;
 }
 
@@ -182,7 +203,7 @@ select optgroup {
 
 /* Filete fino com fade nas pontas */
 .hairline {
-  background: linear-gradient(90deg, transparent 0%, rgba(51, 41, 29, 0.4) 20%, rgba(51, 41, 29, 0.4) 80%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgb(var(--ink) / 0.4) 20%, rgb(var(--ink) / 0.4) 80%, transparent 100%);
 }
 
 /* Moldura ornamentada em ouro */
@@ -190,19 +211,19 @@ select optgroup {
   position: relative;
   border: 1px solid rgba(156, 122, 42, 0.55);
   box-shadow:
-    inset 0 0 0 1px rgba(243, 233, 210, 0.5),
+    inset 0 0 0 1px rgb(var(--parchment) / 0.5),
     inset 0 0 0 5px rgba(156, 122, 42, 0.25),
-    inset 0 0 0 6px rgba(51, 41, 29, 0.15),
-    0 20px 40px -20px rgba(51, 41, 29, 0.6);
+    inset 0 0 0 6px rgb(var(--ink) / 0.15),
+    0 20px 40px -20px rgba(0, 0, 0, 0.55);
 }
 
-/* Título em faixa/estandarte de cera */
+/* Título em faixa/estandarte de cera — sempre texto claro */
 .banner-heading {
   position: relative;
   display: inline-block;
   padding: 0.75rem 2.5rem;
-  background: linear-gradient(180deg, var(--wax) 0%, var(--wax-deep) 100%);
-  color: var(--parchment);
+  background: linear-gradient(180deg, rgb(var(--wax)) 0%, rgb(var(--wax-deep)) 100%);
+  color: #f3e9d2;
   font-family: 'Cinzel', serif;
   letter-spacing: 0.25em;
   text-transform: uppercase;
@@ -236,14 +257,14 @@ select optgroup {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  color: rgba(51, 41, 29, 0.5);
+  color: rgb(var(--ink) / 0.5);
 }
 .rule-diamond::before,
 .rule-diamond::after {
   content: "";
   flex: 1;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(51, 41, 29, 0.4), transparent);
+  background: linear-gradient(90deg, transparent, rgb(var(--ink) / 0.4), transparent);
 }
 
 /* Capitular iluminada (dropcap) */
@@ -254,7 +275,7 @@ select optgroup {
   line-height: 0.85;
   padding: 0.35rem 0.6rem 0.1rem 0;
   margin-right: 0.35rem;
-  background: linear-gradient(180deg, var(--gold) 0%, var(--wax-deep) 100%);
+  background: linear-gradient(180deg, var(--gold) 0%, rgb(var(--wax-deep)) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;

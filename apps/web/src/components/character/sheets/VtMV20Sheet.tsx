@@ -366,7 +366,7 @@ export function VtMV20Sheet({ characterId, attributes, textFields, canEdit }: Pr
   const genRow = GEN_TABLE[genNum]
 
   const card = 'rounded-xl p-4' as const
-  const cardStyle = { background: 'rgba(247,239,221,0.92)', border: '1px solid rgba(51,41,29,0.14)' }
+  const cardStyle = { background: 'rgb(var(--card) / 0.92)', border: '1px solid rgb(var(--ink) / 0.14)' }
   const tabs = [
     { id: 'atributos',   label: 'Atributos' },
     { id: 'habilidades', label: 'Habilidades' },
@@ -392,11 +392,11 @@ export function VtMV20Sheet({ characterId, attributes, textFields, canEdit }: Pr
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgba(51,41,29,0.08)', border: '1px solid rgba(51,41,29,0.05)' }}>
+      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgb(var(--ink) / 0.08)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
         {tabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className="flex-1 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all"
-            style={tab === t.id ? { background: RED, color: '#fff' } : { color: 'rgba(51,41,29,0.4)' }}>
+            style={tab === t.id ? { background: RED, color: '#fff' } : { color: 'rgb(var(--ink) / 0.4)' }}>
             {t.label}
           </button>
         ))}
@@ -617,9 +617,9 @@ export function VtMV20Sheet({ characterId, attributes, textFields, canEdit }: Pr
                           }}
                           className="px-2 py-0.5 rounded text-[10px] font-bold transition-all"
                           style={{
-                            background: override === opt.val ? 'rgba(220,38,38,0.2)' : 'rgba(51,41,29,0.04)',
-                            border: `1px solid ${override === opt.val ? 'rgba(220,38,38,0.5)' : 'rgba(51,41,29,0.08)'}`,
-                            color: override === opt.val ? '#fca5a5' : '#5f5040',
+                            background: override === opt.val ? 'rgba(220,38,38,0.2)' : 'rgb(var(--ink) / 0.04)',
+                            border: `1px solid ${override === opt.val ? 'rgba(220,38,38,0.5)' : 'rgb(var(--ink) / 0.08)'}`,
+                            color: override === opt.val ? '#fca5a5' : 'rgb(var(--ink-soft))',
                           }}>
                           {opt.label}
                         </button>
@@ -685,7 +685,7 @@ export function VtMV20Sheet({ characterId, attributes, textFields, canEdit }: Pr
               {genRow && (
                 <div className="grid grid-cols-3 gap-2 text-center">
                   {[['Pool Máx.', genRow[0]], ['Traço Máx.', genRow[1]], ['Sangue/Round', genRow[2]]].map(([lbl, v]) => (
-                    <div key={String(lbl)} className="rounded p-2" style={{ background: 'rgba(51,41,29,0.08)' }}>
+                    <div key={String(lbl)} className="rounded p-2" style={{ background: 'rgb(var(--ink) / 0.08)' }}>
                       <div className="text-[8px] text-ink-soft uppercase tracking-wider">{lbl}</div>
                       <div className="text-sm font-bold text-red-300 mt-0.5">{v}</div>
                     </div>

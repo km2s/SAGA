@@ -71,7 +71,7 @@ function TfField({ tfKey, label, characterId, textFields, canEdit, onRefresh, mu
   const field = textFields.find(f => f.key === tfKey)
   async function save(v: string) { await saveTextField(characterId, tfKey, label, v); onRefresh() }
   return (
-    <div className="rounded p-3" style={{ background: 'rgba(51,41,29,0.02)', border: '1px solid rgba(51,41,29,0.05)' }}>
+    <div className="rounded p-3" style={{ background: 'rgb(var(--ink) / 0.02)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
       <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft mb-2">{label}</p>
       {canEdit
         ? multi
@@ -99,7 +99,7 @@ function ConditionMonitor({ label, boxes, tfKey, textFields, characterId, canEdi
   }
 
   return (
-    <div className="rounded p-4" style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+    <div className="rounded p-4" style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
       <div className="flex items-center justify-between mb-3">
         <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft">{label}</p>
         <span className="font-cinzel text-xs font-bold" style={{ color: ACCENT }}>{filled}/{boxes}</span>
@@ -112,7 +112,7 @@ function ConditionMonitor({ label, boxes, tfKey, textFields, characterId, canEdi
             style={{
               width: 16, height: 16,
               background: i < filled ? ACCENT : 'transparent',
-              borderColor: i < filled ? ACCENT : 'rgba(51,41,29,0.2)',
+              borderColor: i < filled ? ACCENT : 'rgb(var(--ink) / 0.2)',
               cursor: canEdit ? 'pointer' : 'default',
             }} />
         ))}
@@ -143,7 +143,7 @@ function AtributosTab({ attributes, characterId, canEdit, onRefresh }: {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {mains.map(a => (
             <div key={a.id} className="flex flex-col items-center gap-1 px-3 py-3 rounded"
-              style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+              style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
               <span className="font-cinzel text-[10px] uppercase text-ink-soft text-center">{a.attribute.name}</span>
               <NumericAttr attr={a} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />
             </div>
@@ -162,7 +162,7 @@ function AtributosTab({ attributes, characterId, canEdit, onRefresh }: {
           <div className="grid grid-cols-2 gap-2">
             {recursos.map(a => (
               <div key={a.id} className="flex items-center justify-between px-3 py-2 rounded"
-                style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+                style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
                 <span className="text-sm text-ink">{a.attribute.name}</span>
                 <NumericAttr attr={a} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />
               </div>
@@ -186,7 +186,7 @@ function PericiasTab({ attributes, characterId, canEdit, onRefresh }: {
       <div className="space-y-1">
         {skills.map(a => (
           <div key={a.id} className="flex items-center justify-between px-3 py-2 rounded"
-            style={{ background: 'rgba(51,41,29,0.02)', border: '1px solid rgba(51,41,29,0.04)' }}>
+            style={{ background: 'rgb(var(--ink) / 0.02)', border: '1px solid rgb(var(--ink) / 0.04)' }}>
             <span className="text-sm text-ink">{a.attribute.name}</span>
             <NumericAttr attr={a} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />
           </div>
@@ -217,7 +217,7 @@ function CondicaoTab({ attributes, textFields, characterId, canEdit, onRefresh }
         textFields={textFields} characterId={characterId} canEdit={canEdit} onRefresh={onRefresh} />
 
       {edgeAttr && (
-        <div className="rounded p-4" style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+        <div className="rounded p-4" style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
           <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft mb-3">Edge</p>
           <div className="flex items-center gap-3">
             <TfField tfKey="edge_current" label="Atual" characterId={characterId} textFields={textFields} canEdit={canEdit} onRefresh={onRefresh} />
@@ -268,14 +268,14 @@ export function Shadowrun6eSheet({ characterId, characterLevel, attributes, text
   function refresh() { router.refresh() }
 
   return (
-    <div className="rounded-lg overflow-hidden" style={{ background: 'rgba(247,239,221,0.92)', border: '1px solid rgba(51,41,29,0.14)' }}>
-      <div className="flex border-b" style={{ borderColor: 'rgba(51,41,29,0.14)', background: 'rgba(51,41,29,0.05)' }}>
+    <div className="rounded-lg overflow-hidden" style={{ background: 'rgb(var(--card) / 0.92)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
+      <div className="flex border-b" style={{ borderColor: 'rgb(var(--ink) / 0.14)', background: 'rgb(var(--ink) / 0.05)' }}>
         {TABS.map(tab => {
           const isActive = tab.id === activeTab
           return (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
               className="relative px-4 py-3.5 font-almendra text-[10px] uppercase tracking-[0.15em] transition-colors"
-              style={{ color: isActive ? ACCENT : '#5f5040', background: isActive ? `${ACCENT}18` : 'transparent' }}>
+              style={{ color: isActive ? ACCENT : 'rgb(var(--ink-soft))', background: isActive ? `${ACCENT}18` : 'transparent' }}>
               {tab.label}
               {isActive && <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-t" style={{ background: `linear-gradient(90deg, transparent, ${ACCENT}, transparent)` }} />}
             </button>

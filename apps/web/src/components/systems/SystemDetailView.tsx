@@ -89,7 +89,7 @@ function InlineEdit({ value, onSave, placeholder, multiline = false, className =
           value={draft}
           onChange={e => setDraft(e.target.value)}
           className="flex-1 px-2 py-1 rounded text-sm border resize-none"
-          style={{ background: '#0d0d18', borderColor: 'rgba(51,41,29,0.18)', color: 'inherit', outline: 'none', minWidth: 200 }}
+          style={{ background: '#0d0d18', borderColor: 'rgb(var(--ink) / 0.18)', color: 'inherit', outline: 'none', minWidth: 200 }}
         />
       ) : (
         <input
@@ -97,7 +97,7 @@ function InlineEdit({ value, onSave, placeholder, multiline = false, className =
           value={draft}
           onChange={e => setDraft(e.target.value)}
           className="flex-1 px-2 py-1 rounded text-sm border"
-          style={{ background: '#0d0d18', borderColor: 'rgba(51,41,29,0.18)', color: 'inherit', outline: 'none', minWidth: 160 }}
+          style={{ background: '#0d0d18', borderColor: 'rgb(var(--ink) / 0.18)', color: 'inherit', outline: 'none', minWidth: 160 }}
           onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') setEditing(false) }}
         />
       )}
@@ -152,7 +152,7 @@ function AddAttrRow({ systemId, onAdded }: { systemId: string; onAdded: (a: Syst
         onChange={e => setName(e.target.value)}
         placeholder="Nome do atributo"
         className="flex-1 px-2 py-1 rounded text-xs border"
-        style={{ background: '#0d0d18', borderColor: 'rgba(51,41,29,0.15)', color: 'inherit', outline: 'none' }}
+        style={{ background: '#0d0d18', borderColor: 'rgb(var(--ink) / 0.15)', color: 'inherit', outline: 'none' }}
         onKeyDown={e => { if (e.key === 'Enter') submit(); if (e.key === 'Escape') setOpen(false) }}
       />
       <input
@@ -160,7 +160,7 @@ function AddAttrRow({ systemId, onAdded }: { systemId: string; onAdded: (a: Syst
         onChange={e => setDie(e.target.value)}
         placeholder="d20"
         className="w-16 px-2 py-1 rounded text-xs border"
-        style={{ background: '#0d0d18', borderColor: 'rgba(51,41,29,0.15)', color: 'inherit', outline: 'none' }}
+        style={{ background: '#0d0d18', borderColor: 'rgb(var(--ink) / 0.15)', color: 'inherit', outline: 'none' }}
       />
       <button onClick={submit} disabled={loading} className="text-gold hover:text-gold/70 transition-colors">
         {loading ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
@@ -334,7 +334,7 @@ export function SystemDetailView({ system: initial, currentUserDiscordId }: Prop
               <div
                 key={attr.id}
                 className="flex items-center justify-between py-2 px-3 rounded-lg group/attr"
-                style={{ background: 'rgba(51,41,29,0.03)' }}
+                style={{ background: 'rgb(var(--ink) / 0.03)' }}
               >
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="text-xs font-medium truncate">{attr.name}</span>

@@ -44,7 +44,7 @@ export function NPCHPEditor({ campaignId, npcId, hp, maxHp }: {
   }
 
   return (
-    <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg p-4">
+    <div className="bg-card border border-ink/20 rounded-lg p-4">
       <p className="text-[11px] font-bold text-ink-soft uppercase tracking-widest mb-3">Pontos de Vida</p>
       <div className="flex items-baseline gap-1.5 mb-3">
         {editing ? (

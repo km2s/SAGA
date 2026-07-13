@@ -47,7 +47,7 @@ export default async function CampaignMembersPage({ params }: { params: { id: st
           Jogadores · {players.length}
         </p>
         {players.length === 0 ? (
-          <div className="text-sm text-ink-soft bg-[#f5ecd6] border border-ink/20 rounded-lg px-4 py-10 text-center">
+          <div className="text-sm text-ink-soft bg-card border border-ink/20 rounded-lg px-4 py-10 text-center">
             Nenhum jogador ainda. Use o comando <code className="font-mono text-gold">/campanha entrar</code> no Discord.
           </div>
         ) : (
@@ -67,7 +67,7 @@ function MemberCard({ member, isMe }: { member: any; isMe: boolean }) {
   const initial = member.user.username[0]?.toUpperCase()
 
   return (
-    <div className="flex items-center gap-3 bg-[#f5ecd6] border border-ink/20 rounded-lg p-4 hover:border-wax transition-all card-hover">
+    <div className="flex items-center gap-3 bg-card border border-ink/20 rounded-lg p-4 hover:border-wax transition-all card-hover">
       <div className="w-11 h-11 rounded-full overflow-hidden shrink-0 bg-gradient-to-br from-purple to-gold flex items-center justify-center text-sm font-bold">
         {avatar ? (
           // eslint-disable-next-line @next/next/no-img-element

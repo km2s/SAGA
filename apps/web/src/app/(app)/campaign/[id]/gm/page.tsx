@@ -54,7 +54,7 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
           <h2 className="font-cinzel text-base font-semibold">Controle de Sessão</h2>
           <SessionControls campaignId={params.id} hasActiveSession={!!activeSession} />
         </div>
-        <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg p-5">
+        <div className="bg-card border border-ink/20 rounded-lg p-5">
           {activeSession ? (
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -88,7 +88,7 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
           <GMActions campaignId={params.id} players={players} />
         </div>
         {npcs.length === 0 ? (
-          <div className="text-sm text-ink-soft bg-[#f5ecd6] border border-ink/20 rounded-lg px-4 py-8 text-center">
+          <div className="text-sm text-ink-soft bg-card border border-ink/20 rounded-lg px-4 py-8 text-center">
             Nenhum NPC criado. Clique em &quot;+ Criar NPC&quot; acima para adicionar o primeiro.
           </div>
         ) : (
@@ -105,7 +105,7 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
         <h2 className="font-cinzel text-base font-semibold mb-3">Jogadores</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {players.map(m => (
-            <div key={m.id} className="bg-[#f5ecd6] border border-ink/20 rounded-lg p-4 flex items-center gap-3">
+            <div key={m.id} className="bg-card border border-ink/20 rounded-lg p-4 flex items-center gap-3">
               <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple to-gold flex items-center justify-center text-sm font-bold shrink-0">
                 {m.user.username[0]?.toUpperCase()}
               </div>
@@ -133,7 +133,7 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
             </div>
           ))}
           {players.length === 0 && (
-            <div className="col-span-2 text-sm text-ink-soft bg-[#f5ecd6] border border-ink/20 rounded-lg px-4 py-8 text-center">
+            <div className="col-span-2 text-sm text-ink-soft bg-card border border-ink/20 rounded-lg px-4 py-8 text-center">
               Nenhum jogador ainda. Compartilhe o ID da campanha: <CopyButton value={params.id} />
             </div>
           )}
@@ -178,7 +178,7 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
             { href: `/campaign/${params.id}/mesa`,     label: 'Mesa Virtual', Icon: Map },
           ].map(link => (
             <Link key={link.href} href={link.href}>
-              <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg p-4 hover:border-gold/40 hover:bg-parchment/60 transition-all cursor-pointer text-center">
+              <div className="bg-card border border-ink/20 rounded-lg p-4 hover:border-gold/40 hover:bg-parchment/60 transition-all cursor-pointer text-center">
                 <div className="flex justify-center mb-2">
                   <link.Icon size={22} className="text-ink-soft" />
                 </div>

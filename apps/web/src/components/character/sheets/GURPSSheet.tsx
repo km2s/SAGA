@@ -82,7 +82,7 @@ export function GURPSSheet({ characterId, attributes, textFields, canEdit }: Pro
   const other = attributes.filter(a => !PRIMARY.includes(a.attribute.name) && !SECONDARY.includes(a.attribute.name) && !DEFENSES.includes(a.attribute.name))
 
   const card = 'rounded-xl p-4' as const
-  const cardStyle = { background: 'rgba(247,239,221,0.92)', border: '1px solid rgba(51,41,29,0.14)' }
+  const cardStyle = { background: 'rgb(var(--card) / 0.92)', border: '1px solid rgb(var(--ink) / 0.14)' }
   const tabs = [
     { id: 'atributos', label: 'Atributos' }, { id: 'pericias', label: 'Perícias' },
     { id: 'vantagens', label: 'Vantagens' }, { id: 'personagem', label: 'Personagem' },
@@ -105,11 +105,11 @@ export function GURPSSheet({ characterId, attributes, textFields, canEdit }: Pro
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgba(51,41,29,0.08)', border: '1px solid rgba(51,41,29,0.05)' }}>
+      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgb(var(--ink) / 0.08)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
         {tabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className="flex-1 py-1.5 rounded-md text-[11px] font-bold uppercase tracking-wider transition-all"
-            style={tab === t.id ? { background: ACCENT, color: '#fff' } : { color: 'rgba(51,41,29,0.4)' }}>
+            style={tab === t.id ? { background: ACCENT, color: '#fff' } : { color: 'rgb(var(--ink) / 0.4)' }}>
             {t.label}
           </button>
         ))}
@@ -122,7 +122,7 @@ export function GURPSSheet({ characterId, attributes, textFields, canEdit }: Pro
             <SectionDivider title="Atributos Primários" />
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {primary.map(a => (
-                <div key={a.id} className="text-center space-y-1 p-3 rounded-lg" style={{ background: 'rgba(51,41,29,0.08)' }}>
+                <div key={a.id} className="text-center space-y-1 p-3 rounded-lg" style={{ background: 'rgb(var(--ink) / 0.08)' }}>
                   <div className="text-[10px] font-bold text-ink-soft uppercase">{a.attribute.name}</div>
                   <div className="text-2xl font-bold" style={{ color: ACCENT }}>
                     <EditableVal attrId={a.id} value={a.value} characterId={characterId} onSaved={onRefresh} />
@@ -149,7 +149,7 @@ export function GURPSSheet({ characterId, attributes, textFields, canEdit }: Pro
             <SectionDivider title="Defesas Ativas" />
             <div className="grid grid-cols-3 gap-4">
               {defenses.map(a => (
-                <div key={a.id} className="text-center p-2 rounded-lg" style={{ background: 'rgba(51,41,29,0.08)' }}>
+                <div key={a.id} className="text-center p-2 rounded-lg" style={{ background: 'rgb(var(--ink) / 0.08)' }}>
                   <div className="text-[10px] font-bold text-ink-soft uppercase mb-1">{a.attribute.name}</div>
                   <EditableVal attrId={a.id} value={a.value} characterId={characterId} onSaved={onRefresh} />
                 </div>

@@ -71,7 +71,7 @@ function TfField({ tfKey, label, characterId, textFields, canEdit, onRefresh, mu
   const field = textFields.find(f => f.key === tfKey)
   async function save(v: string) { await saveTextField(characterId, tfKey, label, v); onRefresh() }
   return (
-    <div className="rounded p-3" style={{ background: 'rgba(51,41,29,0.02)', border: '1px solid rgba(51,41,29,0.05)' }}>
+    <div className="rounded p-3" style={{ background: 'rgb(var(--ink) / 0.02)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
       <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft mb-2">{label}</p>
       {canEdit
         ? multi
@@ -93,7 +93,7 @@ function ProgressBar({ current, max, color = ACCENT, label }: { current: number;
         <span className="text-xs text-ink-soft">{label}</span>
         <span className="font-cinzel text-xs font-bold" style={{ color }}>{current} / {max}</span>
       </div>
-      <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgba(51,41,29,0.1)' }}>
+      <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgb(var(--ink) / 0.1)' }}>
         <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
       </div>
     </div>
@@ -120,7 +120,7 @@ function AtributosTab({ attributes, characterId, canEdit, onRefresh }: {
         <div className="grid grid-cols-3 gap-2">
           {mains.filter(a => a !== rp).map(a => (
             <div key={a.id} className="flex flex-col items-center gap-1 px-3 py-3 rounded"
-              style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+              style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
               <span className="font-cinzel text-[10px] uppercase text-ink-soft text-center">{a.attribute.name}</span>
               <NumericAttr attr={a} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />
             </div>
@@ -135,7 +135,7 @@ function AtributosTab({ attributes, characterId, canEdit, onRefresh }: {
           {sp && <ProgressBar current={sp.value} max={sp.value} color="#8b5cf6" label="Pontos de Vigor (SP)" />}
           {rp && (
             <div className="flex items-center justify-between px-3 py-2 rounded"
-              style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+              style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
               <span className="text-sm text-ink">Pontos de Resolução</span>
               <NumericAttr attr={rp} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />
             </div>
@@ -149,7 +149,7 @@ function AtributosTab({ attributes, characterId, canEdit, onRefresh }: {
           <div className="space-y-1">
             {saves.map(a => (
               <div key={a.id} className="flex items-center justify-between px-3 py-2 rounded"
-                style={{ background: 'rgba(51,41,29,0.02)', border: '1px solid rgba(51,41,29,0.05)' }}>
+                style={{ background: 'rgb(var(--ink) / 0.02)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
                 <span className="text-sm text-ink">{a.attribute.name}</span>
                 <NumericAttr attr={a} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />
               </div>
@@ -173,7 +173,7 @@ function PericiasTab({ attributes, characterId, canEdit, onRefresh }: {
       <div className="space-y-1">
         {skills.map(a => (
           <div key={a.id} className="flex items-center justify-between px-3 py-2 rounded"
-            style={{ background: 'rgba(51,41,29,0.02)', border: '1px solid rgba(51,41,29,0.04)' }}>
+            style={{ background: 'rgb(var(--ink) / 0.02)', border: '1px solid rgb(var(--ink) / 0.04)' }}>
             <span className="text-sm text-ink">{a.attribute.name}</span>
             <NumericAttr attr={a} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />
           </div>
@@ -199,7 +199,7 @@ function CombateTab({ attributes, textFields, characterId, canEdit, onRefresh }:
         <div className="grid grid-cols-2 gap-3">
           {eac && (
             <div className="flex flex-col items-center gap-2 px-4 py-4 rounded"
-              style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+              style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
               <span className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft">EAC</span>
               <NumericAttr attr={eac} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />
               <span className="text-[9px] text-ink-soft">vs Energy</span>
@@ -207,7 +207,7 @@ function CombateTab({ attributes, textFields, characterId, canEdit, onRefresh }:
           )}
           {kac && (
             <div className="flex flex-col items-center gap-2 px-4 py-4 rounded"
-              style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+              style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
               <span className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft">KAC</span>
               <NumericAttr attr={kac} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />
               <span className="text-[9px] text-ink-soft">vs Kinetic</span>
@@ -221,7 +221,7 @@ function CombateTab({ attributes, textFields, characterId, canEdit, onRefresh }:
       </div>
       {combat.filter(a => a !== eac && a !== kac).map(a => (
         <div key={a.id} className="flex items-center justify-between px-3 py-2 rounded"
-          style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+          style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
           <span className="text-sm text-ink">{a.attribute.name}</span>
           <NumericAttr attr={a} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />
         </div>
@@ -263,14 +263,14 @@ export function StarfinderSheet({ characterId, characterLevel, attributes, textF
   function refresh() { router.refresh() }
 
   return (
-    <div className="rounded-lg overflow-hidden" style={{ background: 'rgba(247,239,221,0.92)', border: '1px solid rgba(51,41,29,0.14)' }}>
-      <div className="flex border-b" style={{ borderColor: 'rgba(51,41,29,0.14)', background: 'rgba(51,41,29,0.05)' }}>
+    <div className="rounded-lg overflow-hidden" style={{ background: 'rgb(var(--card) / 0.92)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
+      <div className="flex border-b" style={{ borderColor: 'rgb(var(--ink) / 0.14)', background: 'rgb(var(--ink) / 0.05)' }}>
         {TABS.map(tab => {
           const isActive = tab.id === activeTab
           return (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
               className="relative px-4 py-3.5 font-almendra text-[10px] uppercase tracking-[0.15em] transition-colors"
-              style={{ color: isActive ? ACCENT : '#5f5040', background: isActive ? `${ACCENT}18` : 'transparent' }}>
+              style={{ color: isActive ? ACCENT : 'rgb(var(--ink-soft))', background: isActive ? `${ACCENT}18` : 'transparent' }}>
               {tab.label}
               {isActive && <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-t" style={{ background: `linear-gradient(90deg, transparent, ${ACCENT}, transparent)` }} />}
             </button>

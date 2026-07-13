@@ -135,16 +135,16 @@ export function DnD35Sheet({ characterId, characterLevel, attributes, textFields
   const bab = babAttr?.value ?? 0
 
   return (
-    <div className="rounded-lg overflow-hidden" style={{ background: 'rgba(247,239,221,0.92)', border: '1px solid rgba(51,41,29,0.14)' }}>
+    <div className="rounded-lg overflow-hidden" style={{ background: 'rgb(var(--card) / 0.92)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
       {/* Tab bar */}
-      <div className="flex flex-wrap border-b" style={{ borderColor: 'rgba(51,41,29,0.14)', background: 'rgba(51,41,29,0.05)' }}>
+      <div className="flex flex-wrap border-b" style={{ borderColor: 'rgb(var(--ink) / 0.14)', background: 'rgb(var(--ink) / 0.05)' }}>
         {TABS.map(tab => {
           const isActive = tab.id === activeTab
           const Icon = tab.icon
           return (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
               className="relative px-4 py-3.5 font-almendra text-[10px] uppercase tracking-[0.15em] transition-colors flex items-center gap-1.5"
-              style={{ color: isActive ? ACCENT : '#5f5040', background: isActive ? `${ACCENT}0d` : 'transparent' }}>
+              style={{ color: isActive ? ACCENT : 'rgb(var(--ink-soft))', background: isActive ? `${ACCENT}0d` : 'transparent' }}>
               {Icon && <Icon size={11} />}{tab.label}
               {isActive && <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-t"
                 style={{ background: `linear-gradient(90deg, transparent, ${ACCENT}, transparent)` }} />}
@@ -165,7 +165,7 @@ export function DnD35Sheet({ characterId, characterLevel, attributes, textFields
                   const pos = !m.startsWith('-')
                   return (
                     <div key={attr.id} className="flex flex-col items-center gap-2 py-5 px-1 rounded-lg border transition-all hover:border-yellow-600/25"
-                      style={{ background: 'rgba(51,41,29,0.025)', borderColor: 'rgba(51,41,29,0.14)' }}>
+                      style={{ background: 'rgb(var(--ink) / 0.025)', borderColor: 'rgb(var(--ink) / 0.14)' }}>
                       <span className={`font-cinzel text-3xl font-bold leading-none ${pos ? 'text-yellow-400' : 'text-red-400'}`}>{m}</span>
                       <div className="w-8 h-px" style={{ background: `${ACCENT}33` }} />
                       {canEdit
@@ -185,7 +185,7 @@ export function DnD35Sheet({ characterId, characterLevel, attributes, textFields
                 <div className="grid grid-cols-3 gap-2">
                   {grouped.saves.map(attr => (
                     <div key={attr.id} className="flex items-center gap-2 py-3 px-3 rounded"
-                      style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+                      style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
                       <Shield size={10} className="text-ink-soft shrink-0" />
                       <span className="flex-1 text-[11px] text-ink-soft truncate">{attr.attribute.name}</span>
                       {canEdit
@@ -224,7 +224,7 @@ export function DnD35Sheet({ characterId, characterLevel, attributes, textFields
                   return (
                     <div key={attr.id} className="flex items-center gap-3 py-2.5 px-2 rounded hover:bg-ink/[0.03]">
                       <span className="flex-1 text-sm">{attr.attribute.name}</span>
-                      {attrKey && <span className="text-[9px] text-ink-soft font-mono px-1.5 py-0.5 rounded" style={{ background: 'rgba(51,41,29,0.05)' }}>{attrKey}</span>}
+                      {attrKey && <span className="text-[9px] text-ink-soft font-mono px-1.5 py-0.5 rounded" style={{ background: 'rgb(var(--ink) / 0.05)' }}>{attrKey}</span>}
                       {canEdit
                         ? <EditableVal attrId={attr.id} value={attr.value} characterId={characterId} onSaved={refresh}
                             className={`font-cinzel font-bold text-base w-8 text-right ${attr.value >= 0 ? 'text-yellow-400' : 'text-red-400'}`} />
@@ -242,12 +242,12 @@ export function DnD35Sheet({ characterId, characterLevel, attributes, textFields
             <div>
               <SectionDivider title="Bônus Calculados" />
               <div className="grid grid-cols-2 gap-3">
-                <div className="text-center py-4 rounded-lg" style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+                <div className="text-center py-4 rounded-lg" style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
                   <p className="font-cinzel text-2xl font-bold" style={{ color: ACCENT }}>{signedVal(bab + strMod)}</p>
                   <p className="font-almendra text-[9px] text-ink-soft uppercase tracking-widest mt-1">Ataque Corpo a Corpo</p>
                   <p className="text-[9px] text-ink-soft/50 mt-0.5">BAB {signedVal(bab)} + FOR {signedVal(strMod)}</p>
                 </div>
-                <div className="text-center py-4 rounded-lg" style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+                <div className="text-center py-4 rounded-lg" style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
                   <p className="font-cinzel text-2xl font-bold" style={{ color: ACCENT }}>{signedVal(bab + dexMod)}</p>
                   <p className="font-almendra text-[9px] text-ink-soft uppercase tracking-widest mt-1">Ataque à Distância</p>
                   <p className="text-[9px] text-ink-soft/50 mt-0.5">BAB {signedVal(bab)} + DES {signedVal(dexMod)}</p>
@@ -260,7 +260,7 @@ export function DnD35Sheet({ characterId, characterLevel, attributes, textFields
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {grouped.combat.map(attr => (
                     <div key={attr.id} className="flex flex-col items-center gap-1.5 py-4 rounded-lg"
-                      style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+                      style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
                       {canEdit
                         ? <span className="font-cinzel font-bold text-2xl cursor-pointer" style={{ color: ACCENT }}>
                             <EditableVal attrId={attr.id} value={attr.value} characterId={characterId} onSaved={refresh}
@@ -304,7 +304,7 @@ export function DnD35Sheet({ characterId, characterLevel, attributes, textFields
                     const slot = spellSlots.find(s => s.level === lvl)
                     if (!slot || slot.total === 0) return null
                     return (
-                      <div key={lvl} className="rounded p-2.5" style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+                      <div key={lvl} className="rounded p-2.5" style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
                         <div className="flex items-center justify-between mb-2">
                           <span className="font-almendra text-[9px] text-ink-soft uppercase tracking-wider">Nível {lvl}</span>
                           <span className="font-cinzel text-xs" style={{ color: ACCENT }}>{slot.total - slot.used}/{slot.total}</span>
@@ -338,7 +338,7 @@ export function DnD35Sheet({ characterId, characterLevel, attributes, textFields
               { key: 'feats',             label: 'Talentos', multiline: true },
               { key: 'special_abilities', label: 'Habilidades Especiais', multiline: true },
             ].map(f => (
-              <div key={f.key} className="rounded p-3" style={{ background: 'rgba(51,41,29,0.02)', border: '1px solid rgba(51,41,29,0.05)' }}>
+              <div key={f.key} className="rounded p-3" style={{ background: 'rgb(var(--ink) / 0.02)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
                 <label className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft block mb-2">{f.label}</label>
                 {canEdit
                   ? <EditableText value={getTextField(textFields, f.key)} onSave={v => void saveTF(f.key, f.label, v)}

@@ -64,13 +64,13 @@ export function ApplicationsPanel({ campaignId }: { campaignId: string }) {
       </div>
 
       {applications.length === 0 ? (
-        <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg px-4 py-8 text-center text-sm text-ink-soft">
+        <div className="bg-card border border-ink/20 rounded-lg px-4 py-8 text-center text-sm text-ink-soft">
           Nenhuma inscrição recebida ainda.
         </div>
       ) : (
         <div className="space-y-2">
           {[...pending, ...resolved].map(app => (
-            <div key={app.id} className="bg-[#f5ecd6] border border-ink/20 rounded-lg overflow-hidden">
+            <div key={app.id} className="bg-card border border-ink/20 rounded-lg overflow-hidden">
               <div className="flex items-center justify-between px-4 py-3">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 bg-gradient-to-br from-purple to-gold">
@@ -112,7 +112,7 @@ export function ApplicationsPanel({ campaignId }: { campaignId: string }) {
                 </div>
               </div>
               {expanded === app.id && app.characterDesc && (
-                <div className="px-4 pb-3" style={{ borderTop: '1px solid rgba(51,41,29,0.06)' }}>
+                <div className="px-4 pb-3" style={{ borderTop: '1px solid rgb(var(--ink) / 0.06)' }}>
                   <p className="text-[11px] text-ink-soft uppercase font-bold tracking-widest mt-2.5 mb-1">Descrição do personagem</p>
                   <p className="text-sm text-ink-soft leading-relaxed whitespace-pre-wrap">{app.characterDesc}</p>
                 </div>

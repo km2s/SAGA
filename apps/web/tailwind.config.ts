@@ -2,11 +2,12 @@ import type { Config } from 'tailwindcss'
 
 export default {
   content: ['./src/**/*.{ts,tsx,js,jsx}'],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        // Tokens escuros — hoje usados SOMENTE pela mesa virtual (cripta imersiva)
-        // e seu tutorial. Reaquecidos para couro/ouro do template Saga.
+        // Tokens da mesa virtual (cripta imersiva). Fase 3 os converte em
+        // variáveis que acompanham o tema; por ora mantêm o escuro fixo.
         bg: '#0e0a06',
         surface: {
           DEFAULT: '#1a1410',
@@ -32,14 +33,16 @@ export default {
           danger: '#ef4444',
           warning: '#f59e0b',
         },
-        // Paleta medieval "pergaminho & cripta" (template Saga)
-        parchment: '#f3e9d2',
-        'parchment-deep': '#e6d5ac',
-        ink: '#33291d',
-        'ink-soft': '#5f5040',
-        wax: '#8f3a24',
-        'wax-deep': '#6a2817',
-        ember: '#d9662b',
+        // Paleta medieval "pergaminho & cripta" — variáveis CSS (canais RGB)
+        // que trocam de valor com a classe .dark (ver globals.css).
+        parchment: 'rgb(var(--parchment) / <alpha-value>)',
+        'parchment-deep': 'rgb(var(--parchment-deep) / <alpha-value>)',
+        card: 'rgb(var(--card) / <alpha-value>)',
+        ink: 'rgb(var(--ink) / <alpha-value>)',
+        'ink-soft': 'rgb(var(--ink-soft) / <alpha-value>)',
+        wax: 'rgb(var(--wax) / <alpha-value>)',
+        'wax-deep': 'rgb(var(--wax-deep) / <alpha-value>)',
+        ember: 'rgb(var(--ember) / <alpha-value>)',
         crypt: '#16171f',
         'crypt-deep': '#0b0c11',
       },

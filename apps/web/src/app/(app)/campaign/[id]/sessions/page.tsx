@@ -45,7 +45,7 @@ export default async function CampaignSessionsPage({ params }: { params: { id: s
         <div className="mb-6">
           <p className="text-[11px] text-ink-soft font-bold uppercase tracking-widest mb-2">Em andamento</p>
           <Link href={`/campaign/${params.id}/sessions/${activeSession.id}`}>
-            <div className="bg-[#f5ecd6] border border-saga-success/30 rounded-lg p-5 hover:border-saga-success/50 transition-all cursor-pointer">
+            <div className="bg-card border border-saga-success/30 rounded-lg p-5 hover:border-saga-success/50 transition-all cursor-pointer">
               <div className="flex items-start justify-between">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
@@ -74,14 +74,14 @@ export default async function CampaignSessionsPage({ params }: { params: { id: s
           Histórico · {pastSessions.length} sessão{pastSessions.length !== 1 ? 'ões' : ''}
         </p>
         {pastSessions.length === 0 ? (
-          <div className="text-sm text-ink-soft bg-[#f5ecd6] border border-ink/20 rounded-lg px-4 py-10 text-center">
+          <div className="text-sm text-ink-soft bg-card border border-ink/20 rounded-lg px-4 py-10 text-center">
             Nenhuma sessão encerrada ainda.
           </div>
         ) : (
           <div className="space-y-2">
             {pastSessions.map((s, i) => (
               <Link key={s.id} href={`/campaign/${params.id}/sessions/${s.id}`}>
-                <div className="flex items-center justify-between bg-[#f5ecd6] border border-ink/20 rounded-lg px-5 py-4 hover:border-wax hover:bg-parchment/60 transition-all cursor-pointer group">
+                <div className="flex items-center justify-between bg-card border border-ink/20 rounded-lg px-5 py-4 hover:border-wax hover:bg-parchment/60 transition-all cursor-pointer group">
                   <div className="flex items-center gap-3">
                     <div className="w-7 h-7 rounded-full bg-parchment/60 border border-ink/20 flex items-center justify-center text-[11px] text-ink-soft font-bold shrink-0">
                       {pastSessions.length - i}

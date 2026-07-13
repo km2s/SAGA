@@ -90,7 +90,7 @@ export function Tormenta20Sheet({ characterId, characterLevel, attributes, textF
   function getStat(idx: number) { return baseStats.find(a => a.attribute.name === BASE_STATS[idx])?.value ?? 10 }
 
   const card = 'rounded-xl p-4' as const
-  const cardStyle = { background: 'rgba(247,239,221,0.92)', border: '1px solid rgba(51,41,29,0.14)' }
+  const cardStyle = { background: 'rgb(var(--card) / 0.92)', border: '1px solid rgb(var(--ink) / 0.14)' }
   const tabs = [
     { id: 'atributos', label: 'Atributos' },
     { id: 'combate', label: 'Combate' },
@@ -109,11 +109,11 @@ export function Tormenta20Sheet({ characterId, characterLevel, attributes, textF
         <span className="text-xs text-ink-soft">Nível {characterLevel}</span>
       </div>
 
-      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgba(51,41,29,0.08)', border: '1px solid rgba(51,41,29,0.05)' }}>
+      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgb(var(--ink) / 0.08)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
         {tabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className="flex-1 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all"
-            style={tab === t.id ? { background: RED, color: '#fff' } : { color: 'rgba(51,41,29,0.4)' }}>
+            style={tab === t.id ? { background: RED, color: '#fff' } : { color: 'rgb(var(--ink) / 0.4)' }}>
             {t.label}
           </button>
         ))}
@@ -127,7 +127,7 @@ export function Tormenta20Sheet({ characterId, characterLevel, attributes, textF
               const a = baseStats.find(x => x.attribute.name === name)
               const m = mod(a?.value ?? 10)
               return (
-                <div key={name} className="rounded-lg p-3 text-center space-y-1" style={{ background: 'rgba(51,41,29,0.08)' }}>
+                <div key={name} className="rounded-lg p-3 text-center space-y-1" style={{ background: 'rgb(var(--ink) / 0.08)' }}>
                   <div className="text-[10px] font-bold text-ink-soft uppercase">{STAT_ABBR[i]}</div>
                   <div className="text-2xl font-cinzel font-bold" style={{ color: RED }}>{a?.value ?? 10}</div>
                   <div className="text-sm font-bold text-ink-soft">{fmtMod(m)}</div>

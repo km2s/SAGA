@@ -16,6 +16,8 @@ import {
   X,
   Library,
   HelpCircle,
+  Moon,
+  Sun,
 } from 'lucide-react'
 import { Crest, Fleuron } from '@/components/landing/Ornament'
 
@@ -26,8 +28,8 @@ interface SidebarProps {
 
 // Fundo pergaminho da barra lateral "Codex Magistri" — funde-se com o conteúdo
 const codexStyle: CSSProperties = {
-  backgroundColor: 'var(--parchment)',
-  boxShadow: 'inset -1px 0 0 rgba(51,41,29,0.10)',
+  backgroundColor: 'rgb(var(--parchment))',
+  boxShadow: 'inset -1px 0 0 rgb(var(--ink) / 0.10)',
 }
 
 export function Sidebar({ campaigns = [], discordClientId }: SidebarProps) {
@@ -37,6 +39,17 @@ export function Sidebar({ campaigns = [], discordClientId }: SidebarProps) {
 
   function isActive(href: string) {
     return pathname === href || pathname.startsWith(href + '/')
+  }
+
+  function toggleTheme() {
+    const root = document.documentElement
+    const next = !root.classList.contains('dark')
+    root.classList.toggle('dark', next)
+    try {
+      localStorage.setItem('saga-theme', next ? 'dark' : 'light')
+    } catch {
+      /* localStorage indisponível — ignora */
+    }
   }
 
   const inviteUrl = discordClientId
@@ -150,8 +163,17 @@ export function Sidebar({ campaigns = [], discordClientId }: SidebarProps) {
           </div>
         )}
 
-        {/* Bot invite + Tutorial */}
+        {/* Bot invite + Tutorial + Tema */}
         <div className="px-4 mt-auto mb-2 flex flex-col gap-1">
+          <button
+            onClick={toggleTheme}
+            className="flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm font-cormorant text-ink-soft hover:text-wax hover:bg-ink/5 transition cursor-pointer w-full"
+          >
+            <Moon size={15} strokeWidth={1.8} className="shrink-0 block dark:hidden" />
+            <Sun size={15} strokeWidth={1.8} className="shrink-0 hidden dark:block" />
+            <span className="block dark:hidden">Modo Cripta</span>
+            <span className="hidden dark:block">Modo Pergaminho</span>
+          </button>
           <button
             onClick={() => window.dispatchEvent(new Event('saga:open-checklist'))}
             className="flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm font-cormorant text-ink-soft hover:text-wax hover:bg-ink/5 transition cursor-pointer w-full"

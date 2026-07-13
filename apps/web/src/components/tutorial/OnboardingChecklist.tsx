@@ -116,7 +116,7 @@ export function OnboardingChecklist({ hasCampaign, firstCampaignId, firstGMCampa
 
   return (
     <>
-      <div className="fixed bottom-5 right-5 z-40 w-[300px] bg-[#f5ecd6] border border-ink/20 rounded-xl shadow-2xl overflow-hidden">
+      <div className="fixed bottom-5 right-5 z-40 w-[300px] bg-card border border-ink/20 rounded-xl shadow-2xl overflow-hidden">
 
         {/* Top accent */}
         <div className="h-0.5 bg-gradient-to-r from-purple via-gold to-purple" />

@@ -55,7 +55,7 @@ export function TutorialModal({
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-ink/80 backdrop-blur-md" onClick={onSkip} />
 
-      <div className="relative w-full max-w-md bg-[#f5ecd6] border border-ink/20 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
+      <div className="relative w-full max-w-md bg-card border border-ink/20 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
         {/* Top gradient bar */}
         <div className="h-0.5 bg-gradient-to-r from-purple via-gold to-purple" />
 

@@ -71,7 +71,7 @@ function TfField({ tfKey, label, characterId, textFields, canEdit, onRefresh, mu
   const field = textFields.find(f => f.key === tfKey)
   async function save(v: string) { await saveTextField(characterId, tfKey, label, v); onRefresh() }
   return (
-    <div className="rounded p-3" style={{ background: 'rgba(51,41,29,0.02)', border: '1px solid rgba(51,41,29,0.05)' }}>
+    <div className="rounded p-3" style={{ background: 'rgb(var(--ink) / 0.02)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
       <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft mb-2">{label}</p>
       {canEdit
         ? multi
@@ -100,7 +100,7 @@ function PericiasTab({ attributes, characterId, canEdit, onRefresh }: {
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {stats.map(a => (
             <div key={a.id} className="flex items-center justify-between px-3 py-2 rounded"
-              style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.06)' }}>
+              style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.06)' }}>
               <span className="text-sm text-ink">{a.attribute.name}</span>
               <NumericAttr attr={a} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />
             </div>
@@ -112,7 +112,7 @@ function PericiasTab({ attributes, characterId, canEdit, onRefresh }: {
         <div className="space-y-1">
           {skills.map(a => (
             <div key={a.id} className="flex items-center justify-between px-3 py-2 rounded"
-              style={{ background: 'rgba(51,41,29,0.02)', border: '1px solid rgba(51,41,29,0.04)' }}>
+              style={{ background: 'rgb(var(--ink) / 0.02)', border: '1px solid rgb(var(--ink) / 0.04)' }}>
               <span className="text-sm text-ink">{a.attribute.name}</span>
               <div className="flex items-center gap-3">
                 <NumericAttr attr={a} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />
@@ -150,7 +150,7 @@ function VinculosTab({ textFields, characterId, canEdit, onRefresh }: {
         async function saveScore(v: number) { await saveTextField(characterId, `bond${i}_score`, `Vínculo ${i} Pontuação`, String(Math.max(0, Math.min(MAX_SCORE, v)))); onRefresh() }
 
         return (
-          <div key={i} className="rounded p-4" style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+          <div key={i} className="rounded p-4" style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
             <div className="flex items-center gap-2 mb-3">
               <span className="font-cinzel text-xs font-bold" style={{ color: ACCENT }}>Vínculo {i}</span>
               {score === 0 && <span className="text-[9px] px-1.5 py-0.5 rounded" style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)' }}>Danificado</span>}
@@ -171,7 +171,7 @@ function VinculosTab({ textFields, characterId, canEdit, onRefresh }: {
                     style={{
                       width: 14, height: 14,
                       background: j < score ? ACCENT : 'transparent',
-                      borderColor: j < score ? ACCENT : 'rgba(51,41,29,0.15)',
+                      borderColor: j < score ? ACCENT : 'rgb(var(--ink) / 0.15)',
                       cursor: canEdit ? 'pointer' : 'default',
                     }} />
                 ))}
@@ -201,11 +201,11 @@ function RecursosTab({ attributes, textFields, characterId, canEdit, onRefresh }
   return (
     <div className="space-y-4">
       {san && (
-        <div className="rounded p-4" style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+        <div className="rounded p-4" style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
           <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft mb-3">Sanidade</p>
           <div className="flex items-center gap-4 mb-2">
             <NumericAttr attr={san} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />
-            <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'rgba(51,41,29,0.1)' }}>
+            <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'rgb(var(--ink) / 0.1)' }}>
               <div className="h-full rounded-full" style={{ width: `${(san.value / 99) * 100}%`, background: ACCENT }} />
             </div>
             <span className="text-xs text-ink-soft">/ 99</span>
@@ -252,14 +252,14 @@ export function DeltaGreenSheet({ characterId, characterLevel, attributes, textF
   function refresh() { router.refresh() }
 
   return (
-    <div className="rounded-lg overflow-hidden" style={{ background: 'rgba(247,239,221,0.92)', border: '1px solid rgba(51,41,29,0.14)' }}>
-      <div className="flex border-b" style={{ borderColor: 'rgba(51,41,29,0.14)', background: 'rgba(51,41,29,0.05)' }}>
+    <div className="rounded-lg overflow-hidden" style={{ background: 'rgb(var(--card) / 0.92)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
+      <div className="flex border-b" style={{ borderColor: 'rgb(var(--ink) / 0.14)', background: 'rgb(var(--ink) / 0.05)' }}>
         {TABS.map(tab => {
           const isActive = tab.id === activeTab
           return (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
               className="relative px-4 py-3.5 font-almendra text-[10px] uppercase tracking-[0.15em] transition-colors"
-              style={{ color: isActive ? ACCENT : '#5f5040', background: isActive ? `${ACCENT}18` : 'transparent' }}>
+              style={{ color: isActive ? ACCENT : 'rgb(var(--ink-soft))', background: isActive ? `${ACCENT}18` : 'transparent' }}>
               {tab.label}
               {isActive && <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-t" style={{ background: `linear-gradient(90deg, transparent, ${ACCENT}, transparent)` }} />}
             </button>

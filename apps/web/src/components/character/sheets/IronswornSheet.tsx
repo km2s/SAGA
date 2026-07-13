@@ -86,7 +86,7 @@ function ResourceTrack({ label, value, max, color = ACCENT, onSet, canEdit }: {
         {Array.from({ length: max + 1 }).map((_, i) => (
           <button key={i} type="button" onClick={() => canEdit && onSet(i)}
             className="flex-1 h-3 rounded transition-all"
-            style={{ background: i <= value ? color : 'rgba(51,41,29,0.1)' }} />
+            style={{ background: i <= value ? color : 'rgb(var(--ink) / 0.1)' }} />
         ))}
       </div>
     </div>
@@ -109,7 +109,7 @@ function MomentumTrack({ value, canEdit, onSet }: { value: number; canEdit: bool
         {Array.from({ length: total }).map((_, i) => {
           const v = i + min
           const filled = v <= value
-          const bg = v === 0 ? 'rgba(51,41,29,0.3)' : v > 0 ? (filled ? '#22c55e' : 'rgba(51,41,29,0.08)') : (filled ? '#ef4444' : 'rgba(51,41,29,0.08)')
+          const bg = v === 0 ? 'rgb(var(--ink) / 0.3)' : v > 0 ? (filled ? '#22c55e' : 'rgb(var(--ink) / 0.08)') : (filled ? '#ef4444' : 'rgb(var(--ink) / 0.08)')
           return (
             <button key={i} type="button" onClick={() => canEdit && onSet(v)}
               className="flex-1 h-3 rounded transition-all relative"
@@ -170,7 +170,7 @@ function VowSlot({ num, characterId, textFields, canEdit, onRefresh }: { num: nu
   const partialTicks = Math.round(((localProgress / maxTicks) * boxes - filledBoxes) * 4)
 
   return (
-    <div className="p-3 rounded-lg space-y-2" style={{ background: 'rgba(51,41,29,0.08)', border: `1px solid ${ACCENT}30` }}>
+    <div className="p-3 rounded-lg space-y-2" style={{ background: 'rgb(var(--ink) / 0.08)', border: `1px solid ${ACCENT}30` }}>
       <div className="flex items-center gap-2">
         <span className="text-[9px] font-bold text-ink-soft uppercase">Jura {num}</span>
         {localRank && <span className="text-[9px] px-2 py-0.5 rounded" style={{ background: `${ACCENT}20`, color: ACCENT }}>{localRank}</span>}
@@ -199,7 +199,7 @@ function VowSlot({ num, characterId, textFields, canEdit, onRefresh }: { num: nu
             const partial = i === filledBoxes && partialTicks > 0
             return (
               <div key={i} className="flex-1 h-4 rounded border relative overflow-hidden"
-                style={{ borderColor: `${ACCENT}50`, background: full ? ACCENT : 'rgba(51,41,29,0.08)' }}>
+                style={{ borderColor: `${ACCENT}50`, background: full ? ACCENT : 'rgb(var(--ink) / 0.08)' }}>
                 {partial && (
                   <div className="absolute inset-0 flex items-center justify-center">
                     {partialTicks === 1 && <div className="w-px h-3 bg-amber-500" />}
@@ -211,7 +211,7 @@ function VowSlot({ num, characterId, textFields, canEdit, onRefresh }: { num: nu
             )
           })}
         </div>
-        <div className="w-full h-1 rounded" style={{ background: 'rgba(51,41,29,0.1)' }}>
+        <div className="w-full h-1 rounded" style={{ background: 'rgb(var(--ink) / 0.1)' }}>
           <div className="h-full rounded transition-all" style={{ width: `${progressPct * 100}%`, background: ACCENT }} />
         </div>
       </div>
@@ -251,7 +251,7 @@ export function IronswornSheet({ characterId, attributes, textFields, canEdit }:
   }
 
   const card = 'rounded-xl p-4' as const
-  const cardStyle = { background: 'rgba(247,239,221,0.92)', border: '1px solid rgba(51,41,29,0.14)' }
+  const cardStyle = { background: 'rgb(var(--card) / 0.92)', border: '1px solid rgb(var(--ink) / 0.14)' }
   const tabs = [
     { id: 'stats', label: 'Stats' }, { id: 'juras', label: 'Juras' },
     { id: 'estado', label: 'Estado' }, { id: 'personagem', label: 'Personagem' },
@@ -264,11 +264,11 @@ export function IronswornSheet({ characterId, attributes, textFields, canEdit }:
         <span className="font-cinzel text-sm font-bold" style={{ color: ACCENT }}>Ironsworn</span>
       </div>
 
-      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgba(51,41,29,0.08)', border: '1px solid rgba(51,41,29,0.05)' }}>
+      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgb(var(--ink) / 0.08)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
         {tabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className="flex-1 py-1.5 rounded-md text-[11px] font-bold uppercase tracking-wider transition-all"
-            style={tab === t.id ? { background: ACCENT, color: '#000' } : { color: 'rgba(51,41,29,0.4)' }}>
+            style={tab === t.id ? { background: ACCENT, color: '#000' } : { color: 'rgb(var(--ink) / 0.4)' }}>
             {t.label}
           </button>
         ))}
@@ -280,7 +280,7 @@ export function IronswornSheet({ characterId, attributes, textFields, canEdit }:
             <SectionDivider title="Estatísticas" />
             <div className="grid grid-cols-5 gap-3">
               {stats.map(a => (
-                <div key={a.id} className="text-center p-2 rounded-lg" style={{ background: 'rgba(51,41,29,0.08)' }}>
+                <div key={a.id} className="text-center p-2 rounded-lg" style={{ background: 'rgb(var(--ink) / 0.08)' }}>
                   <div className="text-[9px] font-bold text-ink-soft uppercase mb-1">{a.attribute.name}</div>
                   <EditableVal attrId={a.id} value={a.value} characterId={characterId} onSaved={onRefresh} large />
                 </div>

@@ -45,7 +45,7 @@ export function MembersOnlineStatus({ campaignId, members }: Props) {
   }, [campaignId])
 
   return (
-    <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg overflow-hidden">
+    <div className="bg-card border border-ink/20 rounded-lg overflow-hidden">
       <div className="px-4 py-3 border-b border-ink/20 text-[11px] font-bold text-ink-soft uppercase tracking-widest flex items-center justify-between">
         Jogadores
         <Badge variant="success">{members.length} membros</Badge>

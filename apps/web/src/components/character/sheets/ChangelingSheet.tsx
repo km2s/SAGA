@@ -132,7 +132,7 @@ export function ChangelingSheet({ characterId, attributes, textFields, canEdit }
   const glamAttr = resources.find(a => a.attribute.name.toLowerCase().includes('glamour'))
 
   const card = 'rounded-xl p-4' as const
-  const cardStyle = { background: 'rgba(247,239,221,0.92)', border: '1px solid rgba(51,41,29,0.14)' }
+  const cardStyle = { background: 'rgb(var(--card) / 0.92)', border: '1px solid rgb(var(--ink) / 0.14)' }
   const tabs = [
     { id: 'atributos', label: 'Atributos' },
     { id: 'habilidades', label: 'Habilidades' },
@@ -158,11 +158,11 @@ export function ChangelingSheet({ characterId, attributes, textFields, canEdit }
         </div>
       </div>
 
-      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgba(51,41,29,0.08)', border: '1px solid rgba(51,41,29,0.05)' }}>
+      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgb(var(--ink) / 0.08)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
         {tabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className="flex-1 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all"
-            style={tab === t.id ? { background: TEAL, color: '#000' } : { color: 'rgba(51,41,29,0.4)' }}>
+            style={tab === t.id ? { background: TEAL, color: '#000' } : { color: 'rgb(var(--ink) / 0.4)' }}>
             {t.label}
           </button>
         ))}

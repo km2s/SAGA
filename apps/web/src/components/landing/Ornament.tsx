@@ -45,12 +45,12 @@ export function Crest({ className = '' }: { className?: string }) {
       <path
         d="M32 4l24 8v18c0 14-10 24-24 30C18 54 8 44 8 30V12l24-8z"
         fill="url(#crestG)"
-        stroke="#6a2817"
+        stroke="rgb(var(--wax-deep))"
         strokeWidth="1.5"
       />
       <path
         d="M32 16l3 9h9l-7.5 5.5L40 40l-8-5.5L24 40l3.5-9.5L20 25h9l3-9z"
-        fill="#6a2817"
+        fill="rgb(var(--wax-deep))"
       />
     </svg>
   )

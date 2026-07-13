@@ -84,7 +84,7 @@ export default async function CampaignNpcsPage({ params }: { params: { id: strin
     <User size={40} />
 
   const renderCard = (npc: NpcRow) => (
-    <div key={npc.id} className="relative group bg-[#f5ecd6] border border-ink/20 rounded-lg overflow-hidden hover:border-wax transition-all card-hover">
+    <div key={npc.id} className="relative group bg-card border border-ink/20 rounded-lg overflow-hidden hover:border-wax transition-all card-hover">
       <Link href={`/campaign/${params.id}/npcs/${npc.id}`} className="block">
         {safeImageUrl(npc.imageUrl) ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -121,12 +121,12 @@ export default async function CampaignNpcsPage({ params }: { params: { id: strin
         <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <Link
             href={`/campaign/${params.id}/npcs/${npc.id}`}
-            className="p-1.5 rounded bg-[#f5ecd6]/80 backdrop-blur-sm text-ink-soft hover:text-ink hover:bg-[#f5ecd6] transition-colors"
+            className="p-1.5 rounded bg-card/80 backdrop-blur-sm text-ink-soft hover:text-ink hover:bg-card transition-colors"
             title="Editar NPC"
           >
             <Pencil size={13} />
           </Link>
-          <div className="bg-[#f5ecd6]/80 backdrop-blur-sm rounded">
+          <div className="bg-card/80 backdrop-blur-sm rounded">
             <DeleteNPCButton campaignId={params.id} npcId={npc.id} npcName={npc.name} />
           </div>
         </div>
@@ -153,7 +153,7 @@ export default async function CampaignNpcsPage({ params }: { params: { id: strin
       )}
 
       {npcs.length === 0 ? (
-        <div className="text-sm text-ink-soft bg-[#f5ecd6] border border-ink/20 rounded-lg px-4 py-10 text-center">
+        <div className="text-sm text-ink-soft bg-card border border-ink/20 rounded-lg px-4 py-10 text-center">
           {isGM
             ? 'Nenhum NPC criado ainda. Clique em "+ Criar NPC" para adicionar o primeiro.'
             : 'Nenhum NPC visível para você no momento.'}

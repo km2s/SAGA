@@ -348,7 +348,7 @@ function WoDDots({ value, max = 5, editable = false, attrId, characterId, onSave
           style={{
             width: 11, height: 11,
             background: i < value ? '#c9a22a' : 'transparent',
-            borderColor: i < value ? '#c9a22a' : 'rgba(51,41,29,0.15)',
+            borderColor: i < value ? '#c9a22a' : 'rgb(var(--ink) / 0.15)',
             cursor: editable ? 'pointer' : 'default',
           }} />
       ))}
@@ -508,7 +508,7 @@ function WeaponsSection({ weapons, characterId, canEdit, onRefresh }: {
           <div className="flex justify-end gap-2">
             <button onClick={() => setAdding(false)}
               className="px-3 py-1.5 rounded text-xs border text-ink-soft hover:text-ink transition-colors"
-              style={{ borderColor: 'rgba(51,41,29,0.1)' }}>Cancelar</button>
+              style={{ borderColor: 'rgb(var(--ink) / 0.1)' }}>Cancelar</button>
             <button onClick={() => void addWeapon()} disabled={saving || !newWeapon.name.trim()}
               className="px-3 py-1.5 rounded text-xs font-medium transition-colors disabled:opacity-50"
               style={{ background: 'rgba(201,162,42,0.15)', border: '1px solid rgba(201,162,42,0.4)', color: '#c9a22a' }}>
@@ -553,7 +553,7 @@ function SpellSlotsSection({ spellSlots, characterId, canEdit, onRefresh }: {
           const used = slot?.used ?? 0
           return (
             <div key={lvl} className="rounded p-2.5"
-              style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+              style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
               <div className="flex items-center justify-between mb-2">
                 <span className="font-almendra text-[9px] text-ink-soft uppercase tracking-wider">Nível {lvl}</span>
                 {canEdit && (
@@ -621,7 +621,7 @@ function SpellCard({ spell, canEdit, onRemove }: { spell: SpellEntry; canEdit: b
   const hasExtra = !!(spell.cost || spell.desc)
   return (
     <div className="rounded group transition-all"
-      style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.06)' }}>
+      style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.06)' }}>
       <div className="flex items-start gap-2 px-3 py-2">
         {hasExtra && (
           <button onClick={() => setExpanded(e => !e)}
@@ -679,7 +679,7 @@ function CostPicker({ value, onChange }: { value: string; onChange: (v: string) 
           <div className="fixed inset-0 z-[65]" onClick={() => setOpen(false)} />
           <div
             className="absolute top-full left-0 right-0 mt-1 z-[70] rounded-lg border border-ink/15 shadow-2xl overflow-hidden"
-            style={{ background: 'rgba(247,239,221,0.98)', backdropFilter: 'blur(16px)' }}
+            style={{ background: 'rgb(var(--card) / 0.98)', backdropFilter: 'blur(16px)' }}
           >
             {SPELL_COST_OPTIONS.map(opt => (
               <button
@@ -774,7 +774,7 @@ function SpellListSection({ textFields, spellSlots, characterId, canEdit, onRefr
           const draft = getDraft(lvl)
           return (
             <div key={lvl} className="rounded p-3"
-              style={{ background: 'rgba(51,41,29,0.015)', border: '1px solid rgba(51,41,29,0.14)' }}>
+              style={{ background: 'rgb(var(--ink) / 0.015)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
               <div className="flex items-center justify-between mb-2">
                 <p className="font-almendra text-[9px] text-ink-soft uppercase tracking-wider">{levelLabel}</p>
                 {canEdit && !isAdding && (
@@ -893,7 +893,7 @@ function DeathSaves({ successes, failures, canEdit, onToggleSuccess, onToggleFai
 }) {
   return (
     <div className="rounded p-3"
-      style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+      style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
       <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft mb-3 text-center">Testes Contra a Morte</p>
       <div className="space-y-2">
         <div className="flex items-center justify-between">
@@ -906,7 +906,7 @@ function DeathSaves({ successes, failures, canEdit, onToggleSuccess, onToggleFai
                 style={{
                   width: 14, height: 14,
                   background: n <= successes ? '#22c55e' : 'transparent',
-                  borderColor: n <= successes ? '#22c55e' : 'rgba(51,41,29,0.2)',
+                  borderColor: n <= successes ? '#22c55e' : 'rgb(var(--ink) / 0.2)',
                   cursor: canEdit ? 'pointer' : 'default',
                 }} />
             ))}
@@ -922,7 +922,7 @@ function DeathSaves({ successes, failures, canEdit, onToggleSuccess, onToggleFai
                 style={{
                   width: 14, height: 14,
                   background: n <= failures ? '#ef4444' : 'transparent',
-                  borderColor: n <= failures ? '#ef4444' : 'rgba(51,41,29,0.2)',
+                  borderColor: n <= failures ? '#ef4444' : 'rgb(var(--ink) / 0.2)',
                   cursor: canEdit ? 'pointer' : 'default',
                 }} />
             ))}
@@ -953,7 +953,7 @@ function DnD5eAtributos({ dnd, characterId, canEdit, level, onAdd, onDelete, onR
               return (
                 <div key={attr.id}
                   className="flex flex-col items-center gap-2 py-5 px-1 rounded-lg border group transition-all hover:border-gold/25"
-                  style={{ background: 'rgba(51,41,29,0.025)', borderColor: 'rgba(51,41,29,0.14)' }}>
+                  style={{ background: 'rgb(var(--ink) / 0.025)', borderColor: 'rgb(var(--ink) / 0.14)' }}>
                   <span className={`font-cinzel text-3xl font-bold leading-none ${pos ? 'text-gold' : 'text-red-700'}`}>{mod}</span>
                   <div className="w-8 h-px" style={{ background: 'rgba(201,162,42,0.2)' }} />
                   {canEdit
@@ -982,7 +982,7 @@ function DnD5eAtributos({ dnd, characterId, canEdit, level, onAdd, onDelete, onR
               return (
                 <div key={attr.id}
                   className="flex items-center gap-2.5 py-2.5 px-3 rounded group hover:bg-ink/[0.02] transition-all"
-                  style={{ border: '1px solid rgba(51,41,29,0.05)' }}>
+                  style={{ border: '1px solid rgb(var(--ink) / 0.05)' }}>
                   <Shield size={10} className="text-ink-soft shrink-0" />
                   <span className="flex-1 text-[11px] text-ink-soft truncate">{attr.attribute.name.replace('Salv. ', '')}</span>
                   {canEdit
@@ -1015,7 +1015,7 @@ function DnD5eAtributos({ dnd, characterId, canEdit, level, onAdd, onDelete, onR
           </div>
         ))}
         {dnd.extras.length === 0 && canEdit && (
-          <button onClick={onAdd} className="w-full py-3 rounded border border-dashed text-xs text-ink-soft hover:text-ink-soft transition-colors" style={{ borderColor: 'rgba(51,41,29,0.08)' }}>
+          <button onClick={onAdd} className="w-full py-3 rounded border border-dashed text-xs text-ink-soft hover:text-ink-soft transition-colors" style={{ borderColor: 'rgb(var(--ink) / 0.08)' }}>
             + Adicionar campo extra
           </button>
         )}
@@ -1116,13 +1116,13 @@ function DnD5eCombate({ dnd, characterId, canEdit, canEditWeapons = canEdit, lev
         <SectionDivider title="Valores Calculados" />
         <div className="grid grid-cols-2 gap-3">
           <div className="text-center py-5 rounded-lg"
-            style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+            style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
             <p className="font-cinzel text-3xl font-bold text-gold">{iniciativa}</p>
             <p className="font-almendra text-[9px] text-ink-soft uppercase tracking-widest mt-2">Iniciativa</p>
             {dex && <p className="text-[9px] text-ink-soft/50 mt-0.5">de Destreza {dex.value}</p>}
           </div>
           <div className="text-center py-5 rounded-lg"
-            style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+            style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
             <p className="font-cinzel text-3xl font-bold text-gold">{profBonus}</p>
             <p className="font-almendra text-[9px] text-ink-soft uppercase tracking-widest mt-2">Proficiência</p>
             <p className="text-[9px] text-ink-soft/50 mt-0.5">nível {level}</p>
@@ -1138,7 +1138,7 @@ function DnD5eCombate({ dnd, characterId, canEdit, canEditWeapons = canEdit, lev
             {dnd.combat.map(attr => (
               <div key={attr.id}
                 className="flex flex-col items-center gap-1.5 py-4 rounded-lg group hover:border-gold/25 transition-all"
-                style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+                style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
                 {canEdit
                   ? <EditableVal attrId={attr.id} value={attr.value} characterId={characterId} onSaved={onRefresh}
                       className="font-cinzel font-bold text-2xl text-gold w-16 text-center" />
@@ -1212,7 +1212,7 @@ function DnD5ePersonagem({ textFields, characterId, canEdit, onRefresh }: {
     <div className="space-y-4">
       {resolvedFields.map(f => (
         <div key={f.key} className="rounded p-3"
-          style={{ background: 'rgba(51,41,29,0.02)', border: '1px solid rgba(51,41,29,0.05)' }}>
+          style={{ background: 'rgb(var(--ink) / 0.02)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
           <label className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft block mb-2">{f.label}</label>
           {canEdit ? (
             <EditableText
@@ -1253,7 +1253,7 @@ function FantasyAttrTab({ attrs, characterId, canEdit, onAdd, onDelete, onRefres
               return (
                 <div key={attr.id}
                   className="flex flex-col items-center gap-2 py-5 px-1 rounded-lg border group transition-all hover:border-gold/25"
-                  style={{ background: 'rgba(51,41,29,0.025)', borderColor: 'rgba(51,41,29,0.14)' }}>
+                  style={{ background: 'rgb(var(--ink) / 0.025)', borderColor: 'rgb(var(--ink) / 0.14)' }}>
                   <span className={`font-cinzel text-3xl font-bold leading-none ${pos ? 'text-gold' : 'text-red-700'}`}>{mod}</span>
                   <div className="w-8 h-px" style={{ background: 'rgba(201,162,42,0.2)' }} />
                   {canEdit
@@ -1283,7 +1283,7 @@ function FantasyAttrTab({ attrs, characterId, canEdit, onAdd, onDelete, onRefres
         </div>
         {extras.length === 0 ? (
           canEdit
-            ? <button onClick={onAdd} className="w-full py-4 rounded border border-dashed text-sm text-ink-soft hover:text-ink-soft transition-colors" style={{ borderColor: 'rgba(51,41,29,0.08)' }}>+ Adicionar atributo extra</button>
+            ? <button onClick={onAdd} className="w-full py-4 rounded border border-dashed text-sm text-ink-soft hover:text-ink-soft transition-colors" style={{ borderColor: 'rgb(var(--ink) / 0.08)' }}>+ Adicionar atributo extra</button>
             : core.length > 0 ? null : <p className="text-sm text-ink-soft text-center py-6">Nenhum atributo.</p>
         ) : (
           <div className="space-y-1">
@@ -1329,12 +1329,12 @@ function FantasyCombateTab({ attrs, weapons, spellSlots, characterId, canEdit, o
         <SectionDivider title="Valores Calculados" />
         <div className="grid grid-cols-2 gap-3">
           <div className="text-center py-5 rounded-lg"
-            style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+            style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
             <p className="font-cinzel text-3xl font-bold text-gold">{iniciativa}</p>
             <p className="font-almendra text-[9px] text-ink-soft uppercase tracking-widest mt-2">Iniciativa</p>
           </div>
           <div className="text-center py-5 rounded-lg"
-            style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+            style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
             <p className="font-cinzel text-3xl font-bold text-gold">+{profBonusFromLevel(level)}</p>
             <p className="font-almendra text-[9px] text-ink-soft uppercase tracking-widest mt-2">Proficiência</p>
           </div>
@@ -1375,7 +1375,7 @@ function WoDAttrCell({ attr, characterId, canEdit, onSaved, onDelete, max = 5 }:
   onDelete?: (id: string) => void; max?: number
 }) {
   return (
-    <div className="py-2 border-b last:border-0 group" style={{ borderColor: 'rgba(51,41,29,0.04)' }}>
+    <div className="py-2 border-b last:border-0 group" style={{ borderColor: 'rgb(var(--ink) / 0.04)' }}>
       <div className="flex items-center justify-between mb-1.5">
         <span className="font-almendra text-[11px] text-ink leading-tight truncate" title={attr.attribute.name}>{attr.attribute.name}</span>
         <div className="flex items-center gap-1 shrink-0 ml-1">
@@ -1413,7 +1413,7 @@ function WoDCol({ items, characterId, canEdit, onSaved, onDelete, emptyHint }: {
 }) {
   return (
     <div className="rounded-lg px-3 py-1 min-h-[60px]"
-      style={{ background: 'rgba(51,41,29,0.02)', border: '1px solid rgba(51,41,29,0.05)' }}>
+      style={{ background: 'rgb(var(--ink) / 0.02)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
       {items.length === 0
         ? <p className="text-[10px] text-ink-soft py-4 text-center italic">{emptyHint ?? '—'}</p>
         : items.map(attr => <WoDAttrCell key={attr.id} attr={attr} characterId={characterId} canEdit={canEdit} onSaved={onSaved} onDelete={onDelete} />)
@@ -1430,14 +1430,14 @@ function WoDHealthTrack({ attrs, characterId, canEdit, onSaved }: {
   if (!healthAttr && attrs.filter(a => a.attribute.description?.includes('Físico')).length === 0) return null
 
   return (
-    <div className="rounded p-3" style={{ background: 'rgba(51,41,29,0.02)', border: '1px solid rgba(51,41,29,0.05)' }}>
+    <div className="rounded p-3" style={{ background: 'rgb(var(--ink) / 0.02)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
       <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft mb-3 text-center">Saúde</p>
       <div className="space-y-1">
         {LEVELS.map((lvl, i) => (
           <div key={i} className="flex items-center gap-3">
             <span className="text-[10px] text-ink-soft flex-1">{lvl}</span>
             <div className="w-4 h-4 rounded border transition-all"
-              style={{ borderColor: 'rgba(51,41,29,0.2)', background: 'transparent' }} />
+              style={{ borderColor: 'rgb(var(--ink) / 0.2)', background: 'transparent' }} />
           </div>
         ))}
       </div>
@@ -1461,7 +1461,7 @@ function WoDResourcesTab({ resources, characterId, canEdit, onSaved }: {
               const max = isSmall ? 5 : 10
               return (
                 <div key={attr.id} className="py-3 px-3 rounded"
-                  style={{ background: 'rgba(51,41,29,0.02)', border: '1px solid rgba(51,41,29,0.05)' }}>
+                  style={{ background: 'rgb(var(--ink) / 0.02)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-almendra text-sm text-ink">{attr.attribute.name}</span>
                     <span className="font-cinzel font-bold text-gold">{attr.value} / {max}</span>
@@ -1699,7 +1699,7 @@ function AbilitiesSection({ characterId, textFields, canEdit, onRefresh }: {
       )}
       {abilities.map(a => (
         <div key={a.id} className="rounded-lg p-3 group"
-          style={{ background: 'rgba(51,41,29,0.03)', border: '1px solid rgba(51,41,29,0.08)' }}>
+          style={{ background: 'rgb(var(--ink) / 0.03)', border: '1px solid rgb(var(--ink) / 0.08)' }}>
           <div className="flex items-start justify-between gap-2">
             <p className="text-sm font-semibold text-ink">{a.name}</p>
             {canEdit && (
@@ -1911,17 +1911,17 @@ export function CharacterSheetView({ characterId, characterLevel, attributes, te
 
   return (
     <div className="rounded-lg overflow-hidden"
-      style={{ background: 'rgba(247,239,221,0.92)', border: '1px solid rgba(51,41,29,0.14)' }}>
+      style={{ background: 'rgb(var(--card) / 0.92)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
 
       {/* Tab bar */}
-      <div className="flex flex-wrap border-b" style={{ borderColor: 'rgba(51,41,29,0.14)', background: 'rgba(51,41,29,0.05)' }}>
+      <div className="flex flex-wrap border-b" style={{ borderColor: 'rgb(var(--ink) / 0.14)', background: 'rgb(var(--ink) / 0.05)' }}>
         {tabs.map(tab => {
           const isActive = tab.id === currentTab
           const Icon = tab.icon
           return (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
               className="relative px-4 py-3.5 font-almendra text-[10px] uppercase tracking-[0.15em] transition-colors flex items-center gap-1.5"
-              style={{ color: isActive ? '#c9a22a' : '#5f5040', background: isActive ? 'rgba(201,162,42,0.05)' : 'transparent' }}>
+              style={{ color: isActive ? '#c9a22a' : 'rgb(var(--ink-soft))', background: isActive ? 'rgba(201,162,42,0.05)' : 'transparent' }}>
               {Icon && <Icon size={11} />}
               {tab.label}
               {isActive && (
@@ -2033,7 +2033,7 @@ export function CharacterSheetView({ characterId, characterLevel, attributes, te
                   return (
                     <div key={attr.id}
                       className="flex flex-col items-center gap-1.5 py-4 px-1 rounded-lg border group transition-all hover:border-gold/25"
-                      style={{ background: 'rgba(51,41,29,0.025)', borderColor: 'rgba(51,41,29,0.14)' }}>
+                      style={{ background: 'rgb(var(--ink) / 0.025)', borderColor: 'rgb(var(--ink) / 0.14)' }}>
                       <span className="font-cinzel text-2xl font-bold text-gold leading-none">
                         {canEdit
                           ? <EditableVal attrId={attr.id} value={attr.value} characterId={characterId} onSaved={refresh} className="font-cinzel text-2xl font-bold text-gold w-14 text-center" />

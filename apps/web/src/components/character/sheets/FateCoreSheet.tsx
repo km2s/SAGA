@@ -179,7 +179,7 @@ function StressBoxes({ count, tfKey, textFields, characterId, canEdit, onRefresh
           style={{
             width: 16, height: 16,
             background: checked ? '#ef4444' : 'transparent',
-            borderColor: checked ? '#ef4444' : 'rgba(51,41,29,0.2)',
+            borderColor: checked ? '#ef4444' : 'rgb(var(--ink) / 0.2)',
             cursor: canEdit ? 'pointer' : 'default',
           }} />
       ))}
@@ -207,7 +207,7 @@ function ConsequenceRow({ label, severity, tfKey, textFields, characterId, canEd
   const hasValue = !!(field?.value)
   return (
     <div className="flex items-start gap-3 py-2 px-3 rounded transition-all"
-      style={{ background: hasValue ? 'rgba(239,68,68,0.04)' : 'rgba(51,41,29,0.02)', border: `1px solid ${hasValue ? 'rgba(239,68,68,0.3)' : 'rgba(51,41,29,0.05)'}` }}>
+      style={{ background: hasValue ? 'rgba(239,68,68,0.04)' : 'rgb(var(--ink) / 0.02)', border: `1px solid ${hasValue ? 'rgba(239,68,68,0.3)' : 'rgb(var(--ink) / 0.05)'}` }}>
       <div className="flex-shrink-0 mt-1">
         <span className="font-cinzel text-[10px] font-bold px-1.5 py-0.5 rounded"
           style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)' }}>
@@ -270,7 +270,7 @@ function AspectsTab({ textFields, characterId, canEdit, onRefresh }: {
       {/* Fate Points + Refresh */}
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-lg py-4 px-3 text-center"
-          style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+          style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
           <p className="font-almendra text-[9px] text-ink-soft uppercase tracking-widest mb-2">Pontos de Destino</p>
           <div className="flex items-center justify-center gap-2">
             {canEdit && <button onClick={() => void adjustFate(-1)} className="w-6 h-6 rounded text-ink-soft hover:text-gold">−</button>}
@@ -279,7 +279,7 @@ function AspectsTab({ textFields, characterId, canEdit, onRefresh }: {
           </div>
         </div>
         <div className="rounded-lg py-4 px-3 text-center"
-          style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+          style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
           <p className="font-almendra text-[9px] text-ink-soft uppercase tracking-widest mb-2">Refresh</p>
           <div className="flex items-center justify-center gap-2">
             {canEdit && <button onClick={() => void adjustRefresh(-1)} className="w-6 h-6 rounded text-ink-soft hover:text-ink">−</button>}
@@ -341,7 +341,7 @@ function SkillsTab({ attributes, characterId, canEdit, onRefresh, onAdd, onDelet
       {levels.length === 0
         ? (
           canEdit
-            ? <button onClick={onAdd} className="w-full py-5 rounded border border-dashed text-sm text-ink-soft hover:text-ink-soft transition-colors" style={{ borderColor: 'rgba(51,41,29,0.08)' }}>
+            ? <button onClick={onAdd} className="w-full py-5 rounded border border-dashed text-sm text-ink-soft hover:text-ink-soft transition-colors" style={{ borderColor: 'rgb(var(--ink) / 0.08)' }}>
                 + Adicionar perícia
               </button>
             : <p className="text-sm text-ink-soft text-center py-8">Nenhuma perícia adicionada.</p>
@@ -365,7 +365,7 @@ function SkillsTab({ attributes, characterId, canEdit, onRefresh, onAdd, onDelet
                   <div className="flex flex-wrap gap-2">
                     {attrs.map(attr => (
                       <div key={attr.id} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded group"
-                        style={{ background: 'rgba(51,41,29,0.03)', border: '1px solid rgba(51,41,29,0.14)' }}>
+                        style={{ background: 'rgb(var(--ink) / 0.03)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
                         <span className="text-sm text-ink">{attr.attribute.name}</span>
                         {canEdit && (
                           <button onClick={() => onDelete(attr.id)}
@@ -411,7 +411,7 @@ function StuntsTab({ textFields, characterId, canEdit, onRefresh }: {
         const field = textFields.find(f => f.key === key)
         return (
           <div key={key} className="rounded p-3"
-            style={{ background: 'rgba(51,41,29,0.02)', border: '1px solid rgba(51,41,29,0.05)' }}>
+            style={{ background: 'rgb(var(--ink) / 0.02)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
             <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft mb-2">Façanha {i + 1}</p>
             {canEdit
               ? <EditableTextField value={field?.value ?? ''} onSave={v => void save(key, v)} placeholder="Nome e descrição da façanha…" multiline />
@@ -442,7 +442,7 @@ function StressTab({ attributes, textFields, characterId, canEdit, onRefresh }: 
       <div>
         <SectionDivider title="Trilhas de Estresse" />
         <div className="grid grid-cols-2 gap-4">
-          <div className="rounded p-3" style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+          <div className="rounded p-3" style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
             <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft mb-3 text-center">Físico</p>
             <div className="flex justify-center">
               <StressBoxes count={physBoxes} tfKey="physicalStress" textFields={textFields}
@@ -450,7 +450,7 @@ function StressTab({ attributes, textFields, characterId, canEdit, onRefresh }: 
             </div>
             {physique && <p className="text-[9px] text-ink-soft text-center mt-2">{physBoxes} caixas (Físico +{physique.value})</p>}
           </div>
-          <div className="rounded p-3" style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+          <div className="rounded p-3" style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
             <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft mb-3 text-center">Mental</p>
             <div className="flex justify-center">
               <StressBoxes count={mentBoxes} tfKey="mentalStress" textFields={textFields}
@@ -533,15 +533,15 @@ export function FateCoreSheet({ characterId, characterLevel, attributes, textFie
 
   return (
     <div className="rounded-lg overflow-hidden"
-      style={{ background: 'rgba(247,239,221,0.92)', border: '1px solid rgba(51,41,29,0.14)' }}>
+      style={{ background: 'rgb(var(--card) / 0.92)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
       {/* Tab bar */}
-      <div className="flex border-b" style={{ borderColor: 'rgba(51,41,29,0.14)', background: 'rgba(51,41,29,0.05)' }}>
+      <div className="flex border-b" style={{ borderColor: 'rgb(var(--ink) / 0.14)', background: 'rgb(var(--ink) / 0.05)' }}>
         {TABS.map(tab => {
           const isActive = tab.id === activeTab
           return (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
               className="relative px-4 py-3.5 font-almendra text-[10px] uppercase tracking-[0.15em] transition-colors"
-              style={{ color: isActive ? '#c9a22a' : '#5f5040', background: isActive ? 'rgba(201,162,42,0.05)' : 'transparent' }}>
+              style={{ color: isActive ? '#c9a22a' : 'rgb(var(--ink-soft))', background: isActive ? 'rgba(201,162,42,0.05)' : 'transparent' }}>
               {tab.label}
               {isActive && <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-t" style={{ background: 'linear-gradient(90deg, transparent, #c9a22a, transparent)' }} />}
             </button>

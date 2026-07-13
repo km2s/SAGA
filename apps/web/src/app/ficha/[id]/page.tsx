@@ -46,7 +46,7 @@ export default async function PublicCharacterPage({ params }: { params: { id: st
   return (
     <main className="min-h-screen bg-parchment bg-gradient-login">
       {/* Header bar */}
-      <div className="border-b border-ink/20 bg-[#f5ecd6]/80 backdrop-blur-sm px-5 py-3 flex items-center justify-between">
+      <div className="border-b border-ink/20 bg-card/80 backdrop-blur-sm px-5 py-3 flex items-center justify-between">
         <Link href="/">
           <span className="font-cinzel text-lg font-bold tracking-[6px] text-gold-gradient">SAGA</span>
         </Link>
@@ -57,7 +57,7 @@ export default async function PublicCharacterPage({ params }: { params: { id: st
 
       <div className="max-w-2xl mx-auto px-4 py-10">
         {/* Portrait + name */}
-        <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg overflow-hidden mb-5">
+        <div className="bg-card border border-ink/20 rounded-lg overflow-hidden mb-5">
           {safeImageUrl(char.imageUrl) ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={safeImageUrl(char.imageUrl)!} alt={char.name} className="w-full h-64 object-cover object-top" />
@@ -90,7 +90,7 @@ export default async function PublicCharacterPage({ params }: { params: { id: st
 
         {/* HP */}
         {char.maxHp > 0 && (
-          <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg p-5 mb-5">
+          <div className="bg-card border border-ink/20 rounded-lg p-5 mb-5">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2 text-[11px] font-bold text-ink-soft uppercase tracking-widest">
                 <Heart size={12} /> Pontos de Vida
@@ -105,7 +105,7 @@ export default async function PublicCharacterPage({ params }: { params: { id: st
 
         {/* Attributes */}
         {char.attributes.length > 0 && (
-          <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg p-5 mb-5">
+          <div className="bg-card border border-ink/20 rounded-lg p-5 mb-5">
             <p className="text-[11px] font-bold text-ink-soft uppercase tracking-widest mb-4">Atributos</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {char.attributes.map(a => (

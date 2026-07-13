@@ -92,7 +92,7 @@ function IconRelationship({ num, characterId, textFields, canEdit, onRefresh }: 
   const typeColor = type === 'Positivo' ? '#22c55e' : type === 'Conflituoso' ? '#eab308' : '#ef4444'
 
   return (
-    <div className="p-3 rounded-lg space-y-2" style={{ background: 'rgba(51,41,29,0.08)', border: `1px solid ${typeColor}30` }}>
+    <div className="p-3 rounded-lg space-y-2" style={{ background: 'rgb(var(--ink) / 0.08)', border: `1px solid ${typeColor}30` }}>
       <div className="flex items-center gap-2">
         <div className="w-2 h-2 rounded-full" style={{ background: typeColor }} />
         <span className="text-[10px] font-bold text-ink-soft uppercase">Ícone {num}</span>
@@ -105,7 +105,7 @@ function IconRelationship({ num, characterId, textFields, canEdit, onRefresh }: 
           {ICON_TYPES.map(t => (
             <button key={t} type="button" onClick={() => canEdit && void saveType(t)}
               className="flex-1 py-1 rounded text-[10px] font-bold transition-all"
-              style={{ background: type === t ? typeColor : 'rgba(51,41,29,0.08)', color: type === t ? '#000' : 'rgba(51,41,29,0.4)', border: `1px solid ${type === t ? typeColor : 'rgba(51,41,29,0.1)'}` }}>
+              style={{ background: type === t ? typeColor : 'rgb(var(--ink) / 0.08)', color: type === t ? '#000' : 'rgb(var(--ink) / 0.4)', border: `1px solid ${type === t ? typeColor : 'rgb(var(--ink) / 0.1)'}` }}>
               {t}
             </button>
           ))}
@@ -130,7 +130,7 @@ export function Age13Sheet({ characterId, characterLevel, attributes, textFields
   const recAttr = attributes.find(a => a.attribute.name === 'Recuperações')
 
   const card = 'rounded-xl p-4' as const
-  const cardStyle = { background: 'rgba(247,239,221,0.92)', border: '1px solid rgba(51,41,29,0.14)' }
+  const cardStyle = { background: 'rgb(var(--card) / 0.92)', border: '1px solid rgb(var(--ink) / 0.14)' }
   const tabs = [
     { id: 'atributos', label: 'Atributos' }, { id: 'combate', label: 'Combate' },
     { id: 'icons', label: 'Ícones' }, { id: 'personagem', label: 'Personagem' },
@@ -150,7 +150,7 @@ export function Age13Sheet({ characterId, characterLevel, attributes, textFields
       )}
 
       {/* Header */}
-      <div className="rounded-xl px-4 py-3 flex items-center justify-between" style={{ background: 'rgba(247,239,221,0.92)', border: '1px solid rgba(51,41,29,0.14)' }}>
+      <div className="rounded-xl px-4 py-3 flex items-center justify-between" style={{ background: 'rgb(var(--card) / 0.92)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
         <div className="flex items-center gap-3">
           <span className="font-cinzel text-sm font-bold" style={{ color: ACCENT }}>13th Age</span>
           <span className="text-[10px] text-ink-soft">Nível {characterLevel}</span>
@@ -163,11 +163,11 @@ export function Age13Sheet({ characterId, characterLevel, attributes, textFields
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgba(51,41,29,0.08)', border: '1px solid rgba(51,41,29,0.05)' }}>
+      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgb(var(--ink) / 0.08)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
         {tabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className="flex-1 py-1.5 rounded-md text-[11px] font-bold uppercase tracking-wider transition-all"
-            style={tab === t.id ? { background: ACCENT, color: '#fff' } : { color: 'rgba(51,41,29,0.4)' }}>
+            style={tab === t.id ? { background: ACCENT, color: '#fff' } : { color: 'rgb(var(--ink) / 0.4)' }}>
             {t.label}
           </button>
         ))}
@@ -178,7 +178,7 @@ export function Age13Sheet({ characterId, characterLevel, attributes, textFields
           <SectionDivider title="Atributos" />
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {stats.map(a => (
-              <div key={a.id} className="text-center p-3 rounded-lg" style={{ background: 'rgba(51,41,29,0.08)' }}>
+              <div key={a.id} className="text-center p-3 rounded-lg" style={{ background: 'rgb(var(--ink) / 0.08)' }}>
                 <div className="text-[10px] font-bold text-ink-soft uppercase mb-1">{a.attribute.name.slice(0, 3).toUpperCase()}</div>
                 <EditableVal attrId={a.id} value={a.value} characterId={characterId} onSaved={onRefresh} />
                 <div className="mt-1 text-base font-bold" style={{ color: ACCENT }}>{mod(a.value)}</div>
@@ -196,7 +196,7 @@ export function Age13Sheet({ characterId, characterLevel, attributes, textFields
             <SectionDivider title="Defesas e Combate" />
             <div className="grid grid-cols-3 gap-3">
               {[caAttr, dmAttr, dpAttr].map(a => a && (
-                <div key={a.id} className="text-center p-3 rounded-lg" style={{ background: 'rgba(51,41,29,0.08)' }}>
+                <div key={a.id} className="text-center p-3 rounded-lg" style={{ background: 'rgb(var(--ink) / 0.08)' }}>
                   <div className="text-[10px] font-bold text-ink-soft uppercase mb-1">{a.attribute.name}</div>
                   <EditableVal attrId={a.id} value={a.value} characterId={characterId} onSaved={onRefresh} />
                 </div>
@@ -204,13 +204,13 @@ export function Age13Sheet({ characterId, characterLevel, attributes, textFields
             </div>
             <div className="grid grid-cols-2 gap-3 mt-3">
               {initAttr && (
-                <div className="text-center p-3 rounded-lg" style={{ background: 'rgba(51,41,29,0.08)' }}>
+                <div className="text-center p-3 rounded-lg" style={{ background: 'rgb(var(--ink) / 0.08)' }}>
                   <div className="text-[10px] font-bold text-ink-soft uppercase mb-1">Iniciativa</div>
                   <div className="text-xl font-bold" style={{ color: ACCENT }}>{initiativeTotal >= 0 ? `+${initiativeTotal}` : initiativeTotal}</div>
                   <div className="text-[9px] text-ink-soft">DES + nível</div>
                 </div>
               )}
-              <div className="text-center p-3 rounded-lg" style={{ background: 'rgba(51,41,29,0.08)' }}>
+              <div className="text-center p-3 rounded-lg" style={{ background: 'rgb(var(--ink) / 0.08)' }}>
                 <div className="text-[10px] font-bold text-ink-soft uppercase mb-1">Dado Escalada</div>
                 <TFField characterId={characterId} textFields={textFields} tfKey="escalation_die"
                   label="" placeholder="1" canEdit={canEdit} onRefresh={onRefresh} />

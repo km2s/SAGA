@@ -87,7 +87,7 @@ export function DungeonWorldSheet({ characterId, characterLevel, attributes, tex
   const xpAttr = attributes.find(a => a.attribute.name === 'XP')
 
   const card = 'rounded-xl p-4' as const
-  const cardStyle = { background: 'rgba(247,239,221,0.92)', border: '1px solid rgba(51,41,29,0.14)' }
+  const cardStyle = { background: 'rgb(var(--card) / 0.92)', border: '1px solid rgb(var(--ink) / 0.14)' }
   const tabs = [
     { id: 'stats', label: 'Stats' }, { id: 'moves', label: 'Moves' },
     { id: 'estado', label: 'Estado' }, { id: 'personagem', label: 'Personagem' },
@@ -119,17 +119,17 @@ export function DungeonWorldSheet({ characterId, characterLevel, attributes, tex
         </div>
         <div className="flex gap-1">
           {Array.from({ length: xpMax }).map((_, i) => (
-            <div key={i} className="flex-1 h-2 rounded-full" style={{ background: i < xpVal ? ACCENT : 'rgba(51,41,29,0.1)' }} />
+            <div key={i} className="flex-1 h-2 rounded-full" style={{ background: i < xpVal ? ACCENT : 'rgb(var(--ink) / 0.1)' }} />
           ))}
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgba(51,41,29,0.08)', border: '1px solid rgba(51,41,29,0.05)' }}>
+      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgb(var(--ink) / 0.08)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
         {tabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className="flex-1 py-1.5 rounded-md text-[11px] font-bold uppercase tracking-wider transition-all"
-            style={tab === t.id ? { background: ACCENT, color: '#fff' } : { color: 'rgba(51,41,29,0.4)' }}>
+            style={tab === t.id ? { background: ACCENT, color: '#fff' } : { color: 'rgb(var(--ink) / 0.4)' }}>
             {t.label}
           </button>
         ))}
@@ -140,7 +140,7 @@ export function DungeonWorldSheet({ characterId, characterLevel, attributes, tex
           <SectionDivider title="Estatísticas (2d6 + Mod)" />
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {stats.map(a => (
-              <div key={a.id} className="text-center p-3 rounded-lg" style={{ background: 'rgba(51,41,29,0.08)' }}>
+              <div key={a.id} className="text-center p-3 rounded-lg" style={{ background: 'rgb(var(--ink) / 0.08)' }}>
                 <div className="text-[10px] font-bold text-ink-soft uppercase mb-1">{a.attribute.name.slice(0, 3).toUpperCase()}</div>
                 <div className="text-[10px] text-ink-soft mb-1">{a.attribute.name}</div>
                 <EditableVal attrId={a.id} value={a.value} characterId={characterId} onSaved={onRefresh} />

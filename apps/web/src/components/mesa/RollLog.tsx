@@ -76,7 +76,7 @@ export function RollLog({ rolls, lastRollId, activeSessionIsActive, membersCount
                       ? 'radial-gradient(circle at 35% 30%, #f0d060 0%, #c9a22a 45%, #9c7a2a 100%)'
                       : isFail
                         ? 'radial-gradient(circle at 35% 30%, #8a8272 0%, #5f5a4e 45%, #3d3a30 100%)'
-                        : 'radial-gradient(circle at 35% 30%, #b45a3e 0%, #8f3a24 40%, #6a2817 100%)',
+                        : 'radial-gradient(circle at 35% 30%, #b45a3e 0%, rgb(var(--wax)) 40%, rgb(var(--wax-deep)) 100%)',
                     boxShadow: isFail
                       ? 'inset 0 -3px 6px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(0,0,0,0.3)'
                       : '0 8px 20px -6px rgba(0,0,0,0.5), inset 0 -3px 6px rgba(0,0,0,0.25)',

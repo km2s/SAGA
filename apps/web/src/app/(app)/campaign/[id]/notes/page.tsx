@@ -60,7 +60,7 @@ export default async function NotesPage({ params }: { params: { id: string } }) 
           {notes.map(note => {
             const vis = visLabel[note.visibility]
             return (
-              <div key={note.id} className="bg-[#f5ecd6] border border-ink/20 rounded-lg p-5 flex flex-col gap-3 card-hover cursor-pointer">
+              <div key={note.id} className="bg-card border border-ink/20 rounded-lg p-5 flex flex-col gap-3 card-hover cursor-pointer">
                 <div className="flex items-start justify-between gap-2">
                   <p className="font-cinzel text-sm font-semibold text-ink leading-snug">
                     {note.title ?? 'Sem título'}

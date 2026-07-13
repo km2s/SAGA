@@ -99,7 +99,7 @@ function ActionDots({ attr, characterId, canEdit, onSaved, color }: {
           style={{
             width: 11, height: 11,
             background: i < attr.value ? color : 'transparent',
-            borderColor: i < attr.value ? color : 'rgba(51,41,29,0.2)',
+            borderColor: i < attr.value ? color : 'rgb(var(--ink) / 0.2)',
             cursor: canEdit ? 'pointer' : 'default',
           }} />
       ))}
@@ -127,7 +127,7 @@ function XPBox({ tfKey, textFields, characterId, canEdit, onRefresh }: {
       title="XP trigger"
       style={{
         background: checked ? '#c9a22a' : 'transparent',
-        borderColor: checked ? '#c9a22a' : 'rgba(51,41,29,0.2)',
+        borderColor: checked ? '#c9a22a' : 'rgb(var(--ink) / 0.2)',
         cursor: canEdit ? 'pointer' : 'default',
       }} />
   )
@@ -196,7 +196,7 @@ function ActionsTab({ attributes, textFields, characterId, canEdit, onRefresh }:
             </div>
 
             <div className="space-y-1 rounded p-2"
-              style={{ background: 'rgba(51,41,29,0.02)', border: '1px solid rgba(51,41,29,0.05)' }}>
+              style={{ background: 'rgb(var(--ink) / 0.02)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
               {actions.map(action => {
                 const attr = attrByKey[action.key]
                 const value = attr?.value ?? 0
@@ -212,7 +212,7 @@ function ActionsTab({ attributes, textFields, characterId, canEdit, onRefresh }:
                         <div className="flex gap-[5px] items-center opacity-30">
                           {[0, 1, 2, 3].map(i => (
                             <div key={i} className="rounded-full border flex-shrink-0"
-                              style={{ width: 11, height: 11, borderColor: 'rgba(51,41,29,0.2)' }} />
+                              style={{ width: 11, height: 11, borderColor: 'rgb(var(--ink) / 0.2)' }} />
                           ))}
                         </div>
                       )
@@ -274,7 +274,7 @@ function Checkbox({ checked, onChange, label }: { checked: boolean; onChange: ()
         style={{
           width: 16, height: 16,
           background: checked ? '#c9a22a' : 'transparent',
-          borderColor: checked ? '#c9a22a' : 'rgba(51,41,29,0.2)',
+          borderColor: checked ? '#c9a22a' : 'rgb(var(--ink) / 0.2)',
         }} />
       {label && <span className="text-[11px] text-ink-soft">{label}</span>}
     </div>
@@ -343,7 +343,7 @@ function StateTab({ attributes, textFields, characterId, canEdit, onRefresh }: {
   return (
     <div className="space-y-5">
       {/* Estresse */}
-      <div className="rounded p-4" style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+      <div className="rounded p-4" style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
         <div className="flex items-center justify-between mb-3">
           <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft">Estresse</p>
           <div className="flex items-center gap-2">
@@ -360,7 +360,7 @@ function StateTab({ attributes, textFields, characterId, canEdit, onRefresh }: {
               style={{
                 width: 18, height: 18,
                 background: i < stress ? (stress >= MAX_STRESS ? '#ef4444' : '#c9a22a') : 'transparent',
-                borderColor: i < stress ? (stress >= MAX_STRESS ? '#ef4444' : '#c9a22a') : 'rgba(51,41,29,0.2)',
+                borderColor: i < stress ? (stress >= MAX_STRESS ? '#ef4444' : '#c9a22a') : 'rgb(var(--ink) / 0.2)',
                 cursor: canEdit ? 'pointer' : 'default',
               }} />
           ))}
@@ -370,7 +370,7 @@ function StateTab({ attributes, textFields, characterId, canEdit, onRefresh }: {
         )}
 
         {/* Trauma */}
-        <div className="mt-3 pt-3" style={{ borderTop: '1px solid rgba(51,41,29,0.05)' }}>
+        <div className="mt-3 pt-3" style={{ borderTop: '1px solid rgb(var(--ink) / 0.05)' }}>
           <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft mb-2">Condições de Trauma</p>
           {canEdit ? (
             <input
@@ -386,7 +386,7 @@ function StateTab({ attributes, textFields, characterId, canEdit, onRefresh }: {
       </div>
 
       {/* Harm */}
-      <div className="rounded p-4" style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+      <div className="rounded p-4" style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
         <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft mb-3">Dano (Harm)</p>
         <div className="space-y-1.5">
           {[
@@ -398,7 +398,7 @@ function StateTab({ attributes, textFields, characterId, canEdit, onRefresh }: {
             const levelColor = level === 4 ? '#ef4444' : level === 3 ? '#f97316' : level === 2 ? '#f59e0b' : '#6b7280'
             return (
               <div key={level} className="flex items-start gap-2 py-1.5 px-2 rounded"
-                style={{ background: 'rgba(51,41,29,0.02)', border: '1px solid rgba(51,41,29,0.04)' }}>
+                style={{ background: 'rgb(var(--ink) / 0.02)', border: '1px solid rgb(var(--ink) / 0.04)' }}>
                 <span className="font-cinzel text-[10px] font-bold w-5 flex-shrink-0 mt-1" style={{ color: levelColor }}>
                   {level}
                 </span>
@@ -427,7 +427,7 @@ function StateTab({ attributes, textFields, characterId, canEdit, onRefresh }: {
 
       {/* Coin + Stash */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="rounded p-3" style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+        <div className="rounded p-3" style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
           <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft mb-3">Moedas (Coin)</p>
           <CoinTrack
             value={parseInt(textFields.find(f => f.key === 'coin')?.value ?? '0')}
@@ -440,7 +440,7 @@ function StateTab({ attributes, textFields, characterId, canEdit, onRefresh }: {
             canEdit={canEdit}
           />
         </div>
-        <div className="rounded p-3" style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+        <div className="rounded p-3" style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
           <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft mb-3">Reserva (Stash)</p>
           <CoinTrack
             value={parseInt(textFields.find(f => f.key === 'stash')?.value ?? '0')}
@@ -458,7 +458,7 @@ function StateTab({ attributes, textFields, characterId, canEdit, onRefresh }: {
       {/* Armadura + Carga */}
       <div className="grid grid-cols-2 gap-4">
         {/* Armadura */}
-        <div className="rounded p-3" style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+        <div className="rounded p-3" style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
           <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft mb-3">Armadura</p>
           <div className="space-y-2">
             <Checkbox checked={armor1} label="Armadura" onChange={() => void toggleArmor(0)} />
@@ -468,7 +468,7 @@ function StateTab({ attributes, textFields, characterId, canEdit, onRefresh }: {
         </div>
 
         {/* Carga */}
-        <div className="rounded p-3" style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+        <div className="rounded p-3" style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
           <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft mb-3">Carga</p>
           <div className="space-y-1.5">
             {['Discreta (1–3)', 'Normal (4–5)', 'Pesada (6)'].map(opt => {
@@ -479,9 +479,9 @@ function StateTab({ attributes, textFields, characterId, canEdit, onRefresh }: {
                   disabled={!canEdit}
                   className="w-full text-left px-2.5 py-1.5 rounded text-[11px] transition-all"
                   style={{
-                    background: isActive ? 'rgba(201,162,42,0.1)' : 'rgba(51,41,29,0.02)',
-                    border: `1px solid ${isActive ? 'rgba(201,162,42,0.4)' : 'rgba(51,41,29,0.05)'}`,
-                    color: isActive ? '#c9a22a' : '#5f5040',
+                    background: isActive ? 'rgba(201,162,42,0.1)' : 'rgb(var(--ink) / 0.02)',
+                    border: `1px solid ${isActive ? 'rgba(201,162,42,0.4)' : 'rgb(var(--ink) / 0.05)'}`,
+                    color: isActive ? '#c9a22a' : 'rgb(var(--ink-soft))',
                     cursor: canEdit ? 'pointer' : 'default',
                   }}>
                   {opt}
@@ -523,7 +523,7 @@ function PersonagemTab({ textFields, characterId, canEdit, onRefresh }: {
         const field = textFields.find(tf => tf.key === f.key)
         return (
           <div key={f.key} className="rounded p-3"
-            style={{ background: 'rgba(51,41,29,0.02)', border: '1px solid rgba(51,41,29,0.05)' }}>
+            style={{ background: 'rgb(var(--ink) / 0.02)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
             <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft mb-2">{f.label}</p>
             {canEdit ? (
               f.multi
@@ -566,16 +566,16 @@ export function BitDSheet({ characterId, characterLevel, attributes, textFields,
 
   return (
     <div className="rounded-lg overflow-hidden"
-      style={{ background: 'rgba(247,239,221,0.92)', border: '1px solid rgba(51,41,29,0.14)' }}>
+      style={{ background: 'rgb(var(--card) / 0.92)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
 
       {/* Tab bar */}
-      <div className="flex border-b" style={{ borderColor: 'rgba(51,41,29,0.14)', background: 'rgba(51,41,29,0.05)' }}>
+      <div className="flex border-b" style={{ borderColor: 'rgb(var(--ink) / 0.14)', background: 'rgb(var(--ink) / 0.05)' }}>
         {TABS.map(tab => {
           const isActive = tab.id === activeTab
           return (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
               className="relative px-4 py-3.5 font-almendra text-[10px] uppercase tracking-[0.15em] transition-colors"
-              style={{ color: isActive ? '#c9a22a' : '#5f5040', background: isActive ? 'rgba(201,162,42,0.05)' : 'transparent' }}>
+              style={{ color: isActive ? '#c9a22a' : 'rgb(var(--ink-soft))', background: isActive ? 'rgba(201,162,42,0.05)' : 'transparent' }}>
               {tab.label}
               {isActive && <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-t" style={{ background: 'linear-gradient(90deg, transparent, #c9a22a, transparent)' }} />}
             </button>

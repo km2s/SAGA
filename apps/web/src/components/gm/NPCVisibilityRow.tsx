@@ -82,7 +82,7 @@ export function NPCVisibilityRow({
   }
 
   return (
-    <div className="flex items-center justify-between bg-[#f5ecd6] border border-ink/20 rounded-lg px-4 py-3 hover:border-wax transition-all">
+    <div className="flex items-center justify-between bg-card border border-ink/20 rounded-lg px-4 py-3 hover:border-wax transition-all">
       <div className="flex items-center gap-3">
         {npc.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element

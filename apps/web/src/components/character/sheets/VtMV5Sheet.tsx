@@ -101,7 +101,7 @@ function Dots({ value, max = 5, editable = false, attrId, characterId, onSaved, 
           style={{
             width: 11, height: 11,
             background: i < value ? color : 'transparent',
-            borderColor: i < value ? color : 'rgba(51,41,29,0.15)',
+            borderColor: i < value ? color : 'rgb(var(--ink) / 0.15)',
             cursor: editable ? 'pointer' : 'default',
           }} />
       ))}
@@ -117,7 +117,7 @@ function DotRow({ attr, characterId, canEdit, onSaved, onDelete, max = 5, color 
 }) {
   return (
     <div className="flex items-center justify-between py-2 border-b last:border-0 group"
-      style={{ borderColor: 'rgba(51,41,29,0.04)' }}>
+      style={{ borderColor: 'rgb(var(--ink) / 0.04)' }}>
       <div className="flex items-center gap-1.5 min-w-0">
         {canEdit && onDelete && (
           <button onClick={() => onDelete(attr.id)}
@@ -143,7 +143,7 @@ function AttrCol({ items, label, characterId, canEdit, onSaved, onDelete }: {
       <p className="font-almendra text-[9px] font-bold text-ink-soft uppercase tracking-[0.15em] text-center mb-3 pb-2 border-b"
         style={{ borderColor: 'rgba(201,162,42,0.2)' }}>{label}</p>
       <div className="rounded px-3 py-1 min-h-[40px]"
-        style={{ background: 'rgba(51,41,29,0.02)', border: '1px solid rgba(51,41,29,0.05)' }}>
+        style={{ background: 'rgb(var(--ink) / 0.02)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
         {items.length === 0
           ? <p className="text-[10px] text-ink-soft py-4 text-center italic">—</p>
           : items.map(a => <DotRow key={a.id} attr={a} characterId={characterId} canEdit={canEdit} onSaved={onSaved} onDelete={onDelete} />)
@@ -186,7 +186,7 @@ function HealthTrack({ tfKey, label, total, textFields, characterId, canEdit, on
   const aggravated  = boxes.filter(b => b === 2).length
 
   return (
-    <div className="rounded p-3" style={{ background: 'rgba(51,41,29,0.02)', border: '1px solid rgba(51,41,29,0.05)' }}>
+    <div className="rounded p-3" style={{ background: 'rgb(var(--ink) / 0.02)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
       <div className="flex items-center justify-between mb-3">
         <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft">{label}</p>
         <div className="flex items-center gap-3 text-[10px]">
@@ -202,7 +202,7 @@ function HealthTrack({ tfKey, label, total, textFields, characterId, canEdit, on
             style={{
               width: 20, height: 20,
               background: dmg === 2 ? 'rgba(239,68,68,0.15)' : dmg === 1 ? 'rgba(251,191,36,0.08)' : 'transparent',
-              borderColor: dmg === 2 ? '#ef4444' : dmg === 1 ? '#f59e0b' : 'rgba(51,41,29,0.2)',
+              borderColor: dmg === 2 ? '#ef4444' : dmg === 1 ? '#f59e0b' : 'rgb(var(--ink) / 0.2)',
               cursor: canEdit ? 'pointer' : 'default',
               fontSize: 10,
             }}>
@@ -263,7 +263,7 @@ function WillpowerTrack({ attrs, textFields, characterId, canEdit, onSaved, onRe
   }
 
   return (
-    <div className="rounded p-3" style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+    <div className="rounded p-3" style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
       <div className="flex items-center justify-between mb-3">
         <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft">Força de Vontade</p>
         <span className="font-cinzel font-bold text-gold">{totalWP - used} / {totalWP}</span>
@@ -308,7 +308,7 @@ function ETF({ tfKey, label, textFields, characterId, canEdit, multiline = false
   }
 
   return (
-    <div className="rounded p-3" style={{ background: 'rgba(51,41,29,0.02)', border: '1px solid rgba(51,41,29,0.05)' }}>
+    <div className="rounded p-3" style={{ background: 'rgb(var(--ink) / 0.02)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
       <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft mb-2">{label}</p>
       {editing && canEdit ? (
         multiline
@@ -389,16 +389,16 @@ export function VtMV5Sheet({ characterId, attributes, textFields, weapons, canEd
 
   return (
     <div className="rounded-lg overflow-hidden"
-      style={{ background: 'rgba(247,239,221,0.92)', border: '1px solid rgba(51,41,29,0.14)' }}>
+      style={{ background: 'rgb(var(--card) / 0.92)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
 
       {/* Tab bar */}
-      <div className="flex flex-wrap border-b" style={{ borderColor: 'rgba(51,41,29,0.14)', background: 'rgba(51,41,29,0.05)' }}>
+      <div className="flex flex-wrap border-b" style={{ borderColor: 'rgb(var(--ink) / 0.14)', background: 'rgb(var(--ink) / 0.05)' }}>
         {TABS.map(tab => {
           const isActive = tab.id === activeTab
           return (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
               className="relative px-4 py-3.5 font-almendra text-[10px] uppercase tracking-[0.15em] transition-colors"
-              style={{ color: isActive ? '#9d5af5' : '#5f5040', background: isActive ? 'rgba(157,90,245,0.05)' : 'transparent' }}>
+              style={{ color: isActive ? '#9d5af5' : 'rgb(var(--ink-soft))', background: isActive ? 'rgba(157,90,245,0.05)' : 'transparent' }}>
               {tab.label}
               {isActive && <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-t" style={{ background: 'linear-gradient(90deg, transparent, #9d5af5, transparent)' }} />}
             </button>
@@ -450,7 +450,7 @@ export function VtMV5Sheet({ characterId, attributes, textFields, weapons, canEd
             <div>
               <SectionDivider title="Antecedentes" />
               <div className="rounded px-3 py-1 min-h-[60px]"
-                style={{ background: 'rgba(51,41,29,0.02)', border: '1px solid rgba(51,41,29,0.05)' }}>
+                style={{ background: 'rgb(var(--ink) / 0.02)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
                 {g.backgrounds.length === 0
                   ? <p className="text-[10px] text-ink-soft py-4 text-center italic">Nenhum antecedente.</p>
                   : g.backgrounds.map(a => <DotRow key={a.id} attr={a} characterId={characterId} canEdit={canEdit} onSaved={refresh} />)
@@ -471,7 +471,7 @@ export function VtMV5Sheet({ characterId, attributes, textFields, weapons, canEd
               const humanity = attributes.find(a => a.attribute.name === 'Humanidade' || a.attribute.name === 'Humanity')
               if (!humanity) return null
               return (
-                <div className="rounded p-3" style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+                <div className="rounded p-3" style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
                   <div className="flex items-center justify-between mb-3">
                     <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft">Humanidade</p>
                     <span className="font-cinzel font-bold text-gold">{humanity.value} / 10</span>
@@ -501,7 +501,7 @@ export function VtMV5Sheet({ characterId, attributes, textFields, weapons, canEd
               ]
               const row = TABLE[bp.value] ?? TABLE[10]!
               return (
-                <div className="rounded p-3" style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+                <div className="rounded p-3" style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
                   <div className="flex items-center justify-between mb-3">
                     <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft">Blood Potency</p>
                     <span className="font-cinzel font-bold text-red-400">{bp.value}</span>
@@ -518,7 +518,7 @@ export function VtMV5Sheet({ characterId, attributes, textFields, weapons, canEd
                           ['Severidade Bane', String(row.bane)],
                           ['Rouse Re-roll', row.rouse],
                         ].map(([label, val]) => (
-                          <div key={label} className="rounded px-2 py-1.5" style={{ background: 'rgba(51,41,29,0.08)' }}>
+                          <div key={label} className="rounded px-2 py-1.5" style={{ background: 'rgb(var(--ink) / 0.08)' }}>
                             <div className="text-[8px] text-ink-soft uppercase tracking-wider">{label}</div>
                             <div className="text-[11px] font-bold text-red-300 mt-0.5">{val}</div>
                           </div>
@@ -544,7 +544,7 @@ export function VtMV5Sheet({ characterId, attributes, textFields, weapons, canEd
               )
               const RESONANCE_TYPES = ['Sanguíneo', 'Colérico', 'Melancólico', 'Fleumático', 'Nervoso', 'Sem Ressonância']
               return (
-                <div className="rounded p-3 space-y-3" style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+                <div className="rounded p-3 space-y-3" style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
                   <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft">Ressonância & Caça</p>
                   {resonanceAttr && (
                     <div>
@@ -569,9 +569,9 @@ export function VtMV5Sheet({ characterId, attributes, textFields, weapons, canEd
                             }}
                             className="px-2 py-0.5 rounded text-[10px] font-bold transition-all"
                             style={{
-                              background: active ? 'rgba(220,38,38,0.2)' : 'rgba(51,41,29,0.04)',
-                              border: `1px solid ${active ? 'rgba(220,38,38,0.5)' : 'rgba(51,41,29,0.08)'}`,
-                              color: active ? '#fca5a5' : '#5f5040',
+                              background: active ? 'rgba(220,38,38,0.2)' : 'rgb(var(--ink) / 0.04)',
+                              border: `1px solid ${active ? 'rgba(220,38,38,0.5)' : 'rgb(var(--ink) / 0.08)'}`,
+                              color: active ? '#fca5a5' : 'rgb(var(--ink-soft))',
                             }}>
                             {type}
                           </button>
@@ -627,7 +627,7 @@ export function VtMV5Sheet({ characterId, attributes, textFields, weapons, canEd
             <ETF tfKey="ambition"  label="Ambição"   textFields={textFields} characterId={characterId} canEdit={canEdit} onRefresh={refresh} />
             <ETF tfKey="desire"    label="Desejo"    textFields={textFields} characterId={characterId} canEdit={canEdit} onRefresh={refresh} />
             {/* Haven */}
-            <div className="rounded-lg p-3 space-y-2" style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+            <div className="rounded-lg p-3 space-y-2" style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
               <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft">Haven</p>
               <ETF tfKey="haven_location" label="Localização" textFields={textFields} characterId={characterId} canEdit={canEdit} onRefresh={refresh} />
               <div className="space-y-1">

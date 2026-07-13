@@ -538,7 +538,7 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
                 {/* Identity */}
                 <div className="flex items-start gap-4">
                   <div className="w-16 h-16 rounded-xl flex items-center justify-center text-white/40 shrink-0"
-                    style={{ background: 'linear-gradient(135deg, #2e2318, #5f5040)', border: '1px solid rgba(201,162,42,0.35)', boxShadow: '0 4px 16px rgba(201,162,42,0.15)' }}>
+                    style={{ background: 'linear-gradient(135deg, #2e2318, rgb(var(--ink-soft)))', border: '1px solid rgba(201,162,42,0.35)', boxShadow: '0 4px 16px rgba(201,162,42,0.15)' }}>
                     <ClassIcon size={32} />
                   </div>
                   <div className="flex-1 min-w-0 pt-0.5">

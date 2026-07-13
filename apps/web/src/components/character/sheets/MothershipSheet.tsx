@@ -71,7 +71,7 @@ function TfField({ tfKey, label, characterId, textFields, canEdit, onRefresh, mu
   const field = textFields.find(f => f.key === tfKey)
   async function save(v: string) { await saveTextField(characterId, tfKey, label, v); onRefresh() }
   return (
-    <div className="rounded p-3" style={{ background: 'rgba(51,41,29,0.02)', border: '1px solid rgba(51,41,29,0.05)' }}>
+    <div className="rounded p-3" style={{ background: 'rgb(var(--ink) / 0.02)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
       <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft mb-2">{label}</p>
       {canEdit
         ? multi
@@ -113,7 +113,7 @@ function StatsTab({ attributes, textFields, characterId, canEdit, onRefresh }: {
         <div className="grid grid-cols-2 gap-2">
           {mains.filter(a => a !== stressAttr).map(a => (
             <div key={a.id} className="flex items-center justify-between px-3 py-2 rounded"
-              style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.06)' }}>
+              style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.06)' }}>
               <span className="text-sm text-ink">{a.attribute.name}</span>
               <NumericAttr attr={a} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />
             </div>
@@ -122,7 +122,7 @@ function StatsTab({ attributes, textFields, characterId, canEdit, onRefresh }: {
       </div>
 
       {stressAttr && (
-        <div className="rounded p-4" style={{ background: 'rgba(51,41,29,0.025)', border: `1px solid ${stress > 10 ? '#f97316' : 'rgba(51,41,29,0.14)'}` }}>
+        <div className="rounded p-4" style={{ background: 'rgb(var(--ink) / 0.025)', border: `1px solid ${stress > 10 ? '#f97316' : 'rgb(var(--ink) / 0.14)'}` }}>
           <div className="flex items-center justify-between mb-2">
             <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft">Estresse</p>
             <div className="flex items-center gap-2">
@@ -139,7 +139,7 @@ function StatsTab({ attributes, textFields, characterId, canEdit, onRefresh }: {
                 style={{
                   width: 14, height: 14,
                   background: i < stress ? (stress > 10 ? '#f97316' : ACCENT) : 'transparent',
-                  borderColor: i < stress ? (stress > 10 ? '#f97316' : ACCENT) : 'rgba(51,41,29,0.15)',
+                  borderColor: i < stress ? (stress > 10 ? '#f97316' : ACCENT) : 'rgb(var(--ink) / 0.15)',
                   cursor: canEdit ? 'pointer' : 'default',
                 }} />
             ))}
@@ -148,10 +148,10 @@ function StatsTab({ attributes, textFields, characterId, canEdit, onRefresh }: {
         </div>
       )}
 
-      <div className="rounded p-3" style={{ background: 'rgba(51,41,29,0.015)', border: '1px solid rgba(51,41,29,0.05)' }}>
+      <div className="rounded p-3" style={{ background: 'rgb(var(--ink) / 0.015)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
         <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft mb-3">Tabela de Pânico</p>
         {[['0–2', 'Sem pânico'], ['3–5', 'Suado: −1 em todas as ações'], ['6–8', 'Fuja ou congele'], ['9–11', 'Breakdown total'], ['12+', 'Pânico máximo']].map(([range, effect]) => (
-          <div key={range} className="flex gap-3 py-1 text-xs border-b last:border-0" style={{ borderColor: 'rgba(51,41,29,0.04)' }}>
+          <div key={range} className="flex gap-3 py-1 text-xs border-b last:border-0" style={{ borderColor: 'rgb(var(--ink) / 0.04)' }}>
             <span className="font-cinzel font-bold w-10 flex-shrink-0" style={{ color: ACCENT }}>{range}</span>
             <span className="text-ink-soft">{effect}</span>
           </div>
@@ -173,7 +173,7 @@ function PericiasTab({ attributes, characterId, canEdit, onRefresh }: {
       <div className="space-y-1">
         {skills.map(a => (
           <div key={a.id} className="flex items-center justify-between px-3 py-2 rounded"
-            style={{ background: 'rgba(51,41,29,0.02)', border: '1px solid rgba(51,41,29,0.04)' }}>
+            style={{ background: 'rgb(var(--ink) / 0.02)', border: '1px solid rgb(var(--ink) / 0.04)' }}>
             <span className="text-sm text-ink">{a.attribute.name}</span>
             <NumericAttr attr={a} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />
           </div>
@@ -199,7 +199,7 @@ function SalvaguardasTab({ attributes, textFields, characterId, canEdit, onRefre
       <div className="space-y-2">
         {saves.map(a => (
           <div key={a.id} className="flex items-center justify-between px-4 py-3 rounded"
-            style={{ background: 'rgba(51,41,29,0.025)', border: '1px solid rgba(51,41,29,0.14)' }}>
+            style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
             <div>
               <p className="text-sm text-ink">{a.attribute.name}</p>
               {a.attribute.description && <p className="text-[10px] text-ink-soft mt-0.5">{a.attribute.description}</p>}
@@ -247,14 +247,14 @@ export function MothershipSheet({ characterId, characterLevel, attributes, textF
   function refresh() { router.refresh() }
 
   return (
-    <div className="rounded-lg overflow-hidden" style={{ background: 'rgba(247,239,221,0.92)', border: '1px solid rgba(51,41,29,0.14)' }}>
-      <div className="flex border-b" style={{ borderColor: 'rgba(51,41,29,0.14)', background: 'rgba(51,41,29,0.05)' }}>
+    <div className="rounded-lg overflow-hidden" style={{ background: 'rgb(var(--card) / 0.92)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
+      <div className="flex border-b" style={{ borderColor: 'rgb(var(--ink) / 0.14)', background: 'rgb(var(--ink) / 0.05)' }}>
         {TABS.map(tab => {
           const isActive = tab.id === activeTab
           return (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
               className="relative px-4 py-3.5 font-almendra text-[10px] uppercase tracking-[0.15em] transition-colors"
-              style={{ color: isActive ? ACCENT : '#5f5040', background: isActive ? `${ACCENT}18` : 'transparent' }}>
+              style={{ color: isActive ? ACCENT : 'rgb(var(--ink-soft))', background: isActive ? `${ACCENT}18` : 'transparent' }}>
               {tab.label}
               {isActive && <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-t" style={{ background: `linear-gradient(90deg, transparent, ${ACCENT}, transparent)` }} />}
             </button>

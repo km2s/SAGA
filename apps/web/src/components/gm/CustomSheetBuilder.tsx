@@ -79,7 +79,7 @@ export function CustomSheetBuilder({ campaignId }: { campaignId: string }) {
 
   if (loading) {
     return (
-      <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg p-4 flex items-center gap-2 text-ink-soft text-sm">
+      <div className="bg-card border border-ink/20 rounded-lg p-4 flex items-center gap-2 text-ink-soft text-sm">
         <Loader2 size={14} className="animate-spin" />
         Carregando template...
       </div>
@@ -89,9 +89,9 @@ export function CustomSheetBuilder({ campaignId }: { campaignId: string }) {
   return (
     <div className="space-y-4">
       {/* Attribute groups */}
-      <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg overflow-hidden">
+      <div className="bg-card border border-ink/20 rounded-lg overflow-hidden">
         <div className="flex items-center justify-between px-4 py-3"
-          style={{ borderBottom: groups.length > 0 ? '1px solid rgba(51,41,29,0.06)' : undefined }}>
+          style={{ borderBottom: groups.length > 0 ? '1px solid rgb(var(--ink) / 0.06)' : undefined }}>
           <div className="flex items-center gap-2">
             <Hash size={14} className="text-gold" />
             <span className="text-sm font-medium text-ink">Grupos de Atributos</span>
@@ -109,7 +109,7 @@ export function CustomSheetBuilder({ campaignId }: { campaignId: string }) {
           </p>
         )}
 
-        <div className="divide-y" style={{ borderColor: 'rgba(51,41,29,0.05)' }}>
+        <div className="divide-y" style={{ borderColor: 'rgb(var(--ink) / 0.05)' }}>
           {groups.map((group, gi) => {
             const isExp = expandedGroup === gi
             return (
@@ -159,9 +159,9 @@ export function CustomSheetBuilder({ campaignId }: { campaignId: string }) {
       </div>
 
       {/* Text sections */}
-      <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg overflow-hidden">
+      <div className="bg-card border border-ink/20 rounded-lg overflow-hidden">
         <div className="flex items-center justify-between px-4 py-3"
-          style={{ borderBottom: textSections.length > 0 ? '1px solid rgba(51,41,29,0.06)' : undefined }}>
+          style={{ borderBottom: textSections.length > 0 ? '1px solid rgb(var(--ink) / 0.06)' : undefined }}>
           <div className="flex items-center gap-2">
             <FileText size={14} className="text-gold" />
             <span className="text-sm font-medium text-ink">Seções de Texto</span>

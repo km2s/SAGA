@@ -121,7 +121,7 @@ export function NPCInfoEditor({ campaignId, npc: initial, players }: {
   return (
     <div className="space-y-4">
       {/* Portrait card */}
-      <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg overflow-hidden">
+      <div className="bg-card border border-ink/20 rounded-lg overflow-hidden">
         <div className="relative group">
           {imgSafe ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -234,7 +234,7 @@ export function NPCInfoEditor({ campaignId, npc: initial, players }: {
       <NPCHPEditor campaignId={campaignId} npcId={npc.id} hp={npc.hp} maxHp={npc.maxHp} />
 
       {/* Type */}
-      <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg p-3">
+      <div className="bg-card border border-ink/20 rounded-lg p-3">
         <p className="font-almendra text-[9px] font-bold text-ink-soft uppercase tracking-widest mb-2">Tipo de NPC</p>
         <Select
           value={npc.type}
@@ -244,7 +244,7 @@ export function NPCInfoEditor({ campaignId, npc: initial, players }: {
       </div>
 
       {/* Visibility */}
-      <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg p-3">
+      <div className="bg-card border border-ink/20 rounded-lg p-3">
         <p className="font-almendra text-[9px] font-bold text-ink-soft uppercase tracking-widest mb-2">Visibilidade</p>
         <button
           onClick={() => void patch({ isPublic: !npc.isPublic })}
@@ -258,7 +258,7 @@ export function NPCInfoEditor({ campaignId, npc: initial, players }: {
       </div>
 
       {/* Description */}
-      <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg p-4">
+      <div className="bg-card border border-ink/20 rounded-lg p-4">
         <p className="font-almendra text-[9px] font-bold text-ink-soft uppercase tracking-widest mb-2 flex items-center gap-1">
           <Shield size={9} /> Descrição
         </p>
@@ -297,7 +297,7 @@ export function NPCInfoEditor({ campaignId, npc: initial, players }: {
           onClick={() => setImgOpen(false)}
         >
           <div
-            className="bg-[#f5ecd6] border border-ink/20 rounded-lg p-5 w-80 shadow-xl"
+            className="bg-card border border-ink/20 rounded-lg p-5 w-80 shadow-xl"
             onClick={e => e.stopPropagation()}
           >
             <p className="font-cinzel text-sm font-semibold mb-3">URL da Imagem</p>

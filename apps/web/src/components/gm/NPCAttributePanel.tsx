@@ -129,7 +129,7 @@ export function NPCAttributePanel({ campaignId, npcId, attributes }: {
   const targetAttr = attributes.find(a => a.id === deleteTarget)
 
   return (
-    <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg overflow-hidden">
+    <div className="bg-card border border-ink/20 rounded-lg overflow-hidden">
       <div className="px-5 py-4 border-b border-ink/20 flex items-center justify-between">
         <h3 className="font-cinzel text-base font-semibold">Atributos</h3>
         <button onClick={() => setAddOpen(true)}

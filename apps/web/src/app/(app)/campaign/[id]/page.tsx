@@ -65,7 +65,7 @@ export default async function CampaignOverviewPage({ params }: { params: { id: s
 
       <div className="grid grid-cols-1 md:grid-cols-[1fr_260px] gap-5">
         {/* Roll log */}
-        <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg overflow-hidden">
+        <div className="bg-card border border-ink/20 rounded-lg overflow-hidden">
           <div className="px-4 py-3 border-b border-ink/20 text-[11px] font-bold text-ink-soft uppercase tracking-widest">
             Log de Rolagens — {activeSession ? 'Sessão atual' : 'Nenhuma sessão ativa'}
           </div>

@@ -9,6 +9,7 @@ import { SheetPreview } from '@/components/landing/SheetPreview'
 import { TablePreview } from '@/components/landing/TablePreview'
 import { DiceShowcase } from '@/components/landing/DiceShowcase'
 import { Testimonials } from '@/components/landing/Testimonials'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
 
 export default async function Home() {
   const session = await getServerSession(authOptions)
@@ -48,12 +49,15 @@ function Nav() {
         <a href="#sistemas" className="transition hover:text-wax">Sistemas</a>
         <a href="#como-funciona" className="transition hover:text-wax">Como Funciona</a>
       </nav>
-      <Link
-        href="/login"
-        className="rounded-md border border-ink/30 bg-parchment px-4 py-2 font-cinzel text-sm font-semibold tracking-wider text-ink shadow-sm transition hover:border-wax hover:text-wax"
-      >
-        Entrar
-      </Link>
+      <div className="flex items-center gap-3">
+        <ThemeToggle />
+        <Link
+          href="/login"
+          className="rounded-md border border-ink/30 bg-parchment px-4 py-2 font-cinzel text-sm font-semibold tracking-wider text-ink shadow-sm transition hover:border-wax hover:text-wax"
+        >
+          Entrar
+        </Link>
+      </div>
     </header>
   )
 }

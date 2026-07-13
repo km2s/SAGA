@@ -33,7 +33,7 @@ export function CampaignStatusToggle({ campaignId, initialIsOpen, campaignType }
   const label = campaignType === 'oneshot' ? 'one-shot' : 'campanha'
 
   return (
-    <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg p-4 flex items-center justify-between gap-4">
+    <div className="bg-card border border-ink/20 rounded-lg p-4 flex items-center justify-between gap-4">
       <div className="flex items-center gap-3">
         <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors ${
           isOpen ? 'bg-saga-success/15' : 'bg-ink/5'

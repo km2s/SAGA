@@ -181,7 +181,7 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
   }))
 
   const systemCard = system && (
-    <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg p-4">
+    <div className="bg-card border border-ink/20 rounded-lg p-4">
       <p className="font-almendra text-[9px] font-bold text-ink-soft uppercase tracking-widest mb-2">Sistema</p>
       <div className="flex items-center gap-2">
         <SystemIcon size={16} className="text-ink-soft shrink-0" />
@@ -257,7 +257,7 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
           ) : (
             <>
               {/* Portrait (read-only for players) */}
-              <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg overflow-hidden">
+              <div className="bg-card border border-ink/20 rounded-lg overflow-hidden">
                 {safeImageUrl(npc.imageUrl) ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={safeImageUrl(npc.imageUrl)!} alt={npc.name} className="w-full h-52 object-cover object-top" />
@@ -298,7 +298,7 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
                 maxHp={npc.maxHp}
               />
 
-              <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg p-3 text-center">
+              <div className="bg-card border border-ink/20 rounded-lg p-3 text-center">
                 <p className="font-cinzel text-base font-bold">{NPC_TYPE_LABELS[npc.type] ?? npc.type}</p>
                 <p className="font-almendra text-[9px] text-ink-soft mt-0.5 uppercase tracking-widest">Tipo de NPC</p>
               </div>
@@ -306,7 +306,7 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
               {systemCard}
 
               {npc.description && (
-                <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg p-4">
+                <div className="bg-card border border-ink/20 rounded-lg p-4">
                   <p className="font-almendra text-[9px] font-bold text-ink-soft uppercase tracking-widest mb-2">Descrição</p>
                   <p className="text-sm text-ink-soft leading-relaxed">{npc.description}</p>
                 </div>

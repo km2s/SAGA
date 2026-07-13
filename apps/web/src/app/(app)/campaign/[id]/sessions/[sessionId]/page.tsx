@@ -98,7 +98,7 @@ export default async function SessionDetailPage({
           { label: 'Maior total',value: highestRoll?.total ?? '—',   Icon: Trophy,   color: 'text-purple-bright' },
           { label: 'Jogadores',  value: campaign.members.length,     Icon: Users,    color: 'text-ink-soft' },
         ].map(stat => (
-          <div key={stat.label} className="bg-[#f5ecd6] border border-ink/20 rounded-lg p-4 text-center">
+          <div key={stat.label} className="bg-card border border-ink/20 rounded-lg p-4 text-center">
             <div className="flex justify-center mb-1 text-ink-soft/50"><stat.Icon size={20} /></div>
             <p className={`font-cinzel text-2xl font-bold ${stat.color}`}>{stat.value}</p>
             <p className="text-[11px] text-ink-soft mt-0.5">{stat.label}</p>
@@ -118,7 +118,7 @@ export default async function SessionDetailPage({
 
           {/* Highlights */}
           {highestRoll && (
-            <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg p-5">
+            <div className="bg-card border border-ink/20 rounded-lg p-5">
               <h3 className="font-cinzel text-sm font-semibold mb-3 flex items-center gap-2"><Trophy size={14} className="text-gold" /> Destaque da Sessão</h3>
               <div className="flex items-center gap-4 p-3 rounded-lg bg-gold/6 border border-gold/20">
                 <p className="font-cinzel text-4xl font-bold text-gold">{highestRoll.total}</p>
@@ -135,7 +135,7 @@ export default async function SessionDetailPage({
         <div className="space-y-5">
           {/* Top rollers */}
           {topRollers.length > 0 && (
-            <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg overflow-hidden">
+            <div className="bg-card border border-ink/20 rounded-lg overflow-hidden">
               <div className="px-4 py-3 border-b border-ink/20">
                 <h3 className="font-cinzel text-sm font-semibold">Mais Ativos</h3>
               </div>
@@ -155,7 +155,7 @@ export default async function SessionDetailPage({
           )}
 
           {/* Roll log */}
-          <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg overflow-hidden">
+          <div className="bg-card border border-ink/20 rounded-lg overflow-hidden">
             <div className="px-4 py-3 border-b border-ink/20">
               <h3 className="font-cinzel text-sm font-semibold">Log de Rolagens</h3>
             </div>

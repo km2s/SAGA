@@ -90,7 +90,7 @@ function ProfSelector({ attrId, value, characterId, canEdit, onSaved }: { attrId
   return (
     <button type="button" onClick={() => void next()} title={PROF_LABEL[value]}
       className="w-8 h-6 rounded text-[11px] font-bold transition-colors"
-      style={{ background: value ? `${RED}30` : 'rgba(51,41,29,0.1)', color: value ? RED : 'rgba(51,41,29,0.2)', border: `1px solid ${value ? RED : 'rgba(51,41,29,0.1)'}` }}>
+      style={{ background: value ? `${RED}30` : 'rgb(var(--ink) / 0.1)', color: value ? RED : 'rgb(var(--ink) / 0.2)', border: `1px solid ${value ? RED : 'rgb(var(--ink) / 0.1)'}` }}>
       {PROF[value]}
     </button>
   )
@@ -113,7 +113,7 @@ export function Pathfinder2eSheet({ characterId, characterLevel, attributes, tex
   const heroPoints = parseInt(textFields.find(f => f.key === 'hero_points')?.value ?? '0')
 
   const card = 'rounded-xl p-4' as const
-  const cardStyle = { background: 'rgba(247,239,221,0.92)', border: '1px solid rgba(51,41,29,0.14)' }
+  const cardStyle = { background: 'rgb(var(--card) / 0.92)', border: '1px solid rgb(var(--ink) / 0.14)' }
   const tabs = [
     { id: 'atributos', label: 'Atributos' },
     { id: 'combate', label: 'Combate' },
@@ -150,11 +150,11 @@ export function Pathfinder2eSheet({ characterId, characterLevel, attributes, tex
         </div>
       </div>
 
-      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgba(51,41,29,0.08)', border: '1px solid rgba(51,41,29,0.05)' }}>
+      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgb(var(--ink) / 0.08)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
         {tabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className="flex-1 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all"
-            style={tab === t.id ? { background: RED, color: '#fff' } : { color: 'rgba(51,41,29,0.4)' }}>
+            style={tab === t.id ? { background: RED, color: '#fff' } : { color: 'rgb(var(--ink) / 0.4)' }}>
             {t.label}
           </button>
         ))}
@@ -171,7 +171,7 @@ export function Pathfinder2eSheet({ characterId, characterLevel, attributes, tex
               const a = baseStats.find(x => x.attribute.name.includes(name!.split(' ')[0]!))
               const m = mod(a?.value ?? 10)
               return (
-                <div key={abbr} className="rounded-lg p-3 text-center space-y-1" style={{ background: 'rgba(51,41,29,0.08)' }}>
+                <div key={abbr} className="rounded-lg p-3 text-center space-y-1" style={{ background: 'rgb(var(--ink) / 0.08)' }}>
                   <div className="text-[10px] font-bold text-ink-soft uppercase">{abbr}</div>
                   <div className="text-2xl font-cinzel font-bold" style={{ color: RED }}>{fmtMod(m)}</div>
                   {a && <Dots value={a.value} max={20} editable={canEdit} attrId={a.id} characterId={characterId} onSaved={onRefresh} />}
@@ -214,7 +214,7 @@ export function Pathfinder2eSheet({ characterId, characterLevel, attributes, tex
                   {[0, 1, 2, 3, 4].map(n => (
                     <button key={n} type="button" onClick={() => canEdit && void saveNum('dying', 'Moribundo', n)}
                       className="flex-1 py-1.5 rounded text-[11px] font-bold transition-all"
-                      style={{ background: n === dying ? RED : 'rgba(51,41,29,0.1)', color: n === dying ? '#fff' : 'rgba(51,41,29,0.4)', border: `1px solid ${n === dying ? RED : 'rgba(51,41,29,0.1)'}` }}>
+                      style={{ background: n === dying ? RED : 'rgb(var(--ink) / 0.1)', color: n === dying ? '#fff' : 'rgb(var(--ink) / 0.4)', border: `1px solid ${n === dying ? RED : 'rgb(var(--ink) / 0.1)'}` }}>
                       {n}
                     </button>
                   ))}

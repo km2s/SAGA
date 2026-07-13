@@ -45,7 +45,7 @@ export function NpcFolderControls({ campaignId, folders }: {
   return (
     <div className="mb-5 flex flex-wrap items-center gap-2">
       {folders.map(f => (
-        <span key={f.id} className="group inline-flex items-center gap-1.5 rounded-full border border-ink/20 bg-[#f5ecd6] px-3 py-1 text-xs">
+        <span key={f.id} className="group inline-flex items-center gap-1.5 rounded-full border border-ink/20 bg-card px-3 py-1 text-xs">
           {editingId === f.id ? (
             <>
               <input
@@ -69,7 +69,7 @@ export function NpcFolderControls({ campaignId, folders }: {
       ))}
 
       {creating ? (
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-wax/40 bg-[#f5ecd6] px-3 py-1 text-xs">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-wax/40 bg-card px-3 py-1 text-xs">
           <input
             autoFocus value={newName}
             onChange={e => setNewName(e.target.value)}

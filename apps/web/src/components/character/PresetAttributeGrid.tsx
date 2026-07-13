@@ -93,7 +93,7 @@ export function PresetAttributeGrid({ characterId, attributes, canEdit }: {
     <div className="space-y-4">
       {/* Core 6-attribute hexagonal grid */}
       {core.length > 0 && (
-        <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg overflow-hidden">
+        <div className="bg-card border border-ink/20 rounded-lg overflow-hidden">
           <div className="px-5 py-3 border-b border-ink/20 flex items-center justify-between">
             <h3 className="font-cinzel text-sm font-semibold">Atributos Principais</h3>
             {canEdit && (
@@ -142,7 +142,7 @@ export function PresetAttributeGrid({ characterId, attributes, canEdit }: {
 
       {/* Extra attributes (non-core) */}
       {(extras.length > 0 || (core.length === 0)) && (
-        <div className="bg-[#f5ecd6] border border-ink/20 rounded-lg overflow-hidden">
+        <div className="bg-card border border-ink/20 rounded-lg overflow-hidden">
           <div className="px-5 py-3 border-b border-ink/20 flex items-center justify-between">
             <h3 className="font-cinzel text-sm font-semibold">
               {core.length > 0 ? 'Atributos Extras' : 'Atributos'}
