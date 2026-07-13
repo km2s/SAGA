@@ -60,7 +60,7 @@ export function RollLog({ rolls, lastRollId, activeSessionIsActive, membersCount
               className={`rounded-lg overflow-hidden transition-all duration-300 border ${isNew?'scale-[1.02]':'scale-100'} ${
                 isCrit ? 'bg-gradient-to-br from-gold/12 to-gold/[0.04] border-gold/30 shadow-[0_0_14px_rgba(201,162,42,0.12)]'
                 : isFail ? 'bg-gradient-to-br from-saga-danger/12 to-saga-danger/[0.04] border-saga-danger/25'
-                : 'bg-ink/[0.03] border-ink/[0.06]'
+                : 'bg-bg/40 border-ink/[0.08]'
               }`}>
               {(isCrit||isFail)&&(
                 <div className={`px-3 py-1 text-[10px] font-bold uppercase tracking-widest font-cinzel text-center flex items-center justify-center gap-1 ${isCrit?'bg-gold/12 text-gold':'bg-saga-danger/12 text-saga-danger'}`}>

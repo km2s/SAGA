@@ -545,7 +545,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
                     onChange={e=>setMapInputValue(e.target.value)}
                     onKeyDown={e=>{if(e.key==='Enter')applyMap();if(e.key==='Escape')setMapInputOpen(false)}}
                     placeholder="https://... URL da imagem"
-                    className="w-full px-3 py-2 rounded text-[12px] text-saga-text placeholder:text-saga-dim focus:outline-none bg-ink/5 border border-ink/10 focus:border-gold/60 transition-colors"
+                    className="w-full px-3 py-2 rounded text-[12px] text-saga-text placeholder:text-saga-dim focus:outline-none bg-bg/50 border border-ink/10 focus:border-gold/60 transition-colors"
                   />
                   <div className="flex gap-2">
                     <button onClick={applyMap}

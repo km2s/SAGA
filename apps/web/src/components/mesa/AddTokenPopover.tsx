@@ -93,7 +93,7 @@ export function AddTokenPopover({
                 <input autoFocus value={newTokenLabel} onChange={e=>setNewTokenLabel(e.target.value)}
                   onKeyDown={e=>{if(e.key==='Enter')onAddNewToken();if(e.key==='Escape')onCancel()}}
                   placeholder="Nome do token..."
-                  className="w-full px-2 py-1.5 rounded text-xs text-saga-text placeholder:text-saga-dim focus:outline-none bg-ink/5 border border-ink/10 focus:border-gold/60 transition-colors"/>
+                  className="w-full px-2 py-1.5 rounded text-xs text-saga-text placeholder:text-saga-dim focus:outline-none bg-bg/50 border border-ink/10 focus:border-gold/60 transition-colors"/>
                 <div className="flex gap-1">
                   {(['player','enemy','npc'] as const).map(tp=>(
                     <button key={tp} onClick={()=>setNewTokenType(tp)}
@@ -128,7 +128,7 @@ export function AddTokenPopover({
           <input autoFocus value={newTokenLabel} onChange={e=>setNewTokenLabel(e.target.value)}
             onKeyDown={e=>{if(e.key==='Enter')onAddNewToken();if(e.key==='Escape')onCancel()}}
             placeholder="Nome do token..."
-            className="w-full px-3 py-2 rounded text-sm text-saga-text placeholder:text-saga-dim focus:outline-none bg-ink/5 border border-ink/10 focus:border-gold/60 transition-colors"/>
+            className="w-full px-3 py-2 rounded text-sm text-saga-text placeholder:text-saga-dim focus:outline-none bg-bg/50 border border-ink/10 focus:border-gold/60 transition-colors"/>
           <div className="flex gap-1.5">
             {(['player','enemy','npc'] as const).map(tp=>(
               <button key={tp} onClick={()=>setNewTokenType(tp)}
