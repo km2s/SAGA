@@ -6,17 +6,17 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Tokens da mesa virtual (cripta imersiva). Fase 3 os converte em
-        // variáveis que acompanham o tema; por ora mantêm o escuro fixo.
-        bg: '#0e0a06',
+        // Tokens da mesa virtual — variáveis CSS (canais RGB) que acompanham
+        // o tema: pergaminho no claro, cripta no escuro (ver globals.css).
+        bg: 'rgb(var(--mesa-bg) / <alpha-value>)',
         surface: {
-          DEFAULT: '#1a1410',
-          2: '#241b12',
-          3: '#2e2318',
+          DEFAULT: 'rgb(var(--mesa-surface) / <alpha-value>)',
+          2: 'rgb(var(--mesa-surface-2) / <alpha-value>)',
+          3: 'rgb(var(--mesa-surface-3) / <alpha-value>)',
         },
         border: {
-          DEFAULT: '#3a2e1a',
-          bright: '#4d3d22',
+          DEFAULT: 'rgb(var(--mesa-border) / <alpha-value>)',
+          bright: 'rgb(var(--mesa-border-bright) / <alpha-value>)',
         },
         gold: '#c9a22a',
         'gold-dark': '#a07818',
@@ -26,9 +26,9 @@ export default {
           bright: '#9d5af5',
         },
         saga: {
-          text: '#ece2cc',   // parchment quente (era branco-frio)
-          muted: '#b6a682',   // tan (era azul-acinzentado)
-          dim: '#7d6f52',     // dim quente
+          text: 'rgb(var(--mesa-text) / <alpha-value>)',
+          muted: 'rgb(var(--mesa-muted) / <alpha-value>)',
+          dim: 'rgb(var(--mesa-dim) / <alpha-value>)',
           success: '#22c55e',
           danger: '#ef4444',
           warning: '#f59e0b',

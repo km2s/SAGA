@@ -473,13 +473,13 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
     : tokenDrag ? 'cursor-grabbing' : 'cursor-default'
 
   return (
-    <div className="mesa-dark fixed inset-0 z-50 flex flex-col" style={{background:'radial-gradient(ellipse 75% 55% at 50% -10%, #1c1206 0%, #0d0a08 45%, #070609 100%)'}}>
+    <div className="mesa-dark fixed inset-0 z-50 flex flex-col" style={{background:'var(--mesa-table)'}}>
 
       {/* Brilho ambiente de cripta (brasa + ouro) — atmosfera do template */}
       <div className="pointer-events-none absolute inset-0 z-0" style={{background:'radial-gradient(ellipse 60% 40% at 50% 0%, rgb(var(--ember) / 0.12), transparent 60%), radial-gradient(ellipse at 100% 100%, rgba(201,162,42,0.06), transparent 55%)'}} />
 
       {/* ── Top bar ── */}
-      <div className="h-11 flex items-center justify-between px-3 sm:px-4 shrink-0 border-b border-gold/15 relative z-10 bg-[#140f08]/90 backdrop-blur-sm">
+      <div className="h-11 flex items-center justify-between px-3 sm:px-4 shrink-0 border-b border-gold/15 relative z-10 bg-bg/85 backdrop-blur-sm">
 
         {/* Left */}
         <div className="flex items-center gap-2 sm:gap-5 min-w-0">
@@ -688,7 +688,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
             backgroundImage:`linear-gradient(rgba(201,162,42,0.10) 1px,transparent 1px),linear-gradient(90deg,rgba(201,162,42,0.10) 1px,transparent 1px)`,
             backgroundSize:`${GRID*zoom}px ${GRID*zoom}px`,
             backgroundPosition:`${pan.x%(GRID*zoom)}px ${pan.y%(GRID*zoom)}px`,
-            backgroundColor:'#12100b',
+            backgroundColor:'rgb(var(--mesa-bg))',
             touchAction:'none',
           }}
           onMouseDown={onCanvasDown}

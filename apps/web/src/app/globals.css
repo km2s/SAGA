@@ -84,14 +84,7 @@ select optgroup {
   font-weight: 600;
 }
 
-/* Mesa (cripta): mantém selects escuros dentro do escopo .mesa-dark */
-.mesa-dark select {
-  color-scheme: dark;
-}
-.mesa-dark select option {
-  background-color: #11111e;
-  color: #e2e2f0;
-}
+/* Mesa: selects seguem o tema global (claro↔cripta), como o restante do app */
 
 /* Card hover lift */
 .card-hover {
@@ -125,6 +118,18 @@ select optgroup {
   --gold-light: #f0d060;
   --crypt: #16171f;
   --crypt-deep: #0b0c11;
+
+  /* Mesa virtual — valores CLAROS (pergaminho na mesa) */
+  --mesa-bg: 230 213 172;
+  --mesa-surface: 245 236 214;
+  --mesa-surface-2: 237 225 197;
+  --mesa-surface-3: 230 213 172;
+  --mesa-border: 176 158 120;
+  --mesa-border-bright: 143 122 80;
+  --mesa-text: 51 41 29;
+  --mesa-muted: 95 80 64;
+  --mesa-dim: 125 111 82;
+  --mesa-table: radial-gradient(ellipse 80% 60% at 50% -10%, #f6eed9 0%, #ece0c0 55%, #ddc9a0 100%);
 }
 
 /* ── Modo escuro "Cripta": inverte os papéis dos tokens ──
@@ -138,6 +143,18 @@ select optgroup {
   --wax: 176 71 46;           /* #b0472e — bordô mais vivo p/ contraste */
   --wax-deep: 143 58 36;      /* #8f3a24 */
   --ember: 224 116 58;        /* #e0743a — brasa levemente mais viva */
+
+  /* Mesa virtual — valores ESCUROS (cripta imersiva, como era) */
+  --mesa-bg: 14 10 6;         /* #0e0a06 */
+  --mesa-surface: 26 20 16;   /* #1a1410 */
+  --mesa-surface-2: 36 27 18; /* #241b12 */
+  --mesa-surface-3: 46 35 24; /* #2e2318 */
+  --mesa-border: 58 46 26;    /* #3a2e1a */
+  --mesa-border-bright: 77 61 34; /* #4d3d22 */
+  --mesa-text: 236 226 204;   /* #ece2cc */
+  --mesa-muted: 182 166 130;  /* #b6a682 */
+  --mesa-dim: 125 111 82;     /* #7d6f52 */
+  --mesa-table: radial-gradient(ellipse 75% 55% at 50% -10%, #1c1206 0%, #0d0a08 45%, #070609 100%);
 }
 
 /* Fundo pergaminho com textura de fibra e manchas (tinta/cera via vars → flipa) */
