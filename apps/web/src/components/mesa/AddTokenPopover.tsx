@@ -38,7 +38,7 @@ export function AddTokenPopover({
         width:236,
       }}
       onMouseDown={e=>e.stopPropagation()}>
-      <div className="px-3 py-2.5 border-b border-white/6 flex items-center justify-between">
+      <div className="px-3 py-2.5 border-b border-ink/6 flex items-center justify-between">
         <span className="font-cinzel text-[11px] font-bold text-saga-muted uppercase tracking-widest">
           {isGM?'Colocar Token':'Novo Token'}
         </span>
@@ -58,7 +58,7 @@ export function AddTokenPopover({
                 const hpPct=npc.maxHp>0?Math.max(0,Math.min(100,(npc.hp/npc.maxHp)*100)):0
                 return (
                   <button key={npc.id} onClick={()=>onPlaceNpc(npc)}
-                    className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/5 transition-all text-left w-full">
+                    className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-ink/5 transition-all text-left w-full">
                     {safeImageUrl(npc.imageUrl)
                       // eslint-disable-next-line @next/next/no-img-element
                       ? <img src={safeImageUrl(npc.imageUrl)!} alt={npc.name} className="w-7 h-7 rounded-full object-cover shrink-0"/>
@@ -71,7 +71,7 @@ export function AddTokenPopover({
                       <p className="text-[12px] font-medium text-saga-text truncate leading-tight">{npc.name}</p>
                       <div className="flex items-center gap-1.5 mt-0.5">
                         <span className="text-[9px] font-medium" style={{color:tc}}>{typeLabel}</span>
-                        <div className="flex-1 h-[3px] rounded-full overflow-hidden bg-white/8">
+                        <div className="flex-1 h-[3px] rounded-full overflow-hidden bg-ink/8">
                           <div className={`h-full rounded-full ${hpPct>50?'bg-saga-success':hpPct>25?'bg-saga-warning':'bg-saga-danger'}`} style={{width:`${hpPct}%`}}/>
                         </div>
                         <span className="text-[9px] text-saga-dim shrink-0">{npc.hp}/{npc.maxHp}</span>
@@ -83,7 +83,7 @@ export function AddTokenPopover({
             </div>
           )}
           {/* Custom token fallback */}
-          <div className="border-t border-white/6">
+          <div className="border-t border-ink/6">
             <button onClick={()=>setGmCustomOpen(o=>!o)}
               className="w-full px-3 py-2 text-[10px] text-saga-dim hover:text-saga-text transition-colors flex items-center justify-center gap-1">
               <Plus size={10}/> Token Personalizado
@@ -93,7 +93,7 @@ export function AddTokenPopover({
                 <input autoFocus value={newTokenLabel} onChange={e=>setNewTokenLabel(e.target.value)}
                   onKeyDown={e=>{if(e.key==='Enter')onAddNewToken();if(e.key==='Escape')onCancel()}}
                   placeholder="Nome do token..."
-                  className="w-full px-2 py-1.5 rounded text-xs text-saga-text placeholder:text-saga-dim focus:outline-none bg-white/5 border border-white/10 focus:border-gold/60 transition-colors"/>
+                  className="w-full px-2 py-1.5 rounded text-xs text-saga-text placeholder:text-saga-dim focus:outline-none bg-ink/5 border border-ink/10 focus:border-gold/60 transition-colors"/>
                 <div className="flex gap-1">
                   {(['player','enemy','npc'] as const).map(tp=>(
                     <button key={tp} onClick={()=>setNewTokenType(tp)}
@@ -102,7 +102,7 @@ export function AddTokenPopover({
                           ? tp==='player' ? 'bg-purple/40 border-purple/60 text-white'
                             : tp==='enemy' ? 'bg-saga-danger/40 border-saga-danger/50 text-white'
                             : 'bg-gold/30 border-gold/50 text-white'
-                          : 'bg-white/[0.04] border-white/8 text-saga-dim'
+                          : 'bg-ink/[0.04] border-ink/8 text-saga-dim'
                       }`}>
                       {tp==='player'?'Jogador':tp==='enemy'?'Inimigo':'NPC'}
                     </button>
@@ -111,7 +111,7 @@ export function AddTokenPopover({
                 <div className="flex gap-1 flex-wrap">
                   {TOKEN_COLORS.map(c=>(
                     <button key={c} onClick={()=>setNewTokenColor(c)} className="w-4 h-4 rounded-full transition-all"
-                      style={{background:c,boxShadow:newTokenColor===c?'0 0 0 2px rgba(255,255,255,0.9)':'none',transform:newTokenColor===c?'scale(1.2)':'scale(1)'}}/>
+                      style={{background:c,boxShadow:newTokenColor===c?'0 0 0 2px rgb(var(--ink) / 0.9)':'none',transform:newTokenColor===c?'scale(1.2)':'scale(1)'}}/>
                   ))}
                 </div>
                 <button onClick={onAddNewToken}
@@ -128,7 +128,7 @@ export function AddTokenPopover({
           <input autoFocus value={newTokenLabel} onChange={e=>setNewTokenLabel(e.target.value)}
             onKeyDown={e=>{if(e.key==='Enter')onAddNewToken();if(e.key==='Escape')onCancel()}}
             placeholder="Nome do token..."
-            className="w-full px-3 py-2 rounded text-sm text-saga-text placeholder:text-saga-dim focus:outline-none bg-white/5 border border-white/10 focus:border-gold/60 transition-colors"/>
+            className="w-full px-3 py-2 rounded text-sm text-saga-text placeholder:text-saga-dim focus:outline-none bg-ink/5 border border-ink/10 focus:border-gold/60 transition-colors"/>
           <div className="flex gap-1.5">
             {(['player','enemy','npc'] as const).map(tp=>(
               <button key={tp} onClick={()=>setNewTokenType(tp)}
@@ -137,7 +137,7 @@ export function AddTokenPopover({
                     ? tp==='player' ? 'bg-purple/40 border-purple/60 text-white'
                       : tp==='enemy' ? 'bg-saga-danger/40 border-saga-danger/50 text-white'
                       : 'bg-gold/30 border-gold/50 text-white'
-                    : 'bg-white/[0.04] border-white/8 text-saga-dim'
+                    : 'bg-ink/[0.04] border-ink/8 text-saga-dim'
                 }`}>
                 {tp==='player'?'Jogador':tp==='enemy'?'Inimigo':'NPC'}
               </button>
@@ -146,7 +146,7 @@ export function AddTokenPopover({
           <div className="flex gap-1.5 flex-wrap">
             {TOKEN_COLORS.map(c=>(
               <button key={c} onClick={()=>setNewTokenColor(c)} className="w-5 h-5 rounded-full transition-all"
-                style={{background:c,boxShadow:newTokenColor===c?'0 0 0 2px rgba(255,255,255,0.9)':'none',transform:newTokenColor===c?'scale(1.2)':'scale(1)'}}/>
+                style={{background:c,boxShadow:newTokenColor===c?'0 0 0 2px rgb(var(--ink) / 0.9)':'none',transform:newTokenColor===c?'scale(1.2)':'scale(1)'}}/>
             ))}
           </div>
           <div className="flex items-center gap-3">

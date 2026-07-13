@@ -35,7 +35,7 @@ export function InitiativeTracker({ initiativeOrder, currentTurnIdx, isGM, onRol
           )}
           {initiativeOrder.length>0&&isGM&&(
             <button onClick={onNextTurn}
-              className="px-2 py-0.5 rounded text-[9px] font-bold font-cinzel flex items-center gap-1 transition-all bg-white/[0.06] text-saga-muted border border-white/10">
+              className="px-2 py-0.5 rounded text-[9px] font-bold font-cinzel flex items-center gap-1 transition-all bg-ink/[0.06] text-saga-muted border border-ink/10">
               <ChevronRight size={10}/>Próximo
             </button>
           )}
@@ -58,15 +58,15 @@ export function InitiativeTracker({ initiativeOrder, currentTurnIdx, isGM, onRol
             <div key={entry.tokenId}
               className="px-4 py-2.5 border-b last:border-0 transition-all"
               style={{
-                borderColor:'rgba(255,255,255,0.04)',
+                borderColor:'rgb(var(--ink) / 0.04)',
                 background:isCurrent?'rgba(201,162,42,0.08)':'transparent',
               }}>
               <div className="flex items-center gap-3">
                 {/* Initiative badge */}
                 <div className="w-7 h-7 rounded-full flex items-center justify-center font-cinzel font-bold text-sm shrink-0"
                   style={{
-                    background:isCurrent?`${entry.color}30`:'rgba(255,255,255,0.05)',
-                    border:`1.5px solid ${isCurrent?entry.color:'rgba(255,255,255,0.1)'}`,
+                    background:isCurrent?`${entry.color}30`:'rgb(var(--ink) / 0.05)',
+                    border:`1.5px solid ${isCurrent?entry.color:'rgb(var(--ink) / 0.1)'}`,
                     color:isCurrent?entry.color:'#7878a0',
                   }}>
                   {entry.initiative}
@@ -80,7 +80,7 @@ export function InitiativeTracker({ initiativeOrder, currentTurnIdx, isGM, onRol
                     </span>
                   </div>
                   {hpPct !== null && (
-                    <div className="mt-1 w-full h-[3px] rounded-full overflow-hidden bg-white/8">
+                    <div className="mt-1 w-full h-[3px] rounded-full overflow-hidden bg-ink/8">
                       <div className={`h-full rounded-full ${
                         hpPct > 50 ? 'bg-saga-success' : hpPct > 25 ? 'bg-saga-warning' : 'bg-saga-danger'
                       }`} style={{width:`${hpPct}%`}} />

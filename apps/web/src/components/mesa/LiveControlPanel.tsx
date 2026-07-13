@@ -69,7 +69,7 @@ export function LiveControlPanel({
                 <div key={m.id} className="space-y-1">
                   <div
                     className={`flex items-center justify-between px-3 py-2 rounded transition-all border ${
-                      hasLive ? 'bg-emerald-500/[0.08] border-emerald-500/25' : 'bg-white/[0.03] border-white/[0.07]'
+                      hasLive ? 'bg-emerald-500/[0.08] border-emerald-500/25' : 'bg-ink/[0.03] border-ink/[0.07]'
                     }`}>
                     <div className="flex items-center gap-2">
                       {hasLive
@@ -88,12 +88,12 @@ export function LiveControlPanel({
                         <button
                           onClick={() => setExpandedLiveMember(isExpanded ? null : m.id)}
                           title="Tokens extras que este jogador pode mover"
-                          className={`text-[9px] px-1.5 py-0.5 rounded transition-all border ${isExpanded ? 'text-emerald-400 border-emerald-400/30 bg-emerald-400/10' : 'text-saga-dim border-white/10 hover:text-emerald-400 hover:border-emerald-400/20'}`}>
+                          className={`text-[9px] px-1.5 py-0.5 rounded transition-all border ${isExpanded ? 'text-emerald-400 border-emerald-400/30 bg-emerald-400/10' : 'text-saga-dim border-ink/10 hover:text-emerald-400 hover:border-emerald-400/20'}`}>
                           Tokens
                         </button>
                       )}
                       <button onClick={toggleLive}
-                        className={`relative w-9 h-5 rounded-full transition-all shrink-0 ${hasLive ? 'bg-emerald-500' : 'bg-white/10'}`}>
+                        className={`relative w-9 h-5 rounded-full transition-all shrink-0 ${hasLive ? 'bg-emerald-500' : 'bg-ink/10'}`}>
                         <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-all ${hasLive ? 'left-4' : 'left-0.5'}`}/>
                       </button>
                     </div>
@@ -134,7 +134,7 @@ export function LiveControlPanel({
                 body: JSON.stringify({ liveMembersJson: '[]' }),
               }).catch(() => {})
             }}
-            className="mt-3 w-full py-1.5 rounded text-[11px] text-saga-dim hover:text-saga-danger transition-colors border border-white/6 hover:border-saga-danger/30">
+            className="mt-3 w-full py-1.5 rounded text-[11px] text-saga-dim hover:text-saga-danger transition-colors border border-ink/6 hover:border-saga-danger/30">
             Desativar todos
           </button>
         )}

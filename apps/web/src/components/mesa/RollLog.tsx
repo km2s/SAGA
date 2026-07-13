@@ -14,7 +14,7 @@ interface Props {
 export function RollLog({ rolls, lastRollId, activeSessionIsActive, membersCount, onCloseMobile, chatEndRef }: Props) {
   return (
     <>
-      <div className="px-4 py-3 border-b border-white/6 shrink-0 flex items-center justify-between">
+      <div className="px-4 py-3 border-b border-ink/6 shrink-0 flex items-center justify-between">
         <span className="font-cinzel text-[11px] font-bold text-saga-muted uppercase tracking-widest">Chat da Sessão</span>
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5">
@@ -60,7 +60,7 @@ export function RollLog({ rolls, lastRollId, activeSessionIsActive, membersCount
               className={`rounded-lg overflow-hidden transition-all duration-300 border ${isNew?'scale-[1.02]':'scale-100'} ${
                 isCrit ? 'bg-gradient-to-br from-gold/12 to-gold/[0.04] border-gold/30 shadow-[0_0_14px_rgba(201,162,42,0.12)]'
                 : isFail ? 'bg-gradient-to-br from-saga-danger/12 to-saga-danger/[0.04] border-saga-danger/25'
-                : 'bg-white/[0.03] border-white/[0.06]'
+                : 'bg-ink/[0.03] border-ink/[0.06]'
               }`}>
               {(isCrit||isFail)&&(
                 <div className={`px-3 py-1 text-[10px] font-bold uppercase tracking-widest font-cinzel text-center flex items-center justify-center gap-1 ${isCrit?'bg-gold/12 text-gold':'bg-saga-danger/12 text-saga-danger'}`}>
@@ -101,7 +101,7 @@ export function RollLog({ rolls, lastRollId, activeSessionIsActive, membersCount
                   <div className="flex items-center flex-wrap gap-1">
                     <span className="text-[10px] text-saga-dim font-mono">{roll.expression} →</span>
                     {arr.map((n,i)=>(
-                      <span key={i} className={`text-[9px] font-mono px-1 rounded ${isCrit?'bg-gold/15 text-gold':isFail?'bg-saga-danger/15 text-saga-danger':'bg-white/10 text-saga-muted'}`}>{n}</span>
+                      <span key={i} className={`text-[9px] font-mono px-1 rounded ${isCrit?'bg-gold/15 text-gold':isFail?'bg-saga-danger/15 text-saga-danger':'bg-ink/10 text-saga-muted'}`}>{n}</span>
                     ))}
                     {roll.modifier!==0&&(
                       <span className="text-[10px] text-saga-dim font-mono">{roll.modifier>0?'+':''}{roll.modifier}</span>

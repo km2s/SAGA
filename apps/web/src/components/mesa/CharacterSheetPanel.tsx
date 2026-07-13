@@ -123,7 +123,7 @@ function HPEditor({ initialHp, maxHp, canEdit, onSave }: {
   }
 
   return (
-    <div className="rounded-lg p-3" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+    <div className="rounded-lg p-3" style={{ background: 'rgb(var(--ink) / 0.03)', border: '1px solid rgb(var(--ink) / 0.07)' }}>
       <div className="flex items-center justify-between mb-2">
         <span className="text-[10px] font-bold text-saga-dim uppercase tracking-widest">Pontos de Vida</span>
         <div className="flex items-center gap-1">
@@ -141,7 +141,7 @@ function HPEditor({ initialHp, maxHp, canEdit, onSave }: {
               onKeyDown={e => { if (e.key === 'Enter') commitInput(); if (e.key === 'Escape') setEditing(false) }}
               autoFocus
               className="w-10 text-center font-cinzel font-bold text-base bg-transparent border-b outline-none"
-              style={{ color, borderColor: 'rgba(255,255,255,0.2)' }}
+              style={{ color, borderColor: 'rgb(var(--ink) / 0.2)' }}
             />
           ) : (
             <span
@@ -162,7 +162,7 @@ function HPEditor({ initialHp, maxHp, canEdit, onSave }: {
           )}
         </div>
       </div>
-      <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
+      <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgb(var(--ink) / 0.08)' }}>
         <div className="h-full rounded-full transition-all duration-500"
           style={{ width: `${pct}%`, background: color, boxShadow: `0 0 8px ${color}55` }} />
       </div>
@@ -200,9 +200,9 @@ function AttributesBlock({ attributes, category, charName, canRoll, onRoll }: {
               <button key={a.id} type="button" disabled={!canRoll} onClick={() => roll(a)}
                 title={canRoll ? `Rolar 1d20 ${formatModifier(a.value, category)} · ${a.name}` : a.name}
                 className={`group rounded-lg p-2.5 text-center transition-all ${canRoll ? 'cursor-pointer hover:brightness-125 hover:border-[color:var(--gold)]' : 'cursor-default'}`}
-                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                style={{ background: 'rgb(var(--ink) / 0.04)', border: '1px solid rgb(var(--ink) / 0.08)' }}>
                 <p className="font-cinzel text-xl font-bold text-saga-text leading-none">{formatModifier(a.value, category)}</p>
-                <div className="w-full h-px my-1.5" style={{ background: 'rgba(255,255,255,0.1)' }} />
+                <div className="w-full h-px my-1.5" style={{ background: 'rgb(var(--ink) / 0.1)' }} />
                 <p className="text-[12px] font-semibold text-saga-muted leading-none mb-0.5">{a.value}</p>
                 <p className="text-[8px] text-saga-dim uppercase tracking-widest font-bold">
                   {ATTR_ABBREV[a.name] ?? a.name.slice(0, 3).toUpperCase()}
@@ -221,7 +221,7 @@ function AttributesBlock({ attributes, category, charName, canRoll, onRoll }: {
           <div className="space-y-1">
             {otherAttrs.map(a => (
               <div key={a.id} className="flex items-center justify-between px-3 py-2 rounded group"
-                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                style={{ background: 'rgb(var(--ink) / 0.03)', border: '1px solid rgb(var(--ink) / 0.06)' }}>
                 <span className="text-[12px] text-saga-muted">{a.name}</span>
                 <div className="flex items-center gap-1.5">
                   <span className="font-cinzel font-bold text-sm text-saga-text">{a.value}</span>
@@ -280,7 +280,7 @@ function NotesBlock({ charId, canEdit }: { charId: string; canEdit: boolean }) {
   }
 
   return (
-    <div className="rounded-lg p-3" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+    <div className="rounded-lg p-3" style={{ background: 'rgb(var(--ink) / 0.03)', border: '1px solid rgb(var(--ink) / 0.07)' }}>
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5">
           <StickyNote size={11} className="text-saga-dim" />
@@ -390,8 +390,8 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
       <div className="absolute left-0 inset-y-0 z-50 flex flex-col overflow-hidden transition-all duration-300"
         style={{
           width: panelWidth,
-          background: 'rgba(18,16,11,0.98)',
-          borderRight: '1px solid rgba(255,255,255,0.09)',
+          background: 'rgb(var(--mesa-surface) / 0.98)',
+          borderRight: '1px solid rgb(var(--ink) / 0.09)',
           backdropFilter: 'blur(20px)',
           boxShadow: '6px 0 40px rgba(0,0,0,0.7)',
         }}
@@ -405,7 +405,7 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
           <div className="flex items-center gap-2">
             {isFullMode && (
               <button onClick={() => { setViewMode('summary'); setFullData(null); setFullNpcData(null) }}
-                className="w-6 h-6 flex items-center justify-center rounded text-saga-dim hover:text-saga-text hover:bg-white/8 transition-all mr-1">
+                className="w-6 h-6 flex items-center justify-center rounded text-saga-dim hover:text-saga-text hover:bg-ink/8 transition-all mr-1">
                 <ArrowLeft size={13} />
               </button>
             )}
@@ -418,7 +418,7 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
             <Fleuron className="h-2 w-auto text-gold/50" />
           </div>
           <button onClick={onClose}
-            className="w-6 h-6 flex items-center justify-center rounded text-saga-dim hover:text-saga-text hover:bg-white/8 transition-all">
+            className="w-6 h-6 flex items-center justify-center rounded text-saga-dim hover:text-saga-text hover:bg-ink/8 transition-all">
             <X size={13} />
           </button>
         </div>
@@ -439,8 +439,8 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
                         title={m.character?.name ?? m.user.username}
                         className="flex items-center gap-1.5 px-2.5 py-1.5 rounded transition-all"
                         style={{
-                          background: isSel ? 'rgba(201,162,42,0.15)' : 'rgba(255,255,255,0.04)',
-                          border: `1px solid ${isSel ? 'rgba(201,162,42,0.45)' : 'rgba(255,255,255,0.08)'}`,
+                          background: isSel ? 'rgba(201,162,42,0.15)' : 'rgb(var(--ink) / 0.04)',
+                          border: `1px solid ${isSel ? 'rgba(201,162,42,0.45)' : 'rgb(var(--ink) / 0.08)'}`,
                         }}>
                         <div className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold text-white shrink-0"
                           style={{ background: isSel ? '#c9a22a' : '#7c3aed' }}>
@@ -472,11 +472,11 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
                         title={n.name}
                         className="flex items-center gap-1.5 px-2.5 py-1.5 rounded transition-all"
                         style={{
-                          background: isSel ? `${color}18` : 'rgba(255,255,255,0.04)',
-                          border: `1px solid ${isSel ? `${color}55` : 'rgba(255,255,255,0.08)'}`,
+                          background: isSel ? `${color}18` : 'rgb(var(--ink) / 0.04)',
+                          border: `1px solid ${isSel ? `${color}55` : 'rgb(var(--ink) / 0.08)'}`,
                         }}>
                         <div className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold text-white shrink-0"
-                          style={{ background: isSel ? color : 'rgba(255,255,255,0.15)' }}>
+                          style={{ background: isSel ? color : 'rgb(var(--ink) / 0.15)' }}>
                           {initial}
                         </div>
                         <span className="text-[10px] font-medium max-w-[90px] truncate"
@@ -537,7 +537,7 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
               <div className="p-4 space-y-4">
                 {/* Identity */}
                 <div className="flex items-start gap-4">
-                  <div className="w-16 h-16 rounded-xl flex items-center justify-center text-white/40 shrink-0"
+                  <div className="w-16 h-16 rounded-xl flex items-center justify-center text-ink/40 shrink-0"
                     style={{ background: 'linear-gradient(135deg, #2e2318, rgb(var(--ink-soft)))', border: '1px solid rgba(201,162,42,0.35)', boxShadow: '0 4px 16px rgba(201,162,42,0.15)' }}>
                     <ClassIcon size={32} />
                   </div>
@@ -633,8 +633,8 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
               return (
                 <div className="p-4 space-y-4">
                   <div className="flex items-start gap-4">
-                    <div className="w-16 h-16 rounded-xl flex items-center justify-center text-white/40 shrink-0"
-                      style={{ background: 'linear-gradient(135deg, #1a120c, #3a2418)', border: `1px solid ${typeColor}35`, boxShadow: `0 4px 16px ${typeColor}20` }}>
+                    <div className="w-16 h-16 rounded-xl flex items-center justify-center text-ink/40 shrink-0"
+                      style={{ background: 'linear-gradient(135deg, rgb(var(--mesa-surface)), rgb(var(--mesa-surface-3)))', border: `1px solid ${typeColor}35`, boxShadow: `0 4px 16px ${typeColor}20` }}>
                       <Skull size={28} style={{ color: typeColor, opacity: 0.7 }} />
                     </div>
                     <div className="flex-1 min-w-0 pt-0.5">

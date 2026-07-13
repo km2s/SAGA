@@ -86,7 +86,7 @@ export function HandoutsPanel({ campaignId, isGM, onClose, activeSessionId }: Ha
       className="absolute top-3 right-3 z-40 w-80 rounded-xl overflow-hidden shadow-2xl flex flex-col"
       style={{
         maxHeight: 'calc(100vh - 80px)',
-        background: 'rgba(18,16,11,0.97)',
+        background: 'rgb(var(--mesa-surface) / 0.97)',
         border: '1px solid rgba(201,162,42,0.25)',
         backdropFilter: 'blur(12px)',
       }}
@@ -138,13 +138,13 @@ export function HandoutsPanel({ campaignId, isGM, onClose, activeSessionId }: Ha
 
       {/* New Handout Form (GM only) */}
       {isGM && tab === 'new' && (
-        <div className="p-3 flex flex-col gap-2.5 border-b shrink-0" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+        <div className="p-3 flex flex-col gap-2.5 border-b shrink-0" style={{ borderColor: 'rgb(var(--ink) / 0.06)' }}>
           <input
             value={form.title}
             onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
             placeholder="Título (opcional)"
             className="w-full px-3 py-2 rounded text-[12px] text-saga-text placeholder:text-saga-dim focus:outline-none"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+            style={{ background: 'rgb(var(--ink) / 0.05)', border: '1px solid rgb(var(--ink) / 0.1)' }}
           />
           <textarea
             value={form.content}
@@ -152,7 +152,7 @@ export function HandoutsPanel({ campaignId, isGM, onClose, activeSessionId }: Ha
             placeholder="Texto / descrição..."
             rows={3}
             className="w-full px-3 py-2 rounded text-[12px] text-saga-text placeholder:text-saga-dim focus:outline-none resize-none"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+            style={{ background: 'rgb(var(--ink) / 0.05)', border: '1px solid rgb(var(--ink) / 0.1)' }}
           />
           <div className="flex items-center gap-2">
             <ImageIcon size={11} className="text-saga-dim shrink-0" />
@@ -161,7 +161,7 @@ export function HandoutsPanel({ campaignId, isGM, onClose, activeSessionId }: Ha
               onChange={e => setForm(f => ({ ...f, imageUrl: e.target.value }))}
               placeholder="URL da imagem (https://...)"
               className="flex-1 px-2 py-1.5 rounded text-[11px] text-saga-text placeholder:text-saga-dim focus:outline-none"
-              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+              style={{ background: 'rgb(var(--ink) / 0.05)', border: '1px solid rgb(var(--ink) / 0.1)' }}
             />
           </div>
           <button
@@ -201,11 +201,11 @@ export function HandoutsPanel({ campaignId, isGM, onClose, activeSessionId }: Ha
               <div
                 key={h.id}
                 className="border-b last:border-0"
-                style={{ borderColor: 'rgba(255,255,255,0.05)' }}
+                style={{ borderColor: 'rgb(var(--ink) / 0.05)' }}
               >
                 {/* Row header */}
                 <button
-                  className="w-full px-4 py-3 flex items-start gap-3 text-left hover:bg-white/3 transition-colors"
+                  className="w-full px-4 py-3 flex items-start gap-3 text-left hover:bg-ink/3 transition-colors"
                   onClick={() => handleExpand(h)}
                 >
                   {/* Icon */}
@@ -243,7 +243,7 @@ export function HandoutsPanel({ campaignId, isGM, onClose, activeSessionId }: Ha
                       <img
                         src={safeImg} alt={h.title ?? 'handout'}
                         className="w-full rounded-lg object-cover max-h-48"
-                        style={{ border: '1px solid rgba(255,255,255,0.08)' }}
+                        style={{ border: '1px solid rgb(var(--ink) / 0.08)' }}
                       />
                     )}
                     {h.content && (

@@ -124,7 +124,7 @@ export function MusicPlayer({ open, onClose, onMusicChange }: MusicPlayerProps) 
                 className={`flex flex-col items-center gap-2 p-3 rounded-lg border transition-all ${
                   current?.id === track.id
                     ? 'border-gold/50 bg-gold/10 text-gold'
-                    : 'border-white/8 hover:border-white/16 hover:bg-white/4 text-saga-muted hover:text-saga-text'
+                    : 'border-ink/8 hover:border-ink/16 hover:bg-ink/4 text-saga-muted hover:text-saga-text'
                 }`}>
                 <track.Icon size={22} />
                 <div className="text-center">
@@ -151,7 +151,7 @@ export function MusicPlayer({ open, onClose, onMusicChange }: MusicPlayerProps) 
             <input value={customUrl} onChange={e => setCustomUrl(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && playCustom()}
               placeholder="https://youtube.com/watch?v=..."
-              className="flex-1 px-3 py-2 rounded text-[12px] text-saga-text placeholder:text-saga-dim focus:outline-none bg-white/5 border border-white/[0.09] focus:border-gold/60 transition-colors" />
+              className="flex-1 px-3 py-2 rounded text-[12px] text-saga-text placeholder:text-saga-dim focus:outline-none bg-ink/5 border border-ink/[0.09] focus:border-gold/60 transition-colors" />
             <button onClick={playCustom} disabled={!customUrl.trim()}
               className="px-3 py-2 rounded text-[11px] font-bold text-bg disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center bg-gradient-gold">
               <Play size={12} />
