@@ -35,7 +35,7 @@ export function InitiativeTracker({ initiativeOrder, currentTurnIdx, isGM, onRol
           )}
           {initiativeOrder.length>0&&isGM&&(
             <button onClick={onNextTurn}
-              className="px-2 py-0.5 rounded text-[9px] font-bold font-cinzel flex items-center gap-1 transition-all bg-bg/35 text-saga-muted border border-bg/60">
+              className="px-2 py-0.5 rounded text-[9px] font-bold font-cinzel flex items-center gap-1 transition-all bg-bg/35 text-saga-muted border border-ink/20 dark:border-bg/60">
               <ChevronRight size={10}/>Próximo
             </button>
           )}
