@@ -19,7 +19,7 @@ export function DiceBar({
   rollModifier, setRollModifier, rollingDie, onRollDie,
 }: Props) {
   return (
-    <div data-mesa-tutorial="dice" className="shrink-0 border-t border-ink/[0.07] bg-ink/[0.06]">
+    <div data-mesa-tutorial="dice" className="shrink-0 border-t border-bg/60 bg-bg/35">
       <div className="px-3 pt-2.5 pb-1 flex gap-2">
         <input
           value={chatInput}
@@ -27,12 +27,12 @@ export function DiceBar({
           onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); onSendChat() } }}
           disabled={!activeSessionIsActive || sendingChat}
           placeholder={activeSessionIsActive ? 'Escreva uma mensagem...' : 'Inicie uma sessão para conversar'}
-          className="flex-1 rounded px-3 py-2 text-[12px] text-saga-text placeholder:text-saga-dim focus:outline-none focus:border-gold/60 disabled:opacity-40 bg-bg/50 border border-ink/10 transition-colors"
+          className="flex-1 rounded px-3 py-2 text-[12px] text-saga-text placeholder:text-saga-dim focus:outline-none focus:border-gold/60 disabled:opacity-40 bg-bg/50 border border-bg/60 transition-colors"
         />
         <button
           onClick={onSendChat}
           disabled={!activeSessionIsActive || !chatInput.trim() || sendingChat}
-          className="px-2.5 rounded text-[11px] font-medium text-saga-dim hover:text-saga-text hover:bg-ink/10 disabled:opacity-30 transition-all shrink-0 bg-bg/50 border border-ink/10">
+          className="px-2.5 rounded text-[11px] font-medium text-saga-dim hover:text-saga-text hover:bg-ink/10 disabled:opacity-30 transition-all shrink-0 bg-bg/50 border border-bg/60">
           <Send size={13}/>
         </button>
       </div>
@@ -68,7 +68,7 @@ export function DiceBar({
                 title={`Rolar 1${die}${rollModifier!==0?(rollModifier>0?'+':'')+rollModifier:''}`}
                 className={`h-9 rounded flex flex-col items-center justify-center gap-0.5 transition-all select-none border ${
                   !activeSessionIsActive||rollingDie?'opacity-30 cursor-not-allowed':'hover:scale-105 active:scale-95'
-                } ${rolling?'bg-gold/15 border-gold/45 ring-1 ring-gold/60':'bg-bg/40 border-ink/10'}`}>
+                } ${rolling?'bg-gold/15 border-gold/45 ring-1 ring-gold/60':'bg-bg/40 border-bg/60'}`}>
                 <Dice6 size={9} className="text-saga-dim"/>
                 <span className="text-[10px] font-cinzel font-bold text-gold leading-none">{die}</span>
               </button>

@@ -527,7 +527,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
           {isGM && <div data-mesa-tutorial="topbar-map" className="relative" ref={mapDropRef}>
             <button onClick={()=>setMapInputOpen(o=>!o)}
               className={`px-2 sm:px-3 h-7 rounded text-[11px] font-medium border transition-all flex items-center gap-1.5 ${
-                mapUrl?'text-gold border-gold/50 bg-gold/10':'text-saga-muted border-ink/10 hover:border-gold/40 hover:text-gold'
+                mapUrl?'text-gold border-gold/50 bg-gold/10':'text-saga-muted border-bg/60 hover:border-gold/40 hover:text-gold'
               }`}>
               <ImageIcon size={13}/>
               <span className="hidden sm:inline">Mapa</span>
@@ -545,7 +545,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
                     onChange={e=>setMapInputValue(e.target.value)}
                     onKeyDown={e=>{if(e.key==='Enter')applyMap();if(e.key==='Escape')setMapInputOpen(false)}}
                     placeholder="https://... URL da imagem"
-                    className="w-full px-3 py-2 rounded text-[12px] text-saga-text placeholder:text-saga-dim focus:outline-none bg-bg/50 border border-ink/10 focus:border-gold/60 transition-colors"
+                    className="w-full px-3 py-2 rounded text-[12px] text-saga-text placeholder:text-saga-dim focus:outline-none bg-bg/50 border border-bg/60 focus:border-gold/60 transition-colors"
                   />
                   <div className="flex gap-2">
                     <button onClick={applyMap}
@@ -570,7 +570,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
 
           <button data-mesa-tutorial="topbar-sheets" onClick={()=>setSheetsOpen(o=>!o)}
             className={`px-2 sm:px-3 h-7 rounded text-[11px] font-medium border transition-all flex items-center gap-1.5 ${
-              sheetsOpen?'text-gold border-gold/50 bg-gold/10':'text-saga-muted border-ink/10 hover:border-gold/40 hover:text-gold'
+              sheetsOpen?'text-gold border-gold/50 bg-gold/10':'text-saga-muted border-bg/60 hover:border-gold/40 hover:text-gold'
             }`}>
             <ClipboardList size={13}/>
             <span className="hidden sm:inline">Fichas</span>
@@ -579,7 +579,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
             <button data-mesa-tutorial="topbar-initiative" onClick={()=>setInitiativeOpen(o=>!o)}
               title="Tracker de Iniciativa"
               className={`px-2 sm:px-3 h-7 rounded text-[11px] font-medium border transition-all flex items-center gap-1.5 ${
-                initiativeOpen?'text-gold border-gold/50 bg-gold/10':'text-saga-muted border-ink/10 hover:border-gold/40 hover:text-gold'
+                initiativeOpen?'text-gold border-gold/50 bg-gold/10':'text-saga-muted border-bg/60 hover:border-gold/40 hover:text-gold'
               }`}>
               <Swords size={13}/>
               <span className="hidden sm:inline">Iniciativa</span>
@@ -589,7 +589,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
             <button onClick={()=>setHandoutsOpen(o=>!o)}
               title="Handouts"
               className={`px-2 sm:px-3 h-7 rounded text-[11px] font-medium border transition-all flex items-center gap-1.5 ${
-                handoutsOpen?'text-gold border-gold/50 bg-gold/10':'text-saga-muted border-ink/10 hover:border-gold/40 hover:text-gold'
+                handoutsOpen?'text-gold border-gold/50 bg-gold/10':'text-saga-muted border-bg/60 hover:border-gold/40 hover:text-gold'
               }`}>
               <BookOpen size={13}/>
               <span className="hidden sm:inline">Handouts</span>
@@ -597,7 +597,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
           )}
           {isGM && (
             <button data-mesa-tutorial="topbar-music" onClick={()=>setMusicOpen(true)}
-              className="px-2 sm:px-3 h-7 rounded text-[11px] font-medium border transition-all text-saga-muted border-ink/10 hover:border-gold/40 hover:text-gold flex items-center gap-1.5">
+              className="px-2 sm:px-3 h-7 rounded text-[11px] font-medium border transition-all text-saga-muted border-bg/60 hover:border-gold/40 hover:text-gold flex items-center gap-1.5">
               <Music size={13}/>
               <span className="hidden sm:inline">Música</span>
             </button>
@@ -609,7 +609,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
                 className={`px-2 sm:px-3 h-7 rounded text-[11px] font-medium border transition-all flex items-center gap-1.5 ${
                   liveOpen || liveMembers.length > 0
                     ? 'text-emerald-400 border-emerald-400/50 bg-emerald-400/10'
-                    : 'text-saga-muted border-ink/10 hover:border-emerald-400/40 hover:text-emerald-400'
+                    : 'text-saga-muted border-bg/60 hover:border-emerald-400/40 hover:text-emerald-400'
                 }`}>
                 <Radio size={13}/>
                 <span className="hidden sm:inline">Ao Vivo</span>
@@ -639,7 +639,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
           {/* Chat toggle — mobile only */}
           <button onClick={()=>setChatOpen(o=>!o)}
             className={`sm:hidden px-2 h-7 rounded border transition-all flex items-center ${
-              chatOpen?'text-gold border-gold/50 bg-gold/10':'text-saga-muted border-ink/10'
+              chatOpen?'text-gold border-gold/50 bg-gold/10':'text-saga-muted border-bg/60'
             }`}>
             <MessageSquare size={13}/>
           </button>
@@ -658,7 +658,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
       <div className="flex flex-1 overflow-hidden relative">
 
         {/* ── Left toolbar ── */}
-        <div data-mesa-tutorial="toolbar" className="w-12 flex flex-col items-center py-2 gap-0.5 shrink-0 border-r border-ink/5 z-10 bg-bg/[0.92]">
+        <div data-mesa-tutorial="toolbar" className="w-12 flex flex-col items-center py-2 gap-0.5 shrink-0 border-r border-bg/60 z-10 bg-bg/[0.92]">
           {tools.map(([t,Icon,label])=>(
             <button key={t}
               onClick={()=>{setTool(t);setAddToken(null);if(t!=='measure')setMeasureAnchor(null)}}
@@ -907,7 +907,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
         {chatOpen&&<div className="sm:hidden fixed inset-0 bg-black/50 z-40" onClick={()=>setChatOpen(false)}/>}
         <div className={`
           absolute sm:relative inset-y-0 right-0 z-50 sm:z-auto
-          w-[300px] flex flex-col shrink-0 border-l border-ink/5
+          w-[300px] flex flex-col shrink-0 border-l border-bg/60
           bg-bg transition-transform duration-300
           ${chatOpen?'translate-x-0':'-translate-x-0 sm:translate-x-0'}
           hidden sm:flex ${chatOpen?'!flex':''}

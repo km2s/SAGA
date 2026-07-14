@@ -14,7 +14,7 @@ interface Props {
 export function RollLog({ rolls, lastRollId, activeSessionIsActive, membersCount, onCloseMobile, chatEndRef }: Props) {
   return (
     <>
-      <div className="px-4 py-3 border-b border-ink/6 shrink-0 flex items-center justify-between">
+      <div className="px-4 py-3 border-b border-bg/60 shrink-0 flex items-center justify-between">
         <span className="font-cinzel text-[11px] font-bold text-saga-muted uppercase tracking-widest">Chat da Sessão</span>
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5">
@@ -60,7 +60,7 @@ export function RollLog({ rolls, lastRollId, activeSessionIsActive, membersCount
               className={`rounded-lg overflow-hidden transition-all duration-300 border ${isNew?'scale-[1.02]':'scale-100'} ${
                 isCrit ? 'bg-gradient-to-br from-gold/12 to-gold/[0.04] border-gold/30 shadow-[0_0_14px_rgba(201,162,42,0.12)]'
                 : isFail ? 'bg-gradient-to-br from-saga-danger/12 to-saga-danger/[0.04] border-saga-danger/25'
-                : 'bg-bg/40 border-ink/[0.08]'
+                : 'bg-bg/40 border-bg/60'
               }`}>
               {(isCrit||isFail)&&(
                 <div className={`px-3 py-1 text-[10px] font-bold uppercase tracking-widest font-cinzel text-center flex items-center justify-center gap-1 ${isCrit?'bg-gold/12 text-gold':'bg-saga-danger/12 text-saga-danger'}`}>
