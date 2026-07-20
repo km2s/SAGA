@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { Swords, Sparkles, Shield, Sword, Plus, Minus, Axe, Leaf, Music, Target, Dumbbell, Moon, ScrollText, User, ClipboardList, X, FileText, ChevronRight, Skull, ArrowLeft, StickyNote, Loader2, Dice6 } from 'lucide-react'
 import { CharacterSheetView, type SheetCategory } from '@/components/character/CharacterSheetView'
-import { attributeModifier, formatModifier } from '@/lib/system-category'
+import { attributeModifier, formatModifier, isD20Category } from '@/lib/system-category'
 import { Fleuron } from '@/components/landing/Ornament'
 
 interface CharAttr {
@@ -181,7 +181,11 @@ function AttributesBlock({ attributes, category, charName, canRoll, onRoll }: {
   const coreAttrs  = attributes.filter(a => CORE_NAMES.has(a.name))
   const otherAttrs = attributes.filter(a => !CORE_NAMES.has(a.name))
   const hasCore    = coreAttrs.length >= 4
+  const d20        = isD20Category(category)
 
+  // Limitação conhecida: a rolagem usa o motor genérico (1d20 + modificador);
+  // para não-d20 o "modificador" agora é o valor cru do atributo — melhor que
+  // o antigo (valor-10)/2, mas ainda não é um pool (ex.: VtM {valor}d10).
   const roll = (a: CharAttr) => {
     if (!canRoll || !onRoll) return
     onRoll(`${charName} · ${a.name}`, attributeModifier(a.value, category))
@@ -196,14 +200,21 @@ function AttributesBlock({ attributes, category, charName, canRoll, onRoll }: {
             {canRoll && <span className="text-[8px] text-saga-dim/70 flex items-center gap-1"><Dice6 size={9} /> clique p/ rolar</span>}
           </div>
           <div className="grid grid-cols-3 gap-2">
+            {/* Hierarquia por sistema: no d20 o modificador é o número que se usa
+                na mesa (convenção de leitura de D&D); nos demais é o próprio
+                valor do atributo — nunca exibir um modificador d20 (ex.: "-5"). */}
             {coreAttrs.map(a => (
               <button key={a.id} type="button" disabled={!canRoll} onClick={() => roll(a)}
-                title={canRoll ? `Rolar 1d20 ${formatModifier(a.value, category)} · ${a.name}` : a.name}
+                title={canRoll
+                  ? (d20 ? `Rolar 1d20 ${formatModifier(a.value, category)} · ${a.name}` : `Rolar · ${a.name} (${a.value})`)
+                  : a.name}
                 className={`group rounded-lg p-2.5 text-center transition-all ${canRoll ? 'cursor-pointer hover:brightness-125 hover:border-[color:var(--gold)]' : 'cursor-default'}`}
                 style={{ background: 'rgb(var(--ink) / 0.04)', border: '1px solid rgb(var(--ink) / 0.08)' }}>
-                <p className="font-cinzel text-xl font-bold text-saga-text leading-none">{formatModifier(a.value, category)}</p>
+                <p className="font-cinzel text-xl font-bold text-saga-text leading-none">
+                  {d20 ? formatModifier(a.value, category) : a.value}
+                </p>
                 <div className="w-full h-px my-1.5" style={{ background: 'rgb(var(--ink) / 0.1)' }} />
-                <p className="text-[12px] font-semibold text-saga-muted leading-none mb-0.5">{a.value}</p>
+                {d20 && <p className="text-[12px] font-semibold text-saga-muted leading-none mb-0.5">{a.value}</p>}
                 <p className="text-[8px] text-saga-dim uppercase tracking-widest font-bold">
                   {ATTR_ABBREV[a.name] ?? a.name.slice(0, 3).toUpperCase()}
                 </p>
@@ -230,7 +241,7 @@ function AttributesBlock({ attributes, category, charName, canRoll, onRoll }: {
                   )}
                   {canRoll && (
                     <button type="button" onClick={() => roll(a)}
-                      title={`Rolar 1d20 ${formatModifier(a.value, category)}`}
+                      title={d20 ? `Rolar 1d20 ${formatModifier(a.value, category)}` : `Rolar · ${a.name} (${a.value})`}
                       className="text-saga-dim hover:text-gold transition-colors opacity-0 group-hover:opacity-100">
                       <Dice6 size={12} />
                     </button>

@@ -59,15 +59,23 @@ export function resolveSheetCategory(
   return detectCategory(system?.name)
 }
 
-const RAW_VALUE_CATEGORIES = new Set<SheetCategory>(['custom', 'generic'])
+// Só a família d20 converte ability score em modificador; os demais usam o
+// valor cru. World of Darkness é dice pool (pontos = dados a rolar) e horror
+// (Call of Cthulhu) é percentil (o valor é a porcentagem) — aplicar
+// (valor-10)/2 fora do d20 não significa nada (ex.: CAR 1 virava "-5").
+const D20_CATEGORIES = new Set<SheetCategory>(['fantasy'])
+
+/** A categoria usa a convenção de ability scores do d20 ((valor-10)/2)? */
+export function isD20Category(category: SheetCategory): boolean {
+  return D20_CATEGORIES.has(category)
+}
 
 /**
  * Modificador de um atributo conforme a convenção do sistema.
- * D&D-family (d20 ability scores): (valor-10)/2. Genérico/personalizado: o
- * próprio valor é o bônus (5 = +5).
+ * Família d20 (fantasy): (valor-10)/2. Todo o resto: o próprio valor.
  */
 export function attributeModifier(value: number, category: SheetCategory): number {
-  return RAW_VALUE_CATEGORIES.has(category) ? value : Math.floor((value - 10) / 2)
+  return D20_CATEGORIES.has(category) ? Math.floor((value - 10) / 2) : value
 }
 
 export function formatModifier(value: number, category: SheetCategory): string {
