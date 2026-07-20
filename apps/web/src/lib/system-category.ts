@@ -82,3 +82,16 @@ export function formatModifier(value: number, category: SheetCategory): string {
   const m = attributeModifier(value, category)
   return m >= 0 ? `+${m}` : `${m}`
 }
+
+/**
+ * Pool de dados de um atributo não-d20: o valor é a quantidade de dados
+ * (ex.: VtM Força 3 → 3d10, com defaultDie d10 dos seeds). Sem contagem de
+ * sucessos/dificuldade/botch — isso é a futura rolagem consciente do sistema.
+ * Limites acompanham a API de rolagem (mín. 1 dado, máx. 100); defaultDie
+ * fora do formato dN cai em d10 (família WoD, principal consumidora de pools).
+ */
+export function attributePool(value: number, defaultDie: string): { count: number; die: string } {
+  const count = Math.min(100, Math.max(1, Math.round(value)))
+  const die = /^d\d+$/.test(defaultDie) ? defaultDie : 'd10'
+  return { count, die }
+}

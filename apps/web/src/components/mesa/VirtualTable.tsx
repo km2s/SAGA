@@ -27,7 +27,7 @@ import {
   GRID, TOKEN_COLORS, snap, initTokens,
   type Tool, type Token, type InitiativeEntry, type Marker, type RollLogEntry,
   type Member, type NpcData, type Campaign, type SessionState, type ActiveSession,
-  type AddTokenState,
+  type AddTokenState, type AttributeRoll,
 } from './types'
 
 interface VirtualTableProps {
@@ -426,11 +426,16 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
     setTimeout(()=>setLastRollId(null),2000)
   }
 
-  // Rola 1d20 + modificador para um atributo específico (de personagem ou NPC),
-  // registrando o rótulo (ex.: "Malachor · Constituição") no log.
-  async function rollAttribute(label: string, modifier: number) {
+  // Rola um atributo específico (de personagem ou NPC), registrando o rótulo
+  // (ex.: "Malachor · Constituição") no log. Contrato: a família d20 rola
+  // 1d20 + modificador; as demais categorias rolam um pool {count}{die}
+  // (ex.: VtM 3d10) — ainda sem sucessos/dificuldade/botch (feature futura
+  // de rolagem consciente do sistema).
+  async function rollAttribute(label: string, attrRoll: AttributeRoll) {
     if (!activeSession?.isActive) return
-    const expr = modifier !== 0 ? `1d20${modifier > 0 ? '+' : ''}${modifier}` : '1d20'
+    const expr = attrRoll.kind === 'pool'
+      ? `${attrRoll.count}${attrRoll.die}`
+      : attrRoll.modifier !== 0 ? `1d20${attrRoll.modifier > 0 ? '+' : ''}${attrRoll.modifier}` : '1d20'
     const res = await fetch(`/api/campaigns/${campaign.id}/rolls`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ expression: expr, attribute: label }),

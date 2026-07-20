@@ -19,6 +19,11 @@ export interface RollLogEntry {
   total: number; attribute: string | null; rolledBy: string; rolledAt: string
 }
 export interface CharAttr { id: string; value: number; name: string; defaultDie: string }
+/** Payload de rolagem de atributo — a família d20 (fantasy) rola 1d20+modificador;
+ *  as demais categorias rolam um pool {count}{die} (ex.: VtM 3d10). */
+export type AttributeRoll =
+  | { kind: 'd20'; modifier: number }
+  | { kind: 'pool'; count: number; die: string }
 export interface CharData {
   id: string; name: string; race: string | null; class: string | null
   level: number; hp: number; maxHp: number; imageUrl: string | null; attributes: CharAttr[]

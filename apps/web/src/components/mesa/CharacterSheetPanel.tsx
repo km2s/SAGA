@@ -3,7 +3,8 @@
 import { useState, useCallback, useEffect } from 'react'
 import { Swords, Sparkles, Shield, Sword, Plus, Minus, Axe, Leaf, Music, Target, Dumbbell, Moon, ScrollText, User, ClipboardList, X, FileText, ChevronRight, Skull, ArrowLeft, StickyNote, Loader2, Dice6 } from 'lucide-react'
 import { CharacterSheetView, type SheetCategory } from '@/components/character/CharacterSheetView'
-import { attributeModifier, formatModifier, isD20Category } from '@/lib/system-category'
+import { attributeModifier, attributePool, formatModifier, isD20Category } from '@/lib/system-category'
+import type { AttributeRoll } from '@/components/mesa/types'
 import { Fleuron } from '@/components/landing/Ornament'
 
 interface CharAttr {
@@ -67,7 +68,7 @@ interface Props {
   systemName: string | null
   systemCategory: SheetCategory
   canRoll?: boolean
-  onRollAttribute?: (label: string, modifier: number) => void
+  onRollAttribute?: (label: string, roll: AttributeRoll) => void
   hpOverrides?: Record<string, number>
   onHpChange?: (id: string, hp: number) => void
 }
@@ -176,19 +177,28 @@ function AttributesBlock({ attributes, category, charName, canRoll, onRoll }: {
   category: SheetCategory
   charName: string
   canRoll: boolean
-  onRoll?: (label: string, modifier: number) => void
+  onRoll?: (label: string, roll: AttributeRoll) => void
 }) {
   const coreAttrs  = attributes.filter(a => CORE_NAMES.has(a.name))
   const otherAttrs = attributes.filter(a => !CORE_NAMES.has(a.name))
   const hasCore    = coreAttrs.length >= 4
   const d20        = isD20Category(category)
 
-  // Limitação conhecida: a rolagem usa o motor genérico (1d20 + modificador);
-  // para não-d20 o "modificador" agora é o valor cru do atributo — melhor que
-  // o antigo (valor-10)/2, mas ainda não é um pool (ex.: VtM {valor}d10).
   const roll = (a: CharAttr) => {
     if (!canRoll || !onRoll) return
-    onRoll(`${charName} · ${a.name}`, attributeModifier(a.value, category))
+    const label = `${charName} · ${a.name}`
+    if (d20) {
+      onRoll(label, { kind: 'd20', modifier: attributeModifier(a.value, category) })
+    } else {
+      const { count, die } = attributePool(a.value, a.defaultDie)
+      onRoll(label, { kind: 'pool', count, die })
+    }
+  }
+
+  const rollTitle = (a: CharAttr) => {
+    if (d20) return `Rolar 1d20 ${formatModifier(a.value, category)}`
+    const { count, die } = attributePool(a.value, a.defaultDie)
+    return `Rolar ${count}${die}`
   }
 
   return (
@@ -205,9 +215,7 @@ function AttributesBlock({ attributes, category, charName, canRoll, onRoll }: {
                 valor do atributo — nunca exibir um modificador d20 (ex.: "-5"). */}
             {coreAttrs.map(a => (
               <button key={a.id} type="button" disabled={!canRoll} onClick={() => roll(a)}
-                title={canRoll
-                  ? (d20 ? `Rolar 1d20 ${formatModifier(a.value, category)} · ${a.name}` : `Rolar · ${a.name} (${a.value})`)
-                  : a.name}
+                title={canRoll ? `${rollTitle(a)} · ${a.name}` : a.name}
                 className={`group rounded-lg p-2.5 text-center transition-all ${canRoll ? 'cursor-pointer hover:brightness-125 hover:border-[color:var(--gold)]' : 'cursor-default'}`}
                 style={{ background: 'rgb(var(--ink) / 0.04)', border: '1px solid rgb(var(--ink) / 0.08)' }}>
                 <p className="font-cinzel text-xl font-bold text-saga-text leading-none">
@@ -241,7 +249,7 @@ function AttributesBlock({ attributes, category, charName, canRoll, onRoll }: {
                   )}
                   {canRoll && (
                     <button type="button" onClick={() => roll(a)}
-                      title={d20 ? `Rolar 1d20 ${formatModifier(a.value, category)}` : `Rolar · ${a.name} (${a.value})`}
+                      title={rollTitle(a)}
                       className="text-saga-dim hover:text-gold transition-colors opacity-0 group-hover:opacity-100">
                       <Dice6 size={12} />
                     </button>
