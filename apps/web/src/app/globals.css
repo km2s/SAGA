@@ -119,7 +119,10 @@ select optgroup {
   --crypt: #16171f;
   --crypt-deep: #0b0c11;
 
-  /* Mesa virtual — valores CLAROS (pergaminho na mesa) */
+  /* Tokens da mesa — valores claros. A Mesa Virtual em si é SEMPRE Cripta
+     (a raiz em VirtualTable.tsx carrega a classe `dark`, que escopa os
+     valores escuros abaixo); estes valores claros valem apenas para usos
+     fora da mesa (ex.: text-saga-muted nas telas de Sistemas). */
   --mesa-bg: 230 213 172;
   --mesa-surface: 245 236 214;
   --mesa-surface-2: 237 225 197;

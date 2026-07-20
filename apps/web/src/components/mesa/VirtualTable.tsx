@@ -473,7 +473,11 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
     : tokenDrag ? 'cursor-grabbing' : 'cursor-default'
 
   return (
-    <div className="mesa-dark fixed inset-0 z-50 flex flex-col" style={{background:'var(--mesa-table)'}}>
+    // A classe `dark` local escopa a mesa inteira nos tokens da Cripta: uma VTT é
+    // uma superfície escura por convenção (mapas/tokens são calibrados p/ escuro),
+    // então o modo claro do app não se aplica aqui — vars (--mesa-*, --ink, ...)
+    // e variantes dark: resolvem escuro independente do tema global.
+    <div className="dark fixed inset-0 z-50 flex flex-col" style={{background:'var(--mesa-table)'}}>
 
       {/* Brilho ambiente de cripta (brasa + ouro) — atmosfera do template */}
       <div className="pointer-events-none absolute inset-0 z-0" style={{background:'radial-gradient(ellipse 60% 40% at 50% 0%, rgb(var(--ember) / 0.12), transparent 60%), radial-gradient(ellipse at 100% 100%, rgba(201,162,42,0.06), transparent 55%)'}} />

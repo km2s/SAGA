@@ -221,7 +221,9 @@ export function MesaSpotlight({ isGM }: { isGM: boolean }) {
     <>
       {/* Spotlight overlay */}
       {active && step && createPortal(
-        <div className="fixed inset-0 z-[9000]" onClick={next}>
+        // `dark`: o portal monta em document.body, fora do escopo escuro da mesa —
+        // o overlay é sempre escuro, então os tokens saga-* devem resolver Cripta.
+        <div className="dark fixed inset-0 z-[9000]" onClick={next}>
           {/* SVG overlay with hole */}
           <svg
             style={{ position: 'fixed', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
