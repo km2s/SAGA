@@ -377,6 +377,16 @@ export function VtMV20Sheet({ characterId, attributes, textFields, canEdit }: Pr
   // Traço máx da geração (V20 p.269) — vale p/ atributos, habilidades e
   // disciplinas: 8ª+ = 5; 7ª = 6; 6ª = 7; 5ª = 8; 4ª (matusalém) = 9.
   const traitMax = genRow?.[1] ?? 5
+  // Máximos dos recursos: Força de Vontade e Humanidade/Via são 1–10 para
+  // qualquer geração; o pool de Sangue é limitado pela geração (10–50).
+  // Virtudes ficam sempre em 1–5 — geração não as altera.
+  const resourceMax = (name: string): number => {
+    const n = name.toLowerCase()
+    if (n.includes('vontade') || n.includes('willpower')) return 10
+    if (n.includes('humanidade') || n.includes('humanity') || n.includes('via')) return 10
+    if (n.includes('sangue') || n.includes('blood')) return genRow?.[0] ?? 10
+    return 5
+  }
   const genNote = traitMax > 5 && (
     <p className="rounded px-3 py-2 text-[10px] mb-3" style={{ background: 'rgba(120,20,20,0.25)', border: '1px solid rgba(220,38,38,0.3)' }}>
       <span className="font-bold text-red-300">{genNum}ª geração</span>
@@ -683,14 +693,19 @@ export function VtMV20Sheet({ characterId, attributes, textFields, canEdit }: Pr
             )
           })()}
 
-          {/* Outros (Força de Vontade, Humanidade, Sangue — atributos numéricos) */}
+          {/* Outros (Força de Vontade, Humanidade, Sangue — atributos numéricos).
+              Cada recurso usa seu máximo real: FV e Humanidade 1–10; Sangue
+              limitado pelo pool da geração (V20 p.269). */}
           {other.filter(a => !a.attribute.name.toLowerCase().includes('geração') && !a.attribute.name.toLowerCase().includes('generation')).length > 0 && (
             <div className={card} style={cardStyle}>
               <SectionDivider title="Recursos" />
               {other
                 .filter(a => !a.attribute.name.toLowerCase().includes('geração') && !a.attribute.name.toLowerCase().includes('generation'))
-                .map(a => <AttrRow key={a.id} a={a} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />)
+                .map(a => <AttrRow key={a.id} a={a} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} max={resourceMax(a.attribute.name)} />)
               }
+              <p className="text-[9px] text-ink-soft/50 italic mt-2">
+                Força de Vontade e Humanidade: 1–10 em qualquer geração. Sangue: até o pool máximo da geração ({genRow?.[0] ?? 10}).
+              </p>
             </div>
           )}
         </div>
@@ -733,9 +748,9 @@ export function VtMV20Sheet({ characterId, attributes, textFields, canEdit }: Pr
           <div className={card} style={cardStyle}>
             <SectionDivider title="Pool de Sangue / Força de Vontade / Humanidade" />
             <div className="space-y-3">
-              <TFField characterId={characterId} textFields={textFields} tfKey="blood_current" label="Pool de Sangue (atual)" placeholder="10" canEdit={canEdit} onRefresh={onRefresh} />
-              <TFField characterId={characterId} textFields={textFields} tfKey="willpower_current" label="Força de Vontade (atual)" placeholder="5" canEdit={canEdit} onRefresh={onRefresh} />
-              <TFField characterId={characterId} textFields={textFields} tfKey="humanity" label="Humanidade / Via" placeholder="7" canEdit={canEdit} onRefresh={onRefresh} />
+              <TFField characterId={characterId} textFields={textFields} tfKey="blood_current" label={`Pool de Sangue (atual — máx. ${genRow?.[0] ?? 10} na ${genNum}ª geração)`} placeholder="10" canEdit={canEdit} onRefresh={onRefresh} />
+              <TFField characterId={characterId} textFields={textFields} tfKey="willpower_current" label="Força de Vontade (atual — máx. 10)" placeholder="5" canEdit={canEdit} onRefresh={onRefresh} />
+              <TFField characterId={characterId} textFields={textFields} tfKey="humanity" label="Humanidade / Via (1–10 ou nome da Via)" placeholder="7" canEdit={canEdit} onRefresh={onRefresh} />
             </div>
           </div>
 
