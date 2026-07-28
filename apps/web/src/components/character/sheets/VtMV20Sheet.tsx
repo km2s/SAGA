@@ -112,8 +112,10 @@ function Dots({ value, max = 5, editable = false, attrId, characterId, onSaved, 
     onSaved()
   }
   return (
-    <div className="flex gap-1">
-      {Array.from({ length: max }).map((_, i) => (
+    <div className="flex gap-1 flex-wrap justify-end">
+      {/* Se o valor já passa do máximo (ex.: geração reduzida depois), as
+          bolinhas extras continuam visíveis — nunca esconder pontos reais. */}
+      {Array.from({ length: Math.max(max, value) }).map((_, i) => (
         <button key={i} type="button" onClick={() => void handleClick(i)}
           className={`w-3 h-3 rounded-full border transition-colors ${editable ? 'cursor-pointer' : 'cursor-default'}`}
           style={{ background: i < value ? color : 'transparent', borderColor: color }} />
@@ -122,11 +124,13 @@ function Dots({ value, max = 5, editable = false, attrId, characterId, onSaved, 
   )
 }
 
-function AttrRow({ a, characterId, canEdit, onSaved }: { a: Attr; characterId: string; canEdit: boolean; onSaved: () => void }) {
+function AttrRow({ a, characterId, canEdit, onSaved, max = 5 }: {
+  a: Attr; characterId: string; canEdit: boolean; onSaved: () => void; max?: number
+}) {
   return (
-    <div className="flex items-center justify-between py-1.5 border-b border-ink/10 last:border-0">
+    <div className="flex items-center justify-between gap-2 py-1.5 border-b border-ink/10 last:border-0">
       <span className="text-sm text-ink-soft">{a.attribute.name}</span>
-      <Dots value={a.value} editable={canEdit} attrId={a.id} characterId={characterId} onSaved={onSaved} />
+      <Dots value={a.value} max={max} editable={canEdit} attrId={a.id} characterId={characterId} onSaved={onSaved} />
     </div>
   )
 }
@@ -159,10 +163,11 @@ function TFField({ characterId, textFields, tfKey, label, placeholder, multiline
   )
 }
 
-// Discipline row com dots de 0-5 salvo em text-fields (chave: disc_{nome normalizado})
-function DisciplineRow({ name, characterId, textFields, canEdit, onRefresh, removable, onRemove }: {
+// Discipline row com dots salvos em text-fields (chave: disc_{nome normalizado}).
+// O máximo de pontos acompanha o traço máx da geração (V20 p.269).
+function DisciplineRow({ name, characterId, textFields, canEdit, onRefresh, removable, onRemove, max = 5 }: {
   name: string; characterId: string; textFields: TextField[]; canEdit: boolean; onRefresh: () => void
-  removable?: boolean; onRemove?: () => void
+  removable?: boolean; onRemove?: () => void; max?: number
 }) {
   const key = `disc_${name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '_')}`
   const existing = textFields.find(f => f.key === key)
@@ -183,8 +188,8 @@ function DisciplineRow({ name, characterId, textFields, canEdit, onRefresh, remo
     <div className="flex items-center justify-between py-2 border-b border-ink/10 last:border-0 group">
       <span className="text-sm text-ink-soft">{name}</span>
       <div className="flex items-center gap-2">
-        <div className="flex gap-1">
-          {Array.from({ length: 5 }).map((_, i) => (
+        <div className="flex gap-1 flex-wrap justify-end">
+          {Array.from({ length: Math.max(max, value) }).map((_, i) => (
             <button key={i} type="button" onClick={() => void setDot(i)}
               className={`w-3 h-3 rounded-full border transition-colors ${canEdit ? 'cursor-pointer' : 'cursor-default'}`}
               style={{ background: i < value ? RED : 'transparent', borderColor: RED }} />
@@ -270,11 +275,16 @@ function HealthTrack({ characterId, textFields, canEdit, onRefresh }: { characte
   )
 }
 
+// Tabela de Geração (V20 p.269): [pool de sangue máx, traço máx, sangue/turno].
+// O traço máx vale para atributos, habilidades E disciplinas — um matusalém de
+// 4ª geração pode ter traços até 9. Da 8ª à 15ª o máximo é o humano padrão, 5.
+// A 3ª geração não tem linha oficial (Antediluvianos); valores extrapolados.
 const GEN_TABLE: Record<number, [number, number, number]> = {
-  3: [100, 10, 10], 4: [50, 9, 8], 5: [40, 8, 6],
-  6: [30, 7, 4], 7: [20, 6, 3], 8: [15, 5, 2],
-  9: [14, 5, 2], 10: [13, 5, 1], 11: [12, 4, 1],
-  12: [11, 3, 1], 13: [10, 3, 1], 15: [10, 3, 1],
+  3: [100, 10, 10],
+  4: [50, 9, 10], 5: [40, 8, 8], 6: [30, 7, 6],
+  7: [20, 6, 4], 8: [15, 5, 3], 9: [14, 5, 2],
+  10: [13, 5, 1], 11: [12, 5, 1], 12: [11, 5, 1],
+  13: [10, 5, 1], 14: [10, 5, 1], 15: [10, 5, 1],
 }
 
 // ── Sheet principal ────────────────────────────────────────────────────────────
@@ -364,6 +374,17 @@ export function VtMV20Sheet({ characterId, attributes, textFields, canEdit }: Pr
   const genAttr = attributes.find(a => a.attribute.name.toLowerCase().includes('geração') || a.attribute.name.toLowerCase().includes('generation'))
   const genNum = genAttr?.value ?? 13
   const genRow = GEN_TABLE[genNum]
+  // Traço máx da geração (V20 p.269) — vale p/ atributos, habilidades e
+  // disciplinas: 8ª+ = 5; 7ª = 6; 6ª = 7; 5ª = 8; 4ª (matusalém) = 9.
+  const traitMax = genRow?.[1] ?? 5
+  const genNote = traitMax > 5 && (
+    <p className="rounded px-3 py-2 text-[10px] mb-3" style={{ background: 'rgba(120,20,20,0.25)', border: '1px solid rgba(220,38,38,0.3)' }}>
+      <span className="font-bold text-red-300">{genNum}ª geração</span>
+      <span className="text-ink-soft"> — atributos, habilidades e disciplinas podem chegar a </span>
+      <span className="font-bold text-red-300">{traitMax} pontos</span>
+      <span className="text-ink-soft/60"> (V20 p.269)</span>
+    </p>
+  )
 
   const card = 'rounded-xl p-4' as const
   const cardStyle = { background: 'rgb(var(--card) / 0.92)', border: '1px solid rgb(var(--ink) / 0.14)' }
@@ -404,31 +425,37 @@ export function VtMV20Sheet({ characterId, attributes, textFields, canEdit }: Pr
 
       {/* ── Atributos ── */}
       {tab === 'atributos' && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[['Físico', physical], ['Social', social], ['Mental', mental]].map(([title, list]) => (
-            <div key={String(title)} className={card} style={cardStyle}>
-              <SectionDivider title={String(title)} />
-              {(list as Attr[]).length === 0
-                ? <p className="text-[11px] text-ink-soft italic">Nenhum atributo encontrado</p>
-                : (list as Attr[]).map(a => <AttrRow key={a.id} a={a} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />)
-              }
-            </div>
-          ))}
+        <div>
+          {genNote}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[['Físico', physical], ['Social', social], ['Mental', mental]].map(([title, list]) => (
+              <div key={String(title)} className={card} style={cardStyle}>
+                <SectionDivider title={String(title)} />
+                {(list as Attr[]).length === 0
+                  ? <p className="text-[11px] text-ink-soft italic">Nenhum atributo encontrado</p>
+                  : (list as Attr[]).map(a => <AttrRow key={a.id} a={a} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} max={traitMax} />)
+                }
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
       {/* ── Habilidades ── */}
       {tab === 'habilidades' && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[['Talentos', talents], ['Perícias', skills], ['Conhecimentos', knowledges]].map(([title, list]) => (
-            <div key={String(title)} className={card} style={cardStyle}>
-              <SectionDivider title={String(title)} />
-              {(list as Attr[]).length === 0
-                ? <p className="text-[11px] text-ink-soft italic">Nenhuma habilidade encontrada</p>
-                : (list as Attr[]).map(a => <AttrRow key={a.id} a={a} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />)
-              }
-            </div>
-          ))}
+        <div>
+          {genNote}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[['Talentos', talents], ['Perícias', skills], ['Conhecimentos', knowledges]].map(([title, list]) => (
+              <div key={String(title)} className={card} style={cardStyle}>
+                <SectionDivider title={String(title)} />
+                {(list as Attr[]).length === 0
+                  ? <p className="text-[11px] text-ink-soft italic">Nenhuma habilidade encontrada</p>
+                  : (list as Attr[]).map(a => <AttrRow key={a.id} a={a} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} max={traitMax} />)
+                }
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
@@ -439,6 +466,7 @@ export function VtMV20Sheet({ characterId, attributes, textFields, canEdit }: Pr
           {/* Disciplinas */}
           <div className={card} style={cardStyle}>
             <SectionDivider title="Disciplinas" />
+            {genNote}
 
             {clanValue && clanDisciplines.length > 0 && (
               <p className="text-[10px] text-ink-soft mb-3 italic">
@@ -458,12 +486,12 @@ export function VtMV20Sheet({ characterId, attributes, textFields, canEdit }: Pr
 
             {/* Disciplinas do clã */}
             {clanDisciplines.map(disc => (
-              <DisciplineRow key={disc} name={disc} characterId={characterId} textFields={textFields} canEdit={canEdit} onRefresh={onRefresh} />
+              <DisciplineRow key={disc} name={disc} characterId={characterId} textFields={textFields} canEdit={canEdit} onRefresh={onRefresh} max={traitMax} />
             ))}
 
             {/* Disciplinas extras */}
             {extraDiscs.filter(d => !clanDisciplines.includes(d)).map(disc => (
-              <DisciplineRow key={disc} name={disc} characterId={characterId} textFields={textFields} canEdit={canEdit} onRefresh={onRefresh}
+              <DisciplineRow key={disc} name={disc} characterId={characterId} textFields={textFields} canEdit={canEdit} onRefresh={onRefresh} max={traitMax}
                 removable onRemove={() => void removeExtraDisc(disc)} />
             ))}
 
