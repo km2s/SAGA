@@ -114,6 +114,7 @@ model RPGSystem {
 
   attributes  SystemAttribute[]
   campaigns   Campaign[]
+  npcSheets   NPC[]             @relation("NPCSheetSystem")
 }
 
 model SystemAttribute {
@@ -224,12 +225,16 @@ model NPC {
   campaignId     String
   linkedMemberId String?
   folderId       String?
+  // Sistema usado como template da ficha deste NPC (null = sistema da campanha).
+  // Permite um NPC "só Vampiro V20" ou "só Lobisomem" numa campanha homebrew.
+  sheetSystemId  String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   campaign     Campaign        @relation(fields: [campaignId], references: [id])
   linkedMember CampaignMember? @relation("NPCLinkedMember", fields: [linkedMemberId], references: [id])
   folder       NpcFolder?      @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  sheetSystem  RPGSystem?      @relation("NPCSheetSystem", fields: [sheetSystemId], references: [id], onDelete: SetNull)
   attributes   NPCAttribute[]
   textFields   NPCTextField[]
   weapons      NPCWeapon[]
@@ -238,6 +243,7 @@ model NPC {
 
   @@index([campaignId])
   @@index([folderId])
+  @@index([sheetSystemId])
 }
 
 model NpcFolder {

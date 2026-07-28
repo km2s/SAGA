@@ -45,6 +45,15 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     linkedMemberId = linked.id
   }
 
+  // Template da ficha: por padrão o NPC herda os atributos do sistema da
+  // campanha; o GM pode escolher outro(s) sistema(s) como modelo (ex.: NPC só
+  // de Vampiro V20, só de Lobisomem, ou a mistura, numa campanha homebrew).
+  // Com exatamente 1 sistema-modelo, ele fica registrado em sheetSystemId — a
+  // ficha do NPC passa a renderizar (e re-semear) como aquele sistema.
+  const templateIds = sanitizeSystemIds(body.templateSystemIds)
+  const templateAttrs = templateIds.length > 0 ? await mergedAttributesFrom(templateIds) : []
+  const sheetSystemId = templateIds.length === 1 && templateAttrs.length > 0 ? templateIds[0]! : null
+
   const npc = await prisma.nPC.create({
     data: {
       name: body.name.trim().slice(0, 100),
@@ -59,26 +68,20 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       isPublic: body.isPublic ?? false,
       campaignId: params.id,
       linkedMemberId,
+      sheetSystemId,
     },
     include: { linkedMember: { include: { user: true } }, visibilities: true },
   })
 
-  // Template da ficha: por padrão o NPC herda os atributos do sistema da
-  // campanha; o GM pode escolher outro(s) sistema(s) como modelo (ex.: NPC só
-  // de Vampiro V20, só de Lobisomem, ou a mistura, numa campanha homebrew).
-  const templateIds = sanitizeSystemIds(body.templateSystemIds)
-  if (templateIds.length > 0) {
-    const merged = await mergedAttributesFrom(templateIds)
-    if (merged.length > 0) {
-      await prisma.nPCAttribute.createMany({
-        data: merged.map(a => ({
-          npcId: npc.id,
-          attributeId: a.id,
-          value: attrDefault(a.description ?? null),
-        })),
-        skipDuplicates: true,
-      }).catch(() => null)
-    }
+  if (templateAttrs.length > 0) {
+    await prisma.nPCAttribute.createMany({
+      data: templateAttrs.map(a => ({
+        npcId: npc.id,
+        attributeId: a.id,
+        value: attrDefault(a.description ?? null),
+      })),
+      skipDuplicates: true,
+    }).catch(() => null)
     return NextResponse.json(npc, { status: 201 })
   }
 

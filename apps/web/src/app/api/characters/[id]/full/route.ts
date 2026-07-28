@@ -54,6 +54,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     where: { id: params.id },
     include: {
       campaign: { include: { system: true } },
+      sheetSystem: { select: { name: true } },
       attributes: {
         include: { attribute: true },
         orderBy: { attribute: { name: 'asc' } },
@@ -78,7 +79,8 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
 
   return NextResponse.json({
     level: npc.level,
-    systemName: npc.campaign.system?.name ?? null,
+    // NPCs com template próprio renderizam a ficha do sistema-modelo
+    systemName: npc.sheetSystem?.name ?? npc.campaign.system?.name ?? null,
     canEdit: true,
     attributes: npc.attributes,
     textFields:  npc.textFields,

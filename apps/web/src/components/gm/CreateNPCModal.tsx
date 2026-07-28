@@ -149,7 +149,12 @@ export function CreateNPCModal({ campaignId, players: _players, open, onClose }:
             ))}
           </div>
           {customTemplate ? (
-            <SystemTemplatePicker selected={templateIds} onChange={setTemplateIds} />
+            <>
+              <SystemTemplatePicker selected={templateIds} onChange={setTemplateIds} />
+              <p className="text-[10px] text-ink-soft mt-1.5">
+                1 sistema = o NPC usa a ficha própria dele (ex.: a ficha completa do Vampiro V20). 2+ = os modelos são misturados numa ficha genérica.
+              </p>
+            </>
           ) : (
             <p className="text-[10px] text-ink-soft">
               A ficha nasce com os atributos do sistema da campanha. Escolha um template para usar a ficha de outro sistema (ex.: só Vampiro V20), ou mais de um para misturar.

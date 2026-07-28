@@ -95,6 +95,7 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
           members: { include: { user: true } },
         },
       },
+      sheetSystem: { include: { attributes: true } },
       attributes: {
         include: { attribute: true },
         orderBy: { attribute: { name: 'asc' } },
@@ -111,8 +112,10 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
     npc.visibilities.some(v => v.memberId === member.id && v.canView)
   if (!canView) notFound()
 
-  // Seed any system attributes that this NPC is missing (handles new attrs added after NPC creation)
-  const systemAttrs = npc.campaign.system?.attributes ?? []
+  // Seed any system attributes that this NPC is missing (handles new attrs added
+  // after NPC creation). NPCs com template próprio (sheetSystem) semeiam do
+  // template, não do sistema da campanha — mantém a ficha "pura" (ex.: só V20).
+  const systemAttrs = npc.sheetSystem?.attributes ?? npc.campaign.system?.attributes ?? []
   if (systemAttrs.length > 0) {
     const existingAttrIds = new Set(npc.attributes.map(a => a.attributeId))
     const missingAttrs = systemAttrs.filter(a => !existingAttrIds.has(a.id))
@@ -142,6 +145,7 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
               members: { include: { user: true } },
             },
           },
+          sheetSystem: { include: { attributes: true } },
           attributes: {
             include: { attribute: true },
             orderBy: { attribute: { name: 'asc' } },
@@ -158,14 +162,17 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
   const players = npc.campaign.members.filter(m => m.role === 'PLAYER')
   const TypeIcon = NPC_TYPE_ICONS[npc.type] ?? User
   const system = npc.campaign.system
+  // A ficha renderiza pelo template do NPC quando ele existe (ex.: NPC "só
+  // V20" numa campanha homebrew usa a ficha pré-definida do V20).
+  const sheetSource = npc.sheetSystem ?? system
   // Sistemas personalizados (não-preset) respeitam a categoria escolhida pelo
   // usuário; presets seguem a detecção por nome. Evita que um sistema custom
   // caia em "fantasy" e aplique o modificador (valor-10)/2 indevidamente.
   const VALID_CATEGORIES: SheetCategory[] = ['fantasy', 'world-of-darkness', 'horror', 'scifi', 'generic', 'custom']
   const category: SheetCategory =
-    system && !system.isPreset && system.category && (VALID_CATEGORIES as string[]).includes(system.category)
-      ? (system.category as SheetCategory)
-      : detectCategory(system?.name)
+    sheetSource && !sheetSource.isPreset && sheetSource.category && (VALID_CATEGORIES as string[]).includes(sheetSource.category)
+      ? (sheetSource.category as SheetCategory)
+      : detectCategory(sheetSource?.name)
   const SystemIcon = system?.isPreset ? ClipboardList : Pencil
   const systemColor = SYSTEM_COLOR[category] ?? 'text-ink-soft'
 
@@ -188,8 +195,13 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
         <div>
           <p className={`text-sm font-medium ${systemColor}`}>{system.name}</p>
           <p className="text-[10px] text-ink-soft">
-            {system.isPreset ? 'Ficha pré-definida' : 'Ficha personalizada'}
+            {sheetSource?.isPreset ? 'Ficha pré-definida' : 'Ficha personalizada'}
           </p>
+          {npc.sheetSystem && npc.sheetSystem.id !== system.id && (
+            <p className="text-[10px] text-ink-soft mt-0.5">
+              Template: <span className="text-ink">{npc.sheetSystem.name}</span>
+            </p>
+          )}
         </div>
       </div>
     </div>
@@ -327,7 +339,7 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
             canEdit={isGM}
             canEditWeapons={false}
             category={category}
-            systemName={system?.name ?? null}
+            systemName={sheetSource?.name ?? null}
           />
 
         </div>
