@@ -7,6 +7,7 @@ import {
   Swords, Moon, Skull, Rocket, Dice6, Flame, Globe, Sparkles,
   Eye, Shield, Cpu, BookOpen, Lock, Users,
 } from 'lucide-react'
+import { defaultDieForCategory } from '@/lib/system-category'
 
 interface SystemAttr {
   id: string; name: string; defaultDie: string; description: string | null
@@ -113,10 +114,12 @@ function InlineEdit({ value, onSave, placeholder, multiline = false, className =
 
 // ─── Add attribute row ────────────────────────────────────────────────────────
 
-function AddAttrRow({ systemId, onAdded }: { systemId: string; onAdded: (a: SystemAttr) => void }) {
+function AddAttrRow({ systemId, suggestedDie, onAdded }: {
+  systemId: string; suggestedDie: string; onAdded: (a: SystemAttr) => void
+}) {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
-  const [die, setDie] = useState('d20')
+  const [die, setDie] = useState(suggestedDie)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -132,12 +135,12 @@ function AddAttrRow({ systemId, onAdded }: { systemId: string; onAdded: (a: Syst
     if (!res.ok) { setError('Erro ao adicionar.'); return }
     const attr = await res.json() as SystemAttr
     onAdded(attr)
-    setName(''); setDie('d20'); setOpen(false)
+    setName(''); setDie(suggestedDie); setOpen(false)
   }
 
   if (!open) return (
     <button
-      onClick={() => setOpen(true)}
+      onClick={() => { setDie(suggestedDie); setOpen(true) }}
       className="flex items-center gap-2 text-[11px] text-ink-soft hover:text-gold transition-colors py-1"
     >
       <Plus size={12} /> Adicionar atributo
@@ -158,7 +161,7 @@ function AddAttrRow({ systemId, onAdded }: { systemId: string; onAdded: (a: Syst
       <input
         value={die}
         onChange={e => setDie(e.target.value)}
-        placeholder="d20"
+        placeholder={suggestedDie}
         className="w-16 px-2 py-1 rounded text-xs border"
         style={{ background: '#0d0d18', borderColor: 'rgb(var(--ink) / 0.15)', color: 'inherit', outline: 'none' }}
       />
@@ -363,6 +366,7 @@ export function SystemDetailView({ system: initial, currentUserDiscordId }: Prop
         {isMine && (
           <AddAttrRow
             systemId={system.id}
+            suggestedDie={defaultDieForCategory(system.category)}
             onAdded={attr => setSystem(prev => ({ ...prev, attributes: [...prev.attributes, attr] }))}
           />
         )}

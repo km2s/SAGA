@@ -84,6 +84,17 @@ export function formatModifier(value: number, category: SheetCategory): string {
 }
 
 /**
+ * Dado sugerido para novos atributos conforme a família mecânica do sistema:
+ * Mundo das Trevas (Storyteller) rola pools de d10, horror (CoC/Delta Green/
+ * Mothership) é percentil (d100); as demais famílias sugerem d20.
+ */
+export function defaultDieForCategory(category: string | null | undefined): string {
+  if (category === 'world-of-darkness') return 'd10'
+  if (category === 'horror') return 'd100'
+  return 'd20'
+}
+
+/**
  * Pool de dados de um atributo não-d20: o valor é a quantidade de dados
  * (ex.: VtM Força 3 → 3d10, com defaultDie d10 dos seeds). Sem contagem de
  * sucessos/dificuldade/botch — isso é a futura rolagem consciente do sistema.

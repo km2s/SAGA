@@ -150,7 +150,7 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
           <p className="text-[12px] text-ink-soft mb-3">
             Defina os grupos de atributos e seções de texto que novos personagens receberão automaticamente ao entrar na campanha.
           </p>
-          <CustomSheetBuilder campaignId={params.id} />
+          <CustomSheetBuilder campaignId={params.id} systemCategory={campaign.system?.category} />
         </section>
       )}
 

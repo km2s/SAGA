@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Plus, Trash2, ChevronDown, ChevronUp, Check, Loader2, FileText, Hash } from 'lucide-react'
 import { Select } from '@/components/ui/Select'
+import { defaultDieForCategory } from '@/lib/system-category'
 
 interface AttrInput { name: string; dice: string }
 interface GroupInput { name: string; attributes: AttrInput[] }
@@ -11,7 +12,7 @@ interface TextSection { name: string }
 const DICE_OPTIONS = ['d4', 'd6', 'd8', 'd10', 'd12', 'd20', 'd100', '%']
 const inputCls = 'bg-parchment/60 border border-ink/20 rounded px-2.5 py-1.5 text-sm text-ink placeholder:text-ink-soft focus:outline-none focus:border-gold/50 transition-colors'
 
-export function CustomSheetBuilder({ campaignId }: { campaignId: string }) {
+export function CustomSheetBuilder({ campaignId, systemCategory }: { campaignId: string; systemCategory?: string | null }) {
   const [groups, setGroups] = useState<GroupInput[]>([])
   const [textSections, setTextSections] = useState<TextSection[]>([])
   const [loading, setLoading] = useState(true)
@@ -61,7 +62,7 @@ export function CustomSheetBuilder({ campaignId }: { campaignId: string }) {
 
   function addAttr(gi: number) {
     setGroups(g => g.map((gr, i) => i === gi
-      ? { ...gr, attributes: [...gr.attributes, { name: '', dice: 'd20' }] }
+      ? { ...gr, attributes: [...gr.attributes, { name: '', dice: defaultDieForCategory(systemCategory) }] }
       : gr))
   }
 
