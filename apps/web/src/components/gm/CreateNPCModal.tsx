@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { Circle, UserCheck, Swords, Skull, Coins, Heart, PawPrint, User, HelpCircle } from 'lucide-react'
+import { SystemTemplatePicker } from '@/components/systems/SystemTemplatePicker'
 
 const NPC_TYPES = [
   { value: 'NEUTRAL', label: 'Neutro',    Icon: Circle,    color: 'text-ink-soft' },
@@ -31,6 +32,8 @@ export function CreateNPCModal({ campaignId, players: _players, open, onClose }:
   const [type, setType] = useState('NEUTRAL')
   const [maxHp, setMaxHp] = useState(10)
   const [isPublic, setIsPublic] = useState(false)
+  const [customTemplate, setCustomTemplate] = useState(false)
+  const [templateIds, setTemplateIds] = useState<string[]>([])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -40,7 +43,10 @@ export function CreateNPCModal({ campaignId, players: _players, open, onClose }:
     const res = await fetch(`/api/campaigns/${campaignId}/npcs`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: name.trim(), type, hp: maxHp, maxHp, isPublic }),
+      body: JSON.stringify({
+        name: name.trim(), type, hp: maxHp, maxHp, isPublic,
+        templateSystemIds: customTemplate && templateIds.length > 0 ? templateIds : undefined,
+      }),
     }).catch(() => null)
     setLoading(false)
     if (!res?.ok) {
@@ -50,6 +56,7 @@ export function CreateNPCModal({ campaignId, players: _players, open, onClose }:
     }
     const data = await res.json() as { id: string }
     setName(''); setType('NEUTRAL'); setMaxHp(10); setIsPublic(false)
+    setCustomTemplate(false); setTemplateIds([])
     onClose()
     router.push(`/campaign/${campaignId}/npcs/${data.id}`)
   }
@@ -116,6 +123,38 @@ export function CreateNPCModal({ campaignId, players: _players, open, onClose }:
               className="w-8 h-8 rounded-full flex items-center justify-center text-ink-soft hover:text-green-400 hover:bg-green-400/10 border border-ink/20 transition-all text-lg"
             >+</button>
           </div>
+        </div>
+
+        {/* Sheet template — por padrão herda do sistema da campanha; o GM pode
+            usar outro(s) sistema(s) como modelo (1 = ficha pura, 2+ = mistura) */}
+        <div>
+          <label className="text-[11px] text-ink-soft font-bold uppercase tracking-widest block mb-2">Template da Ficha</label>
+          <div className="grid grid-cols-2 gap-1.5 mb-2">
+            {[
+              { v: false, label: 'Sistema da campanha' },
+              { v: true,  label: 'Escolher template' },
+            ].map(opt => (
+              <button
+                key={String(opt.v)}
+                type="button"
+                onClick={() => setCustomTemplate(opt.v)}
+                className={`py-1.5 px-2 rounded-lg text-[11px] font-cinzel tracking-wide border transition-all ${
+                  customTemplate === opt.v
+                    ? 'bg-wax border-wax-deep text-parchment'
+                    : 'bg-parchment/50 border-ink/20 text-ink-soft hover:border-wax hover:text-wax'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          {customTemplate ? (
+            <SystemTemplatePicker selected={templateIds} onChange={setTemplateIds} />
+          ) : (
+            <p className="text-[10px] text-ink-soft">
+              A ficha nasce com os atributos do sistema da campanha. Escolha um template para usar a ficha de outro sistema (ex.: só Vampiro V20), ou mais de um para misturar.
+            </p>
+          )}
         </div>
 
         {/* Visibility toggle */}

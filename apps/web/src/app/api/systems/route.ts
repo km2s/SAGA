@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from 'database'
 import { seedAndGetSystems } from '@/lib/systems-seed'
+import { mergedAttributesFrom, sanitizeSystemIds } from '@/lib/system-clone'
 
 export const dynamic = 'force-dynamic'
 
@@ -571,6 +572,7 @@ export async function POST(req: Request) {
 
   const body = await req.json() as {
     name?: string; description?: string; imageUrl?: string; category?: string
+    copyFromSystemIds?: string[]
   }
   if (!body.name?.trim()) return NextResponse.json({ error: 'Nome obrigatório' }, { status: 400 })
 
@@ -595,6 +597,25 @@ export async function POST(req: Request) {
     },
     include: { creator: { select: { username: true } }, attributes: true },
   })
+
+  // Modelo inicial: clona os atributos dos sistemas escolhidos (ex.: um homebrew
+  // que mistura Vampiro V20 + Lobisomem), removendo duplicados pelo nome.
+  const copyIds = sanitizeSystemIds(body.copyFromSystemIds)
+  if (copyIds.length > 0) {
+    const merged = await mergedAttributesFrom(copyIds)
+    if (merged.length > 0) {
+      await prisma.systemAttribute.createMany({
+        data: merged.map(a => ({
+          systemId: system.id, name: a.name, defaultDie: a.defaultDie, description: a.description,
+        })),
+      }).catch(() => null)
+      const attributes = await prisma.systemAttribute.findMany({
+        where: { systemId: system.id },
+        orderBy: { name: 'asc' },
+      }).catch(() => [])
+      return NextResponse.json({ ...system, attributes }, { status: 201 })
+    }
+  }
 
   return NextResponse.json(system, { status: 201 })
 }

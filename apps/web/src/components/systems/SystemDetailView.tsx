@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation'
 import {
   ArrowLeft, Pencil, Trash2, Plus, X, Check, Loader2,
   Swords, Moon, Skull, Rocket, Dice6, Flame, Globe, Sparkles,
-  Eye, Shield, Cpu, BookOpen, Lock, Users,
+  Eye, Shield, Cpu, BookOpen, Lock, Users, Download,
 } from 'lucide-react'
 import { defaultDieForCategory } from '@/lib/system-category'
+import { SystemTemplatePicker } from './SystemTemplatePicker'
 
 interface SystemAttr {
   id: string; name: string; defaultDie: string; description: string | null
@@ -181,7 +182,30 @@ function AddAttrRow({ systemId, suggestedDie, onAdded }: {
 export function SystemDetailView({ system: initial, currentUserDiscordId }: Props) {
   const router = useRouter()
   const [system, setSystem] = useState(initial)
+  const [importOpen, setImportOpen] = useState(false)
+  const [importFrom, setImportFrom] = useState<string[]>([])
+  const [importing, setImporting] = useState(false)
+  const [importedMsg, setImportedMsg] = useState('')
   const isMine = !system.isPreset && system.creator?.discordId === currentUserDiscordId
+
+  async function handleImport() {
+    if (importFrom.length === 0) return
+    setImporting(true)
+    setImportedMsg('')
+    const res = await fetch(`/api/systems/${system.id}/import`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fromSystemIds: importFrom }),
+    }).catch(() => null)
+    setImporting(false)
+    if (!res?.ok) { setImportedMsg('Erro ao importar.'); return }
+    const data = await res.json() as { imported: number; attributes: SystemAttr[] }
+    setSystem(prev => ({ ...prev, attributes: data.attributes }))
+    setImportFrom([])
+    setImportedMsg(data.imported > 0
+      ? `${data.imported} atributo${data.imported === 1 ? '' : 's'} importado${data.imported === 1 ? '' : 's'}.`
+      : 'Nada a importar — os atributos já existiam.')
+  }
 
   const meta = CATEGORY_META[system.category] ?? CATEGORY_META.custom!
   const CatIcon = meta.Icon
@@ -327,7 +351,40 @@ export function SystemDetailView({ system: initial, currentUserDiscordId }: Prop
             Atributos
           </p>
           <span className="text-[10px] text-ink-soft/50">{system.attributes.length}</span>
+          {isMine && (
+            <button
+              onClick={() => setImportOpen(o => !o)}
+              className={`ml-auto flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-lg border transition-all ${
+                importOpen
+                  ? 'bg-gold/12 border-gold/35 text-gold'
+                  : 'border-ink/20 text-ink-soft hover:border-wax hover:text-wax'
+              }`}
+            >
+              <Download size={11} /> Importar de outro sistema
+            </button>
+          )}
         </div>
+
+        {/* Importa o modelo de ficha de outros sistemas (mais de um = mistura) */}
+        {isMine && importOpen && (
+          <div className="mb-4 p-3 rounded-lg border border-ink/15" style={{ background: 'rgb(var(--ink) / 0.03)' }}>
+            <SystemTemplatePicker selected={importFrom} onChange={setImportFrom} excludeId={system.id} />
+            <div className="flex items-center gap-2 mt-2.5">
+              <button
+                onClick={() => void handleImport()}
+                disabled={importing || importFrom.length === 0}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-cinzel bg-wax text-parchment hover:bg-wax-deep disabled:opacity-50 transition-all"
+              >
+                {importing ? <Loader2 size={11} className="animate-spin" /> : <Download size={11} />}
+                Importar atributos
+              </button>
+              <span className="text-[10px] text-ink-soft">
+                Atributos com nome repetido (do sistema ou entre as origens) entram uma vez só.
+              </span>
+            </div>
+            {importedMsg && <p className="text-[10px] text-gold mt-1.5">{importedMsg}</p>}
+          </div>
+        )}
 
         {system.attributes.length === 0 ? (
           <p className="text-xs text-ink-soft italic mb-3">Nenhum atributo definido.</p>

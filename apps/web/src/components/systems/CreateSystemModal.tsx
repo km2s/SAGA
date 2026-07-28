@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { X, Loader2 } from 'lucide-react'
+import { SystemTemplatePicker } from './SystemTemplatePicker'
 
 interface CreatedSystem {
   id: string; name: string; description: string | null; imageUrl: string | null
@@ -30,6 +31,8 @@ export function CreateSystemModal({ open, onClose, onCreated }: Props) {
   const [category, setCategory] = useState('custom')
   const [description, setDescription] = useState('')
   const [imageUrl, setImageUrl] = useState('')
+  const [useTemplate, setUseTemplate] = useState(false)
+  const [copyFrom, setCopyFrom] = useState<string[]>([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -43,7 +46,13 @@ export function CreateSystemModal({ open, onClose, onCreated }: Props) {
     const res = await fetch('/api/systems', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: name.trim(), category, description: description.trim() || undefined, imageUrl: imageUrl.trim() || undefined }),
+      body: JSON.stringify({
+        name: name.trim(),
+        category,
+        description: description.trim() || undefined,
+        imageUrl: imageUrl.trim() || undefined,
+        copyFromSystemIds: useTemplate && copyFrom.length > 0 ? copyFrom : undefined,
+      }),
     })
     setLoading(false)
     if (!res.ok) {
@@ -53,6 +62,7 @@ export function CreateSystemModal({ open, onClose, onCreated }: Props) {
     }
     const system = await res.json() as CreatedSystem
     setName(''); setCategory('custom'); setDescription(''); setImageUrl(''); setError('')
+    setUseTemplate(false); setCopyFrom([])
     onCreated(system)
   }
 
@@ -99,6 +109,37 @@ export function CreateSystemModal({ open, onClose, onCreated }: Props) {
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Starting template */}
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-widest text-wax mb-1.5">Modelo inicial</label>
+            <div className="grid grid-cols-2 gap-1.5 mb-2">
+              {[
+                { v: false, label: 'Em branco' },
+                { v: true,  label: 'Copiar de sistemas' },
+              ].map(opt => (
+                <button
+                  key={String(opt.v)}
+                  type="button"
+                  onClick={() => setUseTemplate(opt.v)}
+                  className={`py-1.5 px-2 rounded-lg text-[11px] font-cinzel tracking-wide border transition-all ${
+                    useTemplate === opt.v
+                      ? 'bg-wax text-parchment border-wax-deep'
+                      : 'bg-parchment/50 border-ink/20 text-ink-soft hover:border-wax hover:text-wax'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            {useTemplate ? (
+              <SystemTemplatePicker selected={copyFrom} onChange={setCopyFrom} />
+            ) : (
+              <p className="text-[10px] text-ink-soft">
+                Comece do zero, ou copie os atributos da ficha de sistemas existentes (escolha mais de um para misturar, ex.: Vampiro V20 + Lobisomem).
+              </p>
+            )}
           </div>
 
           {/* Description */}
