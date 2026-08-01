@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Select'
+import { SystemTemplatePicker } from '@/components/systems/SystemTemplatePicker'
 import {
   Swords, Moon, Skull, Rocket, Dice6, Pencil,
   Sword, Flame, Globe, Castle, Sparkles, Target, Leaf, Zap, Ghost, Eye, Shield, Cpu, Monitor, Compass,
@@ -55,6 +56,8 @@ export function CreateCharacterModal({ campaigns, open, onClose }: {
     name: '', race: '', class: '',
     level: '1', maxHp: '10', imageUrl: '',
   })
+  const [customTemplate, setCustomTemplate] = useState(false)
+  const [templateIds, setTemplateIds] = useState<string[]>([])
 
   function set(k: string, v: string) { setForm(f => ({ ...f, [k]: v })) }
 
@@ -67,6 +70,8 @@ export function CreateCharacterModal({ campaigns, open, onClose }: {
   function handleClose() {
     setError('')
     setForm({ campaignId: campaigns[0]?.id ?? '', name: '', race: '', class: '', level: '1', maxHp: '10', imageUrl: '' })
+    setCustomTemplate(false)
+    setTemplateIds([])
     onClose()
   }
 
@@ -90,6 +95,7 @@ export function CreateCharacterModal({ campaigns, open, onClose }: {
         maxHp: parseInt(form.maxHp) || 10,
         imageUrl: form.imageUrl.trim() || null,
         systemId: system?.id ?? null,
+        templateSystemIds: customTemplate && templateIds.length > 0 ? templateIds : undefined,
       }),
     }).catch(() => null)
 
@@ -184,6 +190,42 @@ export function CreateCharacterModal({ campaigns, open, onClose }: {
               type="number" min="1"
               className="w-full bg-parchment/60 border border-ink/20 rounded px-3 py-2 text-sm focus:outline-none focus:border-wax" />
           </div>
+        </div>
+
+        {/* Template da ficha — mesmo seletor da criação de NPC */}
+        <div>
+          <label className="text-[11px] text-ink-soft font-bold uppercase tracking-widest block mb-1.5">Template da Ficha</label>
+          <div className="grid grid-cols-2 gap-1.5 mb-2">
+            {[
+              { v: false, label: 'Sistema da campanha' },
+              { v: true,  label: 'Escolher template' },
+            ].map(opt => (
+              <button
+                key={String(opt.v)}
+                type="button"
+                onClick={() => setCustomTemplate(opt.v)}
+                className={`py-1.5 px-2 rounded-lg text-[11px] font-cinzel tracking-wide border transition-all ${
+                  customTemplate === opt.v
+                    ? 'bg-wax text-parchment border-wax-deep'
+                    : 'bg-parchment/50 border-ink/20 text-ink-soft hover:border-wax hover:text-wax'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          {customTemplate ? (
+            <>
+              <SystemTemplatePicker selected={templateIds} onChange={setTemplateIds} />
+              <p className="text-[10px] text-ink-soft mt-1.5">
+                1 sistema = a ficha própria dele (ex.: a ficha completa do Vampiro V20). 2+ = os modelos são misturados.
+              </p>
+            </>
+          ) : (
+            <p className="text-[10px] text-ink-soft">
+              A ficha nasce com os atributos de {system?.name ?? 'sistema da campanha'}. Escolha um template para usar a ficha de outro sistema.
+            </p>
+          )}
         </div>
 
         <div>

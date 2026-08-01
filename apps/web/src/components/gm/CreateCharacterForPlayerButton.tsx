@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { UserPlus } from 'lucide-react'
+import { SystemTemplatePicker } from '@/components/systems/SystemTemplatePicker'
 
 /**
  * Mestre cria a ficha em nome de um jogador que ainda não tem personagem.
@@ -23,12 +24,16 @@ export function CreateCharacterForPlayerButton({ campaignId, memberId, playerNam
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [form, setForm] = useState({ name: '', race: '', class: '', level: '1', maxHp: '10' })
+  const [customTemplate, setCustomTemplate] = useState(false)
+  const [templateIds, setTemplateIds] = useState<string[]>([])
 
   function set(k: keyof typeof form, v: string) { setForm(f => ({ ...f, [k]: v })) }
 
   function close() {
     setError('')
     setForm({ name: '', race: '', class: '', level: '1', maxHp: '10' })
+    setCustomTemplate(false)
+    setTemplateIds([])
     setOpen(false)
   }
 
@@ -51,6 +56,7 @@ export function CreateCharacterForPlayerButton({ campaignId, memberId, playerNam
         hp: maxHp,
         maxHp,
         systemId,
+        templateSystemIds: customTemplate && templateIds.length > 0 ? templateIds : undefined,
       }),
     }).catch(() => null)
     setLoading(false)
@@ -108,6 +114,42 @@ export function CreateCharacterForPlayerButton({ campaignId, memberId, playerNam
               <label className={label}>HP / Vitalidade</label>
               <input type="number" min="1" value={form.maxHp} onChange={e => set('maxHp', e.target.value)} className={field} />
             </div>
+          </div>
+
+          {/* Mesmo seletor usado na criação de NPC */}
+          <div>
+            <label className={label}>Template da Ficha</label>
+            <div className="grid grid-cols-2 gap-1.5 mb-2">
+              {[
+                { v: false, label: 'Sistema da campanha' },
+                { v: true,  label: 'Escolher template' },
+              ].map(opt => (
+                <button
+                  key={String(opt.v)}
+                  type="button"
+                  onClick={() => setCustomTemplate(opt.v)}
+                  className={`py-1.5 px-2 rounded-lg text-[11px] font-cinzel tracking-wide border transition-all ${
+                    customTemplate === opt.v
+                      ? 'bg-wax text-parchment border-wax-deep'
+                      : 'bg-parchment/50 border-ink/20 text-ink-soft hover:border-wax hover:text-wax'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            {customTemplate ? (
+              <>
+                <SystemTemplatePicker selected={templateIds} onChange={setTemplateIds} />
+                <p className="text-[10px] text-ink-soft mt-1.5">
+                  1 sistema = a ficha própria dele (ex.: a ficha completa do Vampiro V20). 2+ = os modelos são misturados.
+                </p>
+              </>
+            ) : (
+              <p className="text-[10px] text-ink-soft">
+                A ficha nasce com os atributos de {systemName ?? 'sistema da campanha'}. Escolha um template para usar a ficha de outro sistema.
+              </p>
+            )}
           </div>
 
           {error && <p className="text-sm text-wax">{error}</p>}

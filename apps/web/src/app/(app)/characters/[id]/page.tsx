@@ -78,8 +78,11 @@ export default async function CharacterDetailPage({ params }: { params: { id: st
     include: {
       user: true,
       campaign: { include: { system: true } },
+      // Ficha com template próprio renderiza como o sistema-modelo
+      // (ex.: personagem "só V20" numa campanha homebrew).
       character: {
         include: {
+          sheetSystem: true,
           attributes: {
             include: { attribute: true },
             orderBy: { attribute: { name: 'asc' } },
@@ -105,6 +108,8 @@ export default async function CharacterDetailPage({ params }: { params: { id: st
   const char = member.character
   const campaign = member.campaign
   const system = campaign.system
+  // A ficha renderiza pelo template escolhido na criação, quando houver.
+  const sheetSource = char.sheetSystem ?? system
 
   // Sistemas personalizados (não-preset) respeitam a categoria escolhida pelo
   // usuário na criação; presets continuam pela detecção por nome (precisa).
@@ -112,9 +117,9 @@ export default async function CharacterDetailPage({ params }: { params: { id: st
   // aplicava o modificador (valor-10)/2 (ex.: valor 5 virava -3 em vez de 5).
   const VALID_CATEGORIES: SheetCategory[] = ['fantasy', 'world-of-darkness', 'horror', 'scifi', 'generic', 'custom']
   const category: SheetCategory =
-    system && !system.isPreset && system.category && (VALID_CATEGORIES as string[]).includes(system.category)
-      ? (system.category as SheetCategory)
-      : detectCategory(system?.name)
+    sheetSource && !sheetSource.isPreset && sheetSource.category && (VALID_CATEGORIES as string[]).includes(sheetSource.category)
+      ? (sheetSource.category as SheetCategory)
+      : detectCategory(sheetSource?.name)
   const SystemIcon = system?.isPreset ? ClipboardList : Pencil
   const systemColor = SYSTEM_COLOR[category] ?? 'text-ink-soft'
 
@@ -216,8 +221,13 @@ export default async function CharacterDetailPage({ params }: { params: { id: st
                 <div>
                   <p className={`text-sm font-medium ${systemColor}`}>{system.name}</p>
                   <p className="text-[10px] text-ink-soft">
-                    {system.isPreset ? 'Ficha pré-definida' : 'Ficha personalizada'}
+                    {sheetSource?.isPreset ? 'Ficha pré-definida' : 'Ficha personalizada'}
                   </p>
+                  {char.sheetSystem && char.sheetSystem.id !== system.id && (
+                    <p className="text-[10px] text-ink-soft mt-0.5">
+                      Template: <span className="text-ink">{char.sheetSystem.name}</span>
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -234,7 +244,7 @@ export default async function CharacterDetailPage({ params }: { params: { id: st
           spellSlots={char.spellSlots}
           canEdit={canEdit}
           category={category}
-          systemName={system?.name ?? null}
+          systemName={sheetSource?.name ?? null}
         />
       </div>
     </div>

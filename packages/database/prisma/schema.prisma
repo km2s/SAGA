@@ -112,9 +112,10 @@ model RPGSystem {
   creatorId   String?
   creator     User?    @relation(fields: [creatorId], references: [id])
 
-  attributes  SystemAttribute[]
-  campaigns   Campaign[]
-  npcSheets   NPC[]             @relation("NPCSheetSystem")
+  attributes     SystemAttribute[]
+  campaigns      Campaign[]
+  npcSheets      NPC[]              @relation("NPCSheetSystem")
+  characterSheets CharacterSheet[]  @relation("CharacterSheetSystem")
 }
 
 model SystemAttribute {
@@ -142,14 +143,20 @@ model CharacterSheet {
   maxHp     Int      @default(0)
   isPublic  Boolean  @default(false)
   memberId  String   @unique
+  // Sistema usado como template desta ficha (null = sistema da campanha).
+  // Permite um personagem "só Vampiro V20" numa campanha homebrew.
+  sheetSystemId String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  member     CampaignMember       @relation(fields: [memberId], references: [id])
-  attributes CharacterAttribute[]
-  textFields CharacterTextField[]
-  weapons    CharacterWeapon[]
-  spellSlots CharacterSpellSlot[]
+  member      CampaignMember       @relation(fields: [memberId], references: [id])
+  sheetSystem RPGSystem?           @relation("CharacterSheetSystem", fields: [sheetSystemId], references: [id], onDelete: SetNull)
+  attributes  CharacterAttribute[]
+  textFields  CharacterTextField[]
+  weapons     CharacterWeapon[]
+  spellSlots  CharacterSpellSlot[]
+
+  @@index([sheetSystemId])
 }
 
 model CharacterAttribute {

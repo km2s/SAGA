@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from 'database'
 import { NextResponse } from 'next/server'
+import { mergedAttributesFrom, sanitizeSystemIds } from '@/lib/system-clone'
 
 function wodAttrDefault(description: string | null): number {
   const d = description?.trim() ?? ''
@@ -29,6 +30,8 @@ export async function POST(req: Request) {
     systemId?: string | null
     // Mestre criando a ficha para um jogador da campanha
     memberId?: string
+    // Template da ficha: 1 sistema = ficha pura daquele sistema; 2+ = mistura
+    templateSystemIds?: string[]
     // import flow
     systemName?: string
     importedAttributes?: { name: string; value: number }[]
@@ -74,6 +77,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'imageUrl deve começar com https://' }, { status: 400 })
   }
 
+  // Template da ficha: por padrão herda os atributos do sistema da campanha; é
+  // possível escolher outro(s) sistema(s) como modelo (ex.: personagem só de
+  // Vampiro V20 numa campanha homebrew). Com exatamente 1 sistema, ele fica
+  // registrado em sheetSystemId e a ficha renderiza como a daquele sistema.
+  const templateIds = sanitizeSystemIds(body.templateSystemIds)
+  const templateAttrs = templateIds.length > 0 ? await mergedAttributesFrom(templateIds) : []
+  const sheetSystemId = templateIds.length === 1 && templateAttrs.length > 0 ? templateIds[0]! : null
+
   const maxHp = Math.max(1, body.maxHp ?? 10)
   const character = await prisma.characterSheet.create({
     data: {
@@ -85,8 +96,21 @@ export async function POST(req: Request) {
       maxHp,
       imageUrl,
       memberId: member.id,
+      sheetSystemId,
     },
   })
+
+  if (templateAttrs.length > 0) {
+    await prisma.characterAttribute.createMany({
+      data: templateAttrs.map(a => ({
+        sheetId: character.id,
+        attributeId: a.id,
+        value: wodAttrDefault(a.description),
+      })),
+      skipDuplicates: true,
+    }).catch(() => null)
+    return NextResponse.json(character, { status: 201 })
+  }
 
   if (body.importedAttributes && body.importedAttributes.length > 0) {
     if (body.importedAttributes.length > 200) {

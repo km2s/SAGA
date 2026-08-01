@@ -16,6 +16,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
           campaign: { include: { system: true } },
         },
       },
+      sheetSystem: { select: { name: true } },
       attributes: {
         include: { attribute: true },
         orderBy: { attribute: { name: 'asc' } },
@@ -40,7 +41,8 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
 
     return NextResponse.json({
       level: sheet.level,
-      systemName: sheet.member.campaign.system?.name ?? null,
+      // Ficha com template próprio renderiza como o sistema-modelo
+      systemName: sheet.sheetSystem?.name ?? sheet.member.campaign.system?.name ?? null,
       canEdit: isMine || !!gmMembership,
       attributes: sheet.attributes,
       textFields:  sheet.textFields,
