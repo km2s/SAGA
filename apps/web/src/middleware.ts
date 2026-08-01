@@ -8,11 +8,17 @@ const PROTECTED = ['/dashboard', '/campaign']
 const USE_SECURE_COOKIES = process.env.NODE_ENV === 'production'
 const SESSION_COOKIE_NAME = `${USE_SECURE_COOKIES ? '__Secure-' : ''}next-auth.session-token`
 
+// Em desenvolvimento o webpack do Next usa `eval` para os source maps. Sem
+// 'unsafe-eval' o bundle principal morre com EvalError logo no início, a
+// hidratação nunca acontece e NADA na página fica clicável. Produção continua
+// estrita — o build de produção não usa eval.
+const DEV_EVAL = process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : ''
+
 function buildCsp(nonce: string): string {
   return [
     "default-src 'self'",
     // strict-dynamic permite que scripts com nonce carreguem outros scripts (ex: chunks Next.js)
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${DEV_EVAL}`,
     // Google Fonts (Cinzel, Cormorant, etc.) são carregadas via @import em globals.css:
     // a folha vem de fonts.googleapis.com e os arquivos .woff2 de fonts.gstatic.com.
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
