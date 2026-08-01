@@ -79,8 +79,12 @@ export function Sidebar({ campaigns = [], discordClientId }: SidebarProps) {
 
       {/* Sidebar */}
       <nav
+        // Havia um `relative` solto junto de `fixed md:relative`: como o Tailwind
+        // emite `.relative` depois de `.fixed`, o `relative` vencia e a barra
+        // continuava ocupando 230px do fluxo mesmo fechada no celular — o
+        // conteúdo ficava com 145px de largura em uma tela de 375px.
         className={`
-          w-[230px] min-w-[230px] h-screen flex flex-col shrink-0 relative text-ink
+          w-[230px] min-w-[230px] h-screen flex flex-col shrink-0 text-ink
           fixed md:relative z-50 md:z-auto
           transition-transform duration-300 ease-in-out
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
@@ -218,10 +222,11 @@ export function Sidebar({ campaigns = [], discordClientId }: SidebarProps) {
             </div>
             <button
               onClick={() => signOut({ callbackUrl: '/login' })}
-              className="opacity-0 group-hover:opacity-100 text-ink-soft hover:text-ember transition-all"
+              className="opacity-0 group-hover:opacity-100 text-ink-soft hover:text-ember transition-all shrink-0 w-9 h-9 -mr-1 flex items-center justify-center rounded"
               title="Sair"
+              aria-label="Sair da conta"
             >
-              <LogOut size={15} />
+              <LogOut size={16} />
             </button>
           </div>
         </div>

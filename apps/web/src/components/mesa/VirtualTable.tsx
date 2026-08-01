@@ -537,7 +537,9 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
 
           {/* Mapa button */}
           {isGM && <div data-mesa-tutorial="topbar-map" className="relative" ref={mapDropRef}>
-            <button onClick={()=>setMapInputOpen(o=>!o)}
+            {/* No celular os rótulos são `hidden sm:inline`, então sem aria-label
+                estes botões ficam sem nome acessível para leitores de tela. */}
+            <button onClick={()=>setMapInputOpen(o=>!o)} title="Imagem do Mapa" aria-label="Imagem do Mapa"
               className={`px-2 sm:px-3 h-7 rounded text-[11px] font-medium border transition-all flex items-center gap-1.5 ${
                 mapUrl?'text-gold border-gold/50 bg-gold/10':'text-saga-muted border-ink/20 dark:border-bg/60 hover:border-gold/40 hover:text-gold'
               }`}>
@@ -581,6 +583,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
           </div>}
 
           <button data-mesa-tutorial="topbar-sheets" onClick={()=>setSheetsOpen(o=>!o)}
+            title="Fichas de Personagem" aria-label="Fichas de Personagem"
             className={`px-2 sm:px-3 h-7 rounded text-[11px] font-medium border transition-all flex items-center gap-1.5 ${
               sheetsOpen?'text-gold border-gold/50 bg-gold/10':'text-saga-muted border-ink/20 dark:border-bg/60 hover:border-gold/40 hover:text-gold'
             }`}>
@@ -609,6 +612,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
           )}
           {isGM && (
             <button data-mesa-tutorial="topbar-music" onClick={()=>setMusicOpen(true)}
+              title="Música ambiente" aria-label="Música ambiente"
               className="px-2 sm:px-3 h-7 rounded text-[11px] font-medium border transition-all text-saga-muted border-ink/20 dark:border-bg/60 hover:border-gold/40 hover:text-gold flex items-center gap-1.5">
               <Music size={13}/>
               <span className="hidden sm:inline">Música</span>
@@ -649,7 +653,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
             </div>
           )}
           {/* Chat toggle — mobile only */}
-          <button onClick={()=>setChatOpen(o=>!o)}
+          <button onClick={()=>setChatOpen(o=>!o)} title="Chat da sessão" aria-label="Chat da sessão"
             className={`sm:hidden px-2 h-7 rounded border transition-all flex items-center ${
               chatOpen?'text-gold border-gold/50 bg-gold/10':'text-saga-muted border-ink/20 dark:border-bg/60'
             }`}>
