@@ -477,21 +477,22 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
     : ['token','marker','measure','fog','reveal'].includes(tool) ? 'cursor-crosshair'
     : tokenDrag ? 'cursor-grabbing' : 'cursor-default'
 
+  // A classe `dark` local escopa a mesa inteira nos tokens da Cripta: uma VTT é
+  // uma superfície escura por convenção (mapas/tokens são calibrados p/ escuro),
+  // então o modo claro do app não se aplica aqui — vars (--mesa-*, --ink, ...)
+  // e variantes dark: resolvem escuro independente do tema global.
   return (
-    // A classe `dark` local escopa a mesa inteira nos tokens da Cripta: uma VTT é
-    // uma superfície escura por convenção (mapas/tokens são calibrados p/ escuro),
-    // então o modo claro do app não se aplica aqui — vars (--mesa-*, --ink, ...)
-    // e variantes dark: resolvem escuro independente do tema global.
     <div className="dark fixed inset-0 z-50 flex flex-col" style={{background:'var(--mesa-table)'}}>
 
       {/* Brilho ambiente de cripta (brasa + ouro) — atmosfera do template */}
       <div className="pointer-events-none absolute inset-0 z-0" style={{background:'radial-gradient(ellipse 60% 40% at 50% 0%, rgb(var(--ember) / 0.12), transparent 60%), radial-gradient(ellipse at 100% 100%, rgba(201,162,42,0.06), transparent 55%)'}} />
 
       {/* ── Top bar ── */}
-      {/* No celular os botões (Mapa, Fichas, Iniciativa, Handouts, Música, Ao
-          Vivo, Encerrar...) não cabem em 375px; a barra rola na horizontal em
-          vez de cortar os últimos, que ficavam inalcançáveis. */}
-      <div className="h-11 flex items-center justify-between gap-2 px-3 sm:px-4 shrink-0 border-b border-gold/15 relative z-10 bg-bg/85 backdrop-blur-sm overflow-x-auto scrollbar-none">
+      {/* NÃO adicionar overflow aqui: os popovers de Mapa e Ao Vivo são filhos
+          desta barra e abrem abaixo dela (`top-full`). Qualquer overflow
+          diferente de visible transforma a barra em área de recorte de 44px e
+          os popovers somem. Os botões se comprimem sozinhos em telas estreitas. */}
+      <div className="h-11 flex items-center justify-between px-3 sm:px-4 shrink-0 border-b border-gold/15 relative z-10 bg-bg/85 backdrop-blur-sm">
 
         {/* Left */}
         <div className="flex items-center gap-2 sm:gap-5 min-w-0">
@@ -546,8 +547,11 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
               <ImageIcon size={13}/>
               <span className="hidden sm:inline">Mapa</span>
             </button>
+            {/* Popover ancorado pela direita de um botão no meio da barra: os
+                288px vazavam pela esquerda da tela no celular, então abaixo de
+                sm ele vira um painel preso à viewport. */}
             {mapInputOpen && (
-              <div className="absolute top-full right-0 mt-1.5 z-[60] w-72 max-w-[85vw] rounded-xl border border-border shadow-2xl overflow-hidden bg-surface backdrop-blur-md">
+              <div className="fixed left-3 right-3 top-14 w-auto sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-1.5 sm:w-72 z-[60] rounded-xl border border-border shadow-2xl overflow-hidden bg-surface backdrop-blur-md">
                 <div className="px-3 py-2.5 flex items-center justify-between">
                   <span className="font-cinzel text-[11px] font-bold text-saga-muted uppercase tracking-widest">Imagem do Mapa</span>
                   <button onClick={()=>setMapInputOpen(false)} className="text-saga-dim hover:text-saga-text"><X size={13}/></button>

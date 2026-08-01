@@ -21,8 +21,11 @@ export function LiveControlPanel({
   expandedLiveMember, setExpandedLiveMember,
   tokens, setTokens, syncTokens, onClose,
 }: Props) {
+  // Mesmo caso do popover de Mapa: ancorado pela direita de um botão que fica
+  // no meio da barra, os 288px vazavam pela esquerda da tela no celular. Abaixo
+  // de sm ele vira um painel preso à viewport.
   return (
-    <div className="absolute top-full right-0 mt-1.5 z-[60] w-72 max-w-[85vw] rounded-xl border border-border shadow-2xl overflow-hidden bg-surface backdrop-blur-md">
+    <div className="fixed left-3 right-3 top-14 w-auto sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-1.5 sm:w-72 z-[60] rounded-xl border border-border shadow-2xl overflow-hidden bg-surface backdrop-blur-md">
       <div className="px-3 py-2.5 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Radio size={12} className="text-emerald-400"/>

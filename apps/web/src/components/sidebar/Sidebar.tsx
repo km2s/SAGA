@@ -77,12 +77,11 @@ export function Sidebar({ campaigns = [], discordClientId }: SidebarProps) {
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar — havia um `relative` solto junto de `fixed md:relative`: como
+          o Tailwind emite `.relative` depois de `.fixed`, o `relative` vencia e
+          a barra continuava ocupando 230px do fluxo mesmo fechada no celular,
+          deixando o conteúdo com 145px de largura em uma tela de 375px. */}
       <nav
-        // Havia um `relative` solto junto de `fixed md:relative`: como o Tailwind
-        // emite `.relative` depois de `.fixed`, o `relative` vencia e a barra
-        // continuava ocupando 230px do fluxo mesmo fechada no celular — o
-        // conteúdo ficava com 145px de largura em uma tela de 375px.
         className={`
           w-[230px] min-w-[230px] h-screen flex flex-col shrink-0 text-ink
           fixed md:relative z-50 md:z-auto
