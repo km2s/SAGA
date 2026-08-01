@@ -42,20 +42,21 @@ export function DiceBar({
           <p className="text-[9px] text-saga-dim uppercase tracking-widest font-bold">Rolar Dado</p>
           <div className="flex items-center gap-1">
             <span className="text-[9px] text-saga-dim">Mod</span>
-            <button onClick={()=>setRollModifier(m=>m-1)}
-              className="w-4 h-4 rounded flex items-center justify-center text-saga-dim hover:text-saga-text hover:bg-ink/8 transition-all">
-              <Minus size={9}/>
+            {/* Alvos de toque: 16px era pequeno demais para acertar no dedo */}
+            <button onClick={()=>setRollModifier(m=>m-1)} aria-label="Diminuir modificador"
+              className="w-6 h-6 rounded flex items-center justify-center text-saga-dim hover:text-saga-text hover:bg-ink/8 transition-all">
+              <Minus size={11}/>
             </button>
             <span className={`text-[10px] font-mono font-bold w-7 text-center ${rollModifier>0?'text-saga-success':rollModifier<0?'text-saga-danger':'text-saga-dim'}`}>
               {rollModifier>=0?'+':''}{rollModifier}
             </span>
-            <button onClick={()=>setRollModifier(m=>m+1)}
-              className="w-4 h-4 rounded flex items-center justify-center text-saga-dim hover:text-saga-text hover:bg-ink/8 transition-all">
-              <Plus size={9}/>
+            <button onClick={()=>setRollModifier(m=>m+1)} aria-label="Aumentar modificador"
+              className="w-6 h-6 rounded flex items-center justify-center text-saga-dim hover:text-saga-text hover:bg-ink/8 transition-all">
+              <Plus size={11}/>
             </button>
             {rollModifier!==0&&(
-              <button onClick={()=>setRollModifier(0)}
-                className="text-saga-dim hover:text-saga-danger transition-colors ml-0.5"><X size={11} /></button>
+              <button onClick={()=>setRollModifier(0)} aria-label="Zerar modificador"
+                className="w-6 h-6 rounded flex items-center justify-center text-saga-dim hover:text-saga-danger transition-colors"><X size={11} /></button>
             )}
           </div>
         </div>

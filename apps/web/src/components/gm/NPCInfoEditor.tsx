@@ -131,12 +131,23 @@ export function NPCInfoEditor({ campaignId, npc: initial, players }: {
               <TypeIcon size={72} className="text-white/30" />
             </div>
           )}
+          {/* Desktop: overlay no hover. `touch-keep-hidden` impede que ele fique
+              permanentemente escurecendo o retrato em telas de toque, que usam
+              o botão dedicado abaixo. */}
           <button
             onClick={() => { setImgDraft(npc.imageUrl ?? ''); setImgOpen(true) }}
-            className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 text-white text-sm"
+            className="touch-keep-hidden absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity hidden sm:flex items-center justify-center gap-1.5 text-white text-sm"
           >
             <Camera size={16} />
             Alterar imagem
+          </button>
+          {/* Toque: botão sempre visível, sem cobrir o retrato */}
+          <button
+            onClick={() => { setImgDraft(npc.imageUrl ?? ''); setImgOpen(true) }}
+            aria-label="Alterar imagem"
+            className="sm:hidden absolute bottom-2 right-2 w-10 h-10 rounded-full bg-black/60 text-white flex items-center justify-center border border-white/25 backdrop-blur-sm"
+          >
+            <Camera size={16} />
           </button>
         </div>
 

@@ -488,7 +488,10 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
       <div className="pointer-events-none absolute inset-0 z-0" style={{background:'radial-gradient(ellipse 60% 40% at 50% 0%, rgb(var(--ember) / 0.12), transparent 60%), radial-gradient(ellipse at 100% 100%, rgba(201,162,42,0.06), transparent 55%)'}} />
 
       {/* ── Top bar ── */}
-      <div className="h-11 flex items-center justify-between px-3 sm:px-4 shrink-0 border-b border-gold/15 relative z-10 bg-bg/85 backdrop-blur-sm">
+      {/* No celular os botões (Mapa, Fichas, Iniciativa, Handouts, Música, Ao
+          Vivo, Encerrar...) não cabem em 375px; a barra rola na horizontal em
+          vez de cortar os últimos, que ficavam inalcançáveis. */}
+      <div className="h-11 flex items-center justify-between gap-2 px-3 sm:px-4 shrink-0 border-b border-gold/15 relative z-10 bg-bg/85 backdrop-blur-sm overflow-x-auto scrollbar-none">
 
         {/* Left */}
         <div className="flex items-center gap-2 sm:gap-5 min-w-0">
@@ -542,7 +545,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
               <span className="hidden sm:inline">Mapa</span>
             </button>
             {mapInputOpen && (
-              <div className="absolute top-full right-0 mt-1.5 z-[60] w-72 rounded-xl border border-border shadow-2xl overflow-hidden bg-surface backdrop-blur-md">
+              <div className="absolute top-full right-0 mt-1.5 z-[60] w-72 max-w-[85vw] rounded-xl border border-border shadow-2xl overflow-hidden bg-surface backdrop-blur-md">
                 <div className="px-3 py-2.5 flex items-center justify-between">
                   <span className="font-cinzel text-[11px] font-bold text-saga-muted uppercase tracking-widest">Imagem do Mapa</span>
                   <button onClick={()=>setMapInputOpen(false)} className="text-saga-dim hover:text-saga-text"><X size={13}/></button>

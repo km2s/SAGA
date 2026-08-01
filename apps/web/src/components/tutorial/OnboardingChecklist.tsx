@@ -116,7 +116,9 @@ export function OnboardingChecklist({ hasCampaign, firstCampaignId, firstGMCampa
 
   return (
     <>
-      <div className="fixed bottom-5 right-5 z-40 w-[300px] bg-card border border-ink/20 rounded-xl shadow-2xl overflow-hidden">
+      {/* No celular o painel de 300px encostava nas bordas; aqui ele respeita
+          as margens laterais e nunca ultrapassa a largura da tela. */}
+      <div className="fixed bottom-3 right-3 sm:bottom-5 sm:right-5 z-40 w-[300px] max-w-[calc(100vw-1.5rem)] bg-card border border-ink/20 rounded-xl shadow-2xl overflow-hidden">
 
         {/* Top accent */}
         <div className="h-0.5 bg-gradient-to-r from-purple via-gold to-purple" />

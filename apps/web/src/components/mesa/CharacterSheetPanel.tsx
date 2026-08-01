@@ -130,8 +130,8 @@ function HPEditor({ initialHp, maxHp, canEdit, onSave }: {
         <div className="flex items-center gap-1">
           {canEdit && (
             <button onClick={() => apply(hp - 1)}
-              className="w-5 h-5 flex items-center justify-center rounded text-saga-dim hover:text-red-400 hover:bg-red-400/10 transition-all">
-              <Minus size={9} />
+              className="w-7 h-7 flex items-center justify-center rounded text-saga-dim hover:text-red-400 hover:bg-red-400/10 transition-all">
+              <Minus size={11} />
             </button>
           )}
           {canEdit && editing ? (
@@ -157,8 +157,8 @@ function HPEditor({ initialHp, maxHp, canEdit, onSave }: {
           <span className="text-saga-dim font-normal text-[11px]"> / {maxHp}</span>
           {canEdit && (
             <button onClick={() => apply(hp + 1)}
-              className="w-5 h-5 flex items-center justify-center rounded text-saga-dim hover:text-green-400 hover:bg-green-400/10 transition-all">
-              <Plus size={9} />
+              className="w-7 h-7 flex items-center justify-center rounded text-saga-dim hover:text-green-400 hover:bg-green-400/10 transition-all">
+              <Plus size={11} />
             </button>
           )}
         </div>
@@ -405,10 +405,12 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
         onMouseMove={e => e.stopPropagation()}
         onMouseUp={e => e.stopPropagation()} />
 
-      {/* Panel */}
+      {/* Panel — a largura fixa (370 / 740px) estourava a tela no celular e o
+          conteúdo à direita ficava inalcançável; aqui ela nunca passa da
+          largura disponível do canvas. */}
       <div className="absolute left-0 inset-y-0 z-50 flex flex-col overflow-hidden transition-all duration-300"
         style={{
-          width: panelWidth,
+          width: `min(${panelWidth}px, 100%)`,
           background: 'rgb(var(--mesa-surface) / 0.98)',
           borderRight: '1px solid rgb(var(--ink) / 0.09)',
           backdropFilter: 'blur(20px)',

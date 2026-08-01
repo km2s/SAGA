@@ -22,7 +22,7 @@ export function LiveControlPanel({
   tokens, setTokens, syncTokens, onClose,
 }: Props) {
   return (
-    <div className="absolute top-full right-0 mt-1.5 z-[60] w-72 rounded-xl border border-border shadow-2xl overflow-hidden bg-surface backdrop-blur-md">
+    <div className="absolute top-full right-0 mt-1.5 z-[60] w-72 max-w-[85vw] rounded-xl border border-border shadow-2xl overflow-hidden bg-surface backdrop-blur-md">
       <div className="px-3 py-2.5 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Radio size={12} className="text-emerald-400"/>

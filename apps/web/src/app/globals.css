@@ -20,6 +20,9 @@ body {
   font-family: 'Spectral', serif;
   font-size: 15px;
   -webkit-font-smoothing: antialiased;
+  /* IDs de campanha e URLs coladas pelo mestre são palavras longas sem espaço:
+     sem isto elas esticam o layout e criam rolagem horizontal no celular. */
+  overflow-wrap: break-word;
 }
 
 /* Scrollbar */
@@ -304,6 +307,34 @@ select optgroup {
 
 /* Cria .font-cormorant como utilidade explícita (fonte serifada do template) */
 .font-cormorant { font-family: 'Cormorant Garamond', serif; }
+
+/* ============================================================
+   MOBILE / TOQUE
+   ============================================================ */
+
+/* Faixa rolável sem barra visível (abas de campanha, toolbars).
+   Já era usada em campaign/[id]/layout.tsx, mas nunca esteve definida. */
+.scrollbar-none {
+  scrollbar-width: none;            /* Firefox */
+  -ms-overflow-style: none;         /* IE/Edge legado */
+}
+.scrollbar-none::-webkit-scrollbar { width: 0; height: 0; display: none; }
+
+/* Em telas de toque não existe :hover, então toda ação revelada por hover
+   fica INALCANÇÁVEL (sair da conta, deletar atributo, remover disciplina,
+   rolar dado na ficha, renomear pasta de NPC...). Aqui elas ficam sempre
+   visíveis. `.touch-keep-hidden` é o opt-out para overlays que cobrem
+   conteúdo e têm um botão dedicado no mobile. */
+@media (hover: none) {
+  [class*="group-hover:opacity-100"]:not(.touch-keep-hidden),
+  [class*="group-hover/"][class*=":opacity-100"]:not(.touch-keep-hidden) {
+    opacity: 1;
+  }
+  [class*="group-hover:opacity-40"]:not(.touch-keep-hidden),
+  [class*="group-hover/"][class*=":opacity-40"]:not(.touch-keep-hidden) {
+    opacity: 0.4;
+  }
+}
 
 /* Respeita prefers-reduced-motion para as animações decorativas */
 @media (prefers-reduced-motion: reduce) {

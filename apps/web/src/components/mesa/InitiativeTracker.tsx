@@ -13,7 +13,7 @@ interface Props {
 
 export function InitiativeTracker({ initiativeOrder, currentTurnIdx, isGM, onRollInitiative, onNextTurn, onClose }: Props) {
   return (
-    <div className="absolute top-3 left-1/2 -translate-x-1/2 z-40 w-72 rounded-xl overflow-hidden shadow-2xl bg-bg/[0.97] border border-gold/25 backdrop-blur-md"
+    <div className="absolute top-3 left-1/2 -translate-x-1/2 z-40 w-72 max-w-[calc(100%-1.5rem)] rounded-xl overflow-hidden shadow-2xl bg-bg/[0.97] border border-gold/25 backdrop-blur-md"
       onWheel={e => e.stopPropagation()}>
       <div className="px-4 py-2.5 border-b border-gold/20 flex items-center justify-between bg-gold/[0.06]">
         <div className="flex items-center gap-2">
