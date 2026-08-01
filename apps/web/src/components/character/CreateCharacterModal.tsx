@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
+import { Select } from '@/components/ui/Select'
+import { SystemTemplatePicker } from '@/components/systems/SystemTemplatePicker'
 import {
   Swords, Moon, Skull, Rocket, Dice6, Pencil,
   Sword, Flame, Globe, Castle, Sparkles, Target, Leaf, Zap, Ghost, Eye, Shield, Cpu, Monitor, Compass,
@@ -54,6 +56,8 @@ export function CreateCharacterModal({ campaigns, open, onClose }: {
     name: '', race: '', class: '',
     level: '1', maxHp: '10', imageUrl: '',
   })
+  const [customTemplate, setCustomTemplate] = useState(false)
+  const [templateIds, setTemplateIds] = useState<string[]>([])
 
   function set(k: string, v: string) { setForm(f => ({ ...f, [k]: v })) }
 
@@ -66,6 +70,8 @@ export function CreateCharacterModal({ campaigns, open, onClose }: {
   function handleClose() {
     setError('')
     setForm({ campaignId: campaigns[0]?.id ?? '', name: '', race: '', class: '', level: '1', maxHp: '10', imageUrl: '' })
+    setCustomTemplate(false)
+    setTemplateIds([])
     onClose()
   }
 
@@ -89,6 +95,7 @@ export function CreateCharacterModal({ campaigns, open, onClose }: {
         maxHp: parseInt(form.maxHp) || 10,
         imageUrl: form.imageUrl.trim() || null,
         systemId: system?.id ?? null,
+        templateSystemIds: customTemplate && templateIds.length > 0 ? templateIds : undefined,
       }),
     }).catch(() => null)
 
@@ -106,8 +113,8 @@ export function CreateCharacterModal({ campaigns, open, onClose }: {
     return (
       <Modal open={open} onClose={handleClose} title="Criar Personagem">
         <div className="flex flex-col items-center gap-4 py-8 text-center">
-          <Dice6 size={40} className="text-saga-dim opacity-40" />
-          <p className="text-sm text-saga-muted">
+          <Dice6 size={40} className="text-ink-soft opacity-40" />
+          <p className="text-sm text-ink-soft">
             Você não está em nenhuma campanha como jogador, ou já tem um personagem em todas elas.
           </p>
           <Button variant="secondary" type="button" onClick={handleClose}>Fechar</Button>
@@ -122,22 +129,17 @@ export function CreateCharacterModal({ campaigns, open, onClose }: {
 
         {/* Campanha — ao selecionar, sistema é derivado automaticamente */}
         <div>
-          <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">
+          <label className="text-[11px] text-ink-soft font-bold uppercase tracking-widest block mb-1.5">
             Campanha *
           </label>
           {campaigns.length === 1 ? (
             // Uma única campanha — não precisa de dropdown
-            <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg border"
-              style={{ borderColor: 'rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)' }}>
-              <span className="text-sm text-saga-text font-medium">{selectedCampaign?.name}</span>
+            <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg border border-ink/15 bg-ink/[0.03]">
+              <span className="text-sm text-ink font-medium">{selectedCampaign?.name}</span>
             </div>
           ) : (
-            <select value={form.campaignId} onChange={e => set('campaignId', e.target.value)}
-              className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm focus:outline-none focus:border-gold/60">
-              {campaigns.map(c => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
+            <Select value={form.campaignId} onChange={v => set('campaignId', v)}
+              options={campaigns.map(c => ({ value: c.id, label: c.name }))} />
           )}
         </div>
 
@@ -149,7 +151,7 @@ export function CreateCharacterModal({ campaigns, open, onClose }: {
             <p className="text-xs font-medium truncate" style={{ color: systemColor }}>
               {system?.name ?? 'Personalizado'}
             </p>
-            <p className="text-[10px] text-saga-dim">
+            <p className="text-[10px] text-ink-soft">
               {system ? 'Sistema da campanha — atributos adicionados automaticamente' : 'Sem sistema — adicione atributos manualmente depois'}
             </p>
           </div>
@@ -157,47 +159,83 @@ export function CreateCharacterModal({ campaigns, open, onClose }: {
 
         {/* Nome */}
         <div>
-          <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">Nome *</label>
+          <label className="text-[11px] text-ink-soft font-bold uppercase tracking-widest block mb-1.5">Nome *</label>
           <input value={form.name} onChange={e => set('name', e.target.value)}
             placeholder="Lyra Sombramoon…"
-            className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm focus:outline-none focus:border-gold/60" />
+            className="w-full bg-parchment/60 border border-ink/20 rounded px-3 py-2 text-sm focus:outline-none focus:border-wax" />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">Raça / Clã</label>
+            <label className="text-[11px] text-ink-soft font-bold uppercase tracking-widest block mb-1.5">Raça / Clã</label>
             <input value={form.race} onChange={e => set('race', e.target.value)}
               placeholder="Meio-Elfo, Gangrel…"
-              className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm focus:outline-none focus:border-gold/60" />
+              className="w-full bg-parchment/60 border border-ink/20 rounded px-3 py-2 text-sm focus:outline-none focus:border-wax" />
           </div>
           <div>
-            <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">Classe / Conceito</label>
+            <label className="text-[11px] text-ink-soft font-bold uppercase tracking-widest block mb-1.5">Classe / Conceito</label>
             <input value={form.class} onChange={e => set('class', e.target.value)}
               placeholder="Feiticeiro, Toreador…"
-              className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm focus:outline-none focus:border-gold/60" />
+              className="w-full bg-parchment/60 border border-ink/20 rounded px-3 py-2 text-sm focus:outline-none focus:border-wax" />
           </div>
           <div>
-            <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">Nível / Geração</label>
+            <label className="text-[11px] text-ink-soft font-bold uppercase tracking-widest block mb-1.5">Nível / Geração</label>
             <input value={form.level} onChange={e => set('level', e.target.value)}
               type="number" min="1" max="20"
-              className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm focus:outline-none focus:border-gold/60" />
+              className="w-full bg-parchment/60 border border-ink/20 rounded px-3 py-2 text-sm focus:outline-none focus:border-wax" />
           </div>
           <div>
-            <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">HP / Vitalidade</label>
+            <label className="text-[11px] text-ink-soft font-bold uppercase tracking-widest block mb-1.5">HP / Vitalidade</label>
             <input value={form.maxHp} onChange={e => set('maxHp', e.target.value)}
               type="number" min="1"
-              className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm focus:outline-none focus:border-gold/60" />
+              className="w-full bg-parchment/60 border border-ink/20 rounded px-3 py-2 text-sm focus:outline-none focus:border-wax" />
           </div>
+        </div>
+
+        {/* Template da ficha — mesmo seletor da criação de NPC */}
+        <div>
+          <label className="text-[11px] text-ink-soft font-bold uppercase tracking-widest block mb-1.5">Template da Ficha</label>
+          <div className="grid grid-cols-2 gap-1.5 mb-2">
+            {[
+              { v: false, label: 'Sistema da campanha' },
+              { v: true,  label: 'Escolher template' },
+            ].map(opt => (
+              <button
+                key={String(opt.v)}
+                type="button"
+                onClick={() => setCustomTemplate(opt.v)}
+                className={`py-1.5 px-2 rounded-lg text-[11px] font-cinzel tracking-wide border transition-all ${
+                  customTemplate === opt.v
+                    ? 'bg-wax text-parchment border-wax-deep'
+                    : 'bg-parchment/50 border-ink/20 text-ink-soft hover:border-wax hover:text-wax'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          {customTemplate ? (
+            <>
+              <SystemTemplatePicker selected={templateIds} onChange={setTemplateIds} />
+              <p className="text-[10px] text-ink-soft mt-1.5">
+                1 sistema = a ficha própria dele (ex.: a ficha completa do Vampiro V20). 2+ = os modelos são misturados.
+              </p>
+            </>
+          ) : (
+            <p className="text-[10px] text-ink-soft">
+              A ficha nasce com os atributos de {system?.name ?? 'sistema da campanha'}. Escolha um template para usar a ficha de outro sistema.
+            </p>
+          )}
         </div>
 
         <div>
-          <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">URL da Imagem</label>
+          <label className="text-[11px] text-ink-soft font-bold uppercase tracking-widest block mb-1.5">URL da Imagem</label>
           <input value={form.imageUrl} onChange={e => set('imageUrl', e.target.value)}
             placeholder="https://…"
-            className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm focus:outline-none focus:border-gold/60" />
+            className="w-full bg-parchment/60 border border-ink/20 rounded px-3 py-2 text-sm focus:outline-none focus:border-wax" />
         </div>
 
-        {error && <p className="text-sm text-saga-danger">{error}</p>}
+        {error && <p className="text-sm text-wax">{error}</p>}
 
         <div className="flex justify-end gap-2 pt-1">
           <Button variant="secondary" type="button" onClick={handleClose}>Cancelar</Button>

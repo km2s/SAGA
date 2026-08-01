@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from 'discord.js'
 import type { Command } from '../../types.js'
-import { roll, rollWithAdvantage, buildExpression, isDieExpression } from '../../lib/dice.js'
+import { roll, rollWithAdvantage, buildExpression, isDieExpression, type RollResult } from '../../lib/dice.js'
 import { rollEmbed, advantageEmbed, errorEmbed } from '../../lib/embeds.js'
 import { getOrCreateUser, getCampaignByGuild, getMember, getActiveSession } from '../../lib/permissions.js'
 import { prisma } from 'database'
@@ -93,10 +93,10 @@ async function resolveInput(input: string, discordId: string, username: string, 
   const member = await getMember(discordId, campaign.id)
   if (!member?.character) throw new Error('Você não tem uma ficha de personagem nesta campanha.')
 
-  const normalizedInput = input.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+  const normalizedInput = input.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 
   const attrEntry = member.character.attributes.find((a: { customDie: string | null; value: number; attribute: { name: string; defaultDie: string } }) =>
-    a.attribute.name.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase() === normalizedInput
+    a.attribute.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase() === normalizedInput
   )
 
   if (!attrEntry) {
@@ -108,7 +108,7 @@ async function resolveInput(input: string, discordId: string, username: string, 
   return { expression: die, modifier: attrEntry.value, attributeName: attrEntry.attribute.name }
 }
 
-async function saveRollLog(discordId: string, guildId: string, expression: string, result: any, attribute?: string) {
+async function saveRollLog(discordId: string, guildId: string, expression: string, result: RollResult, attribute?: string) {
   try {
     const campaign = await getCampaignByGuild(guildId)
     if (!campaign) return

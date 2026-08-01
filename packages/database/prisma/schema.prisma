@@ -1,6 +1,5 @@
 generator client {
   provider      = "prisma-client-js"
-  output        = "../../../apps/web/.prisma/client"
   binaryTargets = ["native", "rhel-openssl-1.0.x", "rhel-openssl-3.0.x"]
 }
 
@@ -20,29 +19,55 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  memberships CampaignMember[]
-  notes       Note[]
-  systems     RPGSystem[]
+  memberships  CampaignMember[]
+  notes        Note[]
+  systems      RPGSystem[]
+  applications CampaignApplication[]
 }
 
 // ─── Campanha ──────────────────────────────────────────────
 
 model Campaign {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  theme       String?
-  systemId    String?
-  guildId     String?  // Discord server ID vinculado
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                String   @id @default(cuid())
+  name              String
+  description       String?  @db.Text
+  theme             String?
+  systemId          String?
+  guildId           String?
+  campaignType      String   @default("campaign")
+  contentTone       String?
+  playStyle         String?
+  sessionFrequency  String?
+  minExperience     String?
+  isOpen            Boolean  @default(false)
+  maxSlots          Int?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
-  system   RPGSystem?      @relation(fields: [systemId], references: [id])
-  members  CampaignMember[]
-  npcs     NPC[]
-  sessions Session[]
-  notes    Note[]
-  handouts Handout[]
+  system       RPGSystem?            @relation(fields: [systemId], references: [id])
+  members      CampaignMember[]
+  npcs         NPC[]
+  npcFolders   NpcFolder[]
+  sessions     Session[]
+  notes        Note[]
+  handouts     Handout[]
+  applications CampaignApplication[]
+}
+
+model CampaignApplication {
+  id              String   @id @default(cuid())
+  campaignId      String
+  userId          String
+  characterDesc   String   @default("") @db.Text
+  experienceLevel String
+  status          String   @default("pending")
+  createdAt       DateTime @default(now())
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id])
+
+  @@unique([campaignId, userId])
+  @@index([campaignId])
 }
 
 enum MemberRole {
@@ -87,8 +112,10 @@ model RPGSystem {
   creatorId   String?
   creator     User?    @relation(fields: [creatorId], references: [id])
 
-  attributes  SystemAttribute[]
-  campaigns   Campaign[]
+  attributes     SystemAttribute[]
+  campaigns      Campaign[]
+  npcSheets      NPC[]              @relation("NPCSheetSystem")
+  characterSheets CharacterSheet[]  @relation("CharacterSheetSystem")
 }
 
 model SystemAttribute {
@@ -116,14 +143,20 @@ model CharacterSheet {
   maxHp     Int      @default(0)
   isPublic  Boolean  @default(false)
   memberId  String   @unique
+  // Sistema usado como template desta ficha (null = sistema da campanha).
+  // Permite um personagem "só Vampiro V20" numa campanha homebrew.
+  sheetSystemId String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  member     CampaignMember       @relation(fields: [memberId], references: [id])
-  attributes CharacterAttribute[]
-  textFields CharacterTextField[]
-  weapons    CharacterWeapon[]
-  spellSlots CharacterSpellSlot[]
+  member      CampaignMember       @relation(fields: [memberId], references: [id])
+  sheetSystem RPGSystem?           @relation("CharacterSheetSystem", fields: [sheetSystemId], references: [id], onDelete: SetNull)
+  attributes  CharacterAttribute[]
+  textFields  CharacterTextField[]
+  weapons     CharacterWeapon[]
+  spellSlots  CharacterSpellSlot[]
+
+  @@index([sheetSystemId])
 }
 
 model CharacterAttribute {
@@ -198,13 +231,37 @@ model NPC {
   isPublic       Boolean  @default(false)
   campaignId     String
   linkedMemberId String?
+  folderId       String?
+  // Sistema usado como template da ficha deste NPC (null = sistema da campanha).
+  // Permite um NPC "só Vampiro V20" ou "só Lobisomem" numa campanha homebrew.
+  sheetSystemId  String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   campaign     Campaign        @relation(fields: [campaignId], references: [id])
   linkedMember CampaignMember? @relation("NPCLinkedMember", fields: [linkedMemberId], references: [id])
+  folder       NpcFolder?      @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  sheetSystem  RPGSystem?      @relation("NPCSheetSystem", fields: [sheetSystemId], references: [id], onDelete: SetNull)
   attributes   NPCAttribute[]
+  textFields   NPCTextField[]
+  weapons      NPCWeapon[]
+  spellSlots   NPCSpellSlot[]
   visibilities NPCVisibility[]
+
+  @@index([campaignId])
+  @@index([folderId])
+  @@index([sheetSystemId])
+}
+
+model NpcFolder {
+  id         String   @id @default(cuid())
+  campaignId String
+  name       String
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  npcs     NPC[]
 
   @@index([campaignId])
 }
@@ -220,6 +277,49 @@ model NPCAttribute {
   attribute SystemAttribute @relation(fields: [attributeId], references: [id])
 
   @@unique([npcId, attributeId])
+}
+
+model NPCTextField {
+  id    String @id @default(cuid())
+  npcId String
+  key   String
+  label String
+  value String @default("")
+  order Int    @default(0)
+
+  npc NPC @relation(fields: [npcId], references: [id], onDelete: Cascade)
+
+  @@unique([npcId, key])
+  @@index([npcId])
+}
+
+model NPCWeapon {
+  id          String  @id @default(cuid())
+  npcId       String
+  name        String
+  attackBonus String?
+  damage      String?
+  damageType  String?
+  range       String?
+  properties  String?
+  order       Int     @default(0)
+
+  npc NPC @relation(fields: [npcId], references: [id], onDelete: Cascade)
+
+  @@index([npcId])
+}
+
+model NPCSpellSlot {
+  id    String @id @default(cuid())
+  npcId String
+  level Int
+  total Int    @default(0)
+  used  Int    @default(0)
+
+  npc NPC @relation(fields: [npcId], references: [id], onDelete: Cascade)
+
+  @@unique([npcId, level])
+  @@index([npcId])
 }
 
 model NPCVisibility {
@@ -243,10 +343,12 @@ model Session {
   startedAt      DateTime  @default(now())
   endedAt        DateTime?
   campaignId     String
-  tokensJson     String?
-  musicYoutubeId String?
-  musicVolume    Int       @default(50)
-  mapImageUrl    String?
+  tokensJson      String?
+  musicYoutubeId  String?
+  musicVolume     Int       @default(50)
+  mapImageUrl     String?
+  liveMembersJson String?
+  markersJson     String?
 
   campaign Campaign        @relation(fields: [campaignId], references: [id])
   rollLogs RollLog[]

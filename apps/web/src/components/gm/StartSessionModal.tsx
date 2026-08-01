@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
+import { Play } from 'lucide-react'
 
 export function StartSessionModal({ campaignId, open, onClose }: { campaignId: string; open: boolean; onClose: () => void }) {
   const router = useRouter()
@@ -35,21 +36,21 @@ export function StartSessionModal({ campaignId, open, onClose }: { campaignId: s
     <Modal open={open} onClose={onClose} title="Iniciar Sessão">
       <form onSubmit={handleStart} className="flex flex-col gap-4">
         <div>
-          <label className="text-[11px] text-saga-muted font-bold uppercase tracking-widest block mb-1.5">
+          <label className="text-[11px] text-ink-soft font-bold uppercase tracking-widest block mb-1.5">
             Nome da Sessão (opcional)
           </label>
           <input
             value={name}
             onChange={e => setName(e.target.value)}
             placeholder="Sessão 1, A Floresta Proibida..."
-            className="w-full bg-surface-2 border border-border rounded px-3 py-2.5 text-sm text-saga-text placeholder:text-saga-dim focus:outline-none focus:border-gold/60 transition-colors"
+            className="w-full bg-parchment/60 border border-ink/20 rounded px-3 py-2.5 text-sm text-ink placeholder:text-ink-soft focus:outline-none focus:border-wax transition-colors"
           />
         </div>
-        {error && <p className="text-sm text-saga-danger">{error}</p>}
+        {error && <p className="text-sm text-red-700">{error}</p>}
         <div className="flex justify-end gap-2">
           <Button variant="secondary" type="button" onClick={onClose}>Cancelar</Button>
           <Button variant="success" type="submit" disabled={loading}>
-            {loading ? 'Iniciando...' : '▶ Iniciar Sessão'}
+            {loading ? 'Iniciando...' : <><Play size={13} className="fill-current" /> Iniciar Sessão</>}
           </Button>
         </div>
       </form>

@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Check } from 'lucide-react'
 
 interface Attr { id: string; value: number; customDie: string | null; attribute: { name: string; defaultDie: string; description?: string | null } }
 interface TextField { id: string; key: string; label: string; value: string; order: number }
@@ -12,7 +13,7 @@ const STAT_NAMES = ['Força', 'Destreza', 'Constituição', 'Inteligência', 'Sa
 function SectionDivider({ title }: { title: string }) {
   return (
     <div className="flex items-center gap-3 mb-4">
-      <p className="font-almendra text-[9px] font-bold text-saga-dim uppercase tracking-[0.2em] whitespace-nowrap">{title}</p>
+      <p className="font-almendra text-[9px] font-bold text-ink-soft uppercase tracking-[0.2em] whitespace-nowrap">{title}</p>
       <div className="flex-1 h-px" style={{ background: `${ACCENT}33` }} />
     </div>
   )
@@ -38,10 +39,10 @@ function EditableVal({ attrId, value, characterId, onSaved }: { attrId: string; 
   if (editing) return (
     <input autoFocus type="number" value={val} onChange={e => setVal(e.target.value)}
       onBlur={save} onKeyDown={e => { if (e.key === 'Enter') void save(); if (e.key === 'Escape') setEditing(false) }}
-      className="w-14 bg-surface-2 border border-green-600/40 rounded text-center font-bold focus:outline-none text-xl" />
+      className="w-14 bg-parchment/60 border border-green-600/40 rounded text-center font-bold focus:outline-none text-xl" />
   )
   return (
-    <span className="cursor-pointer hover:text-green-400 font-mono font-bold text-saga-text transition-colors text-xl"
+    <span className="cursor-pointer hover:text-green-400 font-mono font-bold text-ink transition-colors text-xl"
       onClick={() => { setEditing(true); setVal(String(value)) }}>{value}</span>
   )
 }
@@ -60,10 +61,10 @@ function TFField({ characterId, textFields, tfKey, label, placeholder, multiline
     }).catch(() => null)
     setSaving(false); onRefresh()
   }
-  const cls = 'w-full bg-surface-2/50 border border-white/10 rounded-lg text-sm text-saga-muted placeholder-saga-dim/40 focus:outline-none focus:border-green-500/50 focus:bg-surface-2 px-3 py-2 transition-colors'
+  const cls = 'w-full bg-parchment/40 border border-ink/15 rounded-lg text-sm text-ink-soft placeholder-ink-soft/40 focus:outline-none focus:border-green-500/50 focus:bg-parchment/60 px-3 py-2 transition-colors'
   return (
     <div className="space-y-1">
-      <label className="text-[10px] font-bold text-saga-dim uppercase tracking-wider">{label}</label>
+      <label className="text-[10px] font-bold text-ink-soft uppercase tracking-wider">{label}</label>
       {multiline
         ? <textarea rows={4} value={val} onChange={e => setVal(e.target.value)} onBlur={e => void save(e.target.value)}
             disabled={!canEdit || saving} placeholder={placeholder} className={cls} />
@@ -86,7 +87,7 @@ export function DungeonWorldSheet({ characterId, characterLevel, attributes, tex
   const xpAttr = attributes.find(a => a.attribute.name === 'XP')
 
   const card = 'rounded-xl p-4' as const
-  const cardStyle = { background: 'rgba(17,17,30,0.6)', border: '1px solid rgba(255,255,255,0.07)' }
+  const cardStyle = { background: 'rgb(var(--card) / 0.92)', border: '1px solid rgb(var(--ink) / 0.14)' }
   const tabs = [
     { id: 'stats', label: 'Stats' }, { id: 'moves', label: 'Moves' },
     { id: 'estado', label: 'Estado' }, { id: 'personagem', label: 'Personagem' },
@@ -103,32 +104,32 @@ export function DungeonWorldSheet({ characterId, characterLevel, attributes, tex
           <div className="w-2 h-2 rounded-full" style={{ background: ACCENT }} />
           <span className="font-cinzel text-sm font-bold" style={{ color: ACCENT }}>Dungeon World</span>
         </div>
-        <div className="flex items-center gap-4 text-xs text-saga-dim">
-          {hpAttr && <span>PV: <span className="font-bold text-saga-text">{hpAttr.value}</span></span>}
+        <div className="flex items-center gap-4 text-xs text-ink-soft">
+          {hpAttr && <span>PV: <span className="font-bold text-ink">{hpAttr.value}</span></span>}
           {dmgAttr && <span>Dano: <span className="font-bold" style={{ color: ACCENT }}>d{dmgAttr.value}</span></span>}
-          {armorAttr && <span>Armadura: <span className="font-bold text-saga-text">{armorAttr.value}</span></span>}
+          {armorAttr && <span>Armadura: <span className="font-bold text-ink">{armorAttr.value}</span></span>}
         </div>
       </div>
 
       {/* XP Bar */}
       <div className={card} style={cardStyle}>
         <div className="flex items-center justify-between mb-2">
-          <span className="text-[10px] font-bold text-saga-dim uppercase tracking-wider">Experiência</span>
-          <span className="text-[10px] text-saga-dim">{xpVal} / {xpMax} {xpVal >= xpMax && <span style={{ color: ACCENT }}>✓ Suba de Nível!</span>}</span>
+          <span className="text-[10px] font-bold text-ink-soft uppercase tracking-wider">Experiência</span>
+          <span className="text-[10px] text-ink-soft">{xpVal} / {xpMax} {xpVal >= xpMax && <span style={{ color: ACCENT }} className="inline-flex items-center gap-1"><Check size={11} /> Suba de Nível!</span>}</span>
         </div>
         <div className="flex gap-1">
           {Array.from({ length: xpMax }).map((_, i) => (
-            <div key={i} className="flex-1 h-2 rounded-full" style={{ background: i < xpVal ? ACCENT : 'rgba(255,255,255,0.1)' }} />
+            <div key={i} className="flex-1 h-2 rounded-full" style={{ background: i < xpVal ? ACCENT : 'rgb(var(--ink) / 0.1)' }} />
           ))}
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.05)' }}>
+      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgb(var(--ink) / 0.08)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
         {tabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className="flex-1 py-1.5 rounded-md text-[11px] font-bold uppercase tracking-wider transition-all"
-            style={tab === t.id ? { background: ACCENT, color: '#fff' } : { color: 'rgba(255,255,255,0.4)' }}>
+            style={tab === t.id ? { background: ACCENT, color: '#fff' } : { color: 'rgb(var(--ink) / 0.4)' }}>
             {t.label}
           </button>
         ))}
@@ -139,12 +140,12 @@ export function DungeonWorldSheet({ characterId, characterLevel, attributes, tex
           <SectionDivider title="Estatísticas (2d6 + Mod)" />
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {stats.map(a => (
-              <div key={a.id} className="text-center p-3 rounded-lg" style={{ background: 'rgba(0,0,0,0.3)' }}>
-                <div className="text-[10px] font-bold text-saga-dim uppercase mb-1">{a.attribute.name.slice(0, 3).toUpperCase()}</div>
-                <div className="text-[10px] text-saga-dim mb-1">{a.attribute.name}</div>
+              <div key={a.id} className="text-center p-3 rounded-lg" style={{ background: 'rgb(var(--ink) / 0.08)' }}>
+                <div className="text-[10px] font-bold text-ink-soft uppercase mb-1">{a.attribute.name.slice(0, 3).toUpperCase()}</div>
+                <div className="text-[10px] text-ink-soft mb-1">{a.attribute.name}</div>
                 <EditableVal attrId={a.id} value={a.value} characterId={characterId} onSaved={onRefresh} />
                 <div className="mt-1 text-lg font-bold" style={{ color: ACCENT }}>{statMod(a.value)}</div>
-                <div className="text-[9px] text-saga-dim">modificador</div>
+                <div className="text-[9px] text-ink-soft">modificador</div>
               </div>
             ))}
           </div>
@@ -172,7 +173,7 @@ export function DungeonWorldSheet({ characterId, characterLevel, attributes, tex
           <div className="space-y-3">
             {hpAttr && (
               <div className="space-y-1">
-                <div className="flex justify-between text-[10px] font-bold text-saga-dim uppercase tracking-wider">
+                <div className="flex justify-between text-[10px] font-bold text-ink-soft uppercase tracking-wider">
                   <span>Pontos de Vida</span>
                   <span>{hpAttr.value} PV máximos</span>
                 </div>

@@ -25,27 +25,50 @@ export async function POST(req: Request) {
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
-  const { name, description, theme, systemName } = body
+  const { name, description, theme, systemName, campaignType, isOpen, maxSlots, contentTone, playStyle, sessionFrequency, minExperience, addToSystems, systemCategory, systemDescription, customSystemName } = body
 
   if (!name) return NextResponse.json({ error: 'Nome obrigatório' }, { status: 400 })
 
   const user = await prisma.user.findUnique({ where: { discordId: session.user.discordId } })
   if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
-  let system = systemName
-    ? await prisma.rPGSystem.findFirst({ where: { name: systemName } })
+  // When "Personalizado" is selected and the GM gave a custom name, use that name; otherwise use "Personalizado"
+  const resolvedSystemName: string | null = systemName
+    ? (systemName === 'Personalizado' && typeof customSystemName === 'string' && customSystemName.trim()
+        ? customSystemName.trim().slice(0, 100)
+        : systemName)
     : null
 
-  if (systemName && !system) {
-    system = await prisma.rPGSystem.create({ data: { name: systemName } })
+  let system = resolvedSystemName
+    ? await prisma.rPGSystem.findFirst({ where: { name: resolvedSystemName, isPreset: true } })
+    : null
+
+  if (resolvedSystemName && !system) {
+    const shouldRegister = addToSystems === true
+    system = await prisma.rPGSystem.create({
+      data: {
+        name: resolvedSystemName,
+        description: shouldRegister && typeof systemDescription === 'string' ? systemDescription.trim().slice(0, 500) || null : null,
+        category: shouldRegister && typeof systemCategory === 'string' ? systemCategory : 'custom',
+        isPreset: false,
+        creatorId: shouldRegister ? user.id : null,
+      },
+    })
   }
 
   const campaign = await prisma.campaign.create({
     data: {
       name,
-      description,
+      description: typeof description === 'string' ? description.trim().slice(0, 2000) : null,
       theme,
       systemId: system?.id ?? null,
+      campaignType: campaignType === 'oneshot' ? 'oneshot' : 'campaign',
+      contentTone: typeof contentTone === 'string' ? contentTone : null,
+      playStyle: typeof playStyle === 'string' ? playStyle : null,
+      sessionFrequency: typeof sessionFrequency === 'string' ? sessionFrequency : null,
+      minExperience: typeof minExperience === 'string' ? minExperience : null,
+      isOpen: isOpen === true,
+      maxSlots: isOpen && typeof maxSlots === 'number' && maxSlots > 0 ? maxSlots : null,
       members: { create: { userId: user.id, role: 'GM' } },
     },
     include: { system: true },

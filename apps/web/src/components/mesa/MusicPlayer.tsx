@@ -86,10 +86,9 @@ export function MusicPlayer({ open, onClose, onMusicChange }: MusicPlayerProps) 
     <div className="fixed inset-0 z-[200] flex items-end justify-center pb-8" onClick={e => { if (e.target === e.currentTarget) onClose() }}>
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="relative z-10 w-full max-w-lg mx-4 rounded-xl border border-border shadow-2xl overflow-hidden"
-           style={{ background: 'rgba(13,13,26,0.98)' }}>
+      <div className="relative z-10 w-full max-w-lg mx-4 rounded-xl border border-border shadow-2xl overflow-hidden bg-surface">
         {/* Header */}
-        <div className="px-5 py-4 border-b border-white/6 flex items-center justify-between">
+        <div className="px-5 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className={`w-2 h-2 rounded-full transition-all ${playing ? 'bg-saga-success animate-pulse' : 'bg-saga-dim'}`} />
             <span className="font-cinzel text-sm font-semibold flex items-center gap-2">
@@ -103,8 +102,7 @@ export function MusicPlayer({ open, onClose, onMusicChange }: MusicPlayerProps) 
 
         {/* Now playing strip */}
         {current && (
-          <div className="px-5 py-3 border-b border-white/6 flex items-center gap-3"
-               style={{ background: 'rgba(201,162,42,0.05)' }}>
+          <div className="px-5 py-3 flex items-center gap-3 bg-gold/5">
             <current.Icon size={22} className="text-saga-muted shrink-0" />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-saga-text truncate">{current.title}</p>
@@ -126,7 +124,7 @@ export function MusicPlayer({ open, onClose, onMusicChange }: MusicPlayerProps) 
                 className={`flex flex-col items-center gap-2 p-3 rounded-lg border transition-all ${
                   current?.id === track.id
                     ? 'border-gold/50 bg-gold/10 text-gold'
-                    : 'border-white/8 hover:border-white/16 hover:bg-white/4 text-saga-muted hover:text-saga-text'
+                    : 'bg-bg/30 border-ink/20 dark:border-bg/60 hover:border-gold/40 hover:bg-bg/50 text-saga-muted hover:text-saga-text'
                 }`}>
                 <track.Icon size={22} />
                 <div className="text-center">
@@ -147,17 +145,15 @@ export function MusicPlayer({ open, onClose, onMusicChange }: MusicPlayerProps) 
         </div>
 
         {/* Custom URL */}
-        <div className="px-4 pb-4 border-t border-white/6 pt-4">
+        <div className="px-4 pb-4 pt-2">
           <p className="text-[10px] font-bold text-saga-dim uppercase tracking-widest mb-2">URL do YouTube</p>
           <div className="flex gap-2">
             <input value={customUrl} onChange={e => setCustomUrl(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && playCustom()}
               placeholder="https://youtube.com/watch?v=..."
-              className="flex-1 px-3 py-2 rounded text-[12px] text-saga-text placeholder:text-saga-dim focus:outline-none"
-              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)' }} />
+              className="flex-1 px-3 py-2 rounded text-[12px] text-saga-text placeholder:text-saga-dim focus:outline-none bg-bg/50 border border-ink/20 dark:border-bg/60 focus:border-gold/60 transition-colors" />
             <button onClick={playCustom} disabled={!customUrl.trim()}
-              className="px-3 py-2 rounded text-[11px] font-bold text-bg disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #c9a22a, #f0d060)' }}>
+              className="px-3 py-2 rounded text-[11px] font-bold text-bg disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center bg-gradient-gold">
               <Play size={12} />
             </button>
           </div>

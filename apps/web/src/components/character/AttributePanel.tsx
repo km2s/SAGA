@@ -48,13 +48,13 @@ export function AttributePanel({ characterId, attributes, canEdit }: {
   const targetAttr = attributes.find(a => a.id === deleteTarget)
 
   return (
-    <div className="bg-surface border border-border rounded-lg overflow-hidden">
-      <div className="px-5 py-4 border-b border-border flex items-center justify-between">
+    <div className="bg-card border border-ink/20 rounded-lg overflow-hidden">
+      <div className="px-5 py-4 border-b border-ink/20 flex items-center justify-between">
         <h3 className="font-cinzel text-base font-semibold">Atributos</h3>
         {canEdit && (
           <button
             onClick={() => setAddOpen(true)}
-            className="px-3 py-1 rounded text-xs font-medium bg-gold-dim border border-gold/30 text-gold hover:bg-gold/20 transition-colors"
+            className="px-3 py-1 rounded text-xs font-medium bg-gold/15 border border-gold/30 text-gold hover:bg-gold/20 transition-colors"
           >
             + Adicionar
           </button>
@@ -62,7 +62,7 @@ export function AttributePanel({ characterId, attributes, canEdit }: {
       </div>
 
       {attributes.length === 0 ? (
-        <div className="px-5 py-10 text-center text-sm text-saga-muted">
+        <div className="px-5 py-10 text-center text-sm text-ink-soft">
           {canEdit
             ? 'Nenhum atributo. Clique em "+ Adicionar" para registrar seus atributos.'
             : 'Nenhum atributo registrado.'}
@@ -75,24 +75,24 @@ export function AttributePanel({ characterId, attributes, canEdit }: {
             const isPositive = !mod.startsWith('-')
 
             return (
-              <div key={attr.id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-surface-2 transition-all group">
-                <div className="w-10 h-10 rounded-lg bg-surface-3 border border-border flex items-center justify-center text-saga-muted shrink-0">
+              <div key={attr.id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-parchment/60 transition-all group">
+                <div className="w-10 h-10 rounded-lg bg-ink/[0.06] border border-ink/20 flex items-center justify-center text-ink-soft shrink-0">
                   <AttrIcon size={18} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium">{attr.attribute.name}</p>
-                  <p className="text-[11px] text-saga-muted">
+                  <p className="text-[11px] text-ink-soft">
                     {attr.customDie ?? attr.attribute.defaultDie} · valor {attr.value}
                   </p>
                 </div>
-                <p className={`font-cinzel text-2xl font-bold mr-3 ${isPositive ? 'text-gold' : 'text-saga-danger'}`}>
+                <p className={`font-cinzel text-2xl font-bold mr-3 ${isPositive ? 'text-gold' : 'text-red-700'}`}>
                   {mod}
                 </p>
                 {canEdit && (
                   <button
                     onClick={() => setDeleteTarget(attr.id)}
                     disabled={deleting === attr.id}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity px-1.5 py-1 rounded text-saga-danger border border-saga-danger/30 hover:bg-saga-danger/10 disabled:opacity-50"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity px-1.5 py-1 rounded text-red-700 border border-saga-danger/30 hover:bg-saga-danger/10 disabled:opacity-50"
                   >
                     {deleting === attr.id ? '...' : <X size={10} />}
                   </button>

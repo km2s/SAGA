@@ -46,13 +46,13 @@ export default async function NotesPage({ params }: { params: { id: string } }) 
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="font-cinzel text-xl font-semibold">Notas</h1>
-          <p className="text-sm text-saga-muted mt-1">{campaign.name}</p>
+          <p className="text-sm text-ink-soft mt-1">{campaign.name}</p>
         </div>
         <NotesActions campaignId={params.id} isGM={isGM} />
       </div>
 
       {notes.length === 0 ? (
-        <div className="text-center py-16 text-saga-muted text-sm">
+        <div className="text-center py-16 text-ink-soft text-sm">
           Nenhuma nota ainda. Clique em &quot;+ Nova Nota&quot; para começar.
         </div>
       ) : (
@@ -60,19 +60,19 @@ export default async function NotesPage({ params }: { params: { id: string } }) 
           {notes.map(note => {
             const vis = visLabel[note.visibility]
             return (
-              <div key={note.id} className="bg-surface border border-border rounded-lg p-5 flex flex-col gap-3 card-hover cursor-pointer">
+              <div key={note.id} className="bg-card border border-ink/20 rounded-lg p-5 flex flex-col gap-3 card-hover cursor-pointer">
                 <div className="flex items-start justify-between gap-2">
-                  <p className="font-cinzel text-sm font-semibold text-saga-text leading-snug">
+                  <p className="font-cinzel text-sm font-semibold text-ink leading-snug">
                     {note.title ?? 'Sem título'}
                   </p>
                   <Badge variant={vis.variant}>{vis.label}</Badge>
                 </div>
-                <p className="text-[13px] text-saga-muted leading-relaxed line-clamp-4">
+                <p className="text-[13px] text-ink-soft leading-relaxed line-clamp-4">
                   {note.content}
                 </p>
-                <div className="flex items-center justify-between pt-1 border-t border-border">
-                  <p className="text-[11px] text-saga-dim">{note.author.username}</p>
-                  <p className="text-[11px] text-saga-dim">
+                <div className="flex items-center justify-between pt-1 border-t border-ink/20">
+                  <p className="text-[11px] text-ink-soft">{note.author.username}</p>
+                  <p className="text-[11px] text-ink-soft">
                     {new Date(note.createdAt).toLocaleDateString('pt-BR')}
                   </p>
                 </div>

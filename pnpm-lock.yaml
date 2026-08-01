@@ -38,7 +38,7 @@ importers:
     dependencies:
       '@anthropic-ai/sdk':
         specifier: ^0.102.0
-        version: 0.102.0
+        version: 0.102.0(zod@3.25.76)
       database:
         specifier: workspace:*
         version: link:../../packages/database
@@ -46,7 +46,7 @@ importers:
         specifier: ^1.17.0
         version: 1.17.0(react@18.3.1)
       next:
-        specifier: ^14.2.4
+        specifier: ^14.2.25
         version: 14.2.35(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       next-auth:
         specifier: ^4.24.7
@@ -60,6 +60,9 @@ importers:
       react-dom:
         specifier: ^18.3.1
         version: 18.3.1(react@18.3.1)
+      zod:
+        specifier: ^3.23.8
+        version: 3.25.76
     devDependencies:
       '@types/node':
         specifier: ^20.14.2
@@ -95,6 +98,9 @@ importers:
       prisma:
         specifier: ^5.14.0
         version: 5.22.0
+      typescript:
+        specifier: ^5.4.5
+        version: 5.9.3
 
 packages:
 
@@ -1068,14 +1074,19 @@ packages:
   yallist@4.0.0:
     resolution: {integrity: sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A==}
 
+  zod@3.25.76:
+    resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
+
 snapshots:
 
   '@alloc/quick-lru@5.2.0': {}
 
-  '@anthropic-ai/sdk@0.102.0':
+  '@anthropic-ai/sdk@0.102.0(zod@3.25.76)':
     dependencies:
       json-schema-to-ts: 3.1.1
       standardwebhooks: 1.0.0
+    optionalDependencies:
+      zod: 3.25.76
 
   '@babel/runtime@7.29.7': {}
 
@@ -1893,3 +1904,5 @@ snapshots:
   ws@8.21.0: {}
 
   yallist@4.0.0: {}
+
+  zod@3.25.76: {}

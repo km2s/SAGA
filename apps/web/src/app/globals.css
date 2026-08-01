@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Almendra+SC&family=Cinzel:wght@400;600;700&family=Cinzel+Decorative:wght@400;700;900&family=IM+Fell+English:ital@0;1&family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Almendra+SC&family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=IM+Fell+English:ital@0;1&family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
 
 :root {
   --gold-dim: rgba(201, 162, 42, 0.12);
@@ -17,18 +17,19 @@
 }
 
 body {
-  background-color: #0a0a12;
-  color: #e2e2f0;
   font-family: 'Spectral', serif;
   font-size: 15px;
   -webkit-font-smoothing: antialiased;
+  /* IDs de campanha e URLs coladas pelo mestre são palavras longas sem espaço:
+     sem isto elas esticam o layout e criam rolagem horizontal no celular. */
+  overflow-wrap: break-word;
 }
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #3d3d58; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #4a4a6a; }
+::-webkit-scrollbar-thumb { background: rgb(var(--ink) / 0.35); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgb(var(--ink) / 0.5); }
 
 /* RPG font utilities */
 .font-display   { font-family: 'Cinzel Decorative', serif; }  /* nomes, logo, destaque épico */
@@ -67,6 +68,27 @@ body {
 .bg-danger-dim { background: var(--danger-dim); }
 .border-gold-dim { border-color: var(--gold-glow); }
 
+/* Native select — dropdown segue o tema (pergaminho ↔ cripta) */
+select {
+  color-scheme: light;
+}
+.dark select {
+  color-scheme: dark;
+}
+
+select option {
+  background-color: rgb(var(--card));
+  color: rgb(var(--ink));
+}
+
+select optgroup {
+  background-color: rgb(var(--parchment-deep));
+  color: rgb(var(--ink-soft));
+  font-weight: 600;
+}
+
+/* Mesa: selects seguem o tema global (claro↔cripta), como o restante do app */
+
 /* Card hover lift */
 .card-hover {
   transition: all 0.18s ease;
@@ -74,4 +96,252 @@ body {
 .card-hover:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+}
+
+/* ============================================================
+   SAGA — Design System Medieval "Pergaminho & Cripta"
+   (portado do template; usado em landing, login e superfícies
+   pergaminho. Não altera o tema escuro do app interno.)
+   ============================================================ */
+/* Tokens em canais RGB "R G B" para suportar o modificador de opacidade do
+   Tailwind (rgb(var(--x) / <alpha>)) e trocar de valor com a classe .dark.
+   Uso direto em CSS: rgb(var(--token)) ou rgb(var(--token) / alpha). */
+:root {
+  --parchment: 243 233 210;
+  --parchment-deep: 230 213 172;
+  --card: 245 236 214;
+  --ink: 51 41 29;
+  --ink-soft: 95 80 64;
+  --wax: 143 58 36;
+  --wax-deep: 106 40 23;
+  --ember: 217 102 43;
+  /* ouro e cripta seguem fixos (mesmos em ambos os modos) */
+  --gold: #c9a22a;
+  --gold-deep: #9c7a2a;
+  --gold-light: #f0d060;
+  --crypt: #16171f;
+  --crypt-deep: #0b0c11;
+
+  /* Tokens da mesa — valores claros. A Mesa Virtual em si é SEMPRE Cripta
+     (a raiz em VirtualTable.tsx carrega a classe `dark`, que escopa os
+     valores escuros abaixo); estes valores claros valem apenas para usos
+     fora da mesa (ex.: text-saga-muted nas telas de Sistemas). */
+  --mesa-bg: 230 213 172;
+  --mesa-surface: 245 236 214;
+  --mesa-surface-2: 237 225 197;
+  --mesa-surface-3: 230 213 172;
+  --mesa-border: 176 158 120;
+  --mesa-border-bright: 143 122 80;
+  --mesa-text: 51 41 29;
+  --mesa-muted: 95 80 64;
+  --mesa-dim: 125 111 82;
+  --mesa-table: radial-gradient(ellipse 80% 60% at 50% -10%, #f6eed9 0%, #ece0c0 55%, #ddc9a0 100%);
+}
+
+/* ── Modo escuro "Cripta": inverte os papéis dos tokens ──
+   pergaminho→fundo de cripta, tinta→texto claro, cartão→couro. */
+.dark {
+  --parchment: 14 10 6;       /* #0e0a06 — fundo da página */
+  --parchment-deep: 36 27 18; /* #241b12 — superfície elevada */
+  --card: 26 20 16;           /* #1a1410 — cartão de couro */
+  --ink: 236 226 204;         /* #ece2cc — texto claro */
+  --ink-soft: 182 166 130;    /* #b6a682 — texto suave (tan) */
+  --wax: 176 71 46;           /* #b0472e — bordô mais vivo p/ contraste */
+  --wax-deep: 143 58 36;      /* #8f3a24 */
+  --ember: 224 116 58;        /* #e0743a — brasa levemente mais viva */
+
+  /* Mesa virtual — valores ESCUROS (cripta imersiva, como era) */
+  --mesa-bg: 14 10 6;         /* #0e0a06 */
+  --mesa-surface: 26 20 16;   /* #1a1410 */
+  --mesa-surface-2: 36 27 18; /* #241b12 */
+  --mesa-surface-3: 46 35 24; /* #2e2318 */
+  --mesa-border: 58 46 26;    /* #3a2e1a */
+  --mesa-border-bright: 77 61 34; /* #4d3d22 */
+  --mesa-text: 236 226 204;   /* #ece2cc */
+  --mesa-muted: 182 166 130;  /* #b6a682 */
+  --mesa-dim: 125 111 82;     /* #7d6f52 */
+  --mesa-table: radial-gradient(ellipse 75% 55% at 50% -10%, #1c1206 0%, #0d0a08 45%, #070609 100%);
+}
+
+/* Fundo pergaminho com textura de fibra e manchas (tinta/cera via vars → flipa) */
+.parchment-bg {
+  background-color: rgb(var(--parchment));
+  background-image:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgb(var(--wax) / 0.08), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 90% 90%, rgb(var(--ink) / 0.10), transparent 55%),
+    radial-gradient(circle at 35% 65%, rgb(var(--ember) / 0.06), transparent 25%),
+    radial-gradient(circle at 75% 30%, rgb(var(--wax-deep) / 0.06), transparent 22%),
+    repeating-linear-gradient(92deg, transparent 0 2px, rgb(var(--ink) / 0.02) 2px 3px),
+    repeating-linear-gradient(2deg, transparent 0 3px, rgb(var(--ink) / 0.015) 3px 4px);
+}
+
+/* Cartão pergaminho com sombra e vinheta interna */
+.parchment-card {
+  position: relative;
+  background: linear-gradient(180deg, rgb(var(--card)) 0%, rgb(var(--parchment)) 100%);
+  border: 1px solid rgb(var(--ink) / 0.18);
+  box-shadow:
+    0 30px 60px -20px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 0 rgb(var(--parchment) / 0.5);
+}
+.parchment-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background-image:
+    radial-gradient(ellipse at 10% 0%, rgb(var(--ink) / 0.14), transparent 35%),
+    radial-gradient(ellipse at 90% 100%, rgb(var(--ink) / 0.10), transparent 40%);
+  mix-blend-mode: multiply;
+}
+
+/* Sub-cartão de pergaminho envelhecido */
+.scroll-card {
+  background: linear-gradient(180deg, rgb(var(--card)) 0%, rgb(var(--parchment-deep)) 100%);
+  border: 1px solid rgb(var(--ink) / 0.22);
+  box-shadow:
+    inset 0 1px 0 rgb(var(--parchment) / 0.4),
+    0 6px 14px -8px rgba(0, 0, 0, 0.4);
+}
+
+/* Selo de cera bordô — sempre texto claro (independe do tema) */
+.wax-seal {
+  background: radial-gradient(circle at 35% 30%, #b45a3e 0%, rgb(var(--wax)) 40%, rgb(var(--wax-deep)) 100%);
+  box-shadow:
+    0 8px 24px -6px rgba(106, 40, 23, 0.6),
+    inset 0 -4px 8px rgba(0, 0, 0, 0.25);
+  color: #f3e9d2;
+  border: none;
+}
+
+/* Texto em gradiente de ouro */
+.gold-text {
+  background: linear-gradient(180deg, var(--gold-light) 0%, var(--gold-deep) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* Filete fino com fade nas pontas */
+.hairline {
+  background: linear-gradient(90deg, transparent 0%, rgb(var(--ink) / 0.4) 20%, rgb(var(--ink) / 0.4) 80%, transparent 100%);
+}
+
+/* Moldura ornamentada em ouro */
+.ornate-frame {
+  position: relative;
+  border: 1px solid rgba(156, 122, 42, 0.55);
+  box-shadow:
+    inset 0 0 0 1px rgb(var(--parchment) / 0.5),
+    inset 0 0 0 5px rgba(156, 122, 42, 0.25),
+    inset 0 0 0 6px rgb(var(--ink) / 0.15),
+    0 20px 40px -20px rgba(0, 0, 0, 0.55);
+}
+
+/* Título em faixa/estandarte de cera — sempre texto claro */
+.banner-heading {
+  position: relative;
+  display: inline-block;
+  padding: 0.75rem 2.5rem;
+  background: linear-gradient(180deg, rgb(var(--wax)) 0%, rgb(var(--wax-deep)) 100%);
+  color: #f3e9d2;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  box-shadow:
+    inset 0 -3px 6px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(201, 162, 42, 0.6),
+    0 6px 16px -6px rgba(106, 40, 23, 0.8);
+}
+.banner-heading::before,
+.banner-heading::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 18px;
+  height: 100%;
+  background: inherit;
+}
+.banner-heading::before { left: -14px; clip-path: polygon(100% 0, 100% 100%, 0 50%); }
+.banner-heading::after  { right: -14px; clip-path: polygon(0 0, 100% 50%, 0 100%); }
+
+/* Halo de luz de vela/tocha */
+.candle-glow {
+  box-shadow:
+    0 0 30px rgba(217, 102, 43, 0.4),
+    0 0 80px rgba(217, 102, 43, 0.2),
+    0 0 160px rgba(201, 162, 42, 0.12);
+}
+
+/* Divisória com losango central */
+.rule-diamond {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: rgb(var(--ink) / 0.5);
+}
+.rule-diamond::before,
+.rule-diamond::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgb(var(--ink) / 0.4), transparent);
+}
+
+/* Capitular iluminada (dropcap) */
+.dropcap::first-letter {
+  font-family: 'Cinzel', serif;
+  float: left;
+  font-size: 4.5rem;
+  line-height: 0.85;
+  padding: 0.35rem 0.6rem 0.1rem 0;
+  margin-right: 0.35rem;
+  background: linear-gradient(180deg, var(--gold) 0%, rgb(var(--wax-deep)) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 700;
+}
+
+/* Cria .font-cormorant como utilidade explícita (fonte serifada do template) */
+.font-cormorant { font-family: 'Cormorant Garamond', serif; }
+
+/* ============================================================
+   MOBILE / TOQUE
+   ============================================================ */
+
+/* Faixa rolável sem barra visível (abas de campanha, toolbars).
+   Já era usada em campaign/[id]/layout.tsx, mas nunca esteve definida. */
+.scrollbar-none {
+  scrollbar-width: none;            /* Firefox */
+  -ms-overflow-style: none;         /* IE/Edge legado */
+}
+.scrollbar-none::-webkit-scrollbar { width: 0; height: 0; display: none; }
+
+/* Em telas de toque não existe :hover, então toda ação revelada por hover
+   fica INALCANÇÁVEL (sair da conta, deletar atributo, remover disciplina,
+   rolar dado na ficha, renomear pasta de NPC...). Aqui elas ficam sempre
+   visíveis. `.touch-keep-hidden` é o opt-out para overlays que cobrem
+   conteúdo e têm um botão dedicado no mobile. */
+@media (hover: none) {
+  [class*="group-hover:opacity-100"]:not(.touch-keep-hidden),
+  [class*="group-hover/"][class*=":opacity-100"]:not(.touch-keep-hidden) {
+    opacity: 1;
+  }
+  [class*="group-hover:opacity-40"]:not(.touch-keep-hidden),
+  [class*="group-hover/"][class*=":opacity-40"]:not(.touch-keep-hidden) {
+    opacity: 0.4;
+  }
+}
+
+/* Respeita prefers-reduced-motion para as animações decorativas */
+@media (prefers-reduced-motion: reduce) {
+  .animate-flicker,
+  .animate-float-slow,
+  .animate-seal-crit-shake,
+  .animate-ink-in {
+    animation: none !important;
+  }
 }

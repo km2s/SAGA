@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Camera, X, Check, User, Swords, Sparkles, Shield, Sword, Plus, Axe, Leaf, Music, Target, Dumbbell, Wand2, Moon, ScrollText } from 'lucide-react'
 import { safeImageUrl } from '@/lib/safe-url'
+import { coverFor } from '@/lib/campaign-cover'
 
 const CLASS_ICONS: Record<string, React.ElementType> = {
   Guerreiro: Swords, Mago: Sparkles, Paladino: Shield, Ladino: Sword, Clérigo: Plus,
@@ -49,7 +50,7 @@ export function CharacterPortrait({ characterId, imageUrl, name, charClass, canE
         // eslint-disable-next-line @next/next/no-img-element
         <img src={safe} alt={name} className="w-full h-52 object-cover object-top" />
       ) : (
-        <div className="w-full h-52 bg-gradient-to-br from-[#1a0533] via-[#4a1080] to-[#7c3aed] flex items-center justify-center">
+        <div className={`w-full h-52 bg-gradient-to-br ${coverFor(0)} flex items-center justify-center`}>
           <ClassIcon size={72} className="text-white/50" />
         </div>
       )}
@@ -59,9 +60,9 @@ export function CharacterPortrait({ characterId, imageUrl, name, charClass, canE
           onClick={() => { setValue(imageUrl ?? ''); setEditing(true) }}
           title="Trocar imagem"
           className="absolute bottom-2 right-2 p-1.5 rounded-full transition-all"
-          style={{ background: 'rgba(0,0,0,0.65)', color: 'rgba(255,255,255,0.6)' }}
+          style={{ background: 'rgba(0,0,0,0.65)', color: 'rgba(255,255,255,0.75)' }}
           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'white' }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.6)' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.75)' }}
         >
           <Camera size={14} />
         </button>
@@ -78,7 +79,7 @@ export function CharacterPortrait({ characterId, imageUrl, name, charClass, canE
               onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') setEditing(false) }}
               placeholder="https://exemplo.com/imagem.jpg"
               className="flex-1 px-2 py-1.5 rounded text-xs text-white placeholder:text-white/30 focus:outline-none min-w-0"
-              style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)' }}
+              style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)' }}
             />
             <button
               onClick={save}
@@ -92,7 +93,7 @@ export function CharacterPortrait({ characterId, imageUrl, name, charClass, canE
               onClick={() => setEditing(false)}
               title="Cancelar"
               className="p-1.5 rounded text-white transition-all"
-              style={{ background: 'rgba(255,255,255,0.12)' }}>
+              style={{ background: 'rgba(255,255,255,0.15)' }}>
               <X size={12} />
             </button>
           </div>

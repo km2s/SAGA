@@ -47,7 +47,7 @@ function ladderName(v: number): [string, string] {
 function SectionDivider({ title, action }: { title: string; action?: React.ReactNode }) {
   return (
     <div className="flex items-center gap-3 mb-4">
-      <p className="font-almendra text-[9px] font-bold text-saga-dim uppercase tracking-[0.2em] whitespace-nowrap">{title}</p>
+      <p className="font-almendra text-[9px] font-bold text-ink-soft uppercase tracking-[0.2em] whitespace-nowrap">{title}</p>
       <div className="flex-1 h-px" style={{ background: 'rgba(201,162,42,0.2)' }} />
       {action}
     </div>
@@ -77,10 +77,10 @@ function EditableTextField({ value, onSave, placeholder, multiline = false }: {
   if (!editing) {
     return (
       <div onClick={() => { setEditing(true); setVal(value) }}
-        className="cursor-pointer hover:bg-white/[0.03] rounded px-2 py-1.5 transition-colors min-h-[32px]">
+        className="cursor-pointer hover:bg-ink/[0.03] rounded px-2 py-1.5 transition-colors min-h-[32px]">
         {value
-          ? <p className="text-sm text-saga-text leading-relaxed whitespace-pre-wrap">{value}</p>
-          : <p className="text-xs text-saga-dim italic">{placeholder ?? 'Clique para editar…'}</p>
+          ? <p className="text-sm text-ink leading-relaxed whitespace-pre-wrap">{value}</p>
+          : <p className="text-xs text-ink-soft italic">{placeholder ?? 'Clique para editar…'}</p>
         }
       </div>
     )
@@ -92,7 +92,7 @@ function EditableTextField({ value, onSave, placeholder, multiline = false }: {
         onChange={e => setVal(e.target.value)} onBlur={commit}
         onKeyDown={e => { if (e.key === 'Escape') { setVal(value); setEditing(false) } }}
         placeholder={placeholder}
-        className="w-full bg-surface-2 border border-gold/40 rounded px-2 py-1.5 text-sm focus:outline-none resize-none text-saga-text" />
+        className="w-full bg-parchment/60 border border-gold/40 rounded px-2 py-1.5 text-sm focus:outline-none resize-none text-ink" />
     )
   }
   return (
@@ -100,7 +100,7 @@ function EditableTextField({ value, onSave, placeholder, multiline = false }: {
       onChange={e => setVal(e.target.value)} onBlur={commit}
       onKeyDown={e => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') { setVal(value); setEditing(false) } }}
       placeholder={placeholder}
-      className="w-full bg-surface-2 border border-gold/40 rounded px-2 py-1.5 text-sm focus:outline-none text-saga-text" />
+      className="w-full bg-parchment/60 border border-gold/40 rounded px-2 py-1.5 text-sm focus:outline-none text-ink" />
   )
 }
 
@@ -131,7 +131,7 @@ function EditableAttr({ attr, characterId, canEdit, onSaved }: {
       <input autoFocus type="number" value={val}
         onChange={e => setVal(e.target.value)} onBlur={save}
         onKeyDown={e => { if (e.key === 'Enter') void save(); if (e.key === 'Escape') setEditing(false) }}
-        className="w-10 bg-surface-2 border border-gold/40 rounded text-center font-cinzel font-bold focus:outline-none text-sm"
+        className="w-10 bg-parchment/60 border border-gold/40 rounded text-center font-cinzel font-bold focus:outline-none text-sm"
         style={{ color: lColor }} />
     )
   }
@@ -179,7 +179,7 @@ function StressBoxes({ count, tfKey, textFields, characterId, canEdit, onRefresh
           style={{
             width: 16, height: 16,
             background: checked ? '#ef4444' : 'transparent',
-            borderColor: checked ? '#ef4444' : 'rgba(255,255,255,0.2)',
+            borderColor: checked ? '#ef4444' : 'rgb(var(--ink) / 0.2)',
             cursor: canEdit ? 'pointer' : 'default',
           }} />
       ))}
@@ -207,7 +207,7 @@ function ConsequenceRow({ label, severity, tfKey, textFields, characterId, canEd
   const hasValue = !!(field?.value)
   return (
     <div className="flex items-start gap-3 py-2 px-3 rounded transition-all"
-      style={{ background: hasValue ? 'rgba(239,68,68,0.04)' : 'rgba(255,255,255,0.02)', border: `1px solid ${hasValue ? 'rgba(239,68,68,0.3)' : 'rgba(255,255,255,0.05)'}` }}>
+      style={{ background: hasValue ? 'rgba(239,68,68,0.04)' : 'rgb(var(--ink) / 0.02)', border: `1px solid ${hasValue ? 'rgba(239,68,68,0.3)' : 'rgb(var(--ink) / 0.05)'}` }}>
       <div className="flex-shrink-0 mt-1">
         <span className="font-cinzel text-[10px] font-bold px-1.5 py-0.5 rounded"
           style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)' }}>
@@ -215,10 +215,10 @@ function ConsequenceRow({ label, severity, tfKey, textFields, characterId, canEd
         </span>
       </div>
       <div className="flex-1 min-w-0">
-        <p className="font-almendra text-[9px] text-saga-dim uppercase tracking-wider mb-1">{label}</p>
+        <p className="font-almendra text-[9px] text-ink-soft uppercase tracking-wider mb-1">{label}</p>
         {canEdit
           ? <EditableTextField value={field?.value ?? ''} onSave={save} placeholder={`${label}…`} />
-          : <p className="text-sm text-saga-text px-2 py-1">{field?.value || <span className="text-saga-dim italic text-xs">—</span>}</p>
+          : <p className="text-sm text-ink px-2 py-1">{field?.value || <span className="text-ink-soft italic text-xs">—</span>}</p>
         }
       </div>
     </div>
@@ -270,21 +270,21 @@ function AspectsTab({ textFields, characterId, canEdit, onRefresh }: {
       {/* Fate Points + Refresh */}
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-lg py-4 px-3 text-center"
-          style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)' }}>
-          <p className="font-almendra text-[9px] text-saga-dim uppercase tracking-widest mb-2">Pontos de Destino</p>
+          style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
+          <p className="font-almendra text-[9px] text-ink-soft uppercase tracking-widest mb-2">Pontos de Destino</p>
           <div className="flex items-center justify-center gap-2">
-            {canEdit && <button onClick={() => void adjustFate(-1)} className="w-6 h-6 rounded text-saga-dim hover:text-gold">−</button>}
+            {canEdit && <button onClick={() => void adjustFate(-1)} className="w-6 h-6 rounded text-ink-soft hover:text-gold">−</button>}
             <span className="font-cinzel font-bold text-3xl text-gold">{fatePoints}</span>
-            {canEdit && <button onClick={() => void adjustFate(+1)} className="w-6 h-6 rounded text-saga-dim hover:text-gold">+</button>}
+            {canEdit && <button onClick={() => void adjustFate(+1)} className="w-6 h-6 rounded text-ink-soft hover:text-gold">+</button>}
           </div>
         </div>
         <div className="rounded-lg py-4 px-3 text-center"
-          style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)' }}>
-          <p className="font-almendra text-[9px] text-saga-dim uppercase tracking-widest mb-2">Refresh</p>
+          style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
+          <p className="font-almendra text-[9px] text-ink-soft uppercase tracking-widest mb-2">Refresh</p>
           <div className="flex items-center justify-center gap-2">
-            {canEdit && <button onClick={() => void adjustRefresh(-1)} className="w-6 h-6 rounded text-saga-dim hover:text-saga-text">−</button>}
-            <span className="font-cinzel font-bold text-3xl text-saga-muted">{refresh}</span>
-            {canEdit && <button onClick={() => void adjustRefresh(+1)} className="w-6 h-6 rounded text-saga-dim hover:text-saga-text">+</button>}
+            {canEdit && <button onClick={() => void adjustRefresh(-1)} className="w-6 h-6 rounded text-ink-soft hover:text-ink">−</button>}
+            <span className="font-cinzel font-bold text-3xl text-ink-soft">{refresh}</span>
+            {canEdit && <button onClick={() => void adjustRefresh(+1)} className="w-6 h-6 rounded text-ink-soft hover:text-ink">+</button>}
           </div>
         </div>
       </div>
@@ -299,10 +299,10 @@ function AspectsTab({ textFields, characterId, canEdit, onRefresh }: {
               <div key={a.key} className="rounded p-3"
                 style={{ background: 'rgba(201,162,42,0.03)', border: '1px solid rgba(201,162,42,0.15)' }}>
                 <p className="font-almendra text-[9px] uppercase tracking-widest text-gold/70 mb-1">{a.label}</p>
-                {a.hint && <p className="text-[10px] text-saga-dim/60 mb-2 italic">{a.hint}</p>}
+                {a.hint && <p className="text-[10px] text-ink-soft/60 mb-2 italic">{a.hint}</p>}
                 {canEdit
                   ? <EditableTextField value={field?.value ?? ''} onSave={v => void save(a.key, a.label, v)} placeholder={`${a.label}…`} />
-                  : <p className="text-sm text-saga-text px-2 py-1 font-fell italic">{field?.value || <span className="text-saga-dim text-xs not-italic">—</span>}</p>
+                  : <p className="text-sm text-ink px-2 py-1 font-fell italic">{field?.value || <span className="text-ink-soft text-xs not-italic">—</span>}</p>
                 }
               </div>
             )
@@ -333,7 +333,7 @@ function SkillsTab({ attributes, characterId, canEdit, onRefresh, onAdd, onDelet
   return (
     <div>
       <div className="flex items-center gap-3 mb-4">
-        <p className="font-almendra text-[9px] font-bold text-saga-dim uppercase tracking-[0.2em] whitespace-nowrap">Perícias</p>
+        <p className="font-almendra text-[9px] font-bold text-ink-soft uppercase tracking-[0.2em] whitespace-nowrap">Perícias</p>
         <div className="flex-1 h-px" style={{ background: 'rgba(201,162,42,0.2)' }} />
         {canEdit && <AddBtn onClick={onAdd} />}
       </div>
@@ -341,10 +341,10 @@ function SkillsTab({ attributes, characterId, canEdit, onRefresh, onAdd, onDelet
       {levels.length === 0
         ? (
           canEdit
-            ? <button onClick={onAdd} className="w-full py-5 rounded border border-dashed text-sm text-saga-dim hover:text-saga-muted transition-colors" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+            ? <button onClick={onAdd} className="w-full py-5 rounded border border-dashed text-sm text-ink-soft hover:text-ink-soft transition-colors" style={{ borderColor: 'rgb(var(--ink) / 0.08)' }}>
                 + Adicionar perícia
               </button>
-            : <p className="text-sm text-saga-dim text-center py-8">Nenhuma perícia adicionada.</p>
+            : <p className="text-sm text-ink-soft text-center py-8">Nenhuma perícia adicionada.</p>
         )
         : (
           <div className="space-y-3">
@@ -365,11 +365,11 @@ function SkillsTab({ attributes, characterId, canEdit, onRefresh, onAdd, onDelet
                   <div className="flex flex-wrap gap-2">
                     {attrs.map(attr => (
                       <div key={attr.id} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded group"
-                        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                        <span className="text-sm text-saga-text">{attr.attribute.name}</span>
+                        style={{ background: 'rgb(var(--ink) / 0.03)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
+                        <span className="text-sm text-ink">{attr.attribute.name}</span>
                         {canEdit && (
                           <button onClick={() => onDelete(attr.id)}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity text-saga-danger/60 hover:text-saga-danger ml-1">
+                            className="opacity-0 group-hover:opacity-100 transition-opacity text-red-700/60 hover:text-red-700 ml-1">
                             <X size={9} />
                           </button>
                         )}
@@ -404,18 +404,18 @@ function StuntsTab({ textFields, characterId, canEdit, onRefresh }: {
 
   return (
     <div className="space-y-4">
-      <p className="text-[11px] text-saga-dim leading-relaxed">
+      <p className="text-[11px] text-ink-soft leading-relaxed">
         Cada façanha dá um bônus de +2 ou permite usar uma perícia de forma diferente. Reduz o Refresh em 1 por façanha (mínimo 1).
       </p>
       {STUNT_KEYS.map((key, i) => {
         const field = textFields.find(f => f.key === key)
         return (
           <div key={key} className="rounded p-3"
-            style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
-            <p className="font-almendra text-[9px] uppercase tracking-widest text-saga-dim mb-2">Façanha {i + 1}</p>
+            style={{ background: 'rgb(var(--ink) / 0.02)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
+            <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft mb-2">Façanha {i + 1}</p>
             {canEdit
               ? <EditableTextField value={field?.value ?? ''} onSave={v => void save(key, v)} placeholder="Nome e descrição da façanha…" multiline />
-              : <p className="text-sm text-saga-text px-2 py-1 whitespace-pre-wrap">{field?.value || <span className="text-saga-dim italic text-xs">—</span>}</p>
+              : <p className="text-sm text-ink px-2 py-1 whitespace-pre-wrap">{field?.value || <span className="text-ink-soft italic text-xs">—</span>}</p>
             }
           </div>
         )
@@ -442,21 +442,21 @@ function StressTab({ attributes, textFields, characterId, canEdit, onRefresh }: 
       <div>
         <SectionDivider title="Trilhas de Estresse" />
         <div className="grid grid-cols-2 gap-4">
-          <div className="rounded p-3" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)' }}>
-            <p className="font-almendra text-[9px] uppercase tracking-widest text-saga-dim mb-3 text-center">Físico</p>
+          <div className="rounded p-3" style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
+            <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft mb-3 text-center">Físico</p>
             <div className="flex justify-center">
               <StressBoxes count={physBoxes} tfKey="physicalStress" textFields={textFields}
                 characterId={characterId} canEdit={canEdit} onRefresh={onRefresh} />
             </div>
-            {physique && <p className="text-[9px] text-saga-dim text-center mt-2">{physBoxes} caixas (Físico +{physique.value})</p>}
+            {physique && <p className="text-[9px] text-ink-soft text-center mt-2">{physBoxes} caixas (Físico +{physique.value})</p>}
           </div>
-          <div className="rounded p-3" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)' }}>
-            <p className="font-almendra text-[9px] uppercase tracking-widest text-saga-dim mb-3 text-center">Mental</p>
+          <div className="rounded p-3" style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
+            <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft mb-3 text-center">Mental</p>
             <div className="flex justify-center">
               <StressBoxes count={mentBoxes} tfKey="mentalStress" textFields={textFields}
                 characterId={characterId} canEdit={canEdit} onRefresh={onRefresh} />
             </div>
-            {will && <p className="text-[9px] text-saga-dim text-center mt-2">{mentBoxes} caixas (Vontade +{will.value})</p>}
+            {will && <p className="text-[9px] text-ink-soft text-center mt-2">{mentBoxes} caixas (Vontade +{will.value})</p>}
           </div>
         </div>
       </div>
@@ -474,7 +474,7 @@ function StressTab({ attributes, textFields, characterId, canEdit, onRefresh }: 
           <ConsequenceRow label="Extrema" severity={8} tfKey="consExtreme"
             textFields={textFields} characterId={characterId} canEdit={canEdit} onRefresh={onRefresh} />
         </div>
-        <p className="text-[10px] text-saga-dim mt-3 leading-relaxed px-1">
+        <p className="text-[10px] text-ink-soft mt-3 leading-relaxed px-1">
           Consequências são aspectos negativos que podem ser invocados por outros. Extrema substitui um aspecto permanentemente.
         </p>
       </div>
@@ -493,7 +493,7 @@ function StressTab({ attributes, textFields, characterId, canEdit, onRefresh }: 
           }
           return canEdit
             ? <EditableTextField value={field?.value ?? ''} onSave={save} placeholder="Notas da sessão, invocações, etc…" multiline />
-            : <p className="text-sm text-saga-text px-2 py-1 whitespace-pre-wrap">{field?.value || <span className="text-saga-dim italic text-xs">—</span>}</p>
+            : <p className="text-sm text-ink px-2 py-1 whitespace-pre-wrap">{field?.value || <span className="text-ink-soft italic text-xs">—</span>}</p>
         })()}
       </div>
     </div>
@@ -533,15 +533,15 @@ export function FateCoreSheet({ characterId, characterLevel, attributes, textFie
 
   return (
     <div className="rounded-lg overflow-hidden"
-      style={{ background: 'rgba(17,17,30,0.6)', border: '1px solid rgba(255,255,255,0.07)' }}>
+      style={{ background: 'rgb(var(--card) / 0.92)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
       {/* Tab bar */}
-      <div className="flex border-b" style={{ borderColor: 'rgba(255,255,255,0.07)', background: 'rgba(0,0,0,0.18)' }}>
+      <div className="flex border-b" style={{ borderColor: 'rgb(var(--ink) / 0.14)', background: 'rgb(var(--ink) / 0.05)' }}>
         {TABS.map(tab => {
           const isActive = tab.id === activeTab
           return (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
               className="relative px-4 py-3.5 font-almendra text-[10px] uppercase tracking-[0.15em] transition-colors"
-              style={{ color: isActive ? '#c9a22a' : '#7878a0', background: isActive ? 'rgba(201,162,42,0.05)' : 'transparent' }}>
+              style={{ color: isActive ? '#c9a22a' : 'rgb(var(--ink-soft))', background: isActive ? 'rgba(201,162,42,0.05)' : 'transparent' }}>
               {tab.label}
               {isActive && <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-t" style={{ background: 'linear-gradient(90deg, transparent, #c9a22a, transparent)' }} />}
             </button>

@@ -4,8 +4,9 @@ import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   X, Upload, FileText, Loader2, AlertTriangle,
-  Check, Trash2, ChevronDown, ChevronUp, Info,
+  Check, Trash2, ChevronDown, ChevronUp, Info, ArrowLeft,
 } from 'lucide-react'
+import { Select } from '@/components/ui/Select'
 
 interface ExtractedAttr { name: string; value: number | null }
 interface ExtractResult {
@@ -37,8 +38,7 @@ function AttrRow({
       <input
         value={attr.name}
         onChange={e => onChange(attr.id, 'name', e.target.value)}
-        className="flex-1 px-2 py-1.5 rounded text-xs border"
-        style={{ background: '#0a0a14', borderColor: 'rgba(255,255,255,0.12)', color: 'inherit', outline: 'none' }}
+        className="flex-1 px-2 py-1.5 rounded text-xs bg-parchment/60 border border-ink/20 text-ink focus:outline-none focus:border-wax"
       />
       <input
         type="number"
@@ -47,12 +47,11 @@ function AttrRow({
         value={attr.value ?? ''}
         placeholder="–"
         onChange={e => onChange(attr.id, 'value', e.target.value)}
-        className="w-14 px-2 py-1.5 rounded text-xs border text-center"
-        style={{ background: '#0a0a14', borderColor: 'rgba(255,255,255,0.12)', color: 'inherit', outline: 'none' }}
+        className="w-14 px-2 py-1.5 rounded text-xs text-center bg-parchment/60 border border-ink/20 text-ink focus:outline-none focus:border-wax"
       />
       <button
         onClick={() => onRemove(attr.id)}
-        className="opacity-0 group-hover/row:opacity-100 text-saga-dim hover:text-saga-danger transition-all"
+        className="opacity-0 group-hover/row:opacity-100 text-ink-soft hover:text-wax transition-all"
       >
         <Trash2 size={12} />
       </button>
@@ -153,12 +152,11 @@ export function ImportCharacterModal({ open, onClose, campaigns }: Props) {
   // ─── Upload step ────────────────────────────────────────────────────────────
 
   if (step === 'upload') return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.75)' }}>
-      <div className="w-full max-w-md rounded-xl border shadow-2xl overflow-hidden"
-           style={{ background: '#12121f', borderColor: 'rgba(255,255,255,0.1)' }}>
-        <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.07)' }}>
-          <h2 className="font-cinzel text-base font-bold">Importar Ficha</h2>
-          <button onClick={handleClose} className="text-saga-muted hover:text-saga-text transition-colors">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/50 backdrop-blur-sm">
+      <div className="parchment-card w-full max-w-md rounded-xl overflow-hidden text-ink">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-ink/10">
+          <h2 className="font-cinzel text-base font-bold text-ink">Importar Ficha</h2>
+          <button onClick={handleClose} className="text-ink-soft hover:text-wax transition-colors">
             <X size={18} />
           </button>
         </div>
@@ -172,23 +170,23 @@ export function ImportCharacterModal({ open, onClose, campaigns }: Props) {
             onClick={() => fileRef.current?.click()}
             className={`border-2 border-dashed rounded-xl p-10 flex flex-col items-center gap-3 cursor-pointer transition-all ${
               dragging
-                ? 'border-gold/60 bg-gold/5'
+                ? 'border-wax/60 bg-wax/5'
                 : file
-                  ? 'border-green-500/40 bg-green-500/5'
-                  : 'border-border hover:border-border-bright hover:bg-white/2'
+                  ? 'border-green-600/50 bg-green-600/5'
+                  : 'border-ink/25 hover:border-wax hover:bg-ink/[0.03]'
             }`}
           >
             {file ? (
               <>
-                <FileText size={28} className="text-green-400" />
-                <p className="text-sm font-medium text-green-400">{file.name}</p>
-                <p className="text-[11px] text-saga-dim">{(file.size / 1024).toFixed(0)} KB · clique para trocar</p>
+                <FileText size={28} className="text-green-700" />
+                <p className="text-sm font-medium text-green-800">{file.name}</p>
+                <p className="text-[11px] text-ink-soft">{(file.size / 1024).toFixed(0)} KB · clique para trocar</p>
               </>
             ) : (
               <>
-                <Upload size={28} className="text-saga-dim" />
-                <p className="text-sm text-saga-muted">Arraste ou clique para selecionar</p>
-                <p className="text-[11px] text-saga-dim">PDF ou HTML · máx 5 MB</p>
+                <Upload size={28} className="text-wax" />
+                <p className="text-sm text-ink-soft font-cormorant">Arraste ou clique para selecionar</p>
+                <p className="text-[11px] text-ink-soft">PDF ou HTML · máx 5 MB</p>
               </>
             )}
             <input
@@ -199,16 +197,15 @@ export function ImportCharacterModal({ open, onClose, campaigns }: Props) {
           </div>
 
           {/* Notice */}
-          <div className="flex gap-2.5 p-3 rounded-lg text-[11px] text-saga-muted leading-relaxed"
-               style={{ background: 'rgba(201,162,42,0.06)', border: '1px solid rgba(201,162,42,0.18)' }}>
-            <Info size={13} className="text-gold shrink-0 mt-0.5" />
+          <div className="flex gap-2.5 p-3 rounded-lg text-[11px] text-ink-soft leading-relaxed bg-gold/[0.08] border border-gold/25">
+            <Info size={13} className="text-wax shrink-0 mt-0.5" />
             <span>
-              A IA extrai os atributos automaticamente, mas o resultado <strong className="text-saga-text">pode precisar de ajustes manuais</strong> — especialmente em PDFs com layout complexo ou fichas escaneadas.
+              A IA extrai os atributos automaticamente, mas o resultado <strong className="text-ink">pode precisar de ajustes manuais</strong> — especialmente em PDFs com layout complexo ou fichas escaneadas.
             </span>
           </div>
 
           {error && (
-            <div className="flex gap-2 p-3 rounded-lg text-[11px] text-saga-danger" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
+            <div className="flex gap-2 p-3 rounded-lg text-[11px] text-wax bg-wax/5 border border-wax/25">
               <AlertTriangle size={13} className="shrink-0 mt-0.5" />
               {error}
             </div>
@@ -216,14 +213,13 @@ export function ImportCharacterModal({ open, onClose, campaigns }: Props) {
 
           <div className="flex gap-3">
             <button onClick={handleClose}
-              className="flex-1 py-2 rounded-lg text-sm border border-border text-saga-muted hover:text-saga-text hover:border-border-bright transition-all">
+              className="flex-1 py-2 rounded-lg text-sm border border-ink/20 text-ink-soft hover:text-ink hover:border-wax transition-all">
               Cancelar
             </button>
             <button
               onClick={handleExtract}
               disabled={!file || loading}
-              className="flex-1 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-40 flex items-center justify-center gap-2"
-              style={{ background: 'rgba(201,162,42,0.15)', border: '1px solid rgba(201,162,42,0.4)', color: '#c9a22a' }}
+              className="flex-1 py-2 rounded-lg text-sm font-cinzel transition-all disabled:opacity-40 flex items-center justify-center gap-2 bg-wax text-parchment hover:bg-wax-deep shadow-sm"
             >
               {loading ? <><Loader2 size={14} className="animate-spin" /> Analisando...</> : 'Extrair Atributos'}
             </button>
@@ -236,24 +232,22 @@ export function ImportCharacterModal({ open, onClose, campaigns }: Props) {
   // ─── Review step ────────────────────────────────────────────────────────────
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.75)' }}>
-      <div className="w-full max-w-lg rounded-xl border shadow-2xl flex flex-col max-h-[90vh]"
-           style={{ background: '#12121f', borderColor: 'rgba(255,255,255,0.1)' }}>
-        <div className="flex items-center justify-between px-6 py-4 border-b shrink-0" style={{ borderColor: 'rgba(255,255,255,0.07)' }}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/50 backdrop-blur-sm">
+      <div className="parchment-card w-full max-w-lg rounded-xl flex flex-col max-h-[90vh] text-ink">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-ink/10 shrink-0">
           <div>
-            <h2 className="font-cinzel text-base font-bold">Revisar Importação</h2>
-            <p className="text-[11px] text-saga-dim mt-0.5">{file?.name}</p>
+            <h2 className="font-cinzel text-base font-bold text-ink">Revisar Importação</h2>
+            <p className="text-[11px] text-ink-soft mt-0.5">{file?.name}</p>
           </div>
-          <button onClick={handleClose} className="text-saga-muted hover:text-saga-text transition-colors">
+          <button onClick={handleClose} className="text-ink-soft hover:text-wax transition-colors">
             <X size={18} />
           </button>
         </div>
 
         <div className="overflow-y-auto flex-1 px-6 py-4 space-y-5">
           {/* Warning banner */}
-          <div className="flex gap-2.5 p-3 rounded-lg text-[11px] text-saga-muted leading-relaxed"
-               style={{ background: 'rgba(201,162,42,0.06)', border: '1px solid rgba(201,162,42,0.18)' }}>
-            <AlertTriangle size={13} className="text-gold shrink-0 mt-0.5" />
+          <div className="flex gap-2.5 p-3 rounded-lg text-[11px] text-ink-soft leading-relaxed bg-gold/[0.08] border border-gold/25">
+            <AlertTriangle size={13} className="text-wax shrink-0 mt-0.5" />
             <span>
               Revise os dados abaixo antes de salvar. Valores que a IA não conseguiu ler aparecem em branco — você pode preenchê-los manualmente.
             </span>
@@ -261,49 +255,44 @@ export function ImportCharacterModal({ open, onClose, campaigns }: Props) {
 
           {/* Character name */}
           <div>
-            <label className="block text-[10px] font-bold text-saga-dim uppercase tracking-widest mb-1.5">Nome do Personagem *</label>
+            <label className="block text-[10px] font-bold text-wax uppercase tracking-widest mb-1.5">Nome do Personagem *</label>
             <input
               value={charName}
               onChange={e => setCharName(e.target.value)}
               placeholder="Nome do personagem"
-              className="w-full px-3 py-2 rounded-lg text-sm border"
-              style={{ background: '#0a0a14', borderColor: 'rgba(255,255,255,0.12)', color: 'inherit', outline: 'none' }}
+              className="w-full px-3 py-2 rounded-lg text-sm bg-parchment/60 border border-ink/20 text-ink placeholder:text-ink-soft/60 focus:outline-none focus:border-wax"
             />
           </div>
 
           {/* System + Campaign */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[10px] font-bold text-saga-dim uppercase tracking-widest mb-1.5">Sistema detectado</label>
+              <label className="block text-[10px] font-bold text-wax uppercase tracking-widest mb-1.5">Sistema detectado</label>
               <input
                 value={systemHint}
                 onChange={e => setSystemHint(e.target.value)}
                 placeholder="Ex: D&D 5e"
-                className="w-full px-3 py-2 rounded-lg text-xs border"
-                style={{ background: '#0a0a14', borderColor: 'rgba(255,255,255,0.12)', color: 'inherit', outline: 'none' }}
+                className="w-full px-3 py-2 rounded-lg text-xs bg-parchment/60 border border-ink/20 text-ink placeholder:text-ink-soft/60 focus:outline-none focus:border-wax"
               />
             </div>
             <div>
-              <label className="block text-[10px] font-bold text-saga-dim uppercase tracking-widest mb-1.5">Campanha <span className="text-saga-dim/50">(opcional)</span></label>
-              <select
+              <label className="block text-[10px] font-bold text-wax uppercase tracking-widest mb-1.5">Campanha <span className="text-ink-soft/60 normal-case">(opcional)</span></label>
+              <Select
+                size="sm"
                 value={campaignId}
-                onChange={e => setCampaignId(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg text-xs border appearance-none"
-                style={{ background: '#0a0a14', borderColor: 'rgba(255,255,255,0.12)', color: campaignId ? 'inherit' : '#666', outline: 'none' }}
-              >
-                <option value="">Nenhuma</option>
-                {campaigns.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
+                onChange={v => setCampaignId(v)}
+                options={[{ value: '', label: 'Nenhuma' }, ...campaigns.map(c => ({ value: c.id, label: c.name }))]}
+              />
             </div>
           </div>
 
           {/* Attributes */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="block text-[10px] font-bold text-saga-dim uppercase tracking-widest">
-                Atributos extraídos <span className="text-saga-dim/50">({attrs.length})</span>
+              <label className="block text-[10px] font-bold text-wax uppercase tracking-widest">
+                Atributos extraídos <span className="text-ink-soft/60">({attrs.length})</span>
               </label>
-              <div className="flex gap-2 text-[10px] text-saga-dim">
+              <div className="flex gap-2 text-[10px] text-ink-soft">
                 <span>Nome</span>
                 <span className="w-14 text-center">Valor</span>
                 <span className="w-4" />
@@ -322,35 +311,34 @@ export function ImportCharacterModal({ open, onClose, campaigns }: Props) {
             {attrs.length > 12 && (
               <button
                 onClick={() => setShowAll(p => !p)}
-                className="mt-2 flex items-center gap-1 text-[11px] text-saga-dim hover:text-saga-text transition-colors"
+                className="mt-2 flex items-center gap-1 text-[11px] text-ink-soft hover:text-wax transition-colors"
               >
                 {showAll ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
                 {showAll ? 'Mostrar menos' : `Ver mais ${attrs.length - 12} atributos`}
               </button>
             )}
             {attrs.length === 0 && (
-              <p className="text-[11px] text-saga-dim italic">Nenhum atributo encontrado.</p>
+              <p className="text-[11px] text-ink-soft italic">Nenhum atributo encontrado.</p>
             )}
           </div>
 
           {error && (
-            <div className="flex gap-2 p-3 rounded-lg text-[11px] text-saga-danger" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
+            <div className="flex gap-2 p-3 rounded-lg text-[11px] text-wax bg-wax/5 border border-wax/25">
               <AlertTriangle size={13} className="shrink-0 mt-0.5" />
               {error}
             </div>
           )}
         </div>
 
-        <div className="flex gap-3 px-6 py-4 border-t shrink-0" style={{ borderColor: 'rgba(255,255,255,0.07)' }}>
+        <div className="flex gap-3 px-6 py-4 border-t border-ink/10 shrink-0">
           <button onClick={() => { setStep('upload'); setError('') }}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs border border-border text-saga-muted hover:text-saga-text hover:border-border-bright transition-all">
-            ← Voltar
+            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs border border-ink/20 text-ink-soft hover:text-ink hover:border-wax transition-all">
+            <ArrowLeft size={12} /> Voltar
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex-1 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-40 flex items-center justify-center gap-2"
-            style={{ background: 'rgba(201,162,42,0.15)', border: '1px solid rgba(201,162,42,0.4)', color: '#c9a22a' }}
+            className="flex-1 py-2 rounded-lg text-sm font-cinzel transition-all disabled:opacity-40 flex items-center justify-center gap-2 bg-wax text-parchment hover:bg-wax-deep shadow-sm"
           >
             {saving ? <><Loader2 size={14} className="animate-spin" /> Salvando...</> : <><Check size={14} /> Criar Personagem</>}
           </button>

@@ -2,38 +2,26 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-interface Attr {
-  id: string
-  value: number
-  customDie: string | null
-  attribute: { name: string; defaultDie: string; description?: string | null }
+interface Attr { id: string; value: number; customDie: string | null; attribute: { name: string; defaultDie: string; description?: string | null } }
+interface TextField { id: string; key: string; label: string; value: string; order: number }
+interface Props { characterId: string; attributes: Attr[]; textFields: TextField[]; weapons?: unknown[]; canEdit: boolean }
+
+const ACCENT = '#92400e'
+const GOLD = '#f59e0b'
+
+function SectionDivider({ title }: { title: string }) {
+  return (
+    <div className="flex items-center gap-3 mb-4">
+      <p className="font-almendra text-[9px] font-bold text-ink-soft uppercase tracking-[0.2em] whitespace-nowrap">{title}</p>
+      <div className="flex-1 h-px" style={{ background: 'rgba(245,158,11,0.2)' }} />
+    </div>
+  )
 }
-
-interface TextField {
-  id: string
-  key: string
-  label: string
-  value: string
-  order: number
-}
-
-interface Props {
-  characterId: string
-  attributes: Attr[]
-  textFields: TextField[]
-  weapons: unknown[]
-  canEdit: boolean
-}
-
-const ACCENT = '#f59e0b'
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function categorize(attrs: Attr[]) {
   const physical: Attr[] = [], social: Attr[] = [], mental: Attr[] = []
   const talents: Attr[] = [], skills: Attr[] = [], knowledges: Attr[] = []
   const resources: Attr[] = []
-
   for (const a of attrs) {
     const d = a.attribute.description ?? ''
     if      (d.startsWith('Físico'))       physical.push(a)
@@ -44,13 +32,10 @@ function categorize(attrs: Attr[]) {
     else if (d.startsWith('Conhecimento')) knowledges.push(a)
     else                                   resources.push(a)
   }
-
   return { physical, social, mental, talents, skills, knowledges, resources }
 }
 
-// ── Dots ─────────────────────────────────────────────────────────────────────
-
-function Dots({ value, max = 5, editable = false, attrId, characterId, onSaved, color = ACCENT }: {
+function Dots({ value, max = 5, editable = false, attrId, characterId, onSaved, color = GOLD }: {
   value: number; max?: number; editable?: boolean
   attrId?: string; characterId?: string; onSaved?: () => void; color?: string
 }) {
@@ -58,331 +43,179 @@ function Dots({ value, max = 5, editable = false, attrId, characterId, onSaved, 
     if (!editable || !attrId || !characterId || !onSaved) return
     const newVal = i + 1 === value ? i : i + 1
     await fetch(`/api/characters/${characterId}/attributes/${attrId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ value: newVal }),
     }).catch(() => null)
     onSaved()
   }
-
   return (
-    <div className="flex gap-[5px] items-center">
+    <div className="flex gap-1">
       {Array.from({ length: max }).map((_, i) => (
-        <button key={i} onClick={() => void handleClick(i)} disabled={!editable}
-          className="rounded-full border flex-shrink-0 transition-all"
-          style={{
-            width: 11, height: 11,
-            background: i < value ? color : 'transparent',
-            borderColor: i < value ? color : 'rgba(255,255,255,0.15)',
-            cursor: editable ? 'pointer' : 'default',
-          }} />
+        <button key={i} type="button" onClick={() => void handleClick(i)}
+          className={`w-3 h-3 rounded-full border transition-colors ${editable ? 'cursor-pointer' : 'cursor-default'}`}
+          style={{ background: i < value ? color : 'transparent', borderColor: color }} />
       ))}
     </div>
   )
 }
 
-function DotRow({ attr, characterId, canEdit, onSaved, max = 5, color }: {
-  attr: Attr; characterId: string; canEdit: boolean; onSaved: () => void
-  max?: number; color?: string
-}) {
+function AttrRow({ a, characterId, canEdit, onSaved, color }: { a: Attr; characterId: string; canEdit: boolean; onSaved: () => void; color?: string }) {
   return (
-    <div className="flex items-center justify-between py-2 border-b last:border-0"
-      style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
-      <span className="font-almendra text-[11px] text-saga-text truncate">{attr.attribute.name}</span>
-      <Dots value={attr.value} max={max} editable={canEdit} attrId={attr.id} characterId={characterId} onSaved={onSaved} color={color} />
+    <div className="flex items-center justify-between py-1.5 border-b border-ink/10 last:border-0">
+      <span className="text-sm text-ink-soft">{a.attribute.name}</span>
+      <Dots value={a.value} editable={canEdit} attrId={a.id} characterId={characterId} onSaved={onSaved} color={color} />
     </div>
   )
 }
 
-function AttrCol({ items, label, characterId, canEdit, onSaved, max = 5, color }: {
-  items: Attr[]; label: string; characterId: string; canEdit: boolean; onSaved: () => void
-  max?: number; color?: string
+function TFField({ characterId, textFields, tfKey, label, placeholder, multiline = false, canEdit, onRefresh }: {
+  characterId: string; textFields: TextField[]; tfKey: string; label: string; placeholder?: string; multiline?: boolean; canEdit: boolean; onRefresh: () => void
 }) {
-  return (
-    <div>
-      <p className="font-almendra text-[9px] font-bold text-saga-dim uppercase tracking-[0.15em] text-center mb-3 pb-2 border-b"
-        style={{ borderColor: 'rgba(201,162,42,0.2)' }}>{label}</p>
-      <div className="rounded px-3 py-1 min-h-[40px]"
-        style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
-        {items.length === 0
-          ? <p className="text-[10px] text-saga-dim py-4 text-center italic">—</p>
-          : items.map(a => <DotRow key={a.id} attr={a} characterId={characterId} canEdit={canEdit} onSaved={onSaved} max={max} color={color} />)
-        }
-      </div>
-    </div>
-  )
-}
-
-// ── Health Track ──────────────────────────────────────────────────────────────
-
-const HEALTH_LEVELS = [
-  { label: 'Contundido',    penalty: 0 },
-  { label: 'Machucado',     penalty: -1 },
-  { label: 'Ferido',        penalty: -1 },
-  { label: 'Gravemente F.', penalty: -2 },
-  { label: 'Mutilado',      penalty: -2 },
-  { label: 'Aleijado',      penalty: -5 },
-  { label: 'Incapacitado',  penalty: null },
-]
-
-function HealthTrack({ textFields, characterId, canEdit, onRefresh }: {
-  textFields: TextField[]; characterId: string; canEdit: boolean; onRefresh: () => void
-}) {
-  const field = textFields.find(f => f.key === 'healthTrack')
-  const raw = field?.value ?? ''
-  const boxes: (0 | 1 | 2)[] = raw ? raw.split(',').map(v => Number(v) as 0 | 1 | 2) : Array(7).fill(0)
-  while (boxes.length < 7) boxes.push(0)
-
-  async function cycleBox(i: number) {
-    if (!canEdit) return
-    const next = [...boxes]
-    next[i] = next[i] === 0 ? 1 : next[i] === 1 ? 2 : 0
+  const existing = textFields.find(f => f.key === tfKey)
+  const [val, setVal] = useState(existing?.value ?? '')
+  const [saving, setSaving] = useState(false)
+  async function save(newVal: string) {
+    setSaving(true)
     await fetch(`/api/characters/${characterId}/text-fields`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key: 'healthTrack', label: 'Trilha de Saúde', value: next.join(',') }),
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: tfKey, label, value: newVal }),
+    }).catch(() => null)
+    setSaving(false); onRefresh()
+  }
+  const cls = 'w-full bg-parchment/40 border border-ink/15 rounded-lg text-sm text-ink-soft placeholder-ink-soft/40 focus:outline-none focus:border-amber-700/50 focus:bg-parchment/60 px-3 py-2 transition-colors'
+  return (
+    <div className="space-y-1">
+      <label className="text-[10px] font-bold text-ink-soft uppercase tracking-wider">{label}</label>
+      {multiline
+        ? <textarea rows={3} value={val} onChange={e => setVal(e.target.value)} onBlur={e => void save(e.target.value)}
+            disabled={!canEdit || saving} placeholder={placeholder} className={cls} />
+        : <input type="text" value={val} onChange={e => setVal(e.target.value)} onBlur={e => void save(e.target.value)}
+            disabled={!canEdit || saving} placeholder={placeholder} className={cls} />
+      }
+    </div>
+  )
+}
+
+function BoxTrack({ label, tfKey, textFields, characterId, canEdit, onRefresh, max = 10, color = GOLD }: {
+  label: string; tfKey: string; textFields: TextField[]; characterId: string; canEdit: boolean; onRefresh: () => void; max?: number; color?: string
+}) {
+  const existing = parseInt(textFields.find(f => f.key === tfKey)?.value ?? '0')
+  async function set(v: number) {
+    if (!canEdit) return
+    await fetch(`/api/characters/${characterId}/text-fields`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: tfKey, label, value: String(v) }),
     }).catch(() => null)
     onRefresh()
   }
-
   return (
-    <div className="rounded p-3" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
-      <p className="font-almendra text-[9px] uppercase tracking-widest text-saga-dim mb-3">Trilha de Saúde</p>
-      <div className="space-y-1">
-        {HEALTH_LEVELS.map((level, i) => (
-          <div key={i} className="flex items-center gap-2">
-            <button onClick={() => void cycleBox(i)} disabled={!canEdit}
-              className="rounded border flex items-center justify-center transition-all flex-shrink-0"
-              style={{
-                width: 20, height: 20,
-                background: boxes[i] === 2 ? 'rgba(239,68,68,0.15)' : boxes[i] === 1 ? 'rgba(251,191,36,0.08)' : 'transparent',
-                borderColor: boxes[i] === 2 ? '#ef4444' : boxes[i] === 1 ? '#f59e0b' : 'rgba(255,255,255,0.2)',
-                cursor: canEdit ? 'pointer' : 'default', fontSize: 10,
-              }}>
-              {boxes[i] === 2 ? '✗' : boxes[i] === 1 ? '/' : ''}
-            </button>
-            <span className="text-[10px] text-saga-text flex-1">{level.label}</span>
-            <span className="text-[10px] text-saga-dim">
-              {level.penalty === null ? 'Incap.' : level.penalty === 0 ? '—' : String(level.penalty)}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-// ── Willpower ─────────────────────────────────────────────────────────────────
-
-function WillpowerTrack({ attrs, textFields, characterId, canEdit, onRefresh }: {
-  attrs: Attr[]; textFields: TextField[]; characterId: string; canEdit: boolean; onRefresh: () => void
-}) {
-  const wp = attrs.find(a => a.attribute.name === 'Força de Vontade')
-  const totalWP = wp?.value ?? 0
-  const field = textFields.find(f => f.key === 'willpowerUsed')
-  const used = parseInt(field?.value ?? '0') || 0
-
-  async function toggleWP(i: number) {
-    if (!canEdit) return
-    const next = i < used ? i : i + 1
-    await fetch(`/api/characters/${characterId}/text-fields`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key: 'willpowerUsed', label: 'Força de Vontade Gasta', value: String(next) }),
-    }).catch(() => null)
-    onRefresh()
-  }
-
-  return (
-    <div className="rounded p-3" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)' }}>
-      <div className="flex items-center justify-between mb-3">
-        <p className="font-almendra text-[9px] uppercase tracking-widest text-saga-dim">Força de Vontade</p>
-        <span className="font-cinzel font-bold" style={{ color: ACCENT }}>{totalWP - used} / {totalWP}</span>
-      </div>
+    <div className="space-y-1.5">
+      <label className="text-[10px] font-bold text-ink-soft uppercase tracking-wider">{label}</label>
       <div className="flex gap-1 flex-wrap">
-        {Array.from({ length: totalWP }).map((_, i) => (
-          <button key={i} onClick={() => void toggleWP(i)} disabled={!canEdit}
-            className="rounded-full border transition-all flex-shrink-0"
-            style={{
-              width: 14, height: 14,
-              background: i < (totalWP - used) ? ACCENT : 'rgba(120,120,160,0.2)',
-              borderColor: i < (totalWP - used) ? ACCENT : 'rgba(120,120,160,0.4)',
-              cursor: canEdit ? 'pointer' : 'default',
-            }} />
+        {Array.from({ length: max }).map((_, i) => (
+          <button key={i} type="button" onClick={() => void set(i + 1 === existing ? i : i + 1)}
+            className="w-5 h-5 rounded border transition-colors"
+            style={{ background: i < existing ? color : 'transparent', borderColor: color }} />
         ))}
       </div>
     </div>
   )
 }
-
-// ── ETF ───────────────────────────────────────────────────────────────────────
-
-function ETF({ tfKey, label, textFields, characterId, canEdit, multiline = false, onRefresh }: {
-  tfKey: string; label: string; textFields: TextField[]; characterId: string; canEdit: boolean
-  multiline?: boolean; onRefresh: () => void
-}) {
-  const field = textFields.find(f => f.key === tfKey)
-  const [editing, setEditing] = useState(false)
-  const [val, setVal] = useState(field?.value ?? '')
-
-  async function save() {
-    await fetch(`/api/characters/${characterId}/text-fields`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key: tfKey, label, value: val }),
-    }).catch(() => null)
-    setEditing(false)
-    onRefresh()
-  }
-
-  return (
-    <div className="rounded p-3" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
-      <p className="font-almendra text-[9px] uppercase tracking-widest text-saga-dim mb-2">{label}</p>
-      {editing && canEdit ? (
-        multiline
-          ? <textarea autoFocus rows={3} value={val} onChange={e => setVal(e.target.value)} onBlur={() => void save()}
-              className="w-full bg-surface-2 border border-gold/40 rounded px-2 py-1.5 text-sm focus:outline-none resize-none" />
-          : <input autoFocus type="text" value={val} onChange={e => setVal(e.target.value)}
-              onBlur={() => void save()} onKeyDown={e => { if (e.key === 'Enter') void save() }}
-              className="w-full bg-surface-2 border border-gold/40 rounded px-2 py-1.5 text-sm focus:outline-none" />
-      ) : (
-        <div onClick={() => canEdit && setEditing(true)}
-          className={`${canEdit ? 'cursor-pointer hover:bg-white/[0.03]' : ''} rounded px-2 py-1 min-h-[28px] transition-colors`}>
-          {field?.value
-            ? <p className="text-sm text-saga-text whitespace-pre-wrap">{field.value}</p>
-            : <p className="text-xs text-saga-dim italic">{canEdit ? 'Clique para editar…' : '—'}</p>
-          }
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ── Tabs ──────────────────────────────────────────────────────────────────────
-
-const TABS = [
-  { id: 'atributos',   label: 'Atributos' },
-  { id: 'habilidades', label: 'Habilidades' },
-  { id: 'poderes',     label: 'Poderes' },
-  { id: 'recursos',    label: 'Recursos' },
-  { id: 'personagem',  label: 'Personagem' },
-]
 
 export function HunterSheet({ characterId, attributes, textFields, canEdit }: Props) {
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState('atributos')
-  const g = categorize(attributes)
+  const [tab, setTab] = useState<'atributos' | 'habilidades' | 'edges' | 'recursos' | 'personagem'>('atributos')
+  const onRefresh = () => router.refresh()
+  const { physical, social, mental, talents, skills, knowledges, resources } = categorize(attributes)
 
-  function refresh() { router.refresh() }
-
-  const convAttr     = attributes.find(a => a.attribute.name === 'Convicção')
-  const zealAttr     = attributes.find(a => a.attribute.name === 'Zeal' || a.attribute.name === 'Fervor')
-  const humanityAttr = attributes.find(a => a.attribute.name === 'Humanidade')
+  const card = 'rounded-xl p-4' as const
+  const cardStyle = { background: 'rgb(var(--card) / 0.92)', border: '1px solid rgb(var(--ink) / 0.14)' }
+  const tabs = [
+    { id: 'atributos', label: 'Atributos' },
+    { id: 'habilidades', label: 'Habilidades' },
+    { id: 'edges', label: 'Edges' },
+    { id: 'recursos', label: 'Recursos' },
+    { id: 'personagem', label: 'Personagem' },
+  ] as const
 
   return (
-    <div className="rounded-lg overflow-hidden"
-      style={{ background: 'rgba(17,17,30,0.6)', border: '1px solid rgba(255,255,255,0.07)' }}>
-
-      <div className="flex flex-wrap border-b" style={{ borderColor: 'rgba(255,255,255,0.07)', background: 'rgba(0,0,0,0.18)' }}>
-        {TABS.map(tab => {
-          const isActive = tab.id === activeTab
-          return (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-              className="relative px-4 py-3.5 font-almendra text-[10px] uppercase tracking-[0.15em] transition-colors"
-              style={{ color: isActive ? ACCENT : '#7878a0', background: isActive ? `${ACCENT}11` : 'transparent' }}>
-              {tab.label}
-              {isActive && <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-t"
-                style={{ background: `linear-gradient(90deg, transparent, ${ACCENT}, transparent)` }} />}
-            </button>
-          )
-        })}
+    <div className="space-y-4">
+      <div className="rounded-xl px-4 py-3 flex items-center gap-3" style={{ background: `${ACCENT}60`, border: `1px solid ${GOLD}40` }}>
+        <div className="w-2 h-2 rounded-full" style={{ background: GOLD }} />
+        <span className="font-cinzel text-sm font-bold" style={{ color: GOLD }}>Hunter: The Reckoning</span>
       </div>
 
-      <div className="p-5 sm:p-6">
+      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgb(var(--ink) / 0.08)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
+        {tabs.map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)}
+            className="flex-1 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all"
+            style={tab === t.id ? { background: GOLD, color: '#000' } : { color: 'rgb(var(--ink) / 0.4)' }}>
+            {t.label}
+          </button>
+        ))}
+      </div>
 
-        {activeTab === 'atributos' && (
-          <div className="grid grid-cols-3 gap-3">
-            <AttrCol items={g.physical} label="Físico"  characterId={characterId} canEdit={canEdit} onSaved={refresh} color={ACCENT} />
-            <AttrCol items={g.social}   label="Social"  characterId={characterId} canEdit={canEdit} onSaved={refresh} color={ACCENT} />
-            <AttrCol items={g.mental}   label="Mental"  characterId={characterId} canEdit={canEdit} onSaved={refresh} color={ACCENT} />
-          </div>
-        )}
-
-        {activeTab === 'habilidades' && (
-          <div className="grid grid-cols-3 gap-3">
-            <AttrCol items={g.talents}    label="Talentos"      characterId={characterId} canEdit={canEdit} onSaved={refresh} color={ACCENT} />
-            <AttrCol items={g.skills}     label="Perícias"      characterId={characterId} canEdit={canEdit} onSaved={refresh} color={ACCENT} />
-            <AttrCol items={g.knowledges} label="Conhecimentos" characterId={characterId} canEdit={canEdit} onSaved={refresh} color={ACCENT} />
-          </div>
-        )}
-
-        {activeTab === 'poderes' && (
-          <div className="space-y-4">
-            <p className="text-[10px] text-saga-dim">
-              Hunters recebem Edges (poderes) concedidos pela Imbuing. Liste abaixo seus Edges e seus níveis.
-              Categorias: Mercy, Judge, Zeal, Vision, Vengeance.
-            </p>
-            <ETF tfKey="edges_list" label="Edges (Poderes)"
-              textFields={textFields} characterId={characterId} canEdit={canEdit} multiline onRefresh={refresh} />
-          </div>
-        )}
-
-        {activeTab === 'recursos' && (
-          <div className="space-y-4">
-            {/* Convicção */}
-            {convAttr && (
-              <div className="rounded p-3" style={{ background: `${ACCENT}08`, border: `1px solid ${ACCENT}33` }}>
-                <div className="flex items-center justify-between mb-3">
-                  <p className="font-almendra text-[9px] uppercase tracking-widest" style={{ color: ACCENT }}>Convicção</p>
-                  <span className="font-cinzel font-bold" style={{ color: ACCENT }}>{convAttr.value} / 5</span>
-                </div>
-                <Dots value={convAttr.value} max={5} editable={canEdit} attrId={convAttr.id}
-                  characterId={characterId} onSaved={refresh} color={ACCENT} />
-                <p className="text-[9px] mt-2" style={{ color: `${ACCENT}80` }}>Convicção alimenta os Edges sobrenaturais do Hunter.</p>
-              </div>
-            )}
-
-            {/* Zeal/Fervor */}
-            {zealAttr && (
-              <div className="rounded p-3" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                <div className="flex items-center justify-between mb-3">
-                  <p className="font-almendra text-[9px] uppercase tracking-widest text-saga-dim">Fervor / Zeal</p>
-                  <span className="font-cinzel font-bold" style={{ color: ACCENT }}>{zealAttr.value} / 5</span>
-                </div>
-                <Dots value={zealAttr.value} max={5} editable={canEdit} attrId={zealAttr.id}
-                  characterId={characterId} onSaved={refresh} color={ACCENT} />
-              </div>
-            )}
-
-            <WillpowerTrack attrs={attributes} textFields={textFields} characterId={characterId} canEdit={canEdit} onRefresh={refresh} />
-
-            {humanityAttr && (
-              <div className="rounded p-3" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                <div className="flex items-center justify-between mb-3">
-                  <p className="font-almendra text-[9px] uppercase tracking-widest text-saga-dim">Humanidade</p>
-                  <span className="font-cinzel font-bold text-gold">{humanityAttr.value} / 10</span>
-                </div>
-                <Dots value={humanityAttr.value} max={10} editable={canEdit} attrId={humanityAttr.id}
-                  characterId={characterId} onSaved={refresh} />
-              </div>
-            )}
-
-            <HealthTrack textFields={textFields} characterId={characterId} canEdit={canEdit} onRefresh={refresh} />
-          </div>
-        )}
-
-        {activeTab === 'personagem' && (
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <ETF tfKey="creed"      label="Credo"   textFields={textFields} characterId={characterId} canEdit={canEdit} onRefresh={refresh} />
-              <ETF tfKey="concept"    label="Conceito" textFields={textFields} characterId={characterId} canEdit={canEdit} onRefresh={refresh} />
-              <ETF tfKey="xp_current" label="XP Atual" textFields={textFields} characterId={characterId} canEdit={canEdit} onRefresh={refresh} />
-              <ETF tfKey="xp_total"   label="XP Gasto" textFields={textFields} characterId={characterId} canEdit={canEdit} onRefresh={refresh} />
+      {tab === 'atributos' && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[['Físico', physical], ['Social', social], ['Mental', mental]].map(([title, list]) => (
+            <div key={String(title)} className={card} style={cardStyle}>
+              <SectionDivider title={String(title)} />
+              {(list as Attr[]).map(a => <AttrRow key={a.id} a={a} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />)}
             </div>
-            <ETF tfKey="virtue_text" label="Virtudes"  textFields={textFields} characterId={characterId} canEdit={canEdit} multiline onRefresh={refresh} />
+          ))}
+        </div>
+      )}
+
+      {tab === 'habilidades' && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[['Talentos', talents], ['Perícias', skills], ['Conhecimentos', knowledges]].map(([title, list]) => (
+            <div key={String(title)} className={card} style={cardStyle}>
+              <SectionDivider title={String(title)} />
+              {(list as Attr[]).map(a => <AttrRow key={a.id} a={a} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />)}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {tab === 'edges' && (
+        <div className="space-y-4">
+          {/* Edges as attributes */}
+          {resources.length > 0 && (
+            <div className={card} style={cardStyle}>
+              <SectionDivider title="Vantagens / Edges" />
+              {resources.map(a => <AttrRow key={a.id} a={a} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} color={GOLD} />)}
+            </div>
+          )}
+          <div className={card} style={cardStyle}>
+            <TFField characterId={characterId} textFields={textFields} tfKey="edges_text" label="Edges (descrição)" placeholder="Liste seus edges e efeitos..." multiline canEdit={canEdit} onRefresh={onRefresh} />
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {tab === 'recursos' && (
+        <div className="space-y-4">
+          <div className={card} style={cardStyle}>
+            <SectionDivider title="Convicção / Força de Vontade" />
+            <div className="space-y-4">
+              <BoxTrack label="Convicção (atual)" tfKey="conviction_current" textFields={textFields} characterId={characterId} canEdit={canEdit} onRefresh={onRefresh} max={5} />
+              <BoxTrack label="Fervor (atual)" tfKey="zeal_current" textFields={textFields} characterId={characterId} canEdit={canEdit} onRefresh={onRefresh} max={5} color="#ef4444" />
+              <BoxTrack label="Força de Vontade (atual)" tfKey="willpower_current" textFields={textFields} characterId={characterId} canEdit={canEdit} onRefresh={onRefresh} color="#a78bfa" />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {tab === 'personagem' && (
+        <div className={card} style={cardStyle}>
+          <SectionDivider title="Personagem" />
+          <div className="space-y-3">
+            <TFField characterId={characterId} textFields={textFields} tfKey="credo" label="Credo" placeholder="Avenger, Defender, Innocente, Judge, Martyr, Redeemer, Visionary" canEdit={canEdit} onRefresh={onRefresh} />
+            <TFField characterId={characterId} textFields={textFields} tfKey="concept" label="Conceito" canEdit={canEdit} onRefresh={onRefresh} />
+            <TFField characterId={characterId} textFields={textFields} tfKey="backstory" label="História" multiline canEdit={canEdit} onRefresh={onRefresh} />
+            <TFField characterId={characterId} textFields={textFields} tfKey="notes" label="Notas" multiline canEdit={canEdit} onRefresh={onRefresh} />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

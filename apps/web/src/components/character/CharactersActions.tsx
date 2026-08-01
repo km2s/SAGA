@@ -17,7 +17,7 @@ export function CharactersActions({ campaigns }: { campaigns: Campaign[] }) {
       <div className="flex gap-2">
         <button
           onClick={() => setImportOpen(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-border text-saga-muted hover:text-saga-text hover:border-border-bright transition-all"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-ink/20 text-ink-soft hover:text-ink hover:border-wax transition-all"
         >
           <Upload size={12} /> Importar Ficha
         </button>

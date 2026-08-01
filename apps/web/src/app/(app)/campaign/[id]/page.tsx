@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import Link from 'next/link'
 import { MembersOnlineStatus } from '@/components/campaign/MembersOnlineStatus'
+import { ArrowRight } from 'lucide-react'
 
 export default async function CampaignOverviewPage({ params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
@@ -41,12 +42,12 @@ export default async function CampaignOverviewPage({ params }: { params: { id: s
     <div className="p-4 sm:p-8 sm:pt-5">
       {/* Active session banner */}
       {activeSession && (
-        <div className="flex items-center justify-between bg-success-dim border border-saga-success/20 rounded-lg px-5 py-3.5 mb-5">
+        <div className="flex items-center justify-between bg-green-600/10 border border-saga-success/20 rounded-lg px-5 py-3.5 mb-5">
           <div className="flex items-center gap-3">
             <div className="pulse-dot" />
             <div>
               <p className="text-sm font-semibold">{activeSession.name ?? 'Sessão em andamento'}</p>
-              <p className="text-[11px] text-saga-muted">
+              <p className="text-[11px] text-ink-soft">
                 Iniciada às {new Date(activeSession.startedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
               </p>
             </div>
@@ -56,7 +57,7 @@ export default async function CampaignOverviewPage({ params }: { params: { id: s
               <Button variant="secondary">Ver resumo</Button>
             </Link>
             <Link href={`/campaign/${params.id}/mesa`}>
-              <Button variant="primary">Entrar na sessão →</Button>
+              <Button variant="primary">Entrar na sessão <ArrowRight size={14} /></Button>
             </Link>
           </div>
         </div>
@@ -64,33 +65,33 @@ export default async function CampaignOverviewPage({ params }: { params: { id: s
 
       <div className="grid grid-cols-1 md:grid-cols-[1fr_260px] gap-5">
         {/* Roll log */}
-        <div className="bg-surface border border-border rounded-lg overflow-hidden">
-          <div className="px-4 py-3 border-b border-border text-[11px] font-bold text-saga-muted uppercase tracking-widest">
+        <div className="bg-card border border-ink/20 rounded-lg overflow-hidden">
+          <div className="px-4 py-3 border-b border-ink/20 text-[11px] font-bold text-ink-soft uppercase tracking-widest">
             Log de Rolagens — {activeSession ? 'Sessão atual' : 'Nenhuma sessão ativa'}
           </div>
           {recentRolls.length === 0 ? (
-            <div className="px-4 py-10 text-center text-sm text-saga-muted">
+            <div className="px-4 py-10 text-center text-sm text-ink-soft">
               {activeSession
                 ? 'Nenhuma rolagem ainda nesta sessão.'
                 : 'Inicie uma sessão pelo bot ou pelo Painel do Mestre.'}
             </div>
           ) : (
             recentRolls.map(r => (
-              <div key={r.id} className="flex items-center justify-between px-4 py-3 border-b border-border last:border-0">
+              <div key={r.id} className="flex items-center justify-between px-4 py-3 border-b border-ink/20 last:border-0">
                 <div className="flex items-center gap-2">
                   <div className="w-6 h-6 rounded-full bg-purple flex items-center justify-center text-[11px] font-bold shrink-0">
                     {r.rolledBy[0]?.toUpperCase()}
                   </div>
                   <div>
                     <p className="text-sm font-medium">{r.rolledBy}</p>
-                    <p className="text-[11px] text-saga-muted">
+                    <p className="text-[11px] text-ink-soft">
                       {r.attribute ? `${r.attribute} · ` : ''}{r.expression}
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="font-cinzel text-xl font-bold text-gold">{r.total}</p>
-                  <p className="text-[11px] text-saga-muted">[{(r.rolls as number[]).join(', ')}]</p>
+                  <p className="text-[11px] text-ink-soft">[{(r.rolls as number[]).join(', ')}]</p>
                 </div>
               </div>
             ))

@@ -1,358 +1,283 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Shield, Sword, User } from 'lucide-react'
 
-interface Attr {
-  id: string; value: number; customDie: string | null
-  attribute: { name: string; defaultDie: string; description?: string | null }
-}
+interface Attr { id: string; value: number; customDie: string | null; attribute: { name: string; defaultDie: string; description?: string | null } }
 interface TextField { id: string; key: string; label: string; value: string; order: number }
-interface Weapon { id: string; name: string; attackBonus: string | null; damage: string | null; damageType: string | null; range: string | null; properties: string | null; order: number }
-interface SpellSlot { id: string; level: number; total: number; used: number }
-interface Props { characterId: string; characterLevel: number; attributes: Attr[]; textFields: TextField[]; weapons: Weapon[]; spellSlots: SpellSlot[]; canEdit: boolean }
+interface Props { characterId: string; characterLevel: number; attributes: Attr[]; textFields: TextField[]; weapons?: unknown[]; spellSlots?: unknown[]; canEdit: boolean }
 
-const ACCENT = '#dc2626'
-const BASE_ATTR_NAMES = ['Força', 'Destreza', 'Constituição', 'Inteligência', 'Sabedoria', 'Carisma']
-const PROF_DEGREES = ['Sem Treinamento', 'Treinado', 'Experiente', 'Mestre', 'Lendário']
-const PROF_BONUS   = [0, 2, 4, 6, 8]
-
-function modNum(v: number) { return Math.floor((v - 10) / 2) }
-function modStr(v: number) { const m = modNum(v); return m >= 0 ? `+${m}` : `${m}` }
-function signedVal(v: number) { return v >= 0 ? `+${v}` : `${v}` }
+const ACCENT = '#7f1d1d'
+const RED = '#f87171'
 
 function SectionDivider({ title }: { title: string }) {
   return (
     <div className="flex items-center gap-3 mb-4">
-      <p className="font-almendra text-[9px] font-bold text-saga-dim uppercase tracking-[0.2em] whitespace-nowrap">{title}</p>
-      <div className="flex-1 h-px" style={{ background: `${ACCENT}33` }} />
+      <p className="font-almendra text-[9px] font-bold text-ink-soft uppercase tracking-[0.2em] whitespace-nowrap">{title}</p>
+      <div className="flex-1 h-px" style={{ background: `${RED}33` }} />
     </div>
   )
 }
 
-function EditableVal({ attrId, value, characterId, onSaved, className }: {
-  attrId: string; value: number; characterId: string; onSaved: () => void; className?: string
+function mod(score: number) { return Math.floor((score - 10) / 2) }
+function fmtMod(m: number) { return m >= 0 ? `+${m}` : `${m}` }
+
+// PF2e proficiency ranks
+const PROF = ['—', 'T', 'E', 'M', 'L']
+const PROF_LABEL = ['—', 'Treinado', 'Especialista', 'Mestre', 'Lendário']
+
+function Dots({ value, max = 5, editable = false, attrId, characterId, onSaved, color = RED }: {
+  value: number; max?: number; editable?: boolean; attrId?: string; characterId?: string; onSaved?: () => void; color?: string
 }) {
-  const [editing, setEditing] = useState(false)
-  const [val, setVal] = useState(String(value))
-  async function save() {
-    const n = parseInt(val)
-    if (isNaN(n) || n === value) { setEditing(false); return }
+  async function handleClick(i: number) {
+    if (!editable || !attrId || !characterId || !onSaved) return
+    const newVal = i + 1 === value ? i : i + 1
     await fetch(`/api/characters/${characterId}/attributes/${attrId}`, {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ value: n }),
+      body: JSON.stringify({ value: newVal }),
     }).catch(() => null)
-    setEditing(false); onSaved()
+    onSaved()
   }
-  if (editing) {
-    return <input autoFocus type="number" value={val} onChange={e => setVal(e.target.value)}
-      onBlur={save} onKeyDown={e => { if (e.key === 'Enter') void save(); if (e.key === 'Escape') setEditing(false) }}
-      className={`bg-surface-2 border border-red-600/40 rounded text-center font-bold focus:outline-none ${className ?? 'w-12 text-base'}`} />
-  }
-  return <span className={`cursor-pointer hover:text-red-400 transition-colors ${className ?? ''}`}
-    onClick={() => { setEditing(true); setVal(String(value)) }}>{value}</span>
-}
-
-function EditableText({ value, onSave, placeholder, multiline = false }: {
-  value: string; onSave: (v: string) => void; placeholder?: string; multiline?: boolean
-}) {
-  const [editing, setEditing] = useState(false)
-  const [val, setVal] = useState(value)
-  function commit() { onSave(val); setEditing(false) }
-  if (!editing) {
-    return (
-      <div onClick={() => { setEditing(true); setVal(value) }}
-        className="cursor-pointer hover:bg-white/[0.03] rounded px-2 py-1 min-h-[28px]">
-        {value ? <span className="text-sm text-saga-text whitespace-pre-wrap">{value}</span>
-          : <span className="text-xs text-saga-dim italic">{placeholder ?? 'Clique para editar…'}</span>}
-      </div>
-    )
-  }
-  if (multiline) {
-    return <textarea autoFocus rows={4} value={val} onChange={e => setVal(e.target.value)} onBlur={commit}
-      onKeyDown={e => { if (e.key === 'Escape') { setVal(value); setEditing(false) } }} placeholder={placeholder}
-      className="w-full bg-surface-2 border border-red-600/40 rounded px-2 py-1 text-sm focus:outline-none resize-none" />
-  }
-  return <input autoFocus type="text" value={val} onChange={e => setVal(e.target.value)} onBlur={commit}
-    onKeyDown={e => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') { setVal(value); setEditing(false) } }}
-    placeholder={placeholder} className="w-full bg-surface-2 border border-red-600/40 rounded px-2 py-1 text-sm focus:outline-none" />
-}
-
-function saveTFReq(characterId: string, key: string, label: string, value: string) {
-  return fetch(`/api/characters/${characterId}/text-fields`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ key, label, value }),
-  }).catch(() => null)
-}
-function getTF(textFields: TextField[], key: string) { return textFields.find(f => f.key === key)?.value ?? '' }
-
-function groupAttrs(attrs: Attr[], level: number) {
-  const base: Attr[] = [], saves: Attr[] = [], skills: Attr[] = [], others: Attr[] = []
-  for (const a of attrs) {
-    const desc = a.attribute.description ?? ''
-    const name = a.attribute.name
-    if (BASE_ATTR_NAMES.includes(name) || desc.startsWith('Potência')) base.push(a)
-    else if (desc.startsWith('Salvaguarda') || ['Fortitude', 'Reflexo', 'Vontade'].includes(name)) saves.push(a)
-    else if (desc.startsWith('Perícia')) skills.push(a)
-    else others.push(a)
-  }
-  return { base, saves, skills, others }
-}
-
-function ProfBadge({ degree }: { degree: number }) {
-  const label = PROF_DEGREES[degree] ?? 'Sem Treinamento'
-  const colors = ['#6b7280', '#22c55e', '#3b82f6', '#8b5cf6', '#f59e0b']
-  const color = colors[degree] ?? '#6b7280'
   return (
-    <span className="text-[9px] px-1.5 py-0.5 rounded font-medium" style={{ background: `${color}18`, color, border: `1px solid ${color}30` }}>
-      {label}
-    </span>
+    <div className="flex gap-1">
+      {Array.from({ length: max }).map((_, i) => (
+        <button key={i} type="button" onClick={() => void handleClick(i)}
+          className={`w-3 h-3 rounded border transition-colors ${editable ? 'cursor-pointer' : 'cursor-default'}`}
+          style={{ background: i < value ? color : 'transparent', borderColor: color }} />
+      ))}
+    </div>
   )
 }
 
-const TABS = [
-  { id: 'atributos',  label: 'Atributos',  icon: Shield },
-  { id: 'pericias',   label: 'Perícias' },
-  { id: 'combate',    label: 'Combate',    icon: Sword },
-  { id: 'personagem', label: 'Personagem', icon: User },
-]
+function TFField({ characterId, textFields, tfKey, label, placeholder, multiline = false, canEdit, onRefresh }: {
+  characterId: string; textFields: TextField[]; tfKey: string; label: string; placeholder?: string; multiline?: boolean; canEdit: boolean; onRefresh: () => void
+}) {
+  const existing = textFields.find(f => f.key === tfKey)
+  const [val, setVal] = useState(existing?.value ?? '')
+  const [saving, setSaving] = useState(false)
+  async function save(newVal: string) {
+    setSaving(true)
+    await fetch(`/api/characters/${characterId}/text-fields`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: tfKey, label, value: newVal }),
+    }).catch(() => null)
+    setSaving(false); onRefresh()
+  }
+  const cls = 'w-full bg-parchment/40 border border-ink/15 rounded-lg text-sm text-ink-soft placeholder-ink-soft/40 focus:outline-none focus:border-red-700/50 focus:bg-parchment/60 px-3 py-2 transition-colors'
+  return (
+    <div className="space-y-1">
+      <label className="text-[10px] font-bold text-ink-soft uppercase tracking-wider">{label}</label>
+      {multiline
+        ? <textarea rows={3} value={val} onChange={e => setVal(e.target.value)} onBlur={e => void save(e.target.value)}
+            disabled={!canEdit || saving} placeholder={placeholder} className={cls} />
+        : <input type="text" value={val} onChange={e => setVal(e.target.value)} onBlur={e => void save(e.target.value)}
+            disabled={!canEdit || saving} placeholder={placeholder} className={cls} />
+      }
+    </div>
+  )
+}
 
-// Three-action reminder
-const THREE_ACTIONS = [
-  { symbol: '◆', label: 'Uma Ação', desc: 'Atacar, mover, preparar, interagir' },
-  { symbol: '◆◆', label: 'Duas Ações', desc: 'Lançar magia, corrida, manobra' },
-  { symbol: '◆◆◆', label: 'Três Ações', desc: 'Ações especiais de classe' },
-  { symbol: '◇', label: 'Ação Livre', desc: 'Não conta contra o limite' },
-  { symbol: '↺', label: 'Reação', desc: '1 por rodada, trigger específico' },
-]
+// ProfSelector: cycle through 0-4 proficiency ranks
+function ProfSelector({ attrId, value, characterId, canEdit, onSaved }: { attrId: string; value: number; characterId: string; canEdit: boolean; onSaved: () => void }) {
+  async function next() {
+    if (!canEdit) return
+    const newVal = (value + 1) % 5
+    await fetch(`/api/characters/${characterId}/attributes/${attrId}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: newVal }),
+    }).catch(() => null)
+    onSaved()
+  }
+  return (
+    <button type="button" onClick={() => void next()} title={PROF_LABEL[value]}
+      className="w-8 h-6 rounded text-[11px] font-bold transition-colors"
+      style={{ background: value ? `${RED}30` : 'rgb(var(--ink) / 0.1)', color: value ? RED : 'rgb(var(--ink) / 0.2)', border: `1px solid ${value ? RED : 'rgb(var(--ink) / 0.1)'}` }}>
+      {PROF[value]}
+    </button>
+  )
+}
 
-export function Pathfinder2eSheet({ characterId, characterLevel, attributes, textFields, weapons, spellSlots, canEdit }: Props) {
+const BASE_STATS = ['Força', 'Destreza', 'Constituição', 'Inteligência', 'Sabedoria', 'Carisma']
+
+export function Pathfinder2eSheet({ characterId, characterLevel, attributes, textFields, canEdit }: Props) {
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState('atributos')
-  const grouped = groupAttrs(attributes, characterLevel)
-  function refresh() { router.refresh() }
-  async function saveTF(key: string, label: string, value: string) {
-    await saveTFReq(characterId, key, label, value); refresh()
+  const [tab, setTab] = useState<'atributos' | 'combate' | 'pericias' | 'magias' | 'personagem'>('atributos')
+  const onRefresh = () => router.refresh()
+
+  const baseStats = attributes.filter(a => BASE_STATS.some(n => a.attribute.name.includes(n.split(' ')[0]!)))
+  const skills = attributes.filter(a => a.attribute.description?.startsWith('Perícia'))
+  const other = attributes.filter(a => !baseStats.includes(a) && !skills.includes(a))
+
+  function getStat(name: string) { return baseStats.find(a => a.attribute.name.includes(name))?.value ?? 10 }
+
+  const dying = parseInt(textFields.find(f => f.key === 'dying')?.value ?? '0')
+  const heroPoints = parseInt(textFields.find(f => f.key === 'hero_points')?.value ?? '0')
+
+  const card = 'rounded-xl p-4' as const
+  const cardStyle = { background: 'rgb(var(--card) / 0.92)', border: '1px solid rgb(var(--ink) / 0.14)' }
+  const tabs = [
+    { id: 'atributos', label: 'Atributos' },
+    { id: 'combate', label: 'Combate' },
+    { id: 'pericias', label: 'Perícias' },
+    { id: 'magias', label: 'Magias' },
+    { id: 'personagem', label: 'Personagem' },
+  ] as const
+
+  async function saveNum(key: string, label: string, v: number) {
+    await fetch(`/api/characters/${characterId}/text-fields`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key, label, value: String(v) }),
+    }).catch(() => null)
+    onRefresh()
   }
 
-  // dying / wounded / hero points
-  const dying   = parseInt(getTF(textFields, 'dying'))   || 0
-  const wounded = parseInt(getTF(textFields, 'wounded')) || 0
-  const heroPoints = parseInt(getTF(textFields, 'hero_points')) || 0
-
   return (
-    <div className="rounded-lg overflow-hidden" style={{ background: 'rgba(17,17,30,0.6)', border: '1px solid rgba(255,255,255,0.07)' }}>
-      {/* Quick bar */}
-      <div className="flex items-center gap-4 px-5 py-2 border-b" style={{ background: 'rgba(220,38,38,0.06)', borderColor: 'rgba(220,38,38,0.2)' }}>
-        <div className="flex items-center gap-2">
-          <span className="font-almendra text-[9px] text-saga-dim uppercase tracking-wider">Morrendo</span>
-          <div className="flex gap-1">
-            {[0, 1, 2, 3].map(i => (
-              <button key={i} disabled={!canEdit} onClick={async () => { await saveTF('dying', 'Morrendo', String(i === dying ? 0 : i + 1)); }}
-                className="rounded-sm border transition-all"
-                style={{ width: 14, height: 14, background: i < dying ? ACCENT : 'transparent', borderColor: i < dying ? ACCENT : 'rgba(255,255,255,0.2)', cursor: canEdit ? 'pointer' : 'default' }} />
-            ))}
-          </div>
-          <span className="text-[9px] text-saga-dim">/{4}</span>
+    <div className="space-y-4">
+      <div className="rounded-xl px-4 py-3 flex items-center justify-between" style={{ background: `${ACCENT}40`, border: `1px solid ${RED}40` }}>
+        <div className="flex items-center gap-3">
+          <div className="w-2 h-2 rounded-full" style={{ background: RED }} />
+          <span className="font-cinzel text-sm font-bold" style={{ color: RED }}>Pathfinder 2e</span>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="font-almendra text-[9px] text-saga-dim uppercase tracking-wider">Ferido</span>
-          <div className="flex gap-1">
-            {[0, 1, 2].map(i => (
-              <button key={i} disabled={!canEdit} onClick={async () => { await saveTF('wounded', 'Ferido', String(i === wounded - 1 ? 0 : i + 1)); }}
-                className="rounded-sm border transition-all"
-                style={{ width: 14, height: 14, background: i < wounded ? '#f97316' : 'transparent', borderColor: i < wounded ? '#f97316' : 'rgba(255,255,255,0.2)', cursor: canEdit ? 'pointer' : 'default' }} />
-            ))}
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="font-almendra text-[9px] text-saga-dim uppercase tracking-wider">Pontos de Herói</span>
-          <div className="flex gap-1">
-            {[1, 2, 3].map(i => (
-              <button key={i} disabled={!canEdit} onClick={async () => { await saveTF('hero_points', 'Pontos de Herói', String(i === heroPoints ? 0 : i)); }}
-                className="rounded-full border transition-all"
-                style={{ width: 14, height: 14, background: i <= heroPoints ? '#f59e0b' : 'transparent', borderColor: i <= heroPoints ? '#f59e0b' : 'rgba(255,255,255,0.2)', cursor: canEdit ? 'pointer' : 'default' }} />
+        <div className="flex items-center gap-4 text-xs">
+          <span className="text-ink-soft">Nível {characterLevel}</span>
+          <div className="flex items-center gap-1">
+            <span className="text-ink-soft">Hero Points</span>
+            {[1, 2, 3].map(n => (
+              <button key={n} type="button" onClick={() => canEdit && void saveNum('hero_points', 'Hero Points', n === heroPoints ? n - 1 : n)}
+                className="w-5 h-5 rounded-full border transition-colors"
+                style={{ background: n <= heroPoints ? RED : 'transparent', borderColor: RED }} />
             ))}
           </div>
         </div>
       </div>
 
-      {/* Tab bar */}
-      <div className="flex flex-wrap border-b" style={{ borderColor: 'rgba(255,255,255,0.07)', background: 'rgba(0,0,0,0.18)' }}>
-        {TABS.map(tab => {
-          const isActive = tab.id === activeTab
-          const Icon = tab.icon
-          return (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-              className="relative px-4 py-3.5 font-almendra text-[10px] uppercase tracking-[0.15em] transition-colors flex items-center gap-1.5"
-              style={{ color: isActive ? ACCENT : '#7878a0', background: isActive ? `${ACCENT}0d` : 'transparent' }}>
-              {Icon && <Icon size={11} />}{tab.label}
-              {isActive && <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-t"
-                style={{ background: `linear-gradient(90deg, transparent, ${ACCENT}, transparent)` }} />}
-            </button>
-          )
-        })}
+      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'rgb(var(--ink) / 0.08)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
+        {tabs.map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)}
+            className="flex-1 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all"
+            style={tab === t.id ? { background: RED, color: '#fff' } : { color: 'rgb(var(--ink) / 0.4)' }}>
+            {t.label}
+          </button>
+        ))}
       </div>
 
-      <div className="p-5 sm:p-6">
-        {/* ── Atributos ── */}
-        {activeTab === 'atributos' && (
-          <div className="space-y-7">
-            <div>
-              <SectionDivider title="Atributos Base" />
-              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                {grouped.base.map(attr => {
-                  const m = modStr(attr.value)
-                  const pos = !m.startsWith('-')
-                  return (
-                    <div key={attr.id} className="flex flex-col items-center gap-2 py-5 px-1 rounded-lg border transition-all"
-                      style={{ background: 'rgba(255,255,255,0.025)', borderColor: 'rgba(255,255,255,0.07)' }}>
-                      <span className="font-cinzel text-3xl font-bold leading-none" style={{ color: pos ? ACCENT : '#ef4444' }}>{m}</span>
-                      <div className="w-8 h-px" style={{ background: `${ACCENT}33` }} />
-                      {canEdit
-                        ? <EditableVal attrId={attr.id} value={attr.value} characterId={characterId} onSaved={refresh} className="text-sm text-saga-muted w-10 text-center" />
-                        : <span className="text-sm text-saga-muted">{attr.value}</span>}
-                      <span className="font-almendra text-[9px] text-saga-dim uppercase tracking-widest">{attr.attribute.name.slice(0, 3).toUpperCase()}</span>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-            {grouped.saves.length > 0 && (
-              <div>
-                <SectionDivider title="Salvaguardas" />
-                <div className="space-y-1.5">
-                  {grouped.saves.map(attr => {
-                    const totalBonus = attr.value + characterLevel
-                    return (
-                      <div key={attr.id} className="flex items-center gap-3 py-2.5 px-3 rounded"
-                        style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                        <Shield size={10} className="text-saga-dim shrink-0" />
-                        <span className="flex-1 text-sm">{attr.attribute.name}</span>
-                        <ProfBadge degree={Math.min(4, Math.floor(attr.value / 2))} />
-                        {canEdit
-                          ? <EditableVal attrId={attr.id} value={attr.value} characterId={characterId} onSaved={refresh}
-                              className="font-cinzel font-bold text-sm w-8 text-right" />
-                          : <span className="font-cinzel font-bold text-sm" style={{ color: ACCENT }}>{signedVal(totalBonus)}</span>}
-                      </div>
-                    )
-                  })}
+      {tab === 'atributos' && (
+        <div className={card} style={cardStyle}>
+          <SectionDivider title="Atributos Base" />
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              ['For', 'Força'], ['Des', 'Destreza'], ['Con', 'Constituição'],
+              ['Int', 'Inteligência'], ['Sab', 'Sabedoria'], ['Car', 'Carisma'],
+            ].map(([abbr, name]) => {
+              const a = baseStats.find(x => x.attribute.name.includes(name!.split(' ')[0]!))
+              const m = mod(a?.value ?? 10)
+              return (
+                <div key={abbr} className="rounded-lg p-3 text-center space-y-1" style={{ background: 'rgb(var(--ink) / 0.08)' }}>
+                  <div className="text-[10px] font-bold text-ink-soft uppercase">{abbr}</div>
+                  <div className="text-2xl font-cinzel font-bold" style={{ color: RED }}>{fmtMod(m)}</div>
+                  {a && <Dots value={a.value} max={20} editable={canEdit} attrId={a.id} characterId={characterId} onSaved={onRefresh} />}
                 </div>
-              </div>
-            )}
+              )
+            })}
           </div>
-        )}
-
-        {/* ── Perícias ── */}
-        {activeTab === 'pericias' && (
-          <div className="space-y-6">
-            <div className="text-[11px] text-saga-dim leading-relaxed rounded p-3" style={{ background: 'rgba(220,38,38,0.05)', border: '1px solid rgba(220,38,38,0.15)' }}>
-              <p className="font-medium text-red-400 mb-1">Graus de Proficiência PF2e</p>
-              {PROF_DEGREES.map((d, i) => (
-                <p key={d}><span className="font-mono">+{PROF_BONUS[i]}</span> → {d} (+ nível do personagem se treinado)</p>
+          {other.length > 0 && (
+            <div className="mt-4">
+              <SectionDivider title="Outros" />
+              {other.map(a => (
+                <div key={a.id} className="flex items-center justify-between py-1.5 border-b border-ink/10 last:border-0">
+                  <span className="text-sm text-ink-soft">{a.attribute.name}</span>
+                  <Dots value={a.value} editable={canEdit} attrId={a.id} characterId={characterId} onSaved={onRefresh} />
+                </div>
               ))}
             </div>
-            {grouped.skills.length === 0
-              ? <p className="text-sm text-saga-dim text-center py-8">Nenhuma perícia adicionada.</p>
-              : grouped.skills.map(attr => {
-                  const descMatch = attr.attribute.description?.match(/\(([^)]+)\)/)
-                  const attrKey = descMatch?.[1] ?? ''
-                  const profDegree = Math.min(4, Math.max(0, attr.value))
-                  const totalBonus = PROF_BONUS[profDegree]! + (profDegree > 0 ? characterLevel : 0) + (
-                    (() => {
-                      const matchedAttr = grouped.base.find(a => a.attribute.name.slice(0,3).toUpperCase() === attrKey)
-                      return matchedAttr ? modNum(matchedAttr.value) : 0
-                    })()
-                  )
-                  return (
-                    <div key={attr.id} className="flex items-center gap-3 py-2.5 px-2 rounded hover:bg-white/[0.015]">
-                      <span className="flex-1 text-sm">{attr.attribute.name}</span>
-                      {attrKey && <span className="text-[9px] text-saga-dim font-mono">{attrKey}</span>}
-                      <ProfBadge degree={profDegree} />
-                      <span className="font-cinzel font-bold text-base w-10 text-right" style={{ color: ACCENT }}>{signedVal(totalBonus)}</span>
-                    </div>
-                  )
-                })}
-          </div>
-        )}
+          )}
+        </div>
+      )}
 
-        {/* ── Combate ── */}
-        {activeTab === 'combate' && (
-          <div className="space-y-6">
-            <div>
-              <SectionDivider title="Sistema de 3 Ações" />
-              <div className="grid grid-cols-1 gap-1.5">
-                {THREE_ACTIONS.map(a => (
-                  <div key={a.label} className="flex items-center gap-3 py-2 px-3 rounded"
-                    style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                    <span className="font-cinzel font-bold text-sm w-12 shrink-0" style={{ color: ACCENT }}>{a.symbol}</span>
-                    <span className="text-sm font-medium w-28">{a.label}</span>
-                    <span className="text-[11px] text-saga-dim">{a.desc}</span>
-                  </div>
-                ))}
-              </div>
+      {tab === 'combate' && (
+        <div className="space-y-4">
+          <div className={card} style={cardStyle}>
+            <SectionDivider title="Combate" />
+            <div className="grid grid-cols-2 gap-3">
+              <TFField characterId={characterId} textFields={textFields} tfKey="ac" label="CA" placeholder="10" canEdit={canEdit} onRefresh={onRefresh} />
+              <TFField characterId={characterId} textFields={textFields} tfKey="hp_max" label="PV Máx." placeholder="8" canEdit={canEdit} onRefresh={onRefresh} />
+              <TFField characterId={characterId} textFields={textFields} tfKey="hp_current" label="PV Atual" placeholder="8" canEdit={canEdit} onRefresh={onRefresh} />
+              <TFField characterId={characterId} textFields={textFields} tfKey="speed" label="Deslocamento" placeholder="9m" canEdit={canEdit} onRefresh={onRefresh} />
             </div>
-            <SectionDivider title="Ataques & Armas" />
-            {weapons.length === 0
-              ? <p className="text-xs text-saga-dim text-center py-3 italic">Nenhuma arma.</p>
-              : weapons.map(w => (
-                  <div key={w.id} className="grid grid-cols-[1fr_80px_100px_80px] gap-2 py-2 px-2 rounded hover:bg-white/[0.015]">
-                    <span className="text-sm font-medium">{w.name}</span>
-                    <span className="text-sm text-center font-cinzel" style={{ color: ACCENT }}>{w.attackBonus ?? '—'}</span>
-                    <span className="text-sm text-center font-mono">{w.damage ?? '—'}</span>
-                    <span className="text-xs text-saga-muted">{w.range ?? '—'}</span>
-                  </div>
-                ))}
-            {spellSlots.some(s => s.total > 0) && (
+          </div>
+          {/* Dying / Wounded tracker */}
+          <div className={card} style={cardStyle}>
+            <SectionDivider title="Moribundo / Ferido" />
+            <div className="space-y-3">
               <div>
-                <SectionDivider title="Espaços de Magia" />
-                <div className="grid grid-cols-3 gap-2">
-                  {Array.from({ length: 10 }, (_, i) => i).map(lvl => {
-                    const slot = spellSlots.find(s => s.level === lvl)
-                    if (!slot || slot.total === 0) return null
-                    return (
-                      <div key={lvl} className="rounded p-2.5" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="font-almendra text-[9px] text-saga-dim uppercase">{lvl === 0 ? 'Truques' : `Nível ${lvl}`}</span>
-                          <span className="font-cinzel text-xs" style={{ color: ACCENT }}>{slot.total - slot.used}/{slot.total}</span>
-                        </div>
-                        <div className="flex flex-wrap gap-1">
-                          {Array.from({ length: slot.total }).map((_, i) => (
-                            <div key={i} className="rounded-full border" style={{ width: 10, height: 10, background: i < slot.used ? 'rgba(120,120,160,0.3)' : ACCENT, borderColor: ACCENT }} />
-                          ))}
-                        </div>
-                      </div>
-                    )
-                  })}
+                <label className="text-[10px] font-bold text-ink-soft uppercase tracking-wider mb-1.5 block">Moribundo (Dying 0-4)</label>
+                <div className="flex gap-2">
+                  {[0, 1, 2, 3, 4].map(n => (
+                    <button key={n} type="button" onClick={() => canEdit && void saveNum('dying', 'Moribundo', n)}
+                      className="flex-1 py-1.5 rounded text-[11px] font-bold transition-all"
+                      style={{ background: n === dying ? RED : 'rgb(var(--ink) / 0.1)', color: n === dying ? '#fff' : 'rgb(var(--ink) / 0.4)', border: `1px solid ${n === dying ? RED : 'rgb(var(--ink) / 0.1)'}` }}>
+                      {n}
+                    </button>
+                  ))}
                 </div>
               </div>
-            )}
+              <TFField characterId={characterId} textFields={textFields} tfKey="wounded" label="Ferido (Wounded)" placeholder="0" canEdit={canEdit} onRefresh={onRefresh} />
+            </div>
           </div>
-        )}
+          <div className={card} style={cardStyle}>
+            <SectionDivider title="Testes de Resistência" />
+            <div className="grid grid-cols-3 gap-3">
+              <TFField characterId={characterId} textFields={textFields} tfKey="save_fort" label="Fortitude" placeholder={fmtMod(mod(getStat('Con')))} canEdit={canEdit} onRefresh={onRefresh} />
+              <TFField characterId={characterId} textFields={textFields} tfKey="save_ref" label="Reflexo" placeholder={fmtMod(mod(getStat('Des')))} canEdit={canEdit} onRefresh={onRefresh} />
+              <TFField characterId={characterId} textFields={textFields} tfKey="save_will" label="Vontade" placeholder={fmtMod(mod(getStat('Sab')))} canEdit={canEdit} onRefresh={onRefresh} />
+            </div>
+          </div>
+        </div>
+      )}
 
-        {/* ── Personagem ── */}
-        {activeTab === 'personagem' && (
-          <div className="space-y-4">
-            {[
-              { key: 'ancestry',       label: 'Ancestralidade' },
-              { key: 'background',     label: 'Background' },
-              { key: 'languages',      label: 'Línguas' },
-              { key: 'coins',          label: 'Moedas' },
-              { key: 'xp_current',     label: 'XP' },
-              { key: 'ancestry_feats', label: 'Talentos de Ancestralidade', multiline: true },
-              { key: 'class_feats',    label: 'Talentos de Classe',         multiline: true },
-              { key: 'general_feats',  label: 'Talentos Gerais',            multiline: true },
-            ].map(f => (
-              <div key={f.key} className="rounded p-3" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                <label className="font-almendra text-[9px] uppercase tracking-widest text-saga-dim block mb-2">{f.label}</label>
-                {canEdit
-                  ? <EditableText value={getTF(textFields, f.key)} onSave={v => void saveTF(f.key, f.label, v)} placeholder={`${f.label}…`} multiline={(f as {multiline?: boolean}).multiline} />
-                  : <p className="text-sm text-saga-text px-2 py-1 whitespace-pre-wrap">{getTF(textFields, f.key) || <span className="text-saga-dim italic text-xs">—</span>}</p>}
-              </div>
-            ))}
+      {tab === 'pericias' && (
+        <div className={card} style={cardStyle}>
+          <SectionDivider title="Perícias (clique no rank para ciclar)" />
+          {skills.length > 0
+            ? skills.map(a => (
+                <div key={a.id} className="flex items-center justify-between py-1.5 border-b border-ink/10 last:border-0">
+                  <span className="text-sm text-ink-soft">{a.attribute.name}</span>
+                  <div className="flex items-center gap-2">
+                    <ProfSelector attrId={a.id} value={Math.min(a.value, 4)} characterId={characterId} canEdit={canEdit} onSaved={onRefresh} />
+                    <span className="text-[11px] text-ink-soft w-6 text-right">{fmtMod(mod(getStat(a.attribute.name)) + (a.value > 0 ? a.value * 2 + characterLevel : 0))}</span>
+                  </div>
+                </div>
+              ))
+            : <TFField characterId={characterId} textFields={textFields} tfKey="skills_text" label="Perícias" placeholder="Acrobacia T +7, Magia E +12..." multiline canEdit={canEdit} onRefresh={onRefresh} />
+          }
+        </div>
+      )}
+
+      {tab === 'magias' && (
+        <div className="space-y-3">
+          <div className={card} style={cardStyle}>
+            <TFField characterId={characterId} textFields={textFields} tfKey="spell_slots" label="Espaços de Magia" placeholder="Nível 1: 2, Nível 2: 2..." multiline canEdit={canEdit} onRefresh={onRefresh} />
           </div>
-        )}
-      </div>
+          <div className={card} style={cardStyle}>
+            <TFField characterId={characterId} textFields={textFields} tfKey="spells_known" label="Magias Conhecidas" placeholder="Liste as magias por nível..." multiline canEdit={canEdit} onRefresh={onRefresh} />
+          </div>
+        </div>
+      )}
+
+      {tab === 'personagem' && (
+        <div className={card} style={cardStyle}>
+          <SectionDivider title="Personagem" />
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <TFField characterId={characterId} textFields={textFields} tfKey="class" label="Classe" canEdit={canEdit} onRefresh={onRefresh} />
+              <TFField characterId={characterId} textFields={textFields} tfKey="ancestry" label="Ancestralidade" placeholder="Humano, Anão, Elfo..." canEdit={canEdit} onRefresh={onRefresh} />
+              <TFField characterId={characterId} textFields={textFields} tfKey="background" label="Background" canEdit={canEdit} onRefresh={onRefresh} />
+              <TFField characterId={characterId} textFields={textFields} tfKey="alignment" label="Alinhamento" canEdit={canEdit} onRefresh={onRefresh} />
+            </div>
+            <TFField characterId={characterId} textFields={textFields} tfKey="feats" label="Talentos" placeholder="Liste seus talentos..." multiline canEdit={canEdit} onRefresh={onRefresh} />
+            <TFField characterId={characterId} textFields={textFields} tfKey="backstory" label="História" multiline canEdit={canEdit} onRefresh={onRefresh} />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

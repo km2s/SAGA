@@ -82,13 +82,13 @@ export function NPCVisibilityRow({
   }
 
   return (
-    <div className="flex items-center justify-between bg-surface border border-border rounded-lg px-4 py-3 hover:border-border-bright transition-all">
+    <div className="flex items-center justify-between bg-card border border-ink/20 rounded-lg px-4 py-3 hover:border-wax transition-all">
       <div className="flex items-center gap-3">
         {npc.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={npc.imageUrl} alt={npc.name} className="w-8 h-8 rounded-full object-cover shrink-0" />
         ) : (
-          <div className="w-8 h-8 rounded-full bg-surface-2 border border-border flex items-center justify-center shrink-0 text-saga-dim">
+          <div className="w-8 h-8 rounded-full bg-parchment/60 border border-ink/20 flex items-center justify-center shrink-0 text-ink-soft">
             {npc.type === 'VILLAIN' ? <ShieldAlert size={15} /> : npc.type === 'ALLY' ? <UserCheck size={15} /> : <User size={15} />}
           </div>
         )}
@@ -98,7 +98,7 @@ export function NPCVisibilityRow({
             <Badge variant="purple">{NPC_TYPE_LABELS[npc.type] ?? npc.type}</Badge>
           </div>
           {npc.linkedMember && (
-            <p className="text-[11px] text-saga-muted">Ligado a {npc.linkedMember.user.username}</p>
+            <p className="text-[11px] text-ink-soft">Ligado a {npc.linkedMember.user.username}</p>
           )}
         </div>
       </div>
@@ -125,7 +125,7 @@ export function NPCVisibilityRow({
                   className={`w-5 h-5 rounded-full border-2 flex items-center justify-center text-[9px] font-bold transition-all
                     ${visible
                       ? 'bg-saga-success border-bg text-white'
-                      : 'bg-surface-2 border-bg text-saga-dim group-hover:border-border-bright'
+                      : 'bg-parchment/60 border-bg text-ink-soft group-hover:border-wax'
                     }
                     ${npc.isPublic ? '' : 'cursor-pointer'}`}
                 >

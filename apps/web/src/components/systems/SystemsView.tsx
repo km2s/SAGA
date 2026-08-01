@@ -54,9 +54,9 @@ const CATEGORY_META: Record<string, {
   },
   generic: {
     label: 'Genérico', Icon: Dice6,
-    gradient: 'from-slate-800 via-slate-700/50 to-[#0d0d18]',
-    textColor: 'text-slate-400',
-    badgeClass: 'bg-slate-400/10 text-slate-400 border-slate-400/30',
+    gradient: 'from-[#3a2e1a] via-[#2e2318]/50 to-[#0d0d18]',
+    textColor: 'text-saga-muted',
+    badgeClass: 'bg-saga-muted/10 text-saga-muted border-saga-muted/30',
   },
   custom: {
     label: 'Personalizado', Icon: Pencil,
@@ -101,8 +101,7 @@ function SystemCard({ system, isMine, onDelete }: {
 
   return (
     <div
-      className="group rounded-xl overflow-hidden border transition-all duration-200 cursor-pointer"
-      style={{ background: '#11111e', borderColor: 'rgba(255,255,255,0.07)' }}
+      className="parchment-card group rounded-xl overflow-hidden cursor-pointer card-hover"
       onClick={() => router.push(`/systems/${system.id}`)}
     >
       {/* Banner */}
@@ -127,7 +126,7 @@ function SystemCard({ system, isMine, onDelete }: {
               <Lock size={7} /> Oficial
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest border bg-white/5 text-saga-muted border-white/10">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest border bg-white/10 text-parchment/80 border-white/20">
               <Users size={7} /> Comunidade
             </span>
           )}
@@ -136,31 +135,31 @@ function SystemCard({ system, isMine, onDelete }: {
 
       {/* Body */}
       <div className="p-4">
-        <h3 className="font-cinzel text-sm font-bold leading-tight mb-1 group-hover:text-gold transition-colors">
+        <h3 className="font-cinzel text-sm font-bold leading-tight mb-1 group-hover:text-wax transition-colors">
           {system.name}
         </h3>
         {system.description ? (
-          <p className="text-[11px] text-saga-muted leading-relaxed line-clamp-2 mb-3">
+          <p className="text-[11px] text-ink-soft leading-relaxed line-clamp-2 mb-3">
             {system.description}
           </p>
         ) : (
-          <p className="text-[11px] text-saga-dim italic mb-3">Sem descrição.</p>
+          <p className="text-[11px] text-ink-soft italic mb-3">Sem descrição.</p>
         )}
 
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 text-[10px] text-saga-dim">
+          <div className="flex items-center gap-3 text-[10px] text-ink-soft">
             <span>{system.attributes.length} atributos</span>
             {!system.isPreset && system.creator && (
-              <span className="text-saga-dim/60">por {system.creator.username}</span>
+              <span className="text-ink-soft/60">por {system.creator.username}</span>
             )}
           </div>
-          <ChevronRight size={13} className="text-saga-dim group-hover:text-gold transition-colors" />
+          <ChevronRight size={13} className="text-ink-soft group-hover:text-wax transition-colors" />
         </div>
 
         {isMine && (
           <button
             onClick={e => { e.stopPropagation(); onDelete(system.id) }}
-            className="mt-3 w-full text-[10px] text-saga-danger/60 hover:text-saga-danger border border-saga-danger/20 hover:border-saga-danger/40 rounded py-1.5 transition-all"
+            className="mt-3 w-full text-[10px] text-wax/70 hover:text-wax border border-wax/25 hover:border-wax/50 rounded py-1.5 transition-all"
           >
             Deletar sistema
           </button>
@@ -195,15 +194,15 @@ export function SystemsView({ systems: initial, currentUserDiscordId }: Props) {
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="font-cinzel-deco text-2xl font-bold">Sistemas de RPG</h1>
-          <p className="text-sm text-saga-muted mt-1">
+          <p className="flex items-center gap-2 font-cinzel text-[11px] tracking-[0.35em] text-wax uppercase"><BookOpen className="h-3.5 w-3.5" /> Códices</p>
+          <h1 className="font-cinzel text-3xl font-bold text-ink">Sistemas de RPG</h1>
+          <p className="text-sm text-ink-soft mt-1 font-cormorant italic">
             {systems.filter(s => s.isPreset).length} oficiais · {systems.filter(s => !s.isPreset).length} da comunidade
           </p>
         </div>
         <button
           onClick={() => setCreateOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all"
-          style={{ background: 'rgba(201,162,42,0.12)', border: '1px solid rgba(201,162,42,0.35)', color: '#c9a22a' }}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-cinzel bg-wax text-parchment hover:bg-wax-deep shadow-sm transition-all"
         >
           <Plus size={14} />
           Criar Sistema
@@ -216,14 +215,14 @@ export function SystemsView({ systems: initial, currentUserDiscordId }: Props) {
           <button
             key={f.id}
             onClick={() => setFilter(f.id)}
-            className={`px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all border ${
+            className={`px-3 py-1.5 rounded-lg text-[11px] font-cinzel tracking-wide transition-all border ${
               filter === f.id
-                ? 'bg-gold/12 border-gold/35 text-gold'
-                : 'bg-transparent border-border text-saga-muted hover:border-border-bright hover:text-saga-text'
+                ? 'bg-wax text-parchment border-wax-deep'
+                : 'bg-parchment/50 border-ink/20 text-ink-soft hover:border-wax hover:text-wax'
             }`}
           >
             {f.label}
-            <span className="ml-1.5 text-saga-dim/60">
+            <span className="ml-1.5 opacity-60">
               {f.id === 'all' ? systems.length
                 : f.id === 'community' ? systems.filter(s => !s.isPreset).length
                 : systems.filter(s => s.category === f.id).length}
@@ -234,12 +233,12 @@ export function SystemsView({ systems: initial, currentUserDiscordId }: Props) {
 
       {/* Grid */}
       {filtered.length === 0 ? (
-        <div className="text-center py-16 text-saga-dim">
-          <Dice6 size={32} className="mx-auto mb-3 opacity-30" />
-          <p className="text-sm">Nenhum sistema nesta categoria.</p>
+        <div className="text-center py-16 text-ink-soft">
+          <Dice6 size={32} className="mx-auto mb-3 opacity-40 text-wax" />
+          <p className="text-sm font-cormorant">Nenhum sistema nesta categoria.</p>
           {filter === 'community' && (
             <button onClick={() => setCreateOpen(true)}
-              className="mt-3 text-gold text-sm hover:underline">
+              className="mt-3 text-wax text-sm hover:underline">
               Criar o primeiro →
             </button>
           )}

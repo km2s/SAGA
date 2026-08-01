@@ -5,8 +5,10 @@ import { useRouter } from 'next/navigation'
 import {
   ArrowLeft, Pencil, Trash2, Plus, X, Check, Loader2,
   Swords, Moon, Skull, Rocket, Dice6, Flame, Globe, Sparkles,
-  Eye, Shield, Cpu, BookOpen, Lock, Users,
+  Eye, Shield, Cpu, BookOpen, Lock, Users, Download,
 } from 'lucide-react'
+import { defaultDieForCategory } from '@/lib/system-category'
+import { SystemTemplatePicker } from './SystemTemplatePicker'
 
 interface SystemAttr {
   id: string; name: string; defaultDie: string; description: string | null
@@ -28,7 +30,7 @@ const CATEGORY_META: Record<string, { label: string; Icon: React.ElementType; gr
   'world-of-darkness': { label: 'Mundo das Trevas', Icon: Moon, gradient: 'from-purple-950 via-purple-900/50 to-transparent', textColor: 'text-purple-400' },
   horror: { label: 'Horror', Icon: Skull, gradient: 'from-red-950 via-red-900/40 to-transparent', textColor: 'text-red-400' },
   scifi: { label: 'Sci-Fi', Icon: Rocket, gradient: 'from-blue-950 via-blue-800/40 to-transparent', textColor: 'text-blue-400' },
-  generic: { label: 'Genérico', Icon: Dice6, gradient: 'from-slate-800 via-slate-700/40 to-transparent', textColor: 'text-slate-400' },
+  generic: { label: 'Genérico', Icon: Dice6, gradient: 'from-[#3a2e1a] via-[#2e2318]/40 to-transparent', textColor: 'text-saga-muted' },
   custom: { label: 'Personalizado', Icon: Pencil, gradient: 'from-violet-950 via-violet-800/30 to-transparent', textColor: 'text-violet-400' },
 }
 
@@ -75,7 +77,7 @@ function InlineEdit({ value, onSave, placeholder, multiline = false, className =
         className={`cursor-pointer group/edit inline-flex items-start gap-1 ${className}`}
         onClick={() => { setDraft(value); setEditing(true) }}
       >
-        {value || <span className="text-saga-dim italic">{placeholder}</span>}
+        {value || <span className="text-ink-soft italic">{placeholder}</span>}
         <Pencil size={11} className="opacity-0 group-hover/edit:opacity-40 mt-1 shrink-0" />
       </span>
     )
@@ -89,7 +91,7 @@ function InlineEdit({ value, onSave, placeholder, multiline = false, className =
           value={draft}
           onChange={e => setDraft(e.target.value)}
           className="flex-1 px-2 py-1 rounded text-sm border resize-none"
-          style={{ background: '#0d0d18', borderColor: 'rgba(255,255,255,0.18)', color: 'inherit', outline: 'none', minWidth: 200 }}
+          style={{ background: '#0d0d18', borderColor: 'rgb(var(--ink) / 0.18)', color: 'inherit', outline: 'none', minWidth: 200 }}
         />
       ) : (
         <input
@@ -97,14 +99,14 @@ function InlineEdit({ value, onSave, placeholder, multiline = false, className =
           value={draft}
           onChange={e => setDraft(e.target.value)}
           className="flex-1 px-2 py-1 rounded text-sm border"
-          style={{ background: '#0d0d18', borderColor: 'rgba(255,255,255,0.18)', color: 'inherit', outline: 'none', minWidth: 160 }}
+          style={{ background: '#0d0d18', borderColor: 'rgb(var(--ink) / 0.18)', color: 'inherit', outline: 'none', minWidth: 160 }}
           onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') setEditing(false) }}
         />
       )}
       <button onClick={save} disabled={loading} className="text-gold hover:text-gold/80 transition-colors mt-1">
         {loading ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
       </button>
-      <button onClick={() => setEditing(false)} className="text-saga-dim hover:text-saga-text transition-colors mt-1">
+      <button onClick={() => setEditing(false)} className="text-ink-soft hover:text-ink transition-colors mt-1">
         <X size={13} />
       </button>
     </span>
@@ -113,10 +115,12 @@ function InlineEdit({ value, onSave, placeholder, multiline = false, className =
 
 // ─── Add attribute row ────────────────────────────────────────────────────────
 
-function AddAttrRow({ systemId, onAdded }: { systemId: string; onAdded: (a: SystemAttr) => void }) {
+function AddAttrRow({ systemId, suggestedDie, onAdded }: {
+  systemId: string; suggestedDie: string; onAdded: (a: SystemAttr) => void
+}) {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
-  const [die, setDie] = useState('d20')
+  const [die, setDie] = useState(suggestedDie)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -132,13 +136,13 @@ function AddAttrRow({ systemId, onAdded }: { systemId: string; onAdded: (a: Syst
     if (!res.ok) { setError('Erro ao adicionar.'); return }
     const attr = await res.json() as SystemAttr
     onAdded(attr)
-    setName(''); setDie('d20'); setOpen(false)
+    setName(''); setDie(suggestedDie); setOpen(false)
   }
 
   if (!open) return (
     <button
-      onClick={() => setOpen(true)}
-      className="flex items-center gap-2 text-[11px] text-saga-dim hover:text-gold transition-colors py-1"
+      onClick={() => { setDie(suggestedDie); setOpen(true) }}
+      className="flex items-center gap-2 text-[11px] text-ink-soft hover:text-gold transition-colors py-1"
     >
       <Plus size={12} /> Adicionar atributo
     </button>
@@ -152,23 +156,23 @@ function AddAttrRow({ systemId, onAdded }: { systemId: string; onAdded: (a: Syst
         onChange={e => setName(e.target.value)}
         placeholder="Nome do atributo"
         className="flex-1 px-2 py-1 rounded text-xs border"
-        style={{ background: '#0d0d18', borderColor: 'rgba(255,255,255,0.15)', color: 'inherit', outline: 'none' }}
+        style={{ background: '#0d0d18', borderColor: 'rgb(var(--ink) / 0.15)', color: 'inherit', outline: 'none' }}
         onKeyDown={e => { if (e.key === 'Enter') submit(); if (e.key === 'Escape') setOpen(false) }}
       />
       <input
         value={die}
         onChange={e => setDie(e.target.value)}
-        placeholder="d20"
+        placeholder={suggestedDie}
         className="w-16 px-2 py-1 rounded text-xs border"
-        style={{ background: '#0d0d18', borderColor: 'rgba(255,255,255,0.15)', color: 'inherit', outline: 'none' }}
+        style={{ background: '#0d0d18', borderColor: 'rgb(var(--ink) / 0.15)', color: 'inherit', outline: 'none' }}
       />
       <button onClick={submit} disabled={loading} className="text-gold hover:text-gold/70 transition-colors">
         {loading ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
       </button>
-      <button onClick={() => setOpen(false)} className="text-saga-dim hover:text-saga-text transition-colors">
+      <button onClick={() => setOpen(false)} className="text-ink-soft hover:text-ink transition-colors">
         <X size={13} />
       </button>
-      {error && <span className="text-saga-danger text-[10px]">{error}</span>}
+      {error && <span className="text-red-700 text-[10px]">{error}</span>}
     </div>
   )
 }
@@ -178,7 +182,30 @@ function AddAttrRow({ systemId, onAdded }: { systemId: string; onAdded: (a: Syst
 export function SystemDetailView({ system: initial, currentUserDiscordId }: Props) {
   const router = useRouter()
   const [system, setSystem] = useState(initial)
+  const [importOpen, setImportOpen] = useState(false)
+  const [importFrom, setImportFrom] = useState<string[]>([])
+  const [importing, setImporting] = useState(false)
+  const [importedMsg, setImportedMsg] = useState('')
   const isMine = !system.isPreset && system.creator?.discordId === currentUserDiscordId
+
+  async function handleImport() {
+    if (importFrom.length === 0) return
+    setImporting(true)
+    setImportedMsg('')
+    const res = await fetch(`/api/systems/${system.id}/import`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fromSystemIds: importFrom }),
+    }).catch(() => null)
+    setImporting(false)
+    if (!res?.ok) { setImportedMsg('Erro ao importar.'); return }
+    const data = await res.json() as { imported: number; attributes: SystemAttr[] }
+    setSystem(prev => ({ ...prev, attributes: data.attributes }))
+    setImportFrom([])
+    setImportedMsg(data.imported > 0
+      ? `${data.imported} atributo${data.imported === 1 ? '' : 's'} importado${data.imported === 1 ? '' : 's'}.`
+      : 'Nada a importar — os atributos já existiam.')
+  }
 
   const meta = CATEGORY_META[system.category] ?? CATEGORY_META.custom!
   const CatIcon = meta.Icon
@@ -216,7 +243,7 @@ export function SystemDetailView({ system: initial, currentUserDiscordId }: Prop
       {/* Back */}
       <button
         onClick={() => router.push('/systems')}
-        className="flex items-center gap-1.5 text-xs text-saga-dim hover:text-saga-text transition-colors mb-6"
+        className="flex items-center gap-1.5 text-xs text-ink-soft hover:text-ink transition-colors mb-6"
       >
         <ArrowLeft size={13} /> Sistemas
       </button>
@@ -239,7 +266,7 @@ export function SystemDetailView({ system: initial, currentUserDiscordId }: Prop
               <Lock size={7} /> Oficial
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest border bg-white/5 text-saga-muted border-white/10">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest border bg-ink/5 text-ink-soft border-ink/15">
               <Users size={7} /> Comunidade
             </span>
           )}
@@ -248,7 +275,7 @@ export function SystemDetailView({ system: initial, currentUserDiscordId }: Prop
           <div className="absolute top-3 right-3 flex gap-1.5">
             <button
               onClick={handleDelete}
-              className="p-1.5 rounded bg-black/40 text-saga-danger/60 hover:text-saga-danger border border-saga-danger/20 hover:border-saga-danger/40 transition-all"
+              className="p-1.5 rounded bg-black/40 text-red-700/60 hover:text-red-700 border border-saga-danger/20 hover:border-saga-danger/40 transition-all"
               title="Deletar sistema"
             >
               <Trash2 size={13} />
@@ -269,7 +296,7 @@ export function SystemDetailView({ system: initial, currentUserDiscordId }: Prop
           ) : system.name}
         </h1>
 
-        <div className="text-sm text-saga-muted leading-relaxed">
+        <div className="text-sm text-ink-soft leading-relaxed">
           {isMine ? (
             <InlineEdit
               value={system.description ?? ''}
@@ -279,13 +306,13 @@ export function SystemDetailView({ system: initial, currentUserDiscordId }: Prop
               className="block w-full"
             />
           ) : (
-            system.description ?? <span className="italic text-saga-dim">Sem descrição.</span>
+            system.description ?? <span className="italic text-ink-soft">Sem descrição.</span>
           )}
         </div>
 
         {isMine && (
           <div className="mt-3">
-            <p className="text-[10px] font-bold text-saga-dim uppercase tracking-widest mb-1.5">Categoria</p>
+            <p className="text-[10px] font-bold text-ink-soft uppercase tracking-widest mb-1.5">Categoria</p>
             <div className="flex gap-1.5 flex-wrap">
               {CATEGORIES.map(c => (
                 <button
@@ -294,7 +321,7 @@ export function SystemDetailView({ system: initial, currentUserDiscordId }: Prop
                   className={`px-2.5 py-1 rounded-lg text-[10px] font-medium border transition-all ${
                     system.category === c.id
                       ? 'bg-gold/12 border-gold/35 text-gold'
-                      : 'border-border text-saga-dim hover:border-border-bright hover:text-saga-text'
+                      : 'border-ink/20 text-ink-soft hover:border-wax hover:text-ink'
                   }`}
                 >
                   {c.label}
@@ -306,12 +333,12 @@ export function SystemDetailView({ system: initial, currentUserDiscordId }: Prop
 
         {isMine && (
           <div className="mt-3">
-            <p className="text-[10px] font-bold text-saga-dim uppercase tracking-widest mb-1">URL da capa</p>
+            <p className="text-[10px] font-bold text-ink-soft uppercase tracking-widest mb-1">URL da capa</p>
             <InlineEdit
               value={system.imageUrl ?? ''}
               placeholder="https://..."
               onSave={v => patch({ imageUrl: v || null })}
-              className="text-xs text-saga-dim"
+              className="text-xs text-ink-soft"
             />
           </div>
         )}
@@ -320,36 +347,69 @@ export function SystemDetailView({ system: initial, currentUserDiscordId }: Prop
       {/* Attributes */}
       <div>
         <div className="flex items-center gap-2 mb-3">
-          <p className="text-[10px] font-bold text-saga-dim uppercase tracking-widest">
+          <p className="text-[10px] font-bold text-ink-soft uppercase tracking-widest">
             Atributos
           </p>
-          <span className="text-[10px] text-saga-dim/50">{system.attributes.length}</span>
+          <span className="text-[10px] text-ink-soft/50">{system.attributes.length}</span>
+          {isMine && (
+            <button
+              onClick={() => setImportOpen(o => !o)}
+              className={`ml-auto flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-lg border transition-all ${
+                importOpen
+                  ? 'bg-gold/12 border-gold/35 text-gold'
+                  : 'border-ink/20 text-ink-soft hover:border-wax hover:text-wax'
+              }`}
+            >
+              <Download size={11} /> Importar de outro sistema
+            </button>
+          )}
         </div>
 
+        {/* Importa o modelo de ficha de outros sistemas (mais de um = mistura) */}
+        {isMine && importOpen && (
+          <div className="mb-4 p-3 rounded-lg border border-ink/15" style={{ background: 'rgb(var(--ink) / 0.03)' }}>
+            <SystemTemplatePicker selected={importFrom} onChange={setImportFrom} excludeId={system.id} />
+            <div className="flex items-center gap-2 mt-2.5">
+              <button
+                onClick={() => void handleImport()}
+                disabled={importing || importFrom.length === 0}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-cinzel bg-wax text-parchment hover:bg-wax-deep disabled:opacity-50 transition-all"
+              >
+                {importing ? <Loader2 size={11} className="animate-spin" /> : <Download size={11} />}
+                Importar atributos
+              </button>
+              <span className="text-[10px] text-ink-soft">
+                Atributos com nome repetido (do sistema ou entre as origens) entram uma vez só.
+              </span>
+            </div>
+            {importedMsg && <p className="text-[10px] text-gold mt-1.5">{importedMsg}</p>}
+          </div>
+        )}
+
         {system.attributes.length === 0 ? (
-          <p className="text-xs text-saga-dim italic mb-3">Nenhum atributo definido.</p>
+          <p className="text-xs text-ink-soft italic mb-3">Nenhum atributo definido.</p>
         ) : (
           <div className="space-y-1 mb-3">
             {system.attributes.map(attr => (
               <div
                 key={attr.id}
                 className="flex items-center justify-between py-2 px-3 rounded-lg group/attr"
-                style={{ background: 'rgba(255,255,255,0.03)' }}
+                style={{ background: 'rgb(var(--ink) / 0.03)' }}
               >
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="text-xs font-medium truncate">{attr.name}</span>
                   {attr.description && (
-                    <span className="text-[10px] text-saga-dim/60 truncate hidden sm:block">
+                    <span className="text-[10px] text-ink-soft/60 truncate hidden sm:block">
                       {attr.description}
                     </span>
                   )}
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-[10px] text-saga-dim font-mono">{attr.defaultDie}</span>
+                  <span className="text-[10px] text-ink-soft font-mono">{attr.defaultDie}</span>
                   {isMine && (
                     <button
                       onClick={() => handleDeleteAttr(attr.id)}
-                      className="opacity-0 group-hover/attr:opacity-100 text-saga-dim hover:text-saga-danger transition-all"
+                      className="opacity-0 group-hover/attr:opacity-100 text-ink-soft hover:text-red-700 transition-all"
                     >
                       <X size={12} />
                     </button>
@@ -363,13 +423,14 @@ export function SystemDetailView({ system: initial, currentUserDiscordId }: Prop
         {isMine && (
           <AddAttrRow
             systemId={system.id}
+            suggestedDie={defaultDieForCategory(system.category)}
             onAdded={attr => setSystem(prev => ({ ...prev, attributes: [...prev.attributes, attr] }))}
           />
         )}
       </div>
 
       {!isMine && system.creator && (
-        <p className="mt-8 text-[10px] text-saga-dim/50">
+        <p className="mt-8 text-[10px] text-ink-soft/50">
           Criado por {system.creator.username}
         </p>
       )}

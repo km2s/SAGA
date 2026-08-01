@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { CampaignTabs } from '@/components/campaign/CampaignTabs'
 import { Crown, Map } from 'lucide-react'
+import { coverFor } from '@/lib/campaign-cover'
 
 export default async function CampaignLayout({
   children,
@@ -39,9 +40,9 @@ export default async function CampaignLayout({
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Banner */}
-      <div className="bg-gradient-to-br from-[#1a0533] via-[#4a1080] to-[#7c3aed] relative flex flex-col sm:flex-row sm:items-end px-5 sm:px-8 pt-5 pb-4 sm:pb-5 gap-3 shrink-0">
+      <div className={`bg-gradient-to-br ${coverFor(0)} relative flex flex-col sm:flex-row sm:items-end px-5 sm:px-8 pt-5 pb-4 sm:pb-5 gap-3 shrink-0`}>
         <div className="flex-1 min-w-0">
-          <h1 className="font-cinzel text-xl sm:text-2xl font-bold drop-shadow-lg truncate">{campaign.name}</h1>
+          <h1 className="font-cinzel text-xl sm:text-2xl font-bold text-white drop-shadow-lg truncate">{campaign.name}</h1>
           <p className="text-xs sm:text-sm text-white/60 mt-1">
             {campaign.system?.name ?? 'Sistema personalizado'} · {campaign._count.members} jogadores · {campaign._count.sessions} sessões
           </p>
@@ -49,7 +50,7 @@ export default async function CampaignLayout({
         <div className="flex gap-2 shrink-0">
           {isGM && (
             <Link href={`/campaign/${params.id}/gm`}>
-              <Button variant="secondary">
+              <Button variant="secondary" className="border-white/25 bg-white/8 hover:bg-white/15 hover:border-white/40">
                 <Crown size={14} className="inline mr-1.5 -mt-0.5" />
                 <span className="hidden sm:inline">Painel do Mestre</span>
                 <span className="sm:hidden">Mestre</span>

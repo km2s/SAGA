@@ -45,15 +45,15 @@ export function MembersOnlineStatus({ campaignId, members }: Props) {
   }, [campaignId])
 
   return (
-    <div className="bg-surface border border-border rounded-lg overflow-hidden">
-      <div className="px-4 py-3 border-b border-border text-[11px] font-bold text-saga-muted uppercase tracking-widest flex items-center justify-between">
+    <div className="bg-card border border-ink/20 rounded-lg overflow-hidden">
+      <div className="px-4 py-3 border-b border-ink/20 text-[11px] font-bold text-ink-soft uppercase tracking-widest flex items-center justify-between">
         Jogadores
         <Badge variant="success">{members.length} membros</Badge>
       </div>
       {members.map(m => {
         const isOnline = onlineIds.has(m.id)
         return (
-          <div key={m.id} className="flex items-center gap-2.5 px-4 py-3 border-b border-border last:border-0 hover:bg-surface-2 transition-all cursor-pointer">
+          <div key={m.id} className="flex items-center gap-2.5 px-4 py-3 border-b border-ink/20 last:border-0 hover:bg-parchment/60 transition-all cursor-pointer">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple to-gold flex items-center justify-center text-xs font-bold shrink-0">
               {m.user.username[0]?.toUpperCase()}
             </div>
@@ -62,7 +62,7 @@ export function MembersOnlineStatus({ campaignId, members }: Props) {
                 <p className="text-sm font-medium truncate">{m.user.username}</p>
                 {m.role === 'GM' && <Badge variant="gold">Mestre</Badge>}
               </div>
-              <p className="text-[11px] text-saga-muted truncate">
+              <p className="text-[11px] text-ink-soft truncate">
                 {m.character ? `${m.character.name} · Nv.${m.character.level}` : 'Sem personagem'}
               </p>
             </div>

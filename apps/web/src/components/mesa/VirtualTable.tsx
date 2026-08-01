@@ -7,84 +7,41 @@ import { EndSessionButton } from '@/components/gm/EndSessionButton'
 import { MusicPlayer } from './MusicPlayer'
 import { CharacterSheetPanel } from './CharacterSheetPanel'
 import { HandoutsPanel } from './HandoutsPanel'
+import type { SheetCategory } from '@/lib/system-category'
+import { InitiativeTracker } from './InitiativeTracker'
+import { LiveControlPanel } from './LiveControlPanel'
+import { RollLog } from './RollLog'
+import { DiceBar } from './DiceBar'
+import { AddTokenPopover } from './AddTokenPopover'
 import {
   MousePointer, Hand, Coins, MapPin, Ruler, Cloud, Eye,
-  ClipboardList, Music, Map, Play, X, Dice6, Sparkles, Skull,
-  MessageSquare, Image as ImageIcon, Minus, Plus, Swords, ChevronRight, BookOpen,
+  ClipboardList, Music, Map, Play, X,
+  MessageSquare, Image as ImageIcon, Swords, BookOpen, HelpCircle,
+  Radio, Wifi,
 } from 'lucide-react'
 import { safeImageUrl } from '@/lib/safe-url'
+import { MesaSpotlight } from '@/components/tutorial/MesaSpotlight'
+import { MarkTutorialVisited } from '@/components/tutorial/MarkTutorialVisited'
+import { Fleuron } from '@/components/landing/Ornament'
+import {
+  GRID, TOKEN_COLORS, snap, initTokens,
+  type Tool, type Token, type InitiativeEntry, type Marker, type RollLogEntry,
+  type Member, type NpcData, type Campaign, type SessionState, type ActiveSession,
+  type AddTokenState, type AttributeRoll,
+} from './types'
 
-type Tool = 'select' | 'move' | 'token' | 'marker' | 'measure' | 'fog' | 'reveal'
-
-interface Token {
-  id: string; label: string; initial: string
-  x: number; y: number
-  type: 'player' | 'enemy' | 'npc'; color: string
-  hp?: number; maxHp?: number
-  imageUrl?: string | null
-}
-
-interface InitiativeEntry {
-  tokenId: string; label: string; color: string; type: string
-  initiative: number; hp?: number; maxHp?: number
-}
-interface Marker { id: string; x: number; y: number; color: string; createdAt: number }
-interface RollLogEntry {
-  id: string; expression: string; rolls: number[]; modifier: number
-  total: number; attribute: string | null; rolledBy: string; rolledAt: string
-}
-interface CharAttr { id: string; value: number; name: string; defaultDie: string }
-interface CharData {
-  id: string; name: string; race: string | null; class: string | null
-  level: number; hp: number; maxHp: number; imageUrl: string | null; attributes: CharAttr[]
-}
-interface Member { id: string; role: string; user: { username: string }; character: CharData | null }
-interface NpcData { id: string; name: string; type: string; race: string | null; class: string | null; level: number; hp: number; maxHp: number; imageUrl: string | null; attributes: CharAttr[] }
-interface Campaign { id: string; name: string }
-interface SessionState { tokensJson: string | null; musicYoutubeId: string | null; musicVolume: number; mapImageUrl: string | null }
-interface ActiveSession { id: string; name: string | null; isActive: boolean; tokensJson?: string | null; musicYoutubeId?: string | null; musicVolume?: number; mapImageUrl?: string | null }
 interface VirtualTableProps {
   campaign: Campaign; activeSession: ActiveSession | null
   members: Member[]; npcs: NpcData[]; initialRolls: RollLogEntry[]
   isGM: boolean; currentMemberId: string; systemName: string | null
-}
-
-const GRID = 40
-const PLAYER_COLORS = ['#7c3aed','#2563eb','#0891b2','#059669','#d97706','#db2777','#9333ea']
-const TOKEN_COLORS  = ['#7c3aed','#ef4444','#22c55e','#f59e0b','#06b6d4','#ec4899','#c9a22a']
-const DICE = ['d4','d6','d8','d10','d12','d20','d100']
-
-function snap(v: number) { return Math.round(v / GRID) * GRID }
-
-function initTokens(members: Member[]): Token[] {
-  return members
-    .filter(m => m.role !== 'GM')
-    .map((m, i) => ({
-      id: m.id,
-      label: m.character?.name ?? m.user.username,
-      initial: (m.character?.name ?? m.user.username)[0]?.toUpperCase() ?? '?',
-      x: ((i % 8) + 1) * GRID, y: (Math.floor(i / 8) + 1) * GRID,
-      type: 'player' as const,
-      color: PLAYER_COLORS[i % PLAYER_COLORS.length] ?? '#7c3aed',
-      hp: m.character?.hp,
-      maxHp: m.character?.maxHp,
-      imageUrl: m.character?.imageUrl ?? null,
-    }))
-}
-
-function timeAgo(iso: string) {
-  const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000)
-  if (s < 60) return 'agora'
-  const m = Math.floor(s / 60)
-  return m < 60 ? `${m}m` : `${Math.floor(m / 60)}h`
+  systemCategory: SheetCategory
 }
 
 interface TokenDrag { tokenId: string; startMouseX: number; startMouseY: number; startTokenX: number; startTokenY: number }
 interface PanDrag   { startMouseX: number; startMouseY: number; startPanX: number; startPanY: number }
-interface AddTokenState { screenX: number; screenY: number; worldX: number; worldY: number }
 interface PinchState { dist: number; zoom: number; panX: number; panY: number; midX: number; midY: number }
 
-export function VirtualTable({ campaign, activeSession, members, npcs, initialRolls, isGM, currentMemberId, systemName }: VirtualTableProps) {
+export function VirtualTable({ campaign, activeSession, members, npcs, initialRolls, isGM, currentMemberId, systemName, systemCategory }: VirtualTableProps) {
   const [tool, setTool] = useState<Tool>('select')
   const [tokens, setTokens] = useState<Token[]>(() => {
     if (activeSession?.tokensJson) {
@@ -111,6 +68,8 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
   const [rollingDie, setRollingDie] = useState<string | null>(null)
   const [lastRollId, setLastRollId] = useState<string | null>(null)
   const [rollModifier, setRollModifier] = useState(0)
+  const [chatInput, setChatInput] = useState('')
+  const [sendingChat, setSendingChat] = useState(false)
   const [measureAnchor, setMeasureAnchor] = useState<{x:number;y:number}|null>(null)
   const [pointerWorld, setPointerWorld] = useState<{x:number;y:number}>({x:0,y:0})
   const [fogRects, setFogRects] = useState<{id:string;x:number;y:number;w:number;h:number}[]>([])
@@ -122,22 +81,34 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
   const [startSessionOpen, setStartSessionOpen] = useState(false)
   const [musicOpen, setMusicOpen] = useState(false)
   const [sheetsOpen, setSheetsOpen] = useState(false)
+  const [hpOverrides, setHpOverrides] = useState<Record<string, number>>({})
   const [initiativeOpen, setInitiativeOpen] = useState(false)
   const [initiativeOrder, setInitiativeOrder] = useState<InitiativeEntry[]>([])
   const [currentTurnIdx, setCurrentTurnIdx] = useState(0)
   const [handoutsOpen, setHandoutsOpen] = useState(false)
   const [gmCustomOpen, setGmCustomOpen] = useState(false)
+  const [liveOpen, setLiveOpen] = useState(false)
+  const [expandedLiveMember, setExpandedLiveMember] = useState<string | null>(null)
+  const [liveMembers, setLiveMembers] = useState<string[]>(() => {
+    const raw = activeSession?.liveMembersJson
+    if (!raw) return []
+    try { return JSON.parse(raw) as string[] } catch { return [] }
+  })
 
-  const canvasRef    = useRef<HTMLDivElement>(null)
-  const chatEndRef   = useRef<HTMLDivElement>(null)
-  const pinchRef     = useRef<PinchState | null>(null)
-  const sinceRef     = useRef(initialRolls[0]?.rolledAt ?? new Date(0).toISOString())
-  const mapDropRef   = useRef<HTMLDivElement>(null)
+  const canvasRef       = useRef<HTMLDivElement>(null)
+  const chatEndRef      = useRef<HTMLDivElement>(null)
+  const pinchRef        = useRef<PinchState | null>(null)
+  const sinceRef        = useRef(initialRolls[0]?.rolledAt ?? new Date(0).toISOString())
+  const tokenDragRef    = useRef<TokenDrag | null>(null)
+  const liveMembersRef  = useRef<string[]>(liveMembers)
+  const mapDropRef      = useRef<HTMLDivElement>(null)
 
   // ── Effects ──
+  useEffect(() => { tokenDragRef.current = tokenDrag }, [tokenDrag])
+  useEffect(() => { liveMembersRef.current = liveMembers }, [liveMembers])
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [rolls])
   useEffect(() => {
-    const t = setInterval(() => { const c = Date.now()-3500; setMarkers(p=>p.filter(m=>m.createdAt>c)) }, 500)
+    const t = setInterval(() => { const c = Date.now()-10000; setMarkers(p=>p.filter(m=>m.createdAt>c)) }, 500)
     return () => clearInterval(t)
   }, [])
   // Close map dropdown on click outside (no backdrop overlay needed)
@@ -153,19 +124,21 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
   }, [mapInputOpen])
   const syncTokens = useCallback((next: Token[]) => {
     if (!activeSession) return
+    // Non-GM players only sync if the GM granted them live permission
+    if (!isGM && !liveMembersRef.current.includes(currentMemberId)) return
     fetch(`/api/campaigns/${campaign.id}/sessions/state`, {
       method: 'PATCH',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ tokensJson: JSON.stringify(next) }),
     }).catch(() => {})
-  }, [activeSession, campaign.id])
+  }, [activeSession, campaign.id, isGM, currentMemberId])
 
   useEffect(() => {
     if (!activeSession?.isActive) return
     const iv = setInterval(async () => {
       const res = await fetch(`/api/campaigns/${campaign.id}/rolls?since=${encodeURIComponent(sinceRef.current)}`).catch(()=>null)
       if (!res?.ok) return
-      const data: { rolls: RollLogEntry[]; sessionState: SessionState | null } = await res.json().catch(()=>({ rolls: [], sessionState: null }))
+      const data: { rolls: RollLogEntry[]; sessionState: SessionState | null } = await res.json().catch(() => ({ rolls: [], sessionState: null }))
       const fresh = data.rolls ?? []
       const st = data.sessionState
       if (fresh.length) {
@@ -176,17 +149,36 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
           return news.length ? [...news.reverse(), ...prev].slice(0, 50) : prev
         })
       }
-      // Apply session state for non-GM clients (GM is source of truth)
-      if (st && !isGM) {
+      // All clients (including GM) update from server when not actively dragging
+      if (st && !tokenDragRef.current) {
         if (st.tokensJson !== null) {
           try { setTokens(JSON.parse(st.tokensJson)) } catch {}
         }
         setMapUrl(st.mapImageUrl)
         setSessionMusic({ youtubeId: st.musicYoutubeId, volume: st.musicVolume })
       }
-    }, 3000)
+      // Always sync live members list
+      if (st?.liveMembersJson !== undefined) {
+        try {
+          const live = st.liveMembersJson ? JSON.parse(st.liveMembersJson) as string[] : []
+          setLiveMembers(live)
+        } catch {}
+      }
+      // Merge server markers (pings from other clients)
+      if (st?.markersJson) {
+        try {
+          const serverMarkers = JSON.parse(st.markersJson) as Marker[]
+          const now = Date.now()
+          setMarkers(prev => {
+            const localIds = new Set(prev.map(m => m.id))
+            const fresh = serverMarkers.filter(m => !localIds.has(m.id) && now - m.createdAt < 10000)
+            return fresh.length > 0 ? [...prev, ...fresh] : prev
+          })
+        } catch {}
+      }
+    }, 5000)
     return () => clearInterval(iv)
-  }, [campaign.id, activeSession, isGM])
+  }, [campaign.id, activeSession])
 
   // ── Coord helpers ──
   const toWorld = useCallback((sx: number, sy: number) => {
@@ -201,7 +193,12 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
     const tokenId = tokenEl?.dataset.tokenId
 
     if (tool === 'select' && tokenId) {
-      const t = tokens.find(tok=>tok.id===tokenId)
+      const tok = tokens.find(t=>t.id===tokenId)
+      const hasLive = liveMembersRef.current.includes(currentMemberId)
+      const canMove = isGM ||
+        (hasLive && (tokenId === currentMemberId || (tok?.allowedPlayers?.includes(currentMemberId) ?? false)))
+      if (!canMove) return
+      const t = tok
       if (t) setTokenDrag({ tokenId, startMouseX:clientX, startMouseY:clientY, startTokenX:t.x, startTokenY:t.y })
       return
     }
@@ -216,7 +213,16 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
       setNewTokenColor(TOKEN_COLORS[tokens.length % TOKEN_COLORS.length] ?? TOKEN_COLORS[0]!)
     } else if (tool === 'marker') {
       const w = toWorld(clientX, clientY)
-      setMarkers(prev=>[...prev,{id:crypto.randomUUID(),x:w.x,y:w.y,color:'#f59e0b',createdAt:Date.now()}])
+      const newMarker = { id: crypto.randomUUID(), x: w.x, y: w.y, color: '#f59e0b', createdAt: Date.now() }
+      setMarkers(prev=>[...prev, newMarker])
+      // Broadcast ping to all clients via session state
+      if (activeSession?.isActive) {
+        const allMarkers = [...markers, newMarker].filter(m => Date.now() - m.createdAt < 10000)
+        fetch(`/api/campaigns/${campaign.id}/sessions/state`, {
+          method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ markersJson: JSON.stringify(allMarkers) }),
+        }).catch(() => {})
+      }
     } else if (tool === 'measure') {
       const w = toWorld(clientX, clientY)
       setMeasureAnchor(prev=>prev?null:w)
@@ -316,11 +322,15 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
   // ── Token mouse ──
   const onTokenDown = useCallback((e: React.MouseEvent, tokenId: string) => {
     if (tool!=='select') return
+    const tok = tokens.find(t=>t.id===tokenId)
+    const hasLive = liveMembers.includes(currentMemberId)
+    const canMove = isGM ||
+      (hasLive && (tokenId === currentMemberId || (tok?.allowedPlayers?.includes(currentMemberId) ?? false)))
+    if (!canMove) return
     e.stopPropagation()
-    const t=tokens.find(t=>t.id===tokenId)
-    if (!t) return
-    setTokenDrag({tokenId,startMouseX:e.clientX,startMouseY:e.clientY,startTokenX:t.x,startTokenY:t.y})
-  }, [tool,tokens])
+    if (!tok) return
+    setTokenDrag({tokenId,startMouseX:e.clientX,startMouseY:e.clientY,startTokenX:tok.x,startTokenY:tok.y})
+  }, [tool, tokens, isGM, currentMemberId, liveMembers])
 
   // ── Actions ──
   function addNewToken() {
@@ -379,6 +389,23 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
     setCurrentTurnIdx(i => (i + 1) % Math.max(1, initiativeOrder.length))
   }
 
+  async function sendChatMessage() {
+    const text = chatInput.trim()
+    if (!text || !activeSession?.isActive || sendingChat) return
+    setSendingChat(true)
+    const res = await fetch(`/api/campaigns/${campaign.id}/rolls`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ expression: 'chat', message: text }),
+    }).catch(() => null)
+    setSendingChat(false)
+    if (!res?.ok) return
+    const entry: RollLogEntry = await res.json().catch(() => null)
+    if (!entry) return
+    setChatInput('')
+    sinceRef.current = entry.rolledAt
+    setRolls(prev => [entry, ...prev].slice(0, 50))
+  }
+
   async function rollDie(die: string) {
     if (!activeSession?.isActive||rollingDie) return
     setRollingDie(die)
@@ -397,6 +424,29 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
     setLastRollId(roll.id)
     setRolls(prev=>[roll,...prev].slice(0, 50))
     setTimeout(()=>setLastRollId(null),2000)
+  }
+
+  // Rola um atributo específico (de personagem ou NPC), registrando o rótulo
+  // (ex.: "Malachor · Constituição") no log. Contrato: a família d20 rola
+  // 1d20 + modificador; as demais categorias rolam um pool {count}{die}
+  // (ex.: VtM 3d10) — ainda sem sucessos/dificuldade/botch (feature futura
+  // de rolagem consciente do sistema).
+  async function rollAttribute(label: string, attrRoll: AttributeRoll) {
+    if (!activeSession?.isActive) return
+    const expr = attrRoll.kind === 'pool'
+      ? `${attrRoll.count}${attrRoll.die}`
+      : attrRoll.modifier !== 0 ? `1d20${attrRoll.modifier > 0 ? '+' : ''}${attrRoll.modifier}` : '1d20'
+    const res = await fetch(`/api/campaigns/${campaign.id}/rolls`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ expression: expr, attribute: label }),
+    }).catch(() => null)
+    if (!res?.ok) return
+    const roll: RollLogEntry = await res.json().catch(() => null)
+    if (!roll) return
+    sinceRef.current = roll.rolledAt
+    setLastRollId(roll.id)
+    setRolls(prev => [roll, ...prev].slice(0, 50))
+    setTimeout(() => setLastRollId(null), 2000)
   }
 
   function applyMap() {
@@ -427,12 +477,22 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
     : ['token','marker','measure','fog','reveal'].includes(tool) ? 'cursor-crosshair'
     : tokenDrag ? 'cursor-grabbing' : 'cursor-default'
 
+  // A classe `dark` local escopa a mesa inteira nos tokens da Cripta: uma VTT é
+  // uma superfície escura por convenção (mapas/tokens são calibrados p/ escuro),
+  // então o modo claro do app não se aplica aqui — vars (--mesa-*, --ink, ...)
+  // e variantes dark: resolvem escuro independente do tema global.
   return (
-    <div className="fixed inset-0 z-50 flex flex-col" style={{background:'#080811'}}>
+    <div className="dark fixed inset-0 z-50 flex flex-col" style={{background:'var(--mesa-table)'}}>
+
+      {/* Brilho ambiente de cripta (brasa + ouro) — atmosfera do template */}
+      <div className="pointer-events-none absolute inset-0 z-0" style={{background:'radial-gradient(ellipse 60% 40% at 50% 0%, rgb(var(--ember) / 0.12), transparent 60%), radial-gradient(ellipse at 100% 100%, rgba(201,162,42,0.06), transparent 55%)'}} />
 
       {/* ── Top bar ── */}
-      <div className="h-11 flex items-center justify-between px-3 sm:px-4 shrink-0 border-b border-white/5 relative z-10"
-           style={{background:'rgba(13,13,26,0.97)',backdropFilter:'blur(8px)'}}>
+      {/* NÃO adicionar overflow aqui: os popovers de Mapa e Ao Vivo são filhos
+          desta barra e abrem abaixo dela (`top-full`). Qualquer overflow
+          diferente de visible transforma a barra em área de recorte de 44px e
+          os popovers somem. Os botões se comprimem sozinhos em telas estreitas. */}
+      <div className="h-11 flex items-center justify-between px-3 sm:px-4 shrink-0 border-b border-gold/15 relative z-10 bg-bg/85 backdrop-blur-sm">
 
         {/* Left */}
         <div className="flex items-center gap-2 sm:gap-5 min-w-0">
@@ -443,11 +503,16 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
             </svg>
             <span className="font-cinzel text-[13px] font-semibold text-gold/90 group-hover:text-gold truncate max-w-[100px] sm:max-w-none">{campaign.name}</span>
           </Link>
-          <div className="hidden sm:block h-4 w-px bg-white/10"/>
+          <div className="hidden sm:block h-4 w-px bg-ink/10"/>
           {activeSession?.isActive ? (
             <div className="hidden sm:flex items-center gap-2">
               <div className="pulse-dot scale-75"/>
               <span className="text-[12px] text-saga-muted">{activeSession.name?? 'Sessão ativa'}</span>
+              {!isGM && liveMembers.includes(currentMemberId) && (
+                <span className="flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/[0.12] text-emerald-400 border border-emerald-500/25">
+                  <Wifi size={8}/> AO VIVO
+                </span>
+              )}
             </div>
           ) : (
             <span className="hidden sm:inline text-[12px] text-saga-dim">Mesa sem sessão</span>
@@ -460,30 +525,34 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
           {/* Zoom — desktop only */}
           <div className="hidden sm:flex items-center gap-1">
             <button onClick={()=>setZoom(z=>Math.max(0.25,+(z*0.85).toFixed(2)))}
-              className="w-6 h-6 rounded text-xs font-bold text-saga-muted hover:text-saga-text hover:bg-white/8 transition-all flex items-center justify-center">−</button>
+              className="w-6 h-6 rounded text-xs font-bold text-saga-muted hover:text-saga-text hover:bg-ink/8 transition-all flex items-center justify-center">−</button>
             <span className="text-[11px] text-saga-dim w-10 text-center font-mono">{Math.round(zoom*100)}%</span>
             <button onClick={()=>setZoom(z=>Math.min(4,+(z*1.18).toFixed(2)))}
-              className="w-6 h-6 rounded text-xs font-bold text-saga-muted hover:text-saga-text hover:bg-white/8 transition-all flex items-center justify-center">+</button>
+              className="w-6 h-6 rounded text-xs font-bold text-saga-muted hover:text-saga-text hover:bg-ink/8 transition-all flex items-center justify-center">+</button>
           </div>
           <button onClick={()=>{setPan({x:80,y:60});setZoom(1)}}
-            className="hidden sm:block px-2 h-6 rounded text-[10px] text-saga-dim hover:text-saga-text hover:bg-white/8 transition-all">
+            className="hidden sm:block px-2 h-6 rounded text-[10px] text-saga-dim hover:text-saga-text hover:bg-ink/8 transition-all">
             Reset
           </button>
-          <div className="hidden sm:block h-4 w-px bg-white/10"/>
+          <div className="hidden sm:block h-4 w-px bg-ink/10"/>
 
           {/* Mapa button */}
-          {isGM && <div className="relative" ref={mapDropRef}>
-            <button onClick={()=>setMapInputOpen(o=>!o)}
+          {isGM && <div data-mesa-tutorial="topbar-map" className="relative" ref={mapDropRef}>
+            {/* No celular os rótulos são `hidden sm:inline`, então sem aria-label
+                estes botões ficam sem nome acessível para leitores de tela. */}
+            <button onClick={()=>setMapInputOpen(o=>!o)} title="Imagem do Mapa" aria-label="Imagem do Mapa"
               className={`px-2 sm:px-3 h-7 rounded text-[11px] font-medium border transition-all flex items-center gap-1.5 ${
-                mapUrl?'text-gold border-gold/50 bg-gold/10':'text-saga-muted border-white/10 hover:border-gold/40 hover:text-gold'
+                mapUrl?'text-gold border-gold/50 bg-gold/10':'text-saga-muted border-ink/20 dark:border-bg/60 hover:border-gold/40 hover:text-gold'
               }`}>
               <ImageIcon size={13}/>
               <span className="hidden sm:inline">Mapa</span>
             </button>
+            {/* Popover ancorado pela direita de um botão no meio da barra: os
+                288px vazavam pela esquerda da tela no celular, então abaixo de
+                sm ele vira um painel preso à viewport. */}
             {mapInputOpen && (
-              <div className="absolute top-full right-0 mt-1.5 z-[60] w-72 rounded-xl border border-border shadow-2xl overflow-hidden"
-                   style={{background:'rgba(15,15,28,0.98)',backdropFilter:'blur(12px)'}}>
-                <div className="px-3 py-2.5 border-b border-white/6 flex items-center justify-between">
+              <div className="fixed left-3 right-3 top-14 w-auto sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-1.5 sm:w-72 z-[60] rounded-xl border border-border shadow-2xl overflow-hidden bg-surface backdrop-blur-md">
+                <div className="px-3 py-2.5 flex items-center justify-between">
                   <span className="font-cinzel text-[11px] font-bold text-saga-muted uppercase tracking-widest">Imagem do Mapa</span>
                   <button onClick={()=>setMapInputOpen(false)} className="text-saga-dim hover:text-saga-text"><X size={13}/></button>
                 </div>
@@ -494,13 +563,11 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
                     onChange={e=>setMapInputValue(e.target.value)}
                     onKeyDown={e=>{if(e.key==='Enter')applyMap();if(e.key==='Escape')setMapInputOpen(false)}}
                     placeholder="https://... URL da imagem"
-                    className="w-full px-3 py-2 rounded text-[12px] text-saga-text placeholder:text-saga-dim focus:outline-none"
-                    style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)'}}
+                    className="w-full px-3 py-2 rounded text-[12px] text-saga-text placeholder:text-saga-dim focus:outline-none bg-bg/50 border border-ink/20 dark:border-bg/60 focus:border-gold/60 transition-colors"
                   />
                   <div className="flex gap-2">
                     <button onClick={applyMap}
-                      className="flex-1 py-1.5 rounded text-[11px] font-bold text-bg font-cinzel"
-                      style={{background:'linear-gradient(135deg,#c9a22a,#f0d060)'}}>
+                      className="flex-1 py-1.5 rounded text-[11px] font-bold text-bg font-cinzel bg-gradient-gold">
                       Aplicar
                     </button>
                     {mapUrl && (
@@ -519,18 +586,19 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
             )}
           </div>}
 
-          <button onClick={()=>setSheetsOpen(o=>!o)}
+          <button data-mesa-tutorial="topbar-sheets" onClick={()=>setSheetsOpen(o=>!o)}
+            title="Fichas de Personagem" aria-label="Fichas de Personagem"
             className={`px-2 sm:px-3 h-7 rounded text-[11px] font-medium border transition-all flex items-center gap-1.5 ${
-              sheetsOpen?'text-gold border-gold/50 bg-gold/10':'text-saga-muted border-white/10 hover:border-gold/40 hover:text-gold'
+              sheetsOpen?'text-gold border-gold/50 bg-gold/10':'text-saga-muted border-ink/20 dark:border-bg/60 hover:border-gold/40 hover:text-gold'
             }`}>
             <ClipboardList size={13}/>
             <span className="hidden sm:inline">Fichas</span>
           </button>
           {activeSession?.isActive && (
-            <button onClick={()=>setInitiativeOpen(o=>!o)}
+            <button data-mesa-tutorial="topbar-initiative" onClick={()=>setInitiativeOpen(o=>!o)}
               title="Tracker de Iniciativa"
               className={`px-2 sm:px-3 h-7 rounded text-[11px] font-medium border transition-all flex items-center gap-1.5 ${
-                initiativeOpen?'text-gold border-gold/50 bg-gold/10':'text-saga-muted border-white/10 hover:border-gold/40 hover:text-gold'
+                initiativeOpen?'text-gold border-gold/50 bg-gold/10':'text-saga-muted border-ink/20 dark:border-bg/60 hover:border-gold/40 hover:text-gold'
               }`}>
               <Swords size={13}/>
               <span className="hidden sm:inline">Iniciativa</span>
@@ -540,25 +608,67 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
             <button onClick={()=>setHandoutsOpen(o=>!o)}
               title="Handouts"
               className={`px-2 sm:px-3 h-7 rounded text-[11px] font-medium border transition-all flex items-center gap-1.5 ${
-                handoutsOpen?'text-gold border-gold/50 bg-gold/10':'text-saga-muted border-white/10 hover:border-gold/40 hover:text-gold'
+                handoutsOpen?'text-gold border-gold/50 bg-gold/10':'text-saga-muted border-ink/20 dark:border-bg/60 hover:border-gold/40 hover:text-gold'
               }`}>
               <BookOpen size={13}/>
               <span className="hidden sm:inline">Handouts</span>
             </button>
           )}
           {isGM && (
-            <button onClick={()=>setMusicOpen(true)}
-              className="px-2 sm:px-3 h-7 rounded text-[11px] font-medium border transition-all text-saga-muted border-white/10 hover:border-gold/40 hover:text-gold flex items-center gap-1.5">
+            <button data-mesa-tutorial="topbar-music" onClick={()=>setMusicOpen(true)}
+              title="Música ambiente" aria-label="Música ambiente"
+              className="px-2 sm:px-3 h-7 rounded text-[11px] font-medium border transition-all text-saga-muted border-ink/20 dark:border-bg/60 hover:border-gold/40 hover:text-gold flex items-center gap-1.5">
               <Music size={13}/>
               <span className="hidden sm:inline">Música</span>
             </button>
           )}
+          {isGM && activeSession?.isActive && (
+            <div className="relative">
+              <button onClick={()=>setLiveOpen(o=>!o)}
+                title="Controle Ao Vivo"
+                className={`px-2 sm:px-3 h-7 rounded text-[11px] font-medium border transition-all flex items-center gap-1.5 ${
+                  liveOpen || liveMembers.length > 0
+                    ? 'text-emerald-400 border-emerald-400/50 bg-emerald-400/10'
+                    : 'text-saga-muted border-ink/20 dark:border-bg/60 hover:border-emerald-400/40 hover:text-emerald-400'
+                }`}>
+                <Radio size={13}/>
+                <span className="hidden sm:inline">Ao Vivo</span>
+                {liveMembers.length > 0 && (
+                  <span className="w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center bg-emerald-500 text-white">
+                    {liveMembers.length}
+                  </span>
+                )}
+              </button>
+
+              {liveOpen && (
+                <LiveControlPanel
+                  campaignId={campaign.id}
+                  members={members}
+                  liveMembers={liveMembers}
+                  setLiveMembers={setLiveMembers}
+                  expandedLiveMember={expandedLiveMember}
+                  setExpandedLiveMember={setExpandedLiveMember}
+                  tokens={tokens}
+                  setTokens={setTokens}
+                  syncTokens={syncTokens}
+                  onClose={()=>setLiveOpen(false)}
+                />
+              )}
+            </div>
+          )}
           {/* Chat toggle — mobile only */}
-          <button onClick={()=>setChatOpen(o=>!o)}
+          <button onClick={()=>setChatOpen(o=>!o)} title="Chat da sessão" aria-label="Chat da sessão"
             className={`sm:hidden px-2 h-7 rounded border transition-all flex items-center ${
-              chatOpen?'text-gold border-gold/50 bg-gold/10':'text-saga-muted border-white/10'
+              chatOpen?'text-gold border-gold/50 bg-gold/10':'text-saga-muted border-ink/20 dark:border-bg/60'
             }`}>
             <MessageSquare size={13}/>
+          </button>
+          <button
+            onClick={() => window.dispatchEvent(new Event('saga:mesa-tutorial'))}
+            title="Ver tutorial da Mesa Virtual"
+            className="w-7 h-7 rounded-full flex items-center justify-center text-saga-dim hover:text-gold transition-colors hover:bg-ink/6"
+          >
+            <HelpCircle size={13}/>
           </button>
           {isGM&&activeSession?.isActive&&<EndSessionButton campaignId={campaign.id} compact/>}
         </div>
@@ -568,21 +678,20 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
       <div className="flex flex-1 overflow-hidden relative">
 
         {/* ── Left toolbar ── */}
-        <div className="w-12 flex flex-col items-center py-2 gap-0.5 shrink-0 border-r border-white/5 z-10"
-             style={{background:'rgba(10,10,20,0.92)'}}>
+        <div data-mesa-tutorial="toolbar" className="w-12 flex flex-col items-center py-2 gap-0.5 shrink-0 border-r border-ink/20 dark:border-bg/60 z-10 bg-bg/[0.92]">
           {tools.map(([t,Icon,label])=>(
             <button key={t}
               onClick={()=>{setTool(t);setAddToken(null);if(t!=='measure')setMeasureAnchor(null)}}
               title={label}
               className={`w-8 h-8 rounded flex items-center justify-center transition-all relative group
-                ${tool===t?'bg-gold/20 text-gold ring-1 ring-gold/40':'text-saga-dim hover:text-saga-text hover:bg-white/6'}`}>
+                ${tool===t?'bg-gold/20 text-gold ring-1 ring-gold/40':'text-saga-dim hover:text-saga-text hover:bg-ink/6'}`}>
               <Icon size={15}/>
               <span className="absolute left-full ml-2 px-2 py-1 rounded bg-surface border border-border text-[10px] text-saga-text whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 shadow-lg hidden sm:block">
                 {label}
               </span>
             </button>
           ))}
-          <div className="w-5 h-px bg-white/8 my-1"/>
+          <div className="w-5 h-px bg-ink/8 my-1"/>
           <div className="w-8 h-8 flex items-center justify-center">
             <span className="text-[8px] text-saga-dim text-center leading-tight uppercase tracking-wider">
               {tool==='select'?'Drag\nToken':tool==='move'?'Pan\nMap':tool==='token'?'Tap\nMap':tool.slice(0,6)}
@@ -592,13 +701,14 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
 
         {/* ── Canvas ── */}
         <div
+          data-mesa-tutorial="canvas"
           ref={canvasRef}
           className={`flex-1 relative overflow-hidden ${cursor}`}
           style={{
-            backgroundImage:`linear-gradient(rgba(80,80,120,0.18) 1px,transparent 1px),linear-gradient(90deg,rgba(80,80,120,0.18) 1px,transparent 1px)`,
+            backgroundImage:`linear-gradient(rgba(201,162,42,0.10) 1px,transparent 1px),linear-gradient(90deg,rgba(201,162,42,0.10) 1px,transparent 1px)`,
             backgroundSize:`${GRID*zoom}px ${GRID*zoom}px`,
             backgroundPosition:`${pan.x%(GRID*zoom)}px ${pan.y%(GRID*zoom)}px`,
-            backgroundColor:'#0a0a18',
+            backgroundColor:'rgb(var(--mesa-bg))',
             touchAction:'none',
           }}
           onMouseDown={onCanvasDown}
@@ -611,6 +721,12 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
           onTouchEnd={onCanvasTouchEnd}
           onTouchCancel={onCanvasTouchEnd}
         >
+          {/* Vinheta de candelabro */}
+          <div
+            className="animate-flicker pointer-events-none absolute inset-0"
+            style={{background:'radial-gradient(ellipse at 50% 45%, transparent 40%, rgba(0,0,0,0.55) 100%)'}}
+          />
+
           {/* ── World container ── */}
           <div className="absolute" style={{transformOrigin:'0 0',transform:`translate(${pan.x}px,${pan.y}px) scale(${zoom})`}}>
 
@@ -631,15 +747,16 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
               const isCurrentTurn=initiativeOrder[currentTurnIdx]?.tokenId===t.id && initiativeOpen
               const hpPct = t.hp !== undefined && t.maxHp && t.maxHp > 0
                 ? Math.max(0, Math.min(100, (t.hp / t.maxHp) * 100)) : null
+              const canMoveToken = isGM || (liveMembers.includes(currentMemberId) && (t.id === currentMemberId || (t.allowedPlayers?.includes(currentMemberId) ?? false)))
               return (
                 <div key={t.id}
                   data-token-id={t.id}
                   className="absolute flex flex-col items-center gap-1 select-none"
                   style={{left:t.x,top:t.y,transform:'translate(-50%,-50%)',
-                    cursor:tool==='select'?(isDragging?'grabbing':'grab'):'default',
+                    cursor:tool==='select'?(isDragging?'grabbing':canMoveToken?'grab':'default'):'default',
                     zIndex:isDragging?100:10}}
                   onMouseDown={e=>onTokenDown(e,t.id)}
-                  onContextMenu={e=>{e.preventDefault();if(tool==='select')removeToken(t.id)}}
+                  onContextMenu={e=>{e.preventDefault();if(tool==='select'&&isGM)removeToken(t.id)}}
                 >
                   <div className="relative w-10 h-10 rounded-full overflow-hidden flex items-center justify-center text-sm font-bold text-white"
                     style={{
@@ -661,21 +778,19 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
                     }
                     {isDragging&&<div className="absolute inset-0 rounded-full animate-ping opacity-30" style={{background:t.color}}/>}
                     {isCurrentTurn&&<div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-yellow-300 border border-yellow-500 flex items-center justify-center">
-                      <span className="text-[5px] font-black text-yellow-900">▶</span>
+                      <Play className="h-1.5 w-1.5 fill-yellow-900 text-yellow-900" />
                     </div>}
                   </div>
-                  <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-sm whitespace-nowrap max-w-[80px] truncate"
-                    style={{background:'rgba(0,0,0,0.7)',color:t.color,border:`1px solid ${t.color}44`,backdropFilter:'blur(4px)'}}>
+                  <span className="font-cormorant text-[10px] font-medium px-1.5 py-0.5 rounded-sm whitespace-nowrap max-w-[80px] truncate bg-black/70 backdrop-blur-sm border"
+                    style={{color:t.color,borderColor:`${t.color}44`}}>
                     {t.label}
                   </span>
                   {/* HP bar */}
                   {hpPct !== null && (
-                    <div className="w-10 h-[3px] rounded-full overflow-hidden" style={{background:'rgba(0,0,0,0.6)'}}>
-                      <div className="h-full rounded-full transition-all duration-300"
-                        style={{
-                          width:`${hpPct}%`,
-                          background: hpPct > 50 ? '#22c55e' : hpPct > 25 ? '#f59e0b' : '#ef4444',
-                        }} />
+                    <div className="w-10 h-[3px] rounded-full overflow-hidden bg-black/60">
+                      <div className={`h-full rounded-full transition-all duration-300 ${
+                        hpPct > 50 ? 'bg-saga-success' : hpPct > 25 ? 'bg-saga-warning' : 'bg-saga-danger'
+                      }`} style={{width:`${hpPct}%`}} />
                     </div>
                   )}
                 </div>
@@ -684,7 +799,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
 
             {/* Markers */}
             {markers.map(m=>{
-              const age=(Date.now()-m.createdAt)/3500
+              const age=(Date.now()-m.createdAt)/10000
               const opacity=Math.max(0,1-age)
               return (
                 <div key={m.id} className="absolute pointer-events-none"
@@ -701,7 +816,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
             {/* Fog */}
             {fogRects.map(rect=>(
               <div key={rect.id} className="absolute pointer-events-none"
-                style={{left:rect.x,top:rect.y,width:rect.w,height:rect.h,background:'rgba(0,0,0,0.88)',border:'1px solid rgba(255,255,255,0.04)'}}/>
+                style={{left:rect.x,top:rect.y,width:rect.w,height:rect.h,background:'rgba(0,0,0,0.88)',border:'1px solid rgb(var(--ink) / 0.04)'}}/>
             ))}
             {fogDraw&&(()=>{
               const x=Math.min(fogDraw.startX,fogDraw.endX),y=Math.min(fogDraw.startY,fogDraw.endY)
@@ -735,16 +850,14 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
 
           {/* ── No session banner — não bloqueia o canvas para o estado ser visível ── */}
           {!activeSession?.isActive&&(
-            <div className="absolute top-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-3 px-4 py-2.5 rounded-xl shadow-2xl"
-                 style={{background:'rgba(12,12,24,0.92)',border:'1px solid rgba(201,162,42,0.25)',backdropFilter:'blur(12px)'}}>
+            <div data-mesa-tutorial="session-banner" className="absolute top-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-3 px-4 py-2.5 rounded-xl shadow-2xl bg-surface/95 border border-gold/25 backdrop-blur-md">
               <Map size={15} className="text-saga-dim shrink-0"/>
               <span className="text-[12px] text-saga-muted">
                 {isGM?'Nenhuma sessão ativa':'Aguardando o Mestre iniciar a sessão'}
               </span>
               {isGM&&(
                 <button onClick={()=>setStartSessionOpen(true)}
-                  className="px-3 py-1 rounded text-[11px] font-cinzel font-semibold text-bg flex items-center gap-1.5 shrink-0"
-                  style={{background:'linear-gradient(135deg,#c9a22a,#f0d060)'}}>
+                  className="px-3 py-1 rounded text-[11px] font-cinzel font-semibold text-bg flex items-center gap-1.5 shrink-0 bg-gradient-gold">
                   <Play size={10}/>Iniciar
                 </button>
               )}
@@ -757,102 +870,24 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
               onClose={()=>setSheetsOpen(false)}
               members={members} npcs={npcs} currentMemberId={currentMemberId}
               isGM={isGM} campaignId={campaign.id} systemName={systemName}
+              systemCategory={systemCategory}
+              canRoll={!!activeSession?.isActive}
+              onRollAttribute={rollAttribute}
+              hpOverrides={hpOverrides}
+              onHpChange={(id, hp) => setHpOverrides(prev => ({ ...prev, [id]: hp }))}
             />
           )}
 
           {/* ── Initiative Tracker ── */}
           {initiativeOpen&&(
-            <div className="absolute top-3 left-1/2 -translate-x-1/2 z-40 w-72 rounded-xl overflow-hidden shadow-2xl"
-              style={{background:'rgba(10,10,22,0.97)',border:'1px solid rgba(201,162,42,0.25)',backdropFilter:'blur(12px)'}}>
-              <div className="px-4 py-2.5 border-b flex items-center justify-between"
-                style={{borderColor:'rgba(201,162,42,0.2)',background:'rgba(201,162,42,0.06)'}}>
-                <div className="flex items-center gap-2">
-                  <Swords size={12} className="text-gold"/>
-                  <span className="font-cinzel text-[11px] font-bold text-gold uppercase tracking-widest">Iniciativa</span>
-                  {initiativeOrder.length>0&&(
-                    <span className="text-[9px] text-saga-dim">
-                      Turno {(currentTurnIdx%Math.max(1,initiativeOrder.length))+1}/{initiativeOrder.length}
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-1.5">
-                  {isGM&&(
-                    <button onClick={rollInitiative}
-                      className="px-2 py-0.5 rounded text-[9px] font-bold font-cinzel transition-all"
-                      style={{background:'rgba(201,162,42,0.15)',color:'#c9a22a',border:'1px solid rgba(201,162,42,0.3)'}}>
-                      Rolar
-                    </button>
-                  )}
-                  {initiativeOrder.length>0&&isGM&&(
-                    <button onClick={nextTurn}
-                      className="px-2 py-0.5 rounded text-[9px] font-bold font-cinzel flex items-center gap-1 transition-all"
-                      style={{background:'rgba(255,255,255,0.06)',color:'#a0a0c0',border:'1px solid rgba(255,255,255,0.1)'}}>
-                      <ChevronRight size={10}/>Próximo
-                    </button>
-                  )}
-                  <button onClick={()=>setInitiativeOpen(false)} className="text-saga-dim hover:text-saga-text ml-1">
-                    <X size={13}/>
-                  </button>
-                </div>
-              </div>
-              <div className="max-h-60 overflow-y-auto">
-                {initiativeOrder.length===0?(
-                  <div className="py-6 text-center">
-                    <p className="text-[11px] text-saga-dim">Nenhuma ordem de iniciativa.</p>
-                    {isGM&&<p className="text-[10px] text-saga-dim/60 mt-1">Clique em "Rolar" para sortear.</p>}
-                  </div>
-                ):initiativeOrder.map((entry,i)=>{
-                  const isCurrent=i===currentTurnIdx%initiativeOrder.length
-                  const hpPct = entry.hp !== undefined && entry.maxHp && entry.maxHp > 0
-                    ? Math.max(0, Math.min(100, (entry.hp / entry.maxHp) * 100)) : null
-                  return (
-                    <div key={entry.tokenId}
-                      className="px-4 py-2.5 border-b last:border-0 transition-all"
-                      style={{
-                        borderColor:'rgba(255,255,255,0.04)',
-                        background:isCurrent?'rgba(201,162,42,0.08)':'transparent',
-                      }}>
-                      <div className="flex items-center gap-3">
-                        {/* Initiative badge */}
-                        <div className="w-7 h-7 rounded-full flex items-center justify-center font-cinzel font-bold text-sm shrink-0"
-                          style={{
-                            background:isCurrent?`${entry.color}30`:'rgba(255,255,255,0.05)',
-                            border:`1.5px solid ${isCurrent?entry.color:'rgba(255,255,255,0.1)'}`,
-                            color:isCurrent?entry.color:'#7878a0',
-                          }}>
-                          {entry.initiative}
-                        </div>
-                        {/* Name */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            {isCurrent&&<span className="text-[8px] text-yellow-300 font-bold">▶</span>}
-                            <span className={`text-[12px] font-medium truncate ${isCurrent?'text-saga-text':'text-saga-muted'}`}>
-                              {entry.label}
-                            </span>
-                          </div>
-                          {hpPct !== null && (
-                            <div className="mt-1 w-full h-[3px] rounded-full overflow-hidden" style={{background:'rgba(255,255,255,0.08)'}}>
-                              <div className="h-full rounded-full"
-                                style={{
-                                  width:`${hpPct}%`,
-                                  background: hpPct > 50 ? '#22c55e' : hpPct > 25 ? '#f59e0b' : '#ef4444',
-                                }} />
-                            </div>
-                          )}
-                        </div>
-                        {/* HP text */}
-                        {entry.hp !== undefined && entry.maxHp !== undefined && (
-                          <span className="text-[9px] font-mono shrink-0"
-                            style={{color:hpPct && hpPct > 50 ? '#4ade80' : hpPct && hpPct > 25 ? '#fbbf24' : '#f87171'}}>
-                            {entry.hp}/{entry.maxHp}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
+            <InitiativeTracker
+              initiativeOrder={initiativeOrder}
+              currentTurnIdx={currentTurnIdx}
+              isGM={isGM}
+              onRollInitiative={rollInitiative}
+              onNextTurn={nextTurn}
+              onClose={()=>setInitiativeOpen(false)}
+            />
           )}
 
           {/* ── Handouts Panel ── */}
@@ -861,142 +896,30 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
               campaignId={campaign.id}
               isGM={isGM}
               onClose={() => setHandoutsOpen(false)}
+              activeSessionId={activeSession?.id}
             />
           )}
 
           {/* ── Add-token popover ── */}
           {addToken&&(
-            <div className="absolute z-50 rounded-xl border border-border shadow-2xl overflow-hidden"
-              style={{
-                left:Math.min(addToken.screenX+8,(canvasRef.current?.offsetWidth??600)-240),
-                top:Math.min(addToken.screenY+8,(canvasRef.current?.offsetHeight??400)-(isGM?320:260)),
-                width:236,background:'rgba(15,15,28,0.97)',backdropFilter:'blur(12px)',
-              }}
-              onMouseDown={e=>e.stopPropagation()}>
-              <div className="px-3 py-2.5 border-b border-white/6 flex items-center justify-between">
-                <span className="font-cinzel text-[11px] font-bold text-saga-muted uppercase tracking-widest">
-                  {isGM?'Colocar Token':'Novo Token'}
-                </span>
-                <button onClick={()=>{setAddToken(null);setGmCustomOpen(false)}} className="text-saga-dim hover:text-saga-text"><X size={14}/></button>
-              </div>
-
-              {isGM ? (
-                /* ── GM: NPC picker ── */
-                <div className="flex flex-col">
-                  {npcs.length===0 ? (
-                    <p className="text-[11px] text-saga-dim text-center py-6">Nenhum NPC criado nesta campanha</p>
-                  ) : (
-                    <div className="max-h-52 overflow-y-auto p-1.5 flex flex-col gap-0.5">
-                      {npcs.map(npc=>{
-                        const tc=npc.type==='ENEMY'||npc.type==='VILLAIN'?'#ef4444':npc.type==='ALLY'?'#22c55e':'#c9a22a'
-                        const typeLabel=npc.type==='ENEMY'||npc.type==='VILLAIN'?'Inimigo':npc.type==='ALLY'?'Aliado':'Neutro'
-                        const hpPct=npc.maxHp>0?Math.max(0,Math.min(100,(npc.hp/npc.maxHp)*100)):0
-                        return (
-                          <button key={npc.id} onClick={()=>placeNpcToken(npc)}
-                            className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/5 transition-all text-left w-full">
-                            {safeImageUrl(npc.imageUrl)
-                              // eslint-disable-next-line @next/next/no-img-element
-                              ? <img src={safeImageUrl(npc.imageUrl)!} alt={npc.name} className="w-7 h-7 rounded-full object-cover shrink-0"/>
-                              : <div className="w-7 h-7 rounded-full shrink-0 flex items-center justify-center text-xs font-bold"
-                                  style={{background:`${tc}22`,border:`1px solid ${tc}55`,color:tc}}>
-                                  {npc.name[0]?.toUpperCase()??'?'}
-                                </div>
-                            }
-                            <div className="flex-1 min-w-0">
-                              <p className="text-[12px] font-medium text-saga-text truncate leading-tight">{npc.name}</p>
-                              <div className="flex items-center gap-1.5 mt-0.5">
-                                <span className="text-[9px] font-medium" style={{color:tc}}>{typeLabel}</span>
-                                <div className="flex-1 h-[3px] rounded-full overflow-hidden" style={{background:'rgba(255,255,255,0.08)'}}>
-                                  <div className="h-full rounded-full" style={{width:`${hpPct}%`,background:hpPct>50?'#22c55e':hpPct>25?'#f59e0b':'#ef4444'}}/>
-                                </div>
-                                <span className="text-[9px] text-saga-dim shrink-0">{npc.hp}/{npc.maxHp}</span>
-                              </div>
-                            </div>
-                          </button>
-                        )
-                      })}
-                    </div>
-                  )}
-                  {/* Custom token fallback */}
-                  <div className="border-t border-white/6">
-                    <button onClick={()=>setGmCustomOpen(o=>!o)}
-                      className="w-full px-3 py-2 text-[10px] text-saga-dim hover:text-saga-text transition-colors flex items-center justify-center gap-1">
-                      <Plus size={10}/> Token Personalizado
-                    </button>
-                    {gmCustomOpen&&(
-                      <div className="p-2.5 pt-0 flex flex-col gap-2">
-                        <input autoFocus value={newTokenLabel} onChange={e=>setNewTokenLabel(e.target.value)}
-                          onKeyDown={e=>{if(e.key==='Enter')addNewToken();if(e.key==='Escape')setAddToken(null)}}
-                          placeholder="Nome do token..."
-                          className="w-full px-2 py-1.5 rounded text-xs text-saga-text placeholder:text-saga-dim focus:outline-none"
-                          style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)'}}/>
-                        <div className="flex gap-1">
-                          {(['player','enemy','npc'] as const).map(tp=>(
-                            <button key={tp} onClick={()=>setNewTokenType(tp)}
-                              className={`flex-1 py-1 rounded text-[9px] font-medium uppercase transition-all ${newTokenType===tp?'text-white':'text-saga-dim'}`}
-                              style={{
-                                background:newTokenType===tp?tp==='player'?'rgba(124,58,237,0.4)':tp==='enemy'?'rgba(239,68,68,0.4)':'rgba(201,162,42,0.3)':'rgba(255,255,255,0.04)',
-                                border:newTokenType===tp?`1px solid ${tp==='player'?'rgba(124,58,237,0.6)':tp==='enemy'?'rgba(239,68,68,0.5)':'rgba(201,162,42,0.5)'}`:'1px solid rgba(255,255,255,0.08)',
-                              }}>
-                              {tp==='player'?'Jogador':tp==='enemy'?'Inimigo':'NPC'}
-                            </button>
-                          ))}
-                        </div>
-                        <div className="flex gap-1 flex-wrap">
-                          {TOKEN_COLORS.map(c=>(
-                            <button key={c} onClick={()=>setNewTokenColor(c)} className="w-4 h-4 rounded-full transition-all"
-                              style={{background:c,boxShadow:newTokenColor===c?'0 0 0 2px rgba(255,255,255,0.9)':'none',transform:newTokenColor===c?'scale(1.2)':'scale(1)'}}/>
-                          ))}
-                        </div>
-                        <button onClick={addNewToken}
-                          className="w-full py-1.5 rounded text-[11px] font-bold text-bg font-cinzel"
-                          style={{background:'linear-gradient(135deg,#c9a22a,#f0d060)'}}>
-                          Colocar no Mapa
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                /* ── Jogador: form genérico ── */
-                <div className="p-3 flex flex-col gap-3">
-                  <input autoFocus value={newTokenLabel} onChange={e=>setNewTokenLabel(e.target.value)}
-                    onKeyDown={e=>{if(e.key==='Enter')addNewToken();if(e.key==='Escape')setAddToken(null)}}
-                    placeholder="Nome do token..."
-                    className="w-full px-3 py-2 rounded text-sm text-saga-text placeholder:text-saga-dim focus:outline-none"
-                    style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)'}}/>
-                  <div className="flex gap-1.5">
-                    {(['player','enemy','npc'] as const).map(tp=>(
-                      <button key={tp} onClick={()=>setNewTokenType(tp)}
-                        className={`flex-1 py-1.5 rounded text-[10px] font-medium uppercase transition-all ${newTokenType===tp?'text-white':'text-saga-dim'}`}
-                        style={{
-                          background:newTokenType===tp?tp==='player'?'rgba(124,58,237,0.4)':tp==='enemy'?'rgba(239,68,68,0.4)':'rgba(201,162,42,0.3)':'rgba(255,255,255,0.04)',
-                          border:newTokenType===tp?`1px solid ${tp==='player'?'rgba(124,58,237,0.6)':tp==='enemy'?'rgba(239,68,68,0.5)':'rgba(201,162,42,0.5)'}`:'1px solid rgba(255,255,255,0.08)',
-                        }}>
-                        {tp==='player'?'Jogador':tp==='enemy'?'Inimigo':'NPC'}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="flex gap-1.5 flex-wrap">
-                    {TOKEN_COLORS.map(c=>(
-                      <button key={c} onClick={()=>setNewTokenColor(c)} className="w-5 h-5 rounded-full transition-all"
-                        style={{background:c,boxShadow:newTokenColor===c?'0 0 0 2px rgba(255,255,255,0.9)':'none',transform:newTokenColor===c?'scale(1.2)':'scale(1)'}}/>
-                    ))}
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style={{background:newTokenColor}}>
-                      {(newTokenLabel[0]??'?').toUpperCase()}
-                    </div>
-                    <button onClick={addNewToken}
-                      className="flex-1 py-1.5 rounded text-[11px] font-bold text-bg font-cinzel"
-                      style={{background:'linear-gradient(135deg,#c9a22a,#f0d060)'}}>
-                      Colocar no Mapa
-                    </button>
-                  </div>
-                  <p className="text-[9px] text-saga-dim text-center">Clique direito no token para remover</p>
-                </div>
-              )}
-            </div>
+            <AddTokenPopover
+              addToken={addToken}
+              canvasRef={canvasRef}
+              isGM={isGM}
+              npcs={npcs}
+              onPlaceNpc={placeNpcToken}
+              gmCustomOpen={gmCustomOpen}
+              setGmCustomOpen={setGmCustomOpen}
+              newTokenLabel={newTokenLabel}
+              setNewTokenLabel={setNewTokenLabel}
+              newTokenType={newTokenType}
+              setNewTokenType={setNewTokenType}
+              newTokenColor={newTokenColor}
+              setNewTokenColor={setNewTokenColor}
+              onAddNewToken={addNewToken}
+              onClose={()=>{setAddToken(null);setGmCustomOpen(false)}}
+              onCancel={()=>setAddToken(null)}
+            />
           )}
         </div>
 
@@ -1004,131 +927,32 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
         {chatOpen&&<div className="sm:hidden fixed inset-0 bg-black/50 z-40" onClick={()=>setChatOpen(false)}/>}
         <div className={`
           absolute sm:relative inset-y-0 right-0 z-50 sm:z-auto
-          w-[300px] flex flex-col shrink-0 border-l border-white/5
-          transition-transform duration-300
+          w-[300px] flex flex-col shrink-0 border-l border-ink/20 dark:border-bg/60
+          bg-bg transition-transform duration-300
           ${chatOpen?'translate-x-0':'-translate-x-0 sm:translate-x-0'}
           hidden sm:flex ${chatOpen?'!flex':''}
-        `} style={{background:'rgba(10,10,22,0.96)'}}>
+        `}>
 
-          <div className="px-4 py-3 border-b border-white/6 shrink-0 flex items-center justify-between">
-            <span className="font-cinzel text-[11px] font-bold text-saga-muted uppercase tracking-widest">Chat da Sessão</span>
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5">
-                <span className="text-[10px] text-saga-dim font-medium">{members.length} membros</span>
-              </div>
-              <button onClick={()=>setChatOpen(false)} className="sm:hidden text-saga-dim hover:text-saga-text ml-1">
-                <X size={14}/>
-              </button>
-            </div>
-          </div>
+          <RollLog
+            rolls={rolls}
+            lastRollId={lastRollId}
+            activeSessionIsActive={!!activeSession?.isActive}
+            membersCount={members.length}
+            onCloseMobile={()=>setChatOpen(false)}
+            chatEndRef={chatEndRef}
+          />
 
-          <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2">
-            {rolls.length===0&&(
-              <div className="flex flex-col items-center justify-center h-32 gap-2 opacity-50">
-                <Dice6 size={28} className="text-saga-dim"/>
-                <p className="text-[11px] text-saga-dim text-center">{activeSession?.isActive?'Nenhuma rolagem ainda.':'Inicie uma sessão.'}</p>
-              </div>
-            )}
-            {[...rolls].reverse().map(roll=>{
-              const arr=Array.isArray(roll.rolls)?(roll.rolls as number[]):[]
-              const isCrit=arr.length===1&&arr[0]===20&&roll.expression.includes('d20')
-              const isFail=arr.length===1&&arr[0]===1&&roll.expression.includes('d20')
-              const isNew=roll.id===lastRollId
-              return (
-                <div key={roll.id}
-                  className={`rounded-lg overflow-hidden transition-all duration-300 ${isNew?'scale-[1.02]':'scale-100'}`}
-                  style={{
-                    background:isCrit?'linear-gradient(135deg,rgba(201,162,42,0.12),rgba(201,162,42,0.04))':isFail?'linear-gradient(135deg,rgba(239,68,68,0.12),rgba(239,68,68,0.04))':'rgba(255,255,255,0.03)',
-                    border:isCrit?'1px solid rgba(201,162,42,0.3)':isFail?'1px solid rgba(239,68,68,0.25)':'1px solid rgba(255,255,255,0.06)',
-                    boxShadow:isCrit?'0 0 14px rgba(201,162,42,0.12)':'none',
-                  }}>
-                  {(isCrit||isFail)&&(
-                    <div className={`px-3 py-1 text-[10px] font-bold uppercase tracking-widest font-cinzel text-center flex items-center justify-center gap-1 ${isCrit?'bg-gold/12 text-gold':'bg-saga-danger/12 text-saga-danger'}`}>
-                      {isCrit?<><Sparkles size={10}/>Crítico!</>:<><Skull size={10}/>Falha Crítica</>}
-                    </div>
-                  )}
-                  <div className="p-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <div className="w-5 h-5 rounded-full bg-purple/60 flex items-center justify-center text-[9px] font-bold text-white shrink-0">
-                          {roll.rolledBy[0]?.toUpperCase()}
-                        </div>
-                        <p className="text-[11px] text-saga-muted truncate max-w-[100px]">{roll.rolledBy}</p>
-                      </div>
-                      <span className="text-[9px] text-saga-dim">{timeAgo(roll.rolledAt)}</span>
-                    </div>
-                    <div className="flex items-baseline gap-2 mb-1.5">
-                      <p className={`font-cinzel text-4xl font-bold leading-none ${isCrit?'text-gold':isFail?'text-saga-danger':'text-saga-text'}`}
-                         style={isCrit?{textShadow:'0 0 20px rgba(201,162,42,0.5)'}:undefined}>
-                        {roll.total}
-                      </p>
-                      {roll.attribute&&(
-                        <span className="text-[10px] text-purple-bright bg-purple-dim border border-purple/20 px-1.5 py-0.5 rounded">{roll.attribute}</span>
-                      )}
-                    </div>
-                    <p className="text-[10px] text-saga-dim font-mono">
-                      {roll.expression} → [<span className={isCrit?'text-gold':isFail?'text-saga-danger':'text-saga-muted'}>{arr.join(', ')}</span>]
-                      {roll.modifier!==0?` ${roll.modifier>0?'+':''}${roll.modifier}`:''}
-                    </p>
-                  </div>
-                </div>
-              )
-            })}
-            <div ref={chatEndRef}/>
-          </div>
-
-          {/* Input + Dice bar */}
-          <div className="shrink-0" style={{borderTop:'1px solid rgba(255,255,255,0.07)',background:'rgba(0,0,0,0.25)'}}>
-            <div className="px-3 pt-2.5 pb-1">
-              <input value="" readOnly disabled={!activeSession?.isActive} placeholder="Escreva uma mensagem..."
-                className="w-full rounded px-3 py-2 text-[12px] text-saga-text placeholder:text-saga-dim focus:outline-none disabled:opacity-40"
-                style={{background:'rgba(255,255,255,0.05)'}}/>
-            </div>
-            <div className="px-3 pb-2.5 pt-1">
-              {/* Modifier row */}
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-[9px] text-saga-dim uppercase tracking-widest font-bold">Rolar Dado</p>
-                <div className="flex items-center gap-1">
-                  <span className="text-[9px] text-saga-dim">Mod</span>
-                  <button onClick={()=>setRollModifier(m=>m-1)}
-                    className="w-4 h-4 rounded flex items-center justify-center text-saga-dim hover:text-saga-text hover:bg-white/8 transition-all">
-                    <Minus size={9}/>
-                  </button>
-                  <span className={`text-[10px] font-mono font-bold w-7 text-center ${rollModifier>0?'text-saga-success':rollModifier<0?'text-saga-danger':'text-saga-dim'}`}>
-                    {rollModifier>=0?'+':''}{rollModifier}
-                  </span>
-                  <button onClick={()=>setRollModifier(m=>m+1)}
-                    className="w-4 h-4 rounded flex items-center justify-center text-saga-dim hover:text-saga-text hover:bg-white/8 transition-all">
-                    <Plus size={9}/>
-                  </button>
-                  {rollModifier!==0&&(
-                    <button onClick={()=>setRollModifier(0)}
-                      className="text-[8px] text-saga-dim hover:text-saga-danger transition-colors ml-0.5">✕</button>
-                  )}
-                </div>
-              </div>
-              <div className="grid grid-cols-7 gap-1">
-                {DICE.map(die=>{
-                  const rolling=rollingDie===die
-                  return (
-                    <button key={die} onClick={()=>void rollDie(die)}
-                      disabled={!activeSession?.isActive||!!rollingDie}
-                      title={`Rolar 1${die}${rollModifier!==0?(rollModifier>0?'+':'')+rollModifier:''}`}
-                      className={`h-9 rounded flex flex-col items-center justify-center gap-0.5 transition-all select-none
-                        ${!activeSession?.isActive||rollingDie?'opacity-30 cursor-not-allowed':'hover:scale-105 active:scale-95'}
-                        ${rolling?'ring-1 ring-gold/60':''}`}
-                      style={{
-                        background:rolling?'rgba(201,162,42,0.15)':'rgba(255,255,255,0.04)',
-                        border:rolling?'1px solid rgba(201,162,42,0.45)':'1px solid rgba(255,255,255,0.08)',
-                      }}>
-                      <Dice6 size={9} className="text-saga-dim"/>
-                      <span className="text-[10px] font-cinzel font-bold text-gold leading-none">{die}</span>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
+          <DiceBar
+            chatInput={chatInput}
+            setChatInput={setChatInput}
+            onSendChat={()=>void sendChatMessage()}
+            sendingChat={sendingChat}
+            activeSessionIsActive={!!activeSession?.isActive}
+            rollModifier={rollModifier}
+            setRollModifier={setRollModifier}
+            rollingDie={rollingDie}
+            onRollDie={(die)=>void rollDie(die)}
+          />
         </div>
       </div>
 
@@ -1142,6 +966,8 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
           title="session-music"
         />
       )}
+      <MesaSpotlight isGM={isGM} />
+      <MarkTutorialVisited tutorialKey="saga_visited_mesa" />
       {isGM&&<StartSessionModal campaignId={campaign.id} open={startSessionOpen} onClose={()=>setStartSessionOpen(false)}/>}
       {isGM&&<MusicPlayer
         open={musicOpen}
