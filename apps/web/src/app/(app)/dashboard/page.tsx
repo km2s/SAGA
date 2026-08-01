@@ -31,10 +31,11 @@ export default async function DashboardPage() {
   return (
     <div className="p-4 sm:p-8">
       {/* Header */}
-      <div className="flex items-start justify-between mb-8">
-        <div>
-          <p className="flex items-center gap-2 font-cinzel text-[11px] tracking-[0.35em] text-wax uppercase"><Crown className="h-3.5 w-3.5" /> Salão do Mestre</p>
-          <h1 className="font-cinzel text-3xl font-bold text-ink mt-1">
+      {/* No celular o título e os botões não cabem lado a lado — empilha. */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between mb-8">
+        <div className="min-w-0">
+          <p className="flex items-center gap-2 font-cinzel text-[11px] tracking-[0.35em] text-wax uppercase"><Crown className="h-3.5 w-3.5 shrink-0" /> Salão do Mestre</p>
+          <h1 className="font-cinzel text-2xl sm:text-3xl font-bold text-ink mt-1">
             Bem-vindo, {session.user.username}
           </h1>
           <p className="text-sm text-ink-soft mt-1 font-cormorant italic">
