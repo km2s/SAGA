@@ -27,6 +27,8 @@ export async function POST(req: Request) {
     maxHp?: number
     imageUrl?: string
     systemId?: string | null
+    // Mestre criando a ficha para um jogador da campanha
+    memberId?: string
     // import flow
     systemName?: string
     importedAttributes?: { name: string; value: number }[]
@@ -40,13 +42,32 @@ export async function POST(req: Request) {
   }).catch(() => null)
   if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
-  const member = await prisma.campaignMember.findFirst({
+  const callerMember = await prisma.campaignMember.findFirst({
     where: { userId: user.id, campaignId: body.campaignId },
     include: { character: true },
   }).catch(() => null)
-  if (!member) return NextResponse.json({ error: 'Você não é membro desta campanha' }, { status: 403 })
-  if (member.role === 'GM') return NextResponse.json({ error: 'Mestres não podem criar personagens em sua própria campanha' }, { status: 403 })
-  if (member.character) return NextResponse.json({ error: 'Você já tem um personagem nesta campanha' }, { status: 409 })
+  if (!callerMember) return NextResponse.json({ error: 'Você não é membro desta campanha' }, { status: 403 })
+
+  // O mestre pode criar a ficha em nome de um jogador (`memberId`). A ficha
+  // nasce ligada ao jogador, então ele edita normalmente — e o mestre também,
+  // porque a permissão da ficha já é `dono || GM da campanha`.
+  let member = callerMember
+  if (body.memberId && body.memberId !== callerMember.id) {
+    if (callerMember.role !== 'GM') {
+      return NextResponse.json({ error: 'Apenas o Mestre pode criar fichas para outros jogadores' }, { status: 403 })
+    }
+    const target = await prisma.campaignMember.findFirst({
+      where: { id: body.memberId, campaignId: body.campaignId },
+      include: { character: true },
+    }).catch(() => null)
+    if (!target) return NextResponse.json({ error: 'Jogador não encontrado nesta campanha' }, { status: 404 })
+    if (target.role === 'GM') return NextResponse.json({ error: 'O Mestre não tem personagem na própria campanha' }, { status: 400 })
+    if (target.character) return NextResponse.json({ error: 'Este jogador já tem um personagem nesta campanha' }, { status: 409 })
+    member = target
+  } else {
+    if (callerMember.role === 'GM') return NextResponse.json({ error: 'Mestres não podem criar personagens em sua própria campanha' }, { status: 403 })
+    if (callerMember.character) return NextResponse.json({ error: 'Você já tem um personagem nesta campanha' }, { status: 409 })
+  }
 
   const imageUrl = body.imageUrl?.trim() || null
   if (imageUrl && !/^https:\/\//i.test(imageUrl)) {

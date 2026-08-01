@@ -13,6 +13,7 @@ import { MarkTutorialVisited } from '@/components/tutorial/MarkTutorialVisited'
 import { ApplicationsPanel } from '@/components/gm/ApplicationsPanel'
 import { CampaignStatusToggle } from '@/components/gm/CampaignStatusToggle'
 import { CustomSheetBuilder } from '@/components/gm/CustomSheetBuilder'
+import { CreateCharacterForPlayerButton } from '@/components/gm/CreateCharacterForPlayerButton'
 
 export default async function GmPanelPage({ params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
@@ -130,6 +131,24 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
                   <p className="text-[11px] text-ink-soft">Sem personagem</p>
                 )}
               </div>
+              {/* O Mestre administra a ficha junto com o jogador: abre a dele ou
+                  cria uma para quem ainda não tem. */}
+              {m.character ? (
+                <Link
+                  href={`/characters/${m.id}`}
+                  className="flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded border border-ink/20 text-ink-soft hover:border-wax hover:text-wax transition-all shrink-0"
+                >
+                  <ClipboardList size={11} /> Abrir ficha
+                </Link>
+              ) : (
+                <CreateCharacterForPlayerButton
+                  campaignId={params.id}
+                  memberId={m.id}
+                  playerName={m.user.username}
+                  systemId={campaign.system?.id ?? null}
+                  systemName={campaign.system?.name ?? null}
+                />
+              )}
             </div>
           ))}
           {players.length === 0 && (
