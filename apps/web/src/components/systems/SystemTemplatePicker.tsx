@@ -65,7 +65,9 @@ export function SystemTemplatePicker({ selected, onChange, excludeId }: {
           className="w-full pl-7 pr-3 py-1.5 rounded-lg text-xs bg-parchment/60 border border-ink/20 text-ink placeholder:text-ink-soft/60 focus:outline-none focus:border-wax transition-colors"
         />
       </div>
-      <div className="max-h-44 overflow-y-auto rounded-lg border border-ink/15 divide-y divide-ink/8">
+      {/* Sem divisórias entre os itens: no pergaminho elas apareciam como
+          linhas claras dentro do campo. A separação fica por hover/seleção. */}
+      <div className="max-h-44 overflow-y-auto rounded-lg border border-ink/15 p-1 space-y-0.5">
         {visible.length === 0 && (
           <p className="text-[11px] text-ink-soft italic px-3 py-3">Nenhum sistema encontrado.</p>
         )}
@@ -77,8 +79,8 @@ export function SystemTemplatePicker({ selected, onChange, excludeId }: {
               key={s.id}
               type="button"
               onClick={() => toggle(s.id)}
-              className={`w-full flex items-center gap-2 px-2.5 py-1.5 text-left transition-colors ${
-                isSel ? 'bg-gold/10' : 'hover:bg-ink/5'
+              className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-left transition-colors ${
+                isSel ? 'bg-gold/15' : 'hover:bg-ink/5'
               }`}
             >
               <span className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 text-[8px] font-bold ${
