@@ -2,7 +2,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from 'database'
 import { notFound, redirect } from 'next/navigation'
-import { Badge } from '@/components/ui/Badge'
+import { CharacterInfoEditor } from '@/components/character/CharacterInfoEditor'
 import { ResourceTracksPanel } from '@/components/character/ResourceTracksPanel'
 import { parseResources, parseTracks } from '@/lib/resource-tracks'
 import { CharacterShareToggle } from '@/components/character/CharacterShareToggle'
@@ -173,24 +173,14 @@ export default async function CharacterDetailPage({ params }: { params: { id: st
               charClass={char.class}
               canEdit={canEdit}
             />
-            <div className="p-4">
-              <h2 className="font-cinzel-deco text-base font-bold text-center leading-snug">{char.name}</h2>
-              {char.race && (
-                <div className="flex justify-between text-[12px] mt-2">
-                  <span className="text-ink-soft">Raça</span>
-                  <span className="font-fell">{char.race}</span>
-                </div>
-              )}
-              {char.class && (
-                <div className="flex justify-between text-[12px] mt-1">
-                  <span className="text-ink-soft">Classe</span>
-                  <span className="font-fell">{char.class}</span>
-                </div>
-              )}
-              <div className="flex justify-center mt-3">
-                <Badge variant="gold">Nível {char.level}</Badge>
-              </div>
-            </div>
+            <CharacterInfoEditor
+              characterId={char.id}
+              name={char.name}
+              race={char.race}
+              charClass={char.class}
+              level={char.level}
+              canEdit={canEdit}
+            />
           </div>
 
           {/* Barras de recurso (vida, PE, sanidade...) definidas pelo Mestre */}

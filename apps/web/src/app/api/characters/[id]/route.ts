@@ -53,6 +53,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   const body = await req.json() as {
     hp?: number; maxHp?: number; level?: number; isPublic?: boolean; imageUrl?: string | null
+    name?: string; race?: string | null; class?: string | null
     // Barras de recurso além da vida: {chave: {current, max}}, mescladas com as gravadas
     resources?: unknown
   }
@@ -61,6 +62,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   if (body.isPublic !== undefined && !isMine) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
+
+  // Nome, raça e classe editáveis depois da criação (mesmos limites da criação)
+  if (body.name !== undefined && (typeof body.name !== 'string' || !body.name.trim())) {
+    return NextResponse.json({ error: 'O nome não pode ficar vazio' }, { status: 400 })
+  }
+  const optionalText = (v: unknown) => (typeof v === 'string' ? v.trim().slice(0, 60) || null : null)
 
   const newMaxHp = body.maxHp !== undefined ? Math.max(1, body.maxHp) : sheet.maxHp
   const updated = await prisma.characterSheet.update({
@@ -71,6 +78,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       ...(body.level !== undefined && { level: Math.min(20, Math.max(1, body.level)) }),
       ...(body.isPublic !== undefined && { isPublic: body.isPublic }),
       ...('imageUrl' in body && { imageUrl: body.imageUrl ?? null }),
+      ...(body.name !== undefined && { name: body.name.trim().slice(0, 100) }),
+      ...('race' in body && { race: optionalText(body.race) }),
+      ...('class' in body && { class: optionalText(body.class) }),
       ...(body.resources !== undefined && { resourcesJson: mergeResourcesJson(sheet.resourcesJson, body.resources) }),
     },
   })

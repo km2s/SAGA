@@ -31,7 +31,7 @@ import { Pathfinder2eSheet } from './sheets/Pathfinder2eSheet'
 import { Tormenta20Sheet } from './sheets/Tormenta20Sheet'
 import { DungeonWorldSheet } from './sheets/DungeonWorldSheet'
 import { Age13Sheet } from './sheets/Age13Sheet'
-import { X, Plus, Minus, Shield, Sword, Wand2, BookOpen, User, ChevronDown, ChevronUp } from 'lucide-react'
+import { X, Plus, Minus, Shield, Sword, Wand2, BookOpen, User, ChevronDown, ChevronUp, Pencil } from 'lucide-react'
 
 export type SheetCategory = 'fantasy' | 'world-of-darkness' | 'horror' | 'scifi' | 'generic' | 'custom'
 
@@ -1658,7 +1658,53 @@ function GenericTab({ attrs, weapons, characterId, canEdit, onAdd, onDelete, onR
 
 // ─── Habilidades (character abilities) ───────────────────────────────────────
 
-interface Ability { id: string; name: string; desc: string }
+// `cost` é o preço da habilidade em texto livre ("2 PE", "1 PE + 1 SAN", "50 PO").
+// Opcional: habilidades gravadas antes dele continuam válidas.
+interface Ability { id: string; name: string; desc: string; cost?: string }
+
+type AbilityDraft = { name: string; cost: string; desc: string }
+
+const EMPTY_ABILITY: AbilityDraft = { name: '', cost: '', desc: '' }
+
+function AbilityForm({ initial, submitLabel, saving, onSubmit, onCancel }: {
+  initial: AbilityDraft
+  submitLabel: string
+  saving: boolean
+  onSubmit: (draft: AbilityDraft) => void
+  onCancel: () => void
+}) {
+  const [draft, setDraft] = useState(initial)
+  const set = (k: keyof AbilityDraft, v: string) => setDraft(d => ({ ...d, [k]: v }))
+  const field = 'bg-parchment/40 border border-ink/15 rounded px-2 py-1.5 text-sm text-ink placeholder:text-ink-soft/50 focus:outline-none focus:border-gold/30'
+
+  return (
+    <div className="rounded-lg p-3 space-y-2"
+      style={{ background: 'rgba(201,162,42,0.06)', border: '1px solid rgba(201,162,42,0.2)' }}>
+      <div className="flex gap-2">
+        <input autoFocus value={draft.name} onChange={e => set('name', e.target.value)}
+          placeholder="Nome da habilidade..." aria-label="Nome da habilidade" maxLength={80}
+          className={`flex-1 min-w-0 ${field}`} />
+        <input value={draft.cost} onChange={e => set('cost', e.target.value)}
+          placeholder="Preço (ex.: 2 PE)" aria-label="Preço da habilidade" maxLength={30}
+          className={`w-32 sm:w-40 shrink-0 ${field}`} />
+      </div>
+      <textarea value={draft.desc} onChange={e => set('desc', e.target.value)}
+        placeholder="Descrição (opcional)..." rows={3} aria-label="Descrição da habilidade"
+        className={`w-full resize-none text-ink-soft ${field}`} />
+      <div className="flex gap-2">
+        <button onClick={() => onSubmit(draft)} disabled={saving || !draft.name.trim()}
+          className="px-3 py-1.5 rounded text-[11px] font-bold disabled:opacity-40 transition-all"
+          style={{ background: 'rgba(201,162,42,0.15)', border: '1px solid rgba(201,162,42,0.3)', color: '#c9a22a' }}>
+          {saving ? 'Salvando...' : submitLabel}
+        </button>
+        <button onClick={onCancel}
+          className="px-3 py-1.5 rounded text-[11px] text-ink-soft hover:text-ink border border-ink/15 transition-all">
+          Cancelar
+        </button>
+      </div>
+    </div>
+  )
+}
 
 function AbilitiesSection({ characterId, textFields, canEdit, onRefresh }: {
   characterId: string; textFields: TextField[]; canEdit: boolean; onRefresh: () => void
@@ -1668,8 +1714,7 @@ function AbilitiesSection({ characterId, textFields, canEdit, onRefresh }: {
     try { return JSON.parse(raw) as Ability[] } catch { return [] }
   })
   const [adding, setAdding] = useState(false)
-  const [newName, setNewName] = useState('')
-  const [newDesc, setNewDesc] = useState('')
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
   async function saveList(list: Ability[]) {
@@ -1681,12 +1726,24 @@ function AbilitiesSection({ characterId, textFields, canEdit, onRefresh }: {
     onRefresh()
   }
 
-  async function addAbility() {
-    if (!newName.trim()) return
+  function fromDraft(id: string, d: AbilityDraft): Ability {
+    const cost = d.cost.trim()
+    return { id, name: d.name.trim(), desc: d.desc.trim(), ...(cost && { cost }) }
+  }
+
+  async function addAbility(d: AbilityDraft) {
+    if (!d.name.trim()) return
     setSaving(true)
-    const entry: Ability = { id: crypto.randomUUID(), name: newName.trim(), desc: newDesc.trim() }
-    await saveList([...abilities, entry])
-    setNewName(''); setNewDesc(''); setAdding(false)
+    await saveList([...abilities, fromDraft(crypto.randomUUID(), d)])
+    setAdding(false)
+    setSaving(false)
+  }
+
+  async function updateAbility(id: string, d: AbilityDraft) {
+    if (!d.name.trim()) return
+    setSaving(true)
+    await saveList(abilities.map(a => (a.id === id ? fromDraft(id, d) : a)))
+    setEditingId(null)
     setSaving(false)
   }
 
@@ -1698,44 +1755,59 @@ function AbilitiesSection({ characterId, textFields, canEdit, onRefresh }: {
         </p>
       )}
       {abilities.map(a => (
-        <div key={a.id} className="rounded-lg p-3 group"
-          style={{ background: 'rgb(var(--ink) / 0.03)', border: '1px solid rgb(var(--ink) / 0.08)' }}>
-          <div className="flex items-start justify-between gap-2">
-            <p className="text-sm font-semibold text-ink">{a.name}</p>
-            {canEdit && (
-              <button onClick={() => void saveList(abilities.filter(b => b.id !== a.id))}
-                className="opacity-0 group-hover:opacity-100 text-ink-soft hover:text-red-400 transition-all shrink-0">
-                <X size={13} />
-              </button>
-            )}
+        editingId === a.id ? (
+          <AbilityForm
+            key={a.id}
+            initial={{ name: a.name, cost: a.cost ?? '', desc: a.desc }}
+            submitLabel="Salvar"
+            saving={saving}
+            onSubmit={d => void updateAbility(a.id, d)}
+            onCancel={() => setEditingId(null)}
+          />
+        ) : (
+          <div key={a.id} className="rounded-lg p-3 group"
+            style={{ background: 'rgb(var(--ink) / 0.03)', border: '1px solid rgb(var(--ink) / 0.08)' }}>
+            <div className="flex items-start justify-between gap-2">
+              <p className="text-sm font-semibold text-ink min-w-0 break-words">{a.name}</p>
+              <div className="flex items-center gap-2 shrink-0">
+                {a.cost && (
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap"
+                    style={{ background: 'rgba(201,162,42,0.12)', border: '1px solid rgba(201,162,42,0.3)', color: '#9c7a2a' }}
+                    title="Preço">
+                    {a.cost}
+                  </span>
+                )}
+                {canEdit && (
+                  <>
+                    <button onClick={() => { setAdding(false); setEditingId(a.id) }}
+                      aria-label={`Editar ${a.name}`}
+                      className="opacity-0 group-hover:opacity-100 text-ink-soft hover:text-gold transition-all">
+                      <Pencil size={12} />
+                    </button>
+                    <button onClick={() => void saveList(abilities.filter(b => b.id !== a.id))}
+                      aria-label={`Remover ${a.name}`}
+                      className="opacity-0 group-hover:opacity-100 text-ink-soft hover:text-red-400 transition-all">
+                      <X size={13} />
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+            {a.desc && <p className="text-[12px] text-ink-soft mt-1 leading-relaxed whitespace-pre-wrap">{a.desc}</p>}
           </div>
-          {a.desc && <p className="text-[12px] text-ink-soft mt-1 leading-relaxed whitespace-pre-wrap">{a.desc}</p>}
-        </div>
+        )
       ))}
       {canEdit && (
         adding ? (
-          <div className="rounded-lg p-3 space-y-2"
-            style={{ background: 'rgba(201,162,42,0.06)', border: '1px solid rgba(201,162,42,0.2)' }}>
-            <input autoFocus value={newName} onChange={e => setNewName(e.target.value)}
-              placeholder="Nome da habilidade..."
-              className="w-full bg-parchment/40 border border-ink/15 rounded px-2 py-1.5 text-sm text-ink placeholder:text-ink-soft/50 focus:outline-none focus:border-gold/30" />
-            <textarea value={newDesc} onChange={e => setNewDesc(e.target.value)}
-              placeholder="Descrição (opcional)..." rows={3}
-              className="w-full bg-parchment/40 border border-ink/15 rounded px-2 py-1.5 text-sm text-ink-soft placeholder:text-ink-soft/50 focus:outline-none focus:border-gold/30 resize-none" />
-            <div className="flex gap-2">
-              <button onClick={() => void addAbility()} disabled={saving || !newName.trim()}
-                className="px-3 py-1.5 rounded text-[11px] font-bold disabled:opacity-40 transition-all"
-                style={{ background: 'rgba(201,162,42,0.15)', border: '1px solid rgba(201,162,42,0.3)', color: '#c9a22a' }}>
-                {saving ? 'Salvando...' : 'Adicionar'}
-              </button>
-              <button onClick={() => { setAdding(false); setNewName(''); setNewDesc('') }}
-                className="px-3 py-1.5 rounded text-[11px] text-ink-soft hover:text-ink-soft border border-ink/15 transition-all">
-                Cancelar
-              </button>
-            </div>
-          </div>
+          <AbilityForm
+            initial={EMPTY_ABILITY}
+            submitLabel="Adicionar"
+            saving={saving}
+            onSubmit={d => void addAbility(d)}
+            onCancel={() => setAdding(false)}
+          />
         ) : (
-          <button onClick={() => setAdding(true)}
+          <button onClick={() => { setEditingId(null); setAdding(true) }}
             className="flex items-center gap-1.5 text-[11px] font-bold transition-all hover:opacity-80 px-3 py-1.5 rounded"
             style={{ background: 'rgba(201,162,42,0.08)', border: '1px solid rgba(201,162,42,0.2)', color: '#c9a22a' }}>
             <Plus size={12} />
