@@ -3,6 +3,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from 'database'
 import { redirect } from 'next/navigation'
 import { CharactersView } from '@/components/character/CharactersView'
+import { hasHpTrack, parseTracks } from '@/lib/resource-tracks'
 
 export default async function CharactersPage() {
   const session = await getServerSession(authOptions)
@@ -40,7 +41,12 @@ export default async function CharactersPage() {
       id: m.id,
       role: m.role,
       character: m.character,
-      campaign: { id: m.campaign.id, name: m.campaign.name, system: m.campaign.system ? { name: m.campaign.system.name } : null },
+      campaign: {
+        id: m.campaign.id,
+        name: m.campaign.name,
+        system: m.campaign.system ? { name: m.campaign.system.name } : null,
+        showHp: hasHpTrack(parseTracks(m.campaign.resourceTracksJson)),
+      },
     }))
 
   // GM campaigns — shown in "Mestre" tab with their NPCs

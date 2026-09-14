@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from 'database'
+import { mergeResourcesJson } from '@/lib/resource-tracks'
 
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
@@ -50,7 +51,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   })
   if (!isMine && !isGM) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const body = await req.json() as { hp?: number; maxHp?: number; level?: number; isPublic?: boolean; imageUrl?: string | null }
+  const body = await req.json() as {
+    hp?: number; maxHp?: number; level?: number; isPublic?: boolean; imageUrl?: string | null
+    // Barras de recurso além da vida: {chave: {current, max}}, mescladas com as gravadas
+    resources?: unknown
+  }
 
   // Only the character owner can change visibility
   if (body.isPublic !== undefined && !isMine) {
@@ -66,6 +71,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       ...(body.level !== undefined && { level: Math.min(20, Math.max(1, body.level)) }),
       ...(body.isPublic !== undefined && { isPublic: body.isPublic }),
       ...('imageUrl' in body && { imageUrl: body.imageUrl ?? null }),
+      ...(body.resources !== undefined && { resourcesJson: mergeResourcesJson(sheet.resourcesJson, body.resources) }),
     },
   })
   return NextResponse.json(updated)

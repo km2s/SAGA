@@ -4,6 +4,7 @@ import { prisma } from 'database'
 import { notFound, redirect } from 'next/navigation'
 import { VirtualTable } from '@/components/mesa/VirtualTable'
 import { resolveSheetCategory } from '@/lib/system-category'
+import { parseResources, parseTracks } from '@/lib/resource-tracks'
 
 export default async function VirtualTablePage({ params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
@@ -23,6 +24,7 @@ export default async function VirtualTablePage({ params }: { params: { id: strin
     select: {
       id: true,
       name: true,
+      resourceTracksJson: true,
       system: { select: { name: true, category: true, isPreset: true } },
     },
   }).catch(() => null)
@@ -42,6 +44,7 @@ export default async function VirtualTablePage({ params }: { params: { id: strin
           level: true,
           hp: true,
           maxHp: true,
+          resourcesJson: true,
           imageUrl: true,
           attributes: {
             include: {
@@ -85,6 +88,7 @@ export default async function VirtualTablePage({ params }: { params: { id: strin
           level: true,
           hp: true,
           maxHp: true,
+          resourcesJson: true,
           imageUrl: true,
           attributes: {
             include: { attribute: { select: { name: true, defaultDie: true } } },
@@ -104,6 +108,7 @@ export default async function VirtualTablePage({ params }: { params: { id: strin
     level: n.level,
     hp: n.hp,
     maxHp: n.maxHp,
+    resources: parseResources(n.resourcesJson),
     imageUrl: n.imageUrl,
     attributes: n.attributes.map(a => ({
       id: a.id,
@@ -137,6 +142,7 @@ export default async function VirtualTablePage({ params }: { params: { id: strin
           level: m.character.level,
           hp: m.character.hp,
           maxHp: m.character.maxHp,
+          resources: parseResources(m.character.resourcesJson),
           imageUrl: m.character.imageUrl,
           attributes: m.character.attributes.map(a => ({
             id: a.id,
@@ -159,6 +165,7 @@ export default async function VirtualTablePage({ params }: { params: { id: strin
       currentMemberId={membership.id}
       systemName={campaign.system?.name ?? null}
       systemCategory={resolveSheetCategory(campaign.system)}
+      resourceTracks={parseTracks(campaign.resourceTracksJson)}
     />
   )
 }

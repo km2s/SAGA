@@ -6,6 +6,10 @@ import { CharacterSheetView, type SheetCategory } from '@/components/character/C
 import { attributeModifier, attributePool, formatModifier, isD20Category } from '@/lib/system-category'
 import type { AttributeRoll } from '@/components/mesa/types'
 import { Fleuron } from '@/components/landing/Ornament'
+import {
+  DEFAULT_TRACKS, HP_TRACK_KEY, trackBarColor, trackValue,
+  type ResourceTrack, type ResourceValues,
+} from '@/lib/resource-tracks'
 
 interface CharAttr {
   id: string
@@ -23,6 +27,7 @@ interface CharData {
   hp: number
   maxHp: number
   attributes: CharAttr[]
+  resources?: ResourceValues
 }
 
 interface NpcData {
@@ -35,6 +40,7 @@ interface NpcData {
   hp: number
   maxHp: number
   attributes: CharAttr[]
+  resources?: ResourceValues
 }
 
 interface MesaMember {
@@ -69,6 +75,7 @@ interface Props {
   systemCategory: SheetCategory
   canRoll?: boolean
   onRollAttribute?: (label: string, roll: AttributeRoll) => void
+  resourceTracks?: ResourceTrack[]
   hpOverrides?: Record<string, number>
   onHpChange?: (id: string, hp: number) => void
 }
@@ -98,8 +105,10 @@ const ATTR_ABBREV: Record<string, string> = {
 }
 
 
-function HPEditor({ initialHp, maxHp, canEdit, onSave }: {
-  initialHp: number; maxHp: number; canEdit: boolean; onSave: (hp: number) => void
+// Editor compacto de uma barra de recurso na mesa (vida, PE...): ajusta o valor
+// atual; o máximo é definido na página da ficha.
+function HPEditor({ track, initialHp, maxHp, canEdit, onSave }: {
+  track: ResourceTrack; initialHp: number; maxHp: number; canEdit: boolean; onSave: (hp: number) => void
 }) {
   const [hp, setHp] = useState(initialHp)
   const [editing, setEditing] = useState(false)
@@ -107,7 +116,7 @@ function HPEditor({ initialHp, maxHp, canEdit, onSave }: {
   const [saving, setSaving] = useState(false)
 
   const pct = maxHp > 0 ? Math.min(100, Math.round((hp / maxHp) * 100)) : 0
-  const color = pct > 60 ? '#22c55e' : pct > 30 ? '#f59e0b' : '#ef4444'
+  const color = trackBarColor(track, pct)
 
   function apply(newHp: number) {
     const clamped = Math.min(maxHp, Math.max(0, newHp))
@@ -126,7 +135,7 @@ function HPEditor({ initialHp, maxHp, canEdit, onSave }: {
   return (
     <div className="rounded-lg p-3" style={{ background: 'rgb(var(--ink) / 0.03)', border: '1px solid rgb(var(--ink) / 0.07)' }}>
       <div className="flex items-center justify-between mb-2">
-        <span className="text-[10px] font-bold text-saga-dim uppercase tracking-widest">Pontos de Vida</span>
+        <span className="text-[10px] font-bold text-saga-dim uppercase tracking-widest truncate">{track.label}</span>
         <div className="flex items-center gap-1">
           {canEdit && (
             <button onClick={() => apply(hp - 1)}
@@ -330,7 +339,7 @@ type Selection =
   | { kind: 'member'; id: string }
   | { kind: 'npc';    id: string }
 
-export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, isGM, campaignId, systemName, systemCategory, canRoll = false, onRollAttribute, hpOverrides = {}, onHpChange }: Props) {
+export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, isGM, campaignId, systemName, systemCategory, canRoll = false, onRollAttribute, resourceTracks = DEFAULT_TRACKS, hpOverrides = {}, onHpChange }: Props) {
   const membersWithChar = members.filter(m => m.character)
 
   const [selection, setSelection] = useState<Selection>(() => {
@@ -578,20 +587,27 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
                   </div>
                 </div>
 
-                <HPEditor
-                  key={char.id}
-                  initialHp={hpOverrides[char.id] ?? char.hp}
-                  maxHp={char.maxHp}
-                  canEdit={isGM || selectedMember?.id === currentMemberId}
-                  onSave={hp => {
-                    onHpChange?.(char.id, hp)
-                    fetch(`/api/characters/${char.id}`, {
-                      method: 'PATCH',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ hp }),
-                    }).catch(() => {})
-                  }}
-                />
+                {resourceTracks.map(track => {
+                  const isHp = track.key === HP_TRACK_KEY
+                  const v = trackValue(track, hpOverrides[char.id] ?? char.hp, char.maxHp, char.resources ?? {})
+                  return (
+                    <HPEditor
+                      key={`${char.id}-${track.key}`}
+                      track={track}
+                      initialHp={v.current}
+                      maxHp={v.max}
+                      canEdit={isGM || selectedMember?.id === currentMemberId}
+                      onSave={current => {
+                        if (isHp) onHpChange?.(char.id, current)
+                        fetch(`/api/characters/${char.id}`, {
+                          method: 'PATCH',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify(isHp ? { hp: current } : { resources: { [track.key]: { current, max: v.max } } }),
+                        }).catch(() => {})
+                      }}
+                    />
+                  )
+                })}
 
                 <NotesBlock
                   key={`notes-${char.id}`}
@@ -677,20 +693,27 @@ export function CharacterSheetPanel({ onClose, members, npcs, currentMemberId, i
                     </div>
                   </div>
 
-                  <HPEditor
-                    key={selectedNpc.id}
-                    initialHp={hpOverrides[selectedNpc.id] ?? selectedNpc.hp}
-                    maxHp={selectedNpc.maxHp}
-                    canEdit={isGM}
-                    onSave={hp => {
-                      onHpChange?.(selectedNpc.id, hp)
-                      fetch(`/api/campaigns/${campaignId}/npcs/${selectedNpc.id}`, {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ hp }),
-                      }).catch(() => {})
-                    }}
-                  />
+                  {resourceTracks.map(track => {
+                    const isHp = track.key === HP_TRACK_KEY
+                    const v = trackValue(track, hpOverrides[selectedNpc.id] ?? selectedNpc.hp, selectedNpc.maxHp, selectedNpc.resources ?? {})
+                    return (
+                      <HPEditor
+                        key={`${selectedNpc.id}-${track.key}`}
+                        track={track}
+                        initialHp={v.current}
+                        maxHp={v.max}
+                        canEdit={isGM}
+                        onSave={current => {
+                          if (isHp) onHpChange?.(selectedNpc.id, current)
+                          fetch(`/api/campaigns/${campaignId}/npcs/${selectedNpc.id}`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(isHp ? { hp: current } : { resources: { [track.key]: { current, max: v.max } } }),
+                          }).catch(() => {})
+                        }}
+                      />
+                    )
+                  })}
                   <AttributesBlock attributes={selectedNpc.attributes} category={systemCategory} charName={selectedNpc.name} canRoll={canRoll} onRoll={onRollAttribute} />
 
                   {isGM && (

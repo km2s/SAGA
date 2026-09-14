@@ -6,7 +6,8 @@ import { Camera, Trash2, Shield, User, ShieldAlert, UserCheck, Heart, Wind } fro
 import { Badge } from '@/components/ui/Badge'
 import { Select } from '@/components/ui/Select'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
-import { NPCHPEditor } from './NPCHPEditor'
+import { ResourceTracksPanel } from '@/components/character/ResourceTracksPanel'
+import type { ResourceTrack, ResourceValues } from '@/lib/resource-tracks'
 import { safeImageUrl } from '@/lib/safe-url'
 import { coverFor } from '@/lib/campaign-cover'
 
@@ -44,10 +45,12 @@ interface NPCData {
 
 const INPUT = 'bg-parchment/60 border border-gold/40 rounded px-2 py-1 focus:outline-none text-sm'
 
-export function NPCInfoEditor({ campaignId, npc: initial, players }: {
+export function NPCInfoEditor({ campaignId, npc: initial, players, tracks, resources }: {
   campaignId: string
   npc: NPCData
   players: Player[]
+  tracks: ResourceTrack[]
+  resources: ResourceValues
 }) {
   const router = useRouter()
   const [npc, setNpc] = useState(initial)
@@ -242,7 +245,14 @@ export function NPCInfoEditor({ campaignId, npc: initial, players }: {
       </div>
 
       {/* HP */}
-      <NPCHPEditor campaignId={campaignId} npcId={npc.id} hp={npc.hp} maxHp={npc.maxHp} />
+      <ResourceTracksPanel
+        tracks={tracks}
+        hp={npc.hp}
+        maxHp={npc.maxHp}
+        resources={resources}
+        canEdit
+        endpoint={`/api/campaigns/${campaignId}/npcs/${npc.id}`}
+      />
 
       {/* Type */}
       <div className="bg-card border border-ink/20 rounded-lg p-3">

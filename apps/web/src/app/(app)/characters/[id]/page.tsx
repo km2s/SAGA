@@ -3,7 +3,8 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from 'database'
 import { notFound, redirect } from 'next/navigation'
 import { Badge } from '@/components/ui/Badge'
-import { HPEditor } from '@/components/character/HPEditor'
+import { ResourceTracksPanel } from '@/components/character/ResourceTracksPanel'
+import { parseResources, parseTracks } from '@/lib/resource-tracks'
 import { CharacterShareToggle } from '@/components/character/CharacterShareToggle'
 import { CharacterSheetView, type SheetCategory } from '@/components/character/CharacterSheetView'
 import { DeleteCharacterButton } from '@/components/character/DeleteCharacterButton'
@@ -192,8 +193,15 @@ export default async function CharacterDetailPage({ params }: { params: { id: st
             </div>
           </div>
 
-          {/* HP */}
-          <HPEditor characterId={char.id} hp={char.hp} maxHp={char.maxHp} canEdit={canEdit} />
+          {/* Barras de recurso (vida, PE, sanidade...) definidas pelo Mestre */}
+          <ResourceTracksPanel
+            tracks={parseTracks(campaign.resourceTracksJson)}
+            hp={char.hp}
+            maxHp={char.maxHp}
+            resources={parseResources(char.resourcesJson)}
+            canEdit={canEdit}
+            endpoint={`/api/characters/${char.id}`}
+          />
 
           {/* Share */}
           {isMine && (

@@ -1,3 +1,5 @@
+import type { ResourceValues } from '@/lib/resource-tracks'
+
 export type Tool = 'select' | 'move' | 'token' | 'marker' | 'measure' | 'fog' | 'reveal'
 
 export interface Token {
@@ -27,9 +29,10 @@ export type AttributeRoll =
 export interface CharData {
   id: string; name: string; race: string | null; class: string | null
   level: number; hp: number; maxHp: number; imageUrl: string | null; attributes: CharAttr[]
+  resources?: ResourceValues
 }
 export interface Member { id: string; role: string; user: { username: string }; character: CharData | null }
-export interface NpcData { id: string; name: string; type: string; race: string | null; class: string | null; level: number; hp: number; maxHp: number; imageUrl: string | null; attributes: CharAttr[] }
+export interface NpcData { id: string; name: string; type: string; race: string | null; class: string | null; level: number; hp: number; maxHp: number; imageUrl: string | null; attributes: CharAttr[]; resources?: ResourceValues }
 export interface Campaign { id: string; name: string }
 export interface AddTokenState { screenX: number; screenY: number; worldX: number; worldY: number }
 export interface SessionState { tokensJson: string | null; musicYoutubeId: string | null; musicVolume: number; mapImageUrl: string | null; liveMembersJson: string | null; markersJson?: string | null }

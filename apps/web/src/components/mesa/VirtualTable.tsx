@@ -20,6 +20,7 @@ import {
   Radio, Wifi,
 } from 'lucide-react'
 import { safeImageUrl } from '@/lib/safe-url'
+import { hasHpTrack, type ResourceTrack } from '@/lib/resource-tracks'
 import { MesaSpotlight } from '@/components/tutorial/MesaSpotlight'
 import { MarkTutorialVisited } from '@/components/tutorial/MarkTutorialVisited'
 import { Fleuron } from '@/components/landing/Ornament'
@@ -35,13 +36,16 @@ interface VirtualTableProps {
   members: Member[]; npcs: NpcData[]; initialRolls: RollLogEntry[]
   isGM: boolean; currentMemberId: string; systemName: string | null
   systemCategory: SheetCategory
+  resourceTracks: ResourceTrack[]
 }
 
 interface TokenDrag { tokenId: string; startMouseX: number; startMouseY: number; startTokenX: number; startTokenY: number }
 interface PanDrag   { startMouseX: number; startMouseY: number; startPanX: number; startPanY: number }
 interface PinchState { dist: number; zoom: number; panX: number; panY: number; midX: number; midY: number }
 
-export function VirtualTable({ campaign, activeSession, members, npcs, initialRolls, isGM, currentMemberId, systemName, systemCategory }: VirtualTableProps) {
+export function VirtualTable({ campaign, activeSession, members, npcs, initialRolls, isGM, currentMemberId, systemName, systemCategory, resourceTracks }: VirtualTableProps) {
+  // Se o Mestre tirou "Pontos de Vida" das barras, tokens e iniciativa não mostram vida
+  const showHpBars = hasHpTrack(resourceTracks)
   const [tool, setTool] = useState<Tool>('select')
   const [tokens, setTokens] = useState<Token[]>(() => {
     if (activeSession?.tokensJson) {
@@ -377,8 +381,8 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
       color: t.color,
       type: t.type,
       initiative: Math.floor(Math.random() * 20) + 1,
-      hp: t.hp,
-      maxHp: t.maxHp,
+      hp: showHpBars ? t.hp : undefined,
+      maxHp: showHpBars ? t.maxHp : undefined,
     })).sort((a, b) => b.initiative - a.initiative)
     setInitiativeOrder(rolled)
     setCurrentTurnIdx(0)
@@ -786,7 +790,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
                     {t.label}
                   </span>
                   {/* HP bar */}
-                  {hpPct !== null && (
+                  {showHpBars && hpPct !== null && (
                     <div className="w-10 h-[3px] rounded-full overflow-hidden bg-black/60">
                       <div className={`h-full rounded-full transition-all duration-300 ${
                         hpPct > 50 ? 'bg-saga-success' : hpPct > 25 ? 'bg-saga-warning' : 'bg-saga-danger'
@@ -873,6 +877,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
               systemCategory={systemCategory}
               canRoll={!!activeSession?.isActive}
               onRollAttribute={rollAttribute}
+              resourceTracks={resourceTracks}
               hpOverrides={hpOverrides}
               onHpChange={(id, hp) => setHpOverrides(prev => ({ ...prev, [id]: hp }))}
             />

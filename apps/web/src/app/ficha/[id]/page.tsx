@@ -4,9 +4,11 @@ import { Badge } from '@/components/ui/Badge'
 import Link from 'next/link'
 import { safeImageUrl } from '@/lib/safe-url'
 import { coverFor } from '@/lib/campaign-cover'
+import { ResourceTracksPanel } from '@/components/character/ResourceTracksPanel'
+import { parseResources, parseTracks } from '@/lib/resource-tracks'
 import {
   Swords, Sparkles, Shield, Sword, Plus, Axe, Leaf, Music, Target, Dumbbell,
-  Wand2, Moon, ScrollText, User, Heart,
+  Wand2, Moon, ScrollText, User,
 } from 'lucide-react'
 
 const CLASS_ICONS: Record<string, React.ElementType> = {
@@ -40,8 +42,6 @@ export default async function PublicCharacterPage({ params }: { params: { id: st
   if (!char || !char.isPublic) notFound()
 
   const ClassIcon = CLASS_ICONS[char.class ?? ''] ?? User
-  const hpPercent = Math.min(100, Math.round((char.hp / char.maxHp) * 100))
-  const hpColor = hpPercent > 60 ? 'bg-saga-success' : hpPercent > 30 ? 'bg-saga-warning' : 'bg-saga-danger'
 
   return (
     <main className="min-h-screen bg-parchment bg-gradient-login">
@@ -88,20 +88,17 @@ export default async function PublicCharacterPage({ params }: { params: { id: st
           </div>
         </div>
 
-        {/* HP */}
-        {char.maxHp > 0 && (
-          <div className="bg-card border border-ink/20 rounded-lg p-5 mb-5">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2 text-[11px] font-bold text-ink-soft uppercase tracking-widest">
-                <Heart size={12} /> Pontos de Vida
-              </div>
-              <span className="font-cinzel text-sm font-bold text-green-700">{char.hp} / {char.maxHp}</span>
-            </div>
-            <div className="h-2.5 bg-parchment/60 rounded-full overflow-hidden">
-              <div className={`h-full rounded-full ${hpColor} transition-all`} style={{ width: `${hpPercent}%` }} />
-            </div>
-          </div>
-        )}
+        {/* Barras de recurso da campanha — página pública, só leitura */}
+        <div className="mb-5">
+          <ResourceTracksPanel
+            tracks={parseTracks(char.member.campaign.resourceTracksJson)}
+            hp={char.hp}
+            maxHp={char.maxHp}
+            resources={parseResources(char.resourcesJson)}
+            canEdit={false}
+            endpoint={null}
+          />
+        </div>
 
         {/* Attributes */}
         {char.attributes.length > 0 && (

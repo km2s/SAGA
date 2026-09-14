@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from 'database'
 import { NextResponse } from 'next/server'
+import { sanitizeTracks } from '@/lib/resource-tracks'
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
@@ -20,9 +21,15 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     playStyle?: string | null
     sessionFrequency?: string | null
     minExperience?: string | null
+    resourceTracks?: unknown
   }
 
   const data: Record<string, unknown> = {}
+  if ('resourceTracks' in body) {
+    const tracks = sanitizeTracks(body.resourceTracks)
+    if (!tracks) return NextResponse.json({ error: 'Configuração de barras inválida' }, { status: 400 })
+    data.resourceTracksJson = JSON.stringify(tracks)
+  }
   if (typeof body.isOpen === 'boolean') data.isOpen = body.isOpen
   if ('maxSlots' in body) data.maxSlots = typeof body.maxSlots === 'number' && body.maxSlots > 0 ? body.maxSlots : null
   if (body.campaignType === 'campaign' || body.campaignType === 'oneshot') data.campaignType = body.campaignType
@@ -38,7 +45,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   const updated = await prisma.campaign.update({
     where: { id: params.id },
     data,
-    select: { id: true, isOpen: true, maxSlots: true, campaignType: true, contentTone: true, playStyle: true, sessionFrequency: true, minExperience: true },
+    select: { id: true, isOpen: true, maxSlots: true, campaignType: true, contentTone: true, playStyle: true, sessionFrequency: true, minExperience: true, resourceTracksJson: true },
   }).catch(() => null)
   if (!updated) return NextResponse.json({ error: 'Erro ao atualizar campanha' }, { status: 500 })
 

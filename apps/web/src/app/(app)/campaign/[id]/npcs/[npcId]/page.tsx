@@ -4,7 +4,8 @@ import { prisma } from 'database'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/Badge'
-import { NPCHPEditor } from '@/components/gm/NPCHPEditor'
+import { ResourceTracksPanel } from '@/components/character/ResourceTracksPanel'
+import { parseResources, parseTracks } from '@/lib/resource-tracks'
 import { NPCInfoEditor } from '@/components/gm/NPCInfoEditor'
 import { CharacterSheetView, type SheetCategory } from '@/components/character/CharacterSheetView'
 import { safeImageUrl } from '@/lib/safe-url'
@@ -263,6 +264,8 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
                   maxHp: npc.maxHp,
                 }}
                 players={players}
+                tracks={parseTracks(npc.campaign.resourceTracksJson)}
+                resources={parseResources(npc.resourcesJson)}
               />
               {systemCard}
             </>
@@ -303,11 +306,14 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
                 </div>
               </div>
 
-              <NPCHPEditor
-                campaignId={params.id}
-                npcId={npc.id}
+              {/* Jogadores só leem — a PATCH do NPC é exclusiva do Mestre */}
+              <ResourceTracksPanel
+                tracks={parseTracks(npc.campaign.resourceTracksJson)}
                 hp={npc.hp}
                 maxHp={npc.maxHp}
+                resources={parseResources(npc.resourcesJson)}
+                canEdit={false}
+                endpoint={null}
               />
 
               <div className="bg-card border border-ink/20 rounded-lg p-3 text-center">

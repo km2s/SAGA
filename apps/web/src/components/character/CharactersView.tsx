@@ -43,7 +43,7 @@ interface Character {
 interface PlayerMembership {
   id: string; role: string
   character: Character | null
-  campaign: { id: string; name: string; system: { name: string } | null }
+  campaign: { id: string; name: string; system: { name: string } | null; showHp: boolean }
 }
 
 interface Props {
@@ -137,14 +137,16 @@ export function CharactersView({ playerMemberships, gmCampaigns, allCampaigns }:
                         </div>
                         <Badge variant="gold">Nv. {char.level}</Badge>
                       </div>
-                      <div className="mt-3">
-                        <div className="flex justify-between text-[10px] text-ink-soft mb-1">
-                          <span>HP</span><span>{char.hp} / {char.maxHp}</span>
+                      {m.campaign.showHp && (
+                        <div className="mt-3">
+                          <div className="flex justify-between text-[10px] text-ink-soft mb-1">
+                            <span>HP</span><span>{char.hp} / {char.maxHp}</span>
+                          </div>
+                          <div className="h-1.5 bg-ink/15 rounded-full overflow-hidden">
+                            <div className={`h-full rounded-full ${hpColor}`} style={{ width: `${hpPercent}%` }}/>
+                          </div>
                         </div>
-                        <div className="h-1.5 bg-ink/15 rounded-full overflow-hidden">
-                          <div className={`h-full rounded-full ${hpColor}`} style={{ width: `${hpPercent}%` }}/>
-                        </div>
-                      </div>
+                      )}
                     </div>
                   </div>
                 </Link>

@@ -14,6 +14,8 @@ import { ApplicationsPanel } from '@/components/gm/ApplicationsPanel'
 import { CampaignStatusToggle } from '@/components/gm/CampaignStatusToggle'
 import { CustomSheetBuilder } from '@/components/gm/CustomSheetBuilder'
 import { CreateCharacterForPlayerButton } from '@/components/gm/CreateCharacterForPlayerButton'
+import { ResourceTracksConfig } from '@/components/gm/ResourceTracksConfig'
+import { hasHpTrack, parseTracks } from '@/lib/resource-tracks'
 
 export default async function GmPanelPage({ params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
@@ -37,6 +39,8 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
   if (!myMembership || myMembership.role !== 'GM') redirect(`/campaign/${params.id}`)
 
   const activeSession = campaign.sessions[0] ?? null
+  const resourceTracks = parseTracks(campaign.resourceTracksJson)
+  const showHp = hasHpTrack(resourceTracks)
 
   const npcs = await prisma.nPC.findMany({
     where: { campaignId: params.id },
@@ -117,15 +121,17 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
                     <p className="text-[11px] text-ink-soft truncate">
                       {m.character.name} · {m.character.race ?? ''} {m.character.class ?? ''} · Nv.{m.character.level}
                     </p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <div className="flex-1 bg-parchment/60 rounded-full h-1.5 overflow-hidden">
-                        <div
-                          className="bg-saga-success h-full rounded-full"
-                          style={{ width: `${Math.round((m.character.hp / m.character.maxHp) * 100)}%` }}
-                        />
+                    {showHp && (
+                      <div className="flex items-center gap-2 mt-1">
+                        <div className="flex-1 bg-parchment/60 rounded-full h-1.5 overflow-hidden">
+                          <div
+                            className="bg-saga-success h-full rounded-full"
+                            style={{ width: `${Math.round((m.character.hp / Math.max(1, m.character.maxHp)) * 100)}%` }}
+                          />
+                        </div>
+                        <p className="text-[10px] text-ink-soft shrink-0">{m.character.hp}/{m.character.maxHp}</p>
                       </div>
-                      <p className="text-[10px] text-ink-soft shrink-0">{m.character.hp}/{m.character.maxHp}</p>
-                    </div>
+                    )}
                   </>
                 ) : (
                   <p className="text-[11px] text-ink-soft">Sem personagem</p>
@@ -157,6 +163,18 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
             </div>
           )}
         </div>
+      </section>
+
+      {/* Barras de recurso: vida, PE, sanidade ou personalizadas */}
+      <section>
+        <div className="flex items-center gap-2 mb-3">
+          <ClipboardList size={16} className="text-ink-soft" />
+          <h2 className="font-cinzel text-base font-semibold">Barras de Recurso</h2>
+        </div>
+        <p className="text-[12px] text-ink-soft mb-3">
+          Escolha o que aparece nas fichas e NPCs desta campanha: só Pontos de Vida, só Pontos de Esforço, os dois, ou barras próprias.
+        </p>
+        <ResourceTracksConfig campaignId={params.id} initialTracks={resourceTracks} />
       </section>
 
       {/* Custom sheet template — only for campaigns without a preset system */}

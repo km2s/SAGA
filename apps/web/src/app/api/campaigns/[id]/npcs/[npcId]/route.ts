@@ -4,6 +4,7 @@ import { prisma } from 'database'
 import { NextResponse } from 'next/server'
 import { validateImageUrlOrError } from '@/lib/validate-url'
 import { withNoCache } from '@/lib/no-cache'
+import { mergeResourcesJson } from '@/lib/resource-tracks'
 
 async function resolveAccess(campaignId: string, npcId: string, discordId: string) {
   const member = await prisma.campaignMember.findFirst({
@@ -50,6 +51,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string; np
     name?: string; description?: string; imageUrl?: string; type?: string
     race?: string; class?: string; level?: number; hp?: number; maxHp?: number
     isPublic?: boolean; linkedMemberId?: string | null; folderId?: string | null
+    // Barras de recurso além da vida: {chave: {current, max}}, mescladas com as gravadas
+    resources?: unknown
   }
 
   // folderId: valida que a pasta pertence a esta campanha (null = sem pasta)
@@ -90,6 +93,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string; np
       ...(body.isPublic !== undefined && { isPublic: body.isPublic }),
       ...(body.linkedMemberId !== undefined && { linkedMemberId: body.linkedMemberId }),
       ...(body.folderId !== undefined && { folderId: body.folderId }),
+      ...(body.resources !== undefined && { resourcesJson: mergeResourcesJson(access.npc.resourcesJson, body.resources) }),
     },
     include: {
       attributes: { include: { attribute: true } },

@@ -3,6 +3,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from 'database'
 import { notFound, redirect } from 'next/navigation'
 import { Badge } from '@/components/ui/Badge'
+import { hasHpTrack, parseTracks } from '@/lib/resource-tracks'
 
 export default async function CampaignMembersPage({ params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
@@ -28,6 +29,7 @@ export default async function CampaignMembersPage({ params }: { params: { id: st
 
   const gm = campaign.members.find(m => m.role === 'GM')
   const players = campaign.members.filter(m => m.role !== 'GM')
+  const showHp = hasHpTrack(parseTracks(campaign.resourceTracksJson))
 
   return (
     <div className="p-4 sm:p-8 sm:pt-5">
@@ -37,7 +39,7 @@ export default async function CampaignMembersPage({ params }: { params: { id: st
       {gm && (
         <div className="mb-6">
           <p className="text-[11px] text-ink-soft font-bold uppercase tracking-widest mb-2">Mestre</p>
-          <MemberCard member={gm} isMe={gm.user.discordId === session.user.discordId} />
+          <MemberCard member={gm} isMe={gm.user.discordId === session.user.discordId} showHp={showHp} />
         </div>
       )}
 
@@ -53,7 +55,7 @@ export default async function CampaignMembersPage({ params }: { params: { id: st
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {players.map(m => (
-              <MemberCard key={m.id} member={m} isMe={m.user.discordId === session.user.discordId} />
+              <MemberCard key={m.id} member={m} isMe={m.user.discordId === session.user.discordId} showHp={showHp} />
             ))}
           </div>
         )}
@@ -62,7 +64,7 @@ export default async function CampaignMembersPage({ params }: { params: { id: st
   )
 }
 
-function MemberCard({ member, isMe }: { member: any; isMe: boolean }) {
+function MemberCard({ member, isMe, showHp }: { member: any; isMe: boolean; showHp: boolean }) {
   const avatar = member.user.avatar
   const initial = member.user.username[0]?.toUpperCase()
 
@@ -88,7 +90,7 @@ function MemberCard({ member, isMe }: { member: any; isMe: boolean }) {
             : 'Sem personagem criado'}
         </p>
       </div>
-      {member.character && (
+      {showHp && member.character && (
         <div className="text-right shrink-0">
           <p className="text-[11px] text-ink-soft">HP</p>
           <p className="text-sm font-bold text-green-700">
