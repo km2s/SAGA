@@ -30,6 +30,14 @@ Copy que não está no design e precisa de confirmação:
 | `Campaign.archivedAt DateTime?` | Filtro "Arquivadas" em Campanhas e "Encerrar a crônica" no Painel › Config. |
 | Sessões agendadas (data/hora da próxima sessão) | Meta do atalho ("Tormenta20 · sábado, 20h") e agenda do Painel do Mestre / Início. |
 
+## Convite (`components/screens/convite/vals.ts`)
+
+| Chamada | Contrato | Observações |
+|---|---|---|
+| `GET /api/convites/[codigo]` | → `{ campanha: { id, n, sys, fmt, gm, when, next, tone, taken, tot, d, members: [{ u, t }] }, personagens: [{ id, t, d }] }` ou `404` | Código sem hífen, 8 caracteres (`Campaign.inviteCode`). `personagens` = fichas do usuário no mesmo sistema que podem ir para a mesa. `taken`/`tot` = vagas ocupadas/total (`maxSlots`). |
+| `POST /api/convites/[codigo]` | `{ personagem: <id> \| 'new' \| 'later' }` → `201 { campaignId }`, `409` se já é membro | Cria o `CampaignMember`; com `<id>`, leva a ficha. Avisa o mestre (Discord). |
+| Códigos recebidos no Discord | lista `{ codigo, de }` | Linha "Recebidos no Discord"; sem fonte, fica escondida. |
+
 ## Primeiros Passos
 
 | Campo/recurso | Uso no front |
