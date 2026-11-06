@@ -164,7 +164,17 @@ function StyleObj([string]$style, $loops, [hashtable]$drop = @{}) {
     $entries += "$(CamelProp $prop): $(ValueExpr ($val -replace '\{\{', '{{' ) $loops -Anim:$isAnim)"
   }
   if ($entries.Count -eq 0) { return $null }
-  return '{ ' + ($entries -join ', ') + ' }'
+  # Propriedade repetida (o design às vezes escreve duas vezes): no CSS vale a última; em TS é erro.
+  $seen = @{}; $dedup = [System.Collections.Generic.List[string]]::new()
+  for ($k = $entries.Count - 1; $k -ge 0; $k--) {
+    $key = $entries[$k].Substring(0, $entries[$k].IndexOf(':'))
+    if ($seen.ContainsKey($key)) { continue }
+    $seen[$key] = 1; $dedup.Insert(0, $entries[$k])
+  }
+  $obj = '{ ' + ($dedup -join ', ') + ' }'
+  # Variáveis CSS (--w) não existem em CSSProperties.
+  if ($obj -match "\{ '--|, '--") { $script:usesCss = $true; return "$obj as CSSProperties" }
+  return $obj
 }
 function StyleDisplay([string]$style) { if ($style -and $style -match '(?:^|;)\s*display:\s*([\w-]+)') { return $Matches[1] } ; return $null }
 
@@ -186,7 +196,7 @@ function PseudoClass($attrs) {
 $SVG_KEEP = @('viewBox','preserveAspectRatio','gradientUnits','gradientTransform','patternUnits','stdDeviation','baseFrequency','numOctaves','stitchTiles','clipPathUnits')
 $LOWER_MAP = @{ 'tabindex'='tabIndex'; 'maxlength'='maxLength'; 'minlength'='minLength'; 'readonly'='readOnly'; 'autofocus'='autoFocus'; 'autocomplete'='autoComplete'; 'spellcheck'='spellCheck'; 'colspan'='colSpan'; 'rowspan'='rowSpan'; 'for'='htmlFor'; 'class'='className'; 'contenteditable'='contentEditable'; 'xlink:href'='xlinkHref'; 'srcset'='srcSet'; 'crossorigin'='crossOrigin'; 'datetime'='dateTime'; 'inputmode'='inputMode'; 'enterkeyhint'='enterKeyHint' }
 $EVENTS = @{ 'onclick'='onClick'; 'oninput'='onInput'; 'onchange'='onChange'; 'onkeydown'='onKeyDown'; 'onkeyup'='onKeyUp'; 'onmousemove'='onMouseMove'; 'onmouseleave'='onMouseLeave'; 'onmouseenter'='onMouseEnter'; 'onmousedown'='onMouseDown'; 'onmouseup'='onMouseUp'; 'onwheel'='onWheel'; 'onpaste'='onPaste'; 'onfocus'='onFocus'; 'onblur'='onBlur'; 'onsubmit'='onSubmit'; 'onpointerdown'='onPointerDown'; 'onpointermove'='onPointerMove'; 'onpointerup'='onPointerUp'; 'oncontextmenu'='onContextMenu'; 'ondblclick'='onDoubleClick'; 'ondragstart'='onDragStart'; 'ondragover'='onDragOver'; 'ondrop'='onDrop'; 'ondragleave'='onDragLeave'; 'onscroll'='onScroll' }
-$usesLink = $false; $usesImageSlot = $false; $usesDyn = $false; $usesCorvin = $false; $usesFragment = $false
+$usesLink = $false; $usesCss = $false; $usesImageSlot = $false; $usesDyn = $false; $usesCorvin = $false; $usesFragment = $false
 
 function AttrName([string]$n, [bool]$isSvg) {
   $l = $n.ToLower()
@@ -345,6 +355,7 @@ function Emit($n, $loops, [string]$parentStyle) {
     if ($val -match '\{\{') { $attrsOut += "$name={$(ValueExpr $val $loops)}" }
     elseif ($name -eq 'value' -and $tag -in 'input','textarea') { $attrsOut += "defaultValue=$(JsStr (Decode $val) | ForEach-Object { '{' + $_ + '}' })" }
     elseif ($name -in 'checked','selected') { $attrsOut += "default$($name.Substring(0,1).ToUpper())$($name.Substring(1))" }
+    elseif ($name -in 'maxLength','minLength','tabIndex','rows','cols','size','span','colSpan','rowSpan' -and $val -match '^-?\d+$') { $attrsOut += "$name={$val}" }
     else { $attrsOut += "$name={$(JsStr (Decode $val))}" }
   }
   if ($isDcLink) { $jsxTag = 'Link' }
@@ -365,6 +376,7 @@ $lucide = @($usedIcons | Where-Object { $_ -notlike 'brand:*' })
 $brands = @($usedIcons | Where-Object { $_ -like 'brand:*' } | ForEach-Object { $_.Substring(6) })
 $imports = @("'use client'", '', '/* Gerado por scripts/dc-to-jsx.ps1 a partir de', "   $([IO.Path]::GetFileName($In)). Estilos 1:1 com o design; lógica em vals.ts. */", '')
 $reactImp = @(); if ($usesFragment) { $reactImp += 'Fragment' }
+if ($usesCss) { $reactImp += 'type CSSProperties' }
 if ($reactImp.Count) { $imports += "import { $($reactImp -join ', ') } from 'react'" }
 if ($usesLink) { $imports += "import Link from 'next/link'" }
 if ($lucide.Count) { $imports += "import { $(($lucide | ForEach-Object { if ($CLASH -contains $_) { "$_ as ${_}Icon" } else { $_ } }) -join ', ') } from 'lucide-react'" }

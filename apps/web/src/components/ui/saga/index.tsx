@@ -99,8 +99,8 @@ export function ImageSlot({ src, alt = '' }: { src: string | null | undefined; a
 }
 
 /** Ícone escolhido em tempo de execução (no design, máscara com url dinâmica). */
-export function DynIcon({ icon: Icon, ...rest }: { icon: LucideIcon } & LucideProps) {
-  return <Icon {...rest} />
+export function DynIcon({ icon: Icon, ...rest }: { icon: LucideIcon | null | undefined } & LucideProps) {
+  return Icon ? <Icon {...rest} /> : null
 }
 
 export function DiscordIcon({ size }: { size: number }) {
