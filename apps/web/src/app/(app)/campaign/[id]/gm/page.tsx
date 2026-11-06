@@ -141,7 +141,7 @@ export default async function GmPanelPage({ params }: { params: { id: string } }
                   cria uma para quem ainda não tem. */}
               {m.character ? (
                 <Link
-                  href={`/characters/${m.id}`}
+                  href={`/personagens/${m.id}`}
                   className="flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded border border-ink/20 text-ink-soft hover:border-wax hover:text-wax transition-all shrink-0"
                 >
                   <ClipboardList size={11} /> Abrir ficha

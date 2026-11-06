@@ -15,6 +15,7 @@ if (process.env.NODE_ENV === 'production') {
 interface DiscordProfile {
   id: string
   username: string
+  global_name?: string | null
   discriminator: string
   avatar: string | null
   email?: string
@@ -70,6 +71,8 @@ export const authOptions: NextAuthOptions = {
       if (p) {
         token.discordId = p.id
         token.username = p.username
+        // Nome de exibição do Discord ("Kael"); o username fica no @handle.
+        token.displayName = p.global_name || p.username
         token.avatar = p.avatar
           ? `https://cdn.discordapp.com/avatars/${p.id}/${p.avatar}.png`
           : undefined
@@ -82,6 +85,7 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (token.discordId) session.user.discordId = token.discordId as string
       if (token.username) session.user.username = token.username as string
+      session.user.displayName = (token.displayName as string | undefined) ?? session.user.username
       if (token.avatar) session.user.image = token.avatar as string
       return session
     },

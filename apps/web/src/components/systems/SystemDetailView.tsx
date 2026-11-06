@@ -226,7 +226,7 @@ export function SystemDetailView({ system: initial, currentUserDiscordId }: Prop
   async function handleDelete() {
     if (!confirm(`Deletar "${system.name}"? Esta ação não pode ser desfeita.`)) return
     await fetch(`/api/systems/${system.id}`, { method: 'DELETE' }).catch(() => null)
-    router.push('/systems')
+    router.push('/sistemas')
   }
 
   async function handleDeleteAttr(attrId: string) {
@@ -242,7 +242,7 @@ export function SystemDetailView({ system: initial, currentUserDiscordId }: Prop
     <div className="p-4 sm:p-8 sm:pt-6 max-w-3xl">
       {/* Back */}
       <button
-        onClick={() => router.push('/systems')}
+        onClick={() => router.push('/sistemas')}
         className="flex items-center gap-1.5 text-xs text-ink-soft hover:text-ink transition-colors mb-6"
       >
         <ArrowLeft size={13} /> Sistemas

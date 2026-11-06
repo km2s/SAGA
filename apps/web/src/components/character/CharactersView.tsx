@@ -111,7 +111,7 @@ export function CharactersView({ playerMemberships, gmCampaigns, allCampaigns }:
               const hpColor = hpPercent > 60 ? 'bg-saga-success' : hpPercent > 30 ? 'bg-saga-warning' : 'bg-saga-danger'
               const campaignGradient = coverFor(idx)
               return (
-                <Link key={m.id} href={`/characters/${m.id}`}>
+                <Link key={m.id} href={`/personagens/${m.id}`}>
                   <div className="parchment-card rounded-lg overflow-hidden card-hover">
                     {/* Campaign badge — topo do card */}
                     <div className={`bg-gradient-to-r ${campaignGradient} px-3 py-1.5 flex items-center gap-1.5`}>

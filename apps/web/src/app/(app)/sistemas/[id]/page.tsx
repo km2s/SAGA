@@ -16,7 +16,7 @@ export default async function SystemDetailPage({ params }: { params: { id: strin
     },
   }).catch(() => null)
 
-  if (!system) redirect('/systems')
+  if (!system) redirect('/sistemas')
 
   return (
     <SystemDetailView

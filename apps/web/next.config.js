@@ -14,6 +14,15 @@ const nextConfig = {
       { protocol: 'https', hostname: 'i.imgur.com' },
     ],
   },
+  // Rotas renomeadas para PT-BR no redesign — links antigos (bot, favoritos) continuam valendo.
+  async redirects() {
+    return [
+      { source: '/characters', destination: '/personagens', permanent: true },
+      { source: '/characters/:path*', destination: '/personagens/:path*', permanent: true },
+      { source: '/systems', destination: '/sistemas', permanent: true },
+      { source: '/systems/:path*', destination: '/sistemas/:path*', permanent: true },
+    ]
+  },
   async headers() {
     // CSP é definido no middleware (nonce dinâmico por request) — não aqui
     return [

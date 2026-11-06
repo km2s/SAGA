@@ -18,7 +18,7 @@ export function DeleteCharacterButton({ characterId, characterName }: {
     await fetch(`/api/characters/${characterId}`, { method: 'DELETE' }).catch(() => null)
     setLoading(false)
     setOpen(false)
-    router.push('/characters')
+    router.push('/personagens')
   }
 
   return (

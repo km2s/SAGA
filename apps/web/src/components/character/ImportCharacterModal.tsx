@@ -144,7 +144,7 @@ export function ImportCharacterModal({ open, onClose, campaigns }: Props) {
     }
     const char = await charRes.json() as { id: string }
     handleClose()
-    router.push(`/characters/${char.id}`)
+    router.push(`/personagens/${char.id}`)
   }
 
   const visibleAttrs = showAll ? attrs : attrs.slice(0, 12)

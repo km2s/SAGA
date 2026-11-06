@@ -5,6 +5,7 @@ declare module 'next-auth' {
     user: {
       discordId: string
       username: string
+      displayName: string
       image?: string | null
     }
   }
@@ -20,6 +21,7 @@ declare module 'next-auth/jwt' {
   interface JWT {
     discordId: string
     username: string
+    displayName?: string
     avatar?: string
   }
 }

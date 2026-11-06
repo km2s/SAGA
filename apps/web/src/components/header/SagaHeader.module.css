@@ -1,0 +1,136 @@
+/* Saga NOVO/handoff-claude-code/design/SagaHeader.dc.html */
+.wrap { position: sticky; top: 0; z-index: 20; }
+
+.header {
+  position: relative;
+  background: color-mix(in oklab, var(--bg) 84%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 3px double color-mix(in oklab, var(--gold) 55%, transparent);
+  font-family: 'Geist', sans-serif; color: var(--ink);
+}
+.backdrop { all: unset; position: fixed; inset: 0; z-index: 30; cursor: default; }
+.inner { max-width: 1320px; margin: 0 auto; display: flex; align-items: center; gap: 24px; height: 60px; padding: 0 28px; }
+
+.brand { flex: none; display: flex; align-items: center; gap: 9px; color: var(--ink); }
+
+.nav { display: flex; gap: 2px; flex: 0 1 auto; min-width: 0; }
+.navCell { display: block; position: relative; flex: none; }
+.navItem {
+  display: block; white-space: nowrap; padding: 9px 12px; border-radius: 3px;
+  font: 400 17px/1 'IM Fell English SC', serif; color: var(--muted); box-shadow: none;
+}
+.navItem:hover { color: var(--ink); background: var(--surface2); }
+.navOn { color: var(--ink); box-shadow: inset 0 -2px 0 var(--accent); }
+.navDrop { padding-right: 26px; }
+.chev {
+  all: unset; cursor: pointer; position: absolute; right: 2px; top: 7px; width: 20px; height: 22px;
+  display: grid; place-items: center; border-radius: 3px; color: var(--muted);
+}
+.chev:hover { color: var(--ink); background: var(--surface2); }
+.chev > svg { flex: none; transition: transform .2s; }
+.chevOpen > svg { transform: rotate(180deg); }
+
+.spacer { flex: 1; }
+
+.search {
+  display: flex; align-items: center; gap: 8px; flex: 0 1 240px; min-width: 0; height: 36px; padding: 0 10px;
+  border-radius: 4px; border: 1px solid var(--line); background: var(--surface); color: var(--muted);
+}
+.search input { flex: 1; min-width: 0; border: 0; background: transparent; outline: none; font: 400 13px/1 'Geist', sans-serif; color: var(--ink); }
+.kbd { font: 500 11px/1 'Geist Mono', monospace; padding: 3px 5px; border-radius: 3px; border: 1px solid var(--line); }
+
+/* Botão do tour fechado (SAGA Primeiros Passos.dc.html) */
+.tourPill {
+  all: unset; cursor: pointer; flex: none; box-sizing: border-box; display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px;
+  border-radius: 4px; border: 1px solid var(--line); background: var(--surface); font: 400 16px/1 'IM Fell English SC', serif; animation: up .4s both;
+}
+.tourPill:hover { background: var(--surface2); }
+.tourPill > span:first-child { color: var(--blood); }
+.tourProg { font: 500 11px/1 'Geist Mono', monospace; color: var(--muted); }
+@keyframes up { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: none } }
+
+.iconBtn {
+  all: unset; cursor: pointer; flex: none; position: relative; width: 36px; height: 36px;
+  display: grid; place-items: center; border-radius: 4px; border: 1px solid var(--line);
+  box-sizing: border-box; color: var(--muted); background: transparent;
+}
+.iconBtn:hover { color: var(--ink); background: var(--surface2); }
+.msgOn { color: var(--accent); background: var(--accent-t); }
+.badge {
+  position: absolute; top: -5px; right: -5px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 999px;
+  background: var(--accent); color: #fff8f0; font: 600 10px/17px 'Geist Mono', monospace; text-align: center;
+  box-shadow: 0 0 0 2px var(--bg);
+}
+
+.avatar {
+  all: unset; cursor: pointer; flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center;
+  background: radial-gradient(circle at 35% 30%, #f3dc94, #c9a22a 55%, #8a6320);
+  color: #3a2715; font: 400 17px/1 'IM Fell English SC', serif;
+  box-shadow: inset 0 0 0 2px rgb(255 240 200/.45), 0 2px 4px -1px rgb(80 50 10/.5), 0 0 0 0 transparent;
+}
+.avatarOn { box-shadow: inset 0 0 0 2px rgb(255 240 200/.45), 0 2px 4px -1px rgb(80 50 10/.5), 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
+
+/* ── Menus ── */
+.pop {
+  position: absolute; z-index: 40; top: 58px; border-radius: 5px; background: var(--surface);
+  border: 1px solid var(--line); box-shadow: 0 24px 44px -20px rgb(60 30 10/.55); animation: popIn .22s both;
+}
+.camp { left: max(150px, calc((100vw - 1320px) / 2 + 170px)); width: 300px; padding: 8px; }
+.campTitle { margin: 6px 8px 8px; font: 400 15px/1 'IM Fell English SC', serif; color: var(--muted); }
+.campRow { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 4px; color: var(--ink); }
+.campRow:hover { background: var(--surface2); color: var(--ink); }
+.campCover { width: 34px; height: 34px; flex: none; border-radius: 4px; box-shadow: inset 0 0 0 1px rgb(232 196 106/.45); }
+.campText { flex: 1; min-width: 0; }
+.campName { display: block; font: 400 17px/1.15 'IM Fell English', serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.campMeta { display: flex; align-items: center; gap: 6px; margin-top: 3px; font-size: 12px; color: var(--muted); }
+.live { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); animation: pulse 1.8s infinite; }
+.role { flex: none; padding: 3px 8px; border-radius: 999px; font: 500 11px/1.3 'Geist', sans-serif; background: var(--surface2); color: var(--muted); }
+.roleGm { background: var(--gold-t); color: color-mix(in oklab, var(--gold) 70%, var(--ink)); }
+.campFoot { display: flex; gap: 6px; margin-top: 6px; padding-top: 8px; border-top: 1px solid var(--line); }
+.campAll { flex: 1; display: flex; align-items: center; justify-content: center; height: 34px; border-radius: 4px; font: 500 13px/1 'Geist', sans-serif; color: var(--ink); }
+.campAll:hover { background: var(--surface2); color: var(--ink); }
+.campNew { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; height: 34px; border-radius: 4px; background: var(--accent-t); color: var(--accent); font: 500 13px/1 'Geist', sans-serif; }
+.campNew:hover { background: var(--accent); color: #fff8f0; }
+.campNew > svg { flex: none; }
+
+.me { right: max(16px, calc((100vw - 1320px) / 2 + 20px)); width: 272px; overflow: hidden; }
+.meHead { display: flex; align-items: center; gap: 12px; padding: 14px 14px 12px; background: linear-gradient(180deg, var(--surface2), var(--surface)); border-bottom: 1px solid var(--line); }
+.meAv {
+  width: 40px; height: 40px; flex: none; border-radius: 50%; display: grid; place-items: center;
+  background: radial-gradient(circle at 35% 30%, #f3dc94, #c9a22a 55%, #8a6320); color: #3a2715;
+  font: 400 20px/1 'IM Fell English SC', serif; box-shadow: inset 0 0 0 2px rgb(255 240 200/.45);
+}
+.meInfo { flex: 1; min-width: 0; }
+.meName { margin: 0; font: 400 19px/1.1 'IM Fell English', serif; }
+.meHandle { margin: 3px 0 0; display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); }
+.meHandle > svg { flex: none; color: #5865f2; }
+.meBody { padding: 6px; }
+.meFoot { padding: 6px; border-top: 1px solid var(--line); }
+.meNav { display: none; align-items: center; gap: 10px; height: 38px; padding: 0 10px; border-radius: 4px; font: 400 16px/1 'IM Fell English SC', serif; color: var(--ink); }
+.meNav:hover { background: var(--surface2); color: var(--ink); }
+.meItem {
+  all: unset; cursor: pointer; box-sizing: border-box; display: flex; align-items: center; gap: 10px; width: 100%;
+  height: 38px; padding: 0 10px; border-radius: 4px; font: 500 13px/1 'Geist', sans-serif; color: var(--ink);
+}
+.meItem:hover { background: var(--surface2); color: var(--ink); }
+.meItem > svg { flex: none; color: var(--muted); }
+.meItem > .botIc { color: #5865f2; }
+.meLabel { flex: 1; }
+.meHint { font-size: 11px; color: var(--muted); }
+.out { color: var(--blood); }
+.out:hover { background: color-mix(in oklab, var(--blood) 10%, transparent); color: var(--blood); }
+.out > svg { color: currentColor; }
+
+/* Quebras do renderVals(): w < 1100 / < 960 / < 820. Itens que somem da nav
+   entram no menu da conta (extraNav). */
+@media (max-width: 1099px) {
+  .navItem { padding: 9px 8px; }
+  .navDrop { padding-right: 26px; }
+  .search { display: none; }
+  .camp { left: 120px; }
+}
+@media (max-width: 959px) { .hide960 { display: none; } .show960 { display: flex; } }
+@media (max-width: 819px) { .hide820 { display: none; } .show820 { display: flex; } }
+
+@keyframes popIn { from { opacity: 0; transform: translateY(14px) scale(.97) } to { opacity: 1; transform: none } }
+@keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgb(224 106 67/.5) } 50% { box-shadow: 0 0 0 5px rgb(224 106 67/0) } }

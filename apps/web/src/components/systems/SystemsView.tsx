@@ -102,7 +102,7 @@ function SystemCard({ system, isMine, onDelete }: {
   return (
     <div
       className="parchment-card group rounded-xl overflow-hidden cursor-pointer card-hover"
-      onClick={() => router.push(`/systems/${system.id}`)}
+      onClick={() => router.push(`/sistemas/${system.id}`)}
     >
       {/* Banner */}
       <div className={`relative h-28 bg-gradient-to-br ${meta.gradient} flex items-center justify-center overflow-hidden`}>
@@ -262,7 +262,7 @@ export function SystemsView({ systems: initial, currentUserDiscordId }: Props) {
         onCreated={system => {
           setSystems(prev => [...prev, system as RPGSystem])
           setCreateOpen(false)
-          router.push(`/systems/${system.id}`)
+          router.push(`/sistemas/${system.id}`)
         }}
       />
     </div>
