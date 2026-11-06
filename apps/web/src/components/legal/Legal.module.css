@@ -1,0 +1,60 @@
+/* Saga NOVO/handoff-claude-code/design/SAGA Termos e Privacidade.dc.html */
+.top { border-bottom: 3px double color-mix(in oklab, var(--gold) 55%, transparent); background: color-mix(in oklab, var(--bg) 84%, transparent); }
+.topIn { max-width: 1320px; margin: 0 auto; display: flex; align-items: center; gap: 16px; height: 60px; padding: 0 28px; }
+.brand { display: flex; align-items: center; gap: 9px; color: var(--ink); }
+.brand:hover { color: var(--ink); }
+.spacer { flex: 1; }
+.iconBtn { all: unset; cursor: pointer; width: 36px; height: 36px; display: grid; place-items: center; border-radius: 4px; border: 1px solid var(--line); color: var(--muted); box-sizing: border-box; }
+.iconBtn:hover { background: var(--surface2); color: var(--ink); }
+.iconBtn > svg { flex: none; }
+.enter { all: unset; cursor: pointer; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; gap: 7px; height: 38px; padding: 0 14px; border-radius: 4px; font: 500 14px/1 'Geist', sans-serif; white-space: nowrap; background: var(--accent); color: #fff8f0; box-shadow: inset 0 0 0 1px rgb(255 220 160/.4), 0 6px 14px -8px var(--accent); }
+.enter:hover { background: var(--accent-d); color: #fff8f0; }
+
+.main { max-width: 1120px; margin: 0 auto; padding: 34px 28px 64px; }
+.intro { animation: up .5s both; }
+.kicker { margin: 0; display: flex; align-items: center; gap: 8px; font: 400 17px/1 'IM Fell English SC', serif; color: var(--accent); }
+.kicker > span { color: var(--gold); }
+.h1 { margin: 8px 0 0; font: 400 42px/1 'IM Fell English', serif; }
+.vig { margin: 8px 0 0; color: var(--muted); }
+.mono { font: 600 13px/1 'Geist Mono', monospace; color: var(--ink); }
+
+.tabs { display: flex; gap: 4px; margin-top: 22px; border-bottom: 1px solid var(--line); }
+.tab { all: unset; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 12px 14px; font: 400 18px/1 'IM Fell English SC', serif; color: var(--muted); box-shadow: none; white-space: nowrap; }
+.tab:hover { color: var(--ink); }
+.tabOn { color: var(--ink); box-shadow: inset 0 -2px 0 var(--accent); }
+.tab > svg { flex: none; }
+
+.cols { display: flex; flex-wrap: wrap; gap: 28px; margin-top: 24px; align-items: flex-start; }
+.card { border-radius: 5px; background: linear-gradient(180deg, var(--surface), color-mix(in oklab, var(--surface) 60%, var(--surface2))); border: 1px solid var(--line); }
+.toc { flex: 1 1 220px; max-width: 260px; min-width: 0; padding: 16px; }
+.tocTitle { margin: 0 0 8px; font: 400 16px/1 'IM Fell English SC', serif; color: var(--muted); }
+.tocItem { all: unset; cursor: pointer; box-sizing: border-box; display: flex; gap: 10px; width: 100%; padding: 7px 8px; border-radius: 3px; font-size: 13px; color: var(--ink); background: transparent; }
+.tocItem:hover { background: var(--surface2); color: var(--ink); }
+.tocOn { color: var(--accent); background: var(--accent-t); }
+.tocNum { font: 600 11px/18px 'Geist Mono', monospace; color: var(--gold); }
+.tocText { flex: 1; line-height: 18px; }
+
+.article { flex: 999 1 560px; min-width: 0; padding: 30px 34px 34px; box-shadow: 0 20px 44px -30px rgb(60 30 10/.5); animation: up .4s both; }
+.lead { margin: 0; font: italic 400 19px/1.5 'IM Fell English', serif; color: var(--muted); text-wrap: pretty; }
+.cap { float: left; margin: 4px 10px 0 0; font: 400 58px/.8 'UnifrakturMaguntia', serif; color: var(--accent); }
+.clear { clear: both; }
+.sec { margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--line); scroll-margin-top: 90px; box-shadow: none; transition: box-shadow .3s; }
+.secOn { box-shadow: inset 3px 0 0 var(--accent); }
+.h2 { margin: 0; display: flex; align-items: baseline; gap: 12px; font: 400 25px/1.1 'IM Fell English', serif; }
+.h2 > span { font: 600 13px/1 'Geist Mono', monospace; color: var(--gold); }
+.cover { margin: 8px 0 0; font-size: 13px; color: var(--muted); }
+.placeholder { margin-top: 12px; padding: 16px 18px; border-radius: 4px; border: 1.5px dashed color-mix(in oklab, var(--gold) 60%, transparent); background: color-mix(in oklab, var(--gold-t) 55%, transparent); font: 500 13px/1.5 'Geist Mono', monospace; color: color-mix(in oklab, var(--gold) 55%, var(--ink)); }
+/* Texto final: o design só tem o marcador; corpo padrão da tela. */
+.body { margin: 12px 0 0; text-wrap: pretty; }
+
+.foot { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 30px; padding: 16px 18px; border-radius: 4px; background: var(--surface2); }
+.seal { width: 44px; height: 44px; flex: none; display: grid; place-items: center; border-radius: 47% 53% 50% 50%/52% 48% 52% 48%; background: radial-gradient(circle at 35% 30%, #c95a3a, #a8262f 45%, #5a1015); color: #f6e7c4; font: 400 22px/1 'UnifrakturMaguntia', serif; transform: rotate(-8deg); box-shadow: 0 3px 6px -2px rgb(80 30 10/.6); }
+.footText { flex: 1 1 240px; min-width: 0; }
+.footQ { margin: 0; font-weight: 500; }
+.footA { margin: 2px 0 0; font-size: 13px; color: var(--muted); }
+.mail { font: 600 12px/1 'Geist Mono', monospace; color: var(--ink); }
+.other { all: unset; cursor: pointer; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; gap: 7px; height: 38px; padding: 0 14px; border-radius: 4px; font: 500 14px/1 'Geist', sans-serif; white-space: nowrap; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+.other:hover { background: var(--surface2); color: var(--ink); }
+.other > svg { flex: none; }
+
+@keyframes up { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: none } }
