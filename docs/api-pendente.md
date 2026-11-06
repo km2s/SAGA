@@ -26,6 +26,8 @@ Copy que não está no design e precisa de confirmação:
 | Campo/recurso | Uso no front |
 |---|---|
 | `Campaign.coverUrl String?` | Capa nos atalhos do header (`app/(app)/layout.tsx`, hoje `capa: null`) e nas telas de campanha. Sem capa, o front mostra o gradiente do design. |
+| `Campaign.inviteCode String @unique` (8 caracteres, exibido XXXX-XXXX) | Código de convite em Campanhas, Painel (regenerar) e Convite (entrar pelo código). Hoje o `/join` usa o id da campanha. |
+| `Campaign.archivedAt DateTime?` | Filtro "Arquivadas" em Campanhas e "Encerrar a crônica" no Painel › Config. |
 | Sessões agendadas (data/hora da próxima sessão) | Meta do atalho ("Tormenta20 · sábado, 20h") e agenda do Painel do Mestre / Início. |
 
 ## Primeiros Passos

@@ -110,6 +110,8 @@ function HoleExpr([string]$h, $loops) {
   $h = $h.Trim()
   if ($h -match '^(true|false|null|-?\d+(\.\d+)?)$') { return $h }
   $first = ($h -split '[.\[]')[0]
+  # Laço com as="v" colide com a prop `v` do Template: vira vItem.
+  if ($first -eq 'v' -and $loops -contains 'v') { return 'vItem' + $h.Substring(1) }
   if ($loops -contains $first) { return $h }
   return "v.$h"
 }
@@ -284,16 +286,16 @@ function Emit($n, $loops, [string]$parentStyle) {
   switch ($tag) {
     'sc-for' {
       $list = ValueExpr $n.attrs['list'] $loops
-      $as = $n.attrs['as']; $idx = "${as}Idx"
+      $as = $n.attrs['as']; $jsAs = if ($as -eq 'v') { 'vItem' } else { $as }; $idx = "${jsAs}Idx"
       $inner = @($loops) + $as
       $ek = @(ElementKids $n)
       if ($ek.Count -eq 1 -and $ek[0].tag -ne '#text' -and $ek[0].tag -notmatch '^sc-') {
         $body = Emit $ek[0] $inner $parentStyle
         $body = $body -replace '^<([\w.]+)', "<`$1 key={$idx}"
-        return "{$list.map(($as, $idx) => ($body))}"
+        return "{$list.map(($jsAs, $idx) => ($body))}"
       }
       $script:usesFragment = $true
-      return "{$list.map(($as, $idx) => (<Fragment key={$idx}>$(EmitKids $n $inner $parentStyle)</Fragment>))}"
+      return "{$list.map(($jsAs, $idx) => (<Fragment key={$idx}>$(EmitKids $n $inner $parentStyle)</Fragment>))}"
     }
     'sc-if' {
       $cond = ValueExpr $n.attrs['value'] $loops

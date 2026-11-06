@@ -46,6 +46,13 @@ durante a implementação. Endpoints e campos que faltam estão em `api-pendente
 - "Rolar 1d20" rola na rolagem rápida do Início (fora dele, leva até lá).
 - Com o guia fechado, o botão "❦ Primeiros passos N/6" aparece no SagaHeader (no design ficava no header próprio da tela).
 
+## Campanhas (`/campanhas`)
+- Campanha sem sistema aparece como "Sistema próprio".
+- Frequência: rótulo do campo `sessionFrequency` (Semanal/Quinzenal/Mensal/Esporádico) ou "One-shot"; dia e hora entram com o agendamento.
+- Personagem do membro: "Nome · Nv N"; sem ficha, "Sem personagem". Online = sinal de presença nos últimos 60 s.
+- Sessão ao vivo: "Sessão N — nome da sessão"; "Iniciada às HH:MM · X de Y na mesa".
+- Código de convite mostra "—" e "Copiar" não faz nada até existir `inviteCode`. "Arquivadas" fica vazio até existir `archivedAt`.
+
 ## Termos e Privacidade
 - O Sumário rola até a seção (no design só destacava).
 - Texto jurídico, vigência, versão e contato em `apps/web/src/lib/legal.ts` — preencher antes de publicar.
