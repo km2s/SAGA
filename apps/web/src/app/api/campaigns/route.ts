@@ -39,9 +39,14 @@ export async function POST(req: Request) {
         : systemName)
     : null
 
-  let system = resolvedSystemName
-    ? await prisma.rPGSystem.findFirst({ where: { name: resolvedSystemName, isPreset: true } })
-    : null
+  // systemId (Nova Campanha): sistema pré-definido ou homebrew do próprio usuário.
+  // Sem ele, busca pelo nome entre os pré-definidos (fluxo antigo).
+  let system = typeof body.systemId === 'string'
+    ? await prisma.rPGSystem.findFirst({ where: { id: body.systemId, OR: [{ isPreset: true }, { creatorId: user.id }] } })
+    : resolvedSystemName
+      ? await prisma.rPGSystem.findFirst({ where: { name: resolvedSystemName, isPreset: true } })
+      : null
+  if (typeof body.systemId === 'string' && !system) return NextResponse.json({ error: 'Sistema não encontrado' }, { status: 404 })
 
   if (resolvedSystemName && !system) {
     const shouldRegister = addToSystems === true

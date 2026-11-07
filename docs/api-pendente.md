@@ -30,6 +30,23 @@ Copy que não está no design e precisa de confirmação:
 | `Campaign.archivedAt DateTime?` | Filtro "Arquivadas" em Campanhas e "Encerrar a crônica" no Painel › Config. |
 | Sessões agendadas (data/hora da próxima sessão) | Meta do atalho ("Tormenta20 · sábado, 20h") e agenda do Painel do Mestre / Início. |
 
+## Nova Campanha (`components/screens/novacampanha/vals.ts`)
+
+`POST /api/campaigns` já recebe `systemId` (pré-definido ou homebrew do usuário) e grava nome, descrição, sistema, tipo, tom (`contentTone`/`playStyle`), frequência, vagas (`maxSlots`), Taverna (`isOpen`) e `minExperience`. O front já manda também, para a API passar a gravar:
+
+| Campo enviado | Destino proposto |
+|---|---|
+| `capa` (índice do gradiente) e upload de imagem | `Campaign.coverUrl` / cor da capa |
+| `tons` (lista do design), `classificacao` (Livre/14+/18+) | tons completos e classificação indicativa |
+| `permitirImportadas`, `visibilidadeRolagens` (Todos / Só o mestre / Cada um escolhe) | configuração da campanha; a visibilidade conversa com as rolagens privadas |
+| `agenda: { dia, primeiraSessao, horario, duracaoHoras }` | agendamento das sessões |
+| `local` (saga / presencial / discord) | onde a mesa acontece |
+| `inviteCode` (8 caracteres, gerado no navegador) | `Campaign.inviteCode` — o servidor confirma ou gera outro se já existir |
+| `discord: { servidor, canal }` | `guildId` + canal dos lembretes (1 h antes) |
+| `aprovarInscricoes`, `chamadaTaverna` | inscrições e anúncio em Explorar |
+| Lista de servidores do Discord do usuário | chips "Servidor" (hoje vazios) |
+| `RPGSystem.baseDie` | "Dado base" (hoje um mapa fixo dos pré-definidos em `lib/system-dado.ts`) |
+
 ## Convite (`components/screens/convite/vals.ts`)
 
 | Chamada | Contrato | Observações |

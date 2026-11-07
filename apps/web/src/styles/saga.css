@@ -21,6 +21,9 @@ html[data-tema="escuro"] [data-s],
 :where([data-s]) a { color: var(--accent); text-decoration: none; }
 :where([data-s]) a:where(:hover) { color: var(--accent-d); }
 
+/* Regra do <helmet> de Convite e Nova Campanha. */
+[data-s] input[type=range] { accent-color: var(--accent); }
+
 /* Fundo de toda tela interna: --bg + vinheta + ruído SVG. */
 .saga-page {
   background-color: var(--bg);

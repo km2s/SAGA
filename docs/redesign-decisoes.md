@@ -53,6 +53,18 @@ durante a implementação. Endpoints e campos que faltam estão em `api-pendente
 - Sessão ao vivo: "Sessão N — nome da sessão"; "Iniciada às HH:MM · X de Y na mesa".
 - Código de convite mostra "—" e "Copiar" não faz nada até existir `inviteCode`. "Arquivadas" fica vazio até existir `archivedAt`.
 
+## Convite
+- Busca e aceite pelo código chamam `/api/convites/[codigo]` (fase da API). "Recebidos no Discord" fica escondido sem fonte de dados.
+- O "Aceitar" com erro volta para o estado "não encontrada" com shake.
+
+## Nova Campanha (`/campanhas/nova`)
+- Estante de sistemas = pré-definidos (ordem do seed) + seus homebrews. Couro e ícone da lombada pela categoria (genérico e personalizado usam o couro de fantasia; ícones: espadas, lua, olho, chip, dados, pena).
+- "Dado base" vem de um mapa dos pré-definidos; homebrew mostra "—".
+- O `POST /api/campaigns` passou a aceitar `systemId` (antes, escolher um homebrew criaria um sistema duplicado).
+- Tons do design viram `contentTone` (Épico/Sombrio/Horror/Político) e `playStyle` (Mistério/Exploração/Combate/Cômico/Horror). "Iniciantes bem-vindos" desligado → `minExperience = intermediate`.
+- Primeira sessão começa com a data de hoje; código de convite gerado no navegador. Sem servidores do Discord listados até a API.
+- O `?passo=N` do protótipo (que preenchia um nome de exemplo) não foi portado.
+
 ## Termos e Privacidade
 - O Sumário rola até a seção (no design só destacava).
 - Texto jurídico, vigência, versão e contato em `apps/web/src/lib/legal.ts` — preencher antes de publicar.

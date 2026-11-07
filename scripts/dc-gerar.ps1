@@ -83,4 +83,5 @@ if (& $want 'convite') {
     WrapEnclosing $c 'Recebidos no Discord' 'div' 'v.recent.length > 0'
   } "'Recebidos no Discord' só aparece com códigos recebidos."
 }
+if (& $want 'novacampanha') { Gen 'SAGA Nova Campanha' 'novacampanha' | Out-Null }
 'pronto'
