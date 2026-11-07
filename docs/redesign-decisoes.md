@@ -107,6 +107,15 @@ durante a implementação. Endpoints e campos que faltam estão em `api-pendente
 - Diário e "Juramentos e aliados" gravam como campos de texto da ficha.
 - A rolagem fica na tela (toast), como no design.
 
+## Explorar (`/explorar`)
+- Mesas = campanhas com Taverna aberta (`isOpen`) em que você não está. Destaque = a atualizada mais recentemente; sem nenhuma, o destaque some.
+- Vagas = jogadores / `maxSlots` (sem `maxSlots`, mostra uma vaga livre). "Iniciantes bem-vindos" = experiência mínima vazia, "none" ou "beginner". Tom = `contentTone` + `playStyle`.
+- Filtro de sistema com os sistemas das mesas abertas.
+- A carta vai inteira no `characterDesc` (mensagem + personagem + experiência + disponibilidade + Discord), pelo `POST /apply`. Erros da API (sem vagas, já é membro) aparecem na carta.
+- "Com quem você vai?": suas fichas do mesmo sistema, "Criar depois do aceite" e "Personagem pré-pronto" (a escolha vai no texto da carta).
+- As três regras da mesa do design valem para todas as mesas (regras da Taverna).
+- Minhas cartas: suas inscrições com Aguardando/Aceita/Recusada.
+
 ## Termos e Privacidade
 - O Sumário rola até a seção (no design só destacava).
 - Texto jurídico, vigência, versão e contato em `apps/web/src/lib/legal.ts` — preencher antes de publicar.

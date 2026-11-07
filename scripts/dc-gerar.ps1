@@ -149,4 +149,8 @@ if (& $want 'ficha') {
     Rep $c '>Diário de Aldric<' '>{v.diarioTitulo}<'
   } 'cabeçalho, passivas, carga e notas com dados da ficha; Destruição Divina e Cura pelas Mãos só para Paladino; XP escondido sem dado.'
 }
+if (& $want 'explorar') {
+  $p = Gen 'SAGA Explorar' 'explorar'
+  Edit $p { param($c) WrapEnclosing $c 'Em destaque esta semana' 'section' 'v.temFeat' } 'destaque só com alguma mesa aberta.'
+}
 'pronto'
