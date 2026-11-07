@@ -129,6 +129,13 @@ durante a implementação. Endpoints e campos que faltam estão em `api-pendente
 - Rascunho fica no navegador.
 - Mecânica, dificuldade, crítico, recursos, couro/ícone, visibilidade e as chaves de clonar/importar seguem no corpo para a fase da API. Hoje todo sistema de usuário aparece na comunidade.
 
+## Perfil (`/perfil`)
+- Nome de exibição, @usuário e avatar vêm do Discord. Estatísticas reais: sessões e horas das suas campanhas, dados rolados por você e vintes naturais (rolagem de d20 com um 20).
+- Sistemas favoritos = os que mais aparecem nas suas campanhas. Títulos = "Cronista Iniciante" + "Mestre de <campanha>" para cada campanha que você mestra (até existir sistema de títulos).
+- Salvar chama `PATCH /api/perfil` (fase da API); bio, título, moldura e avatar enviado só persistem com ela.
+- Discord sempre conectado (é o login); "Sincronizar agora" chama `POST /api/perfil/sincronizar`. Servidores, Google, e-mail/senha, 2FA e dispositivos ficam vazios ou "—" até a API.
+- Tema: Claro/Escuro/Sistema usam o mesmo tema do resto do app ("Sistema" aplica a preferência do aparelho na hora). Preferências de animação, sons, e-mails e resumo ficam no navegador.
+
 ## Termos e Privacidade
 - O Sumário rola até a seção (no design só destacava).
 - Texto jurídico, vigência, versão e contato em `apps/web/src/lib/legal.ts` — preencher antes de publicar.

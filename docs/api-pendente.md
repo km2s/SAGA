@@ -85,6 +85,18 @@ Já funcionam com a API atual: iniciar sessão (`sessions/start`, 409), barras d
 
 `POST /api/systems` já cria o sistema (nome, descrição, categoria) e `POST /api/systems/[id]/attributes` os atributos. O front manda também, para a API gravar: `dadoBase`, `mecanica` (sum/pool/under), `dificuldade`, `critico`, `couro`, `icone`, `recursos: [{ nome, formula, cor }]`, `visibilidade` (Privado / Só minhas mesas / Comunidade), `permitirClonar`, `permitirImportadas`. Sigla e faixa de cada atributo hoje vão na descrição; o ideal é ter campos próprios.
 
+## Perfil (`components/screens/perfil/vals.ts`)
+
+| Chamada | Contrato |
+|---|---|
+| `PATCH /api/perfil` | `{ nome, usuario, bio, titulo, moldura, avatar: 'discord' \| 'custom' }` + upload do retrato |
+| `POST /api/perfil/sincronizar` | Atualiza nome e avatar a partir do Discord |
+| Preferências do Discord | foto, nome, lembretes por DM, publicar rolagens no servidor |
+| Servidores com o bot | `[{ nome, canal, status }]` |
+| Vincular Google / e-mail e senha / 2FA / dispositivos (sessões ativas, encerrar) / excluir conta | Aba Conta e Conexões |
+| Títulos conquistados | "Título exibido" |
+| Preferências de e-mail e resumo semanal | hoje no navegador |
+
 ## Convite (`components/screens/convite/vals.ts`)
 
 | Chamada | Contrato | Observações |

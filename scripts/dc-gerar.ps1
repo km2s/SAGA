@@ -153,4 +153,16 @@ if (& $want 'explorar') {
   $p = Gen 'SAGA Explorar' 'explorar'
   Edit $p { param($c) WrapEnclosing $c 'Em destaque esta semana' 'section' 'v.temFeat' } 'destaque só com alguma mesa aberta.'
 }
+if (& $want 'perfil') {
+  $p = Gen 'SAGA Perfil' 'perfil'
+  Edit $p {
+    param($c)
+    $m = [regex]::Match($c, '(<span style=\{\{[^>]*?\}\})>D&D 5e</span><span style=\{\{[^>]*?\}\}>Vampiro V5</span><span style=\{\{[^>]*?\}\}>Tormenta20</span>')
+    if (-not $m.Success) { throw 'favoritos não achados' }
+    $c = $c.Remove($m.Index, $m.Length).Insert($m.Index, "{v.favs.map((f, fIdx) => ($($m.Groups[1].Value -replace '^<span', '<span key={fIdx}')>{f}</span>))}")
+    $c = Rep $c '>kael@exemplo.com</p>' '>{v.email}</p>'
+    $c = Rep $c '>Alterada há 3 meses</p>' '>{v.senhaQuando}</p>'
+    Rep $c "<a href={'#'}" '<a href={v.inviteUrl} target="_blank" rel="noopener noreferrer"'
+  } 'sistemas favoritos, e-mail, senha e convite do bot com dados reais.'
+}
 'pronto'
