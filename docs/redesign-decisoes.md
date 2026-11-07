@@ -148,6 +148,13 @@ durante a implementação. Endpoints e campos que faltam estão em `api-pendente
 - Privada ou inexistente → "Esta ficha está selada". O dono vê a barra e o interruptor grava `isPublic`.
 - Link curto = o endereço real da página.
 
+## Importar Ficha (`/personagens?importar=1`)
+- Modal por cima da galeria real (a página falsa atrás do modal e os arquivos de exemplo do protótipo não foram portados). Clique abre o seletor de arquivo; sem arrastar-e-soltar (o design também só tem clique).
+- Lê com o `POST /api/characters/import` que já existe; os três passos de leitura animam enquanto a extração roda (mínimo de 2,7 s, como no design).
+- "Sistema detectado" = o que a extração devolve ("Não identificado" sem pista); sem o selo "alta confiança" (a API não mede).
+- "Nenhuma" campanha não cria: "Escolha uma campanha: por enquanto toda ficha vive numa campanha." A lista mostra as campanhas em que você ainda não tem ficha.
+- Valores não lidos entram como 0. Removido: o modal antigo de importação.
+
 ## Termos e Privacidade
 - O Sumário rola até a seção (no design só destacava).
 - Texto jurídico, vigência, versão e contato em `apps/web/src/lib/legal.ts` — preencher antes de publicar.

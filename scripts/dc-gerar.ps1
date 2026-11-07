@@ -177,4 +177,14 @@ if (& $want 'fichapublica') {
     Rep $c '>D&D 5e<' '>{v.sistema}<'
   } 'nome, linha, nível, campanha, sistema e link com dados da ficha.'
 }
+if (& $want 'importar') {
+  $p = Gen 'SAGA Importar Ficha' 'importar' @('main')
+  Edit $p {
+    param($c)
+    $c = WrapEnclosing $c '>Protótipo: escolha um arquivo de exemplo<' 'p' 'v.temExemplos'
+    $c = WrapEnclosing $c 'v.samples.map' 'div' 'v.temExemplos'
+    $c = Rep $c '>D&D 5e<' '>{v.sistemaDetectado}<'
+    WrapEnclosing $c '>alta confiança<' 'span' 'v.temConfianca'
+  } 'sem página falsa atrás do modal nem arquivos de exemplo; sistema detectado pela extração.'
+}
 'pronto'

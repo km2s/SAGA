@@ -1,20 +1,15 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
-import { ImportCharacterModal } from '@/components/character/ImportCharacterModal'
+import { Importar } from '@/components/screens/importar/Importar'
 import { Template } from './Template'
 import { usePersonagensVals, type PersonagensDados } from './vals'
 
-/**
- * `?importar=1` ("Importar ficha") abre o modal de importação atual até a
- * tela SAGA Importar Ficha ser implementada.
- */
+/** `?importar=1` ("Importar ficha") abre o modal SAGA Importar Ficha por cima da galeria. */
 export function Personagens({ dados, importar, campanhasSemFicha }: { dados: PersonagensDados; importar: boolean; campanhasSemFicha: { id: string; name: string }[] }) {
-  const router = useRouter()
   return (
     <>
       <Template v={usePersonagensVals(dados)} />
-      <ImportCharacterModal open={importar} onClose={() => router.replace('/personagens')} campaigns={campanhasSemFicha} />
+      {importar && <Importar campanhas={campanhasSemFicha} />}
     </>
   )
 }
