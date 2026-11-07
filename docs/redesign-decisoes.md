@@ -155,6 +155,13 @@ durante a implementação. Endpoints e campos que faltam estão em `api-pendente
 - "Nenhuma" campanha não cria: "Escolha uma campanha: por enquanto toda ficha vive numa campanha." A lista mostra as campanhas em que você ainda não tem ficha.
 - Valores não lidos entram como 0. Removido: o modal antigo de importação.
 
+## Membros (`/campaign/[id]/members`)
+- Visão pelo seu papel na campanha (o seletor Mestre/Jogador do protótipo não aparece). O banner antigo some nessa rota.
+- Presença pelo `lastSeenAt`: online < 60 s, "visto há…" (dourado) até 30 min, depois offline. A tela manda o sinal de presença e atualiza a lista a cada 20 s.
+- PV (número e barra) só quando a campanha usa a barra de vida.
+- "Criar ficha para @x" (duas etapas) cria a ficha pelo `POST /api/characters` com o modelo do sistema da campanha. Removidos os componentes antigos do `/gm` que o Painel e o Membros substituíram.
+- Código de convite "—" até `inviteCode`.
+
 ## Termos e Privacidade
 - O Sumário rola até a seção (no design só destacava).
 - Texto jurídico, vigência, versão e contato em `apps/web/src/lib/legal.ts` — preencher antes de publicar.

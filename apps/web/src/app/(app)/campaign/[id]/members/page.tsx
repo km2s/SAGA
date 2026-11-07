@@ -2,102 +2,54 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from 'database'
 import { notFound, redirect } from 'next/navigation'
-import { Badge } from '@/components/ui/Badge'
+import { Membros } from '@/components/screens/membros/Membros'
+import type { MembrosDados } from '@/components/screens/membros/vals'
+import { mesAno, ONLINE_MS } from '@/lib/campanha-labels'
 import { hasHpTrack, parseTracks } from '@/lib/resource-tracks'
+import { haQuanto } from '@/lib/tempo'
+
+// Online < 60 s do último sinal; "ausente" até 30 min; depois, offline.
+const AUSENTE_MS = 30 * 60_000
 
 export default async function CampaignMembersPage({ params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
   if (!session) redirect('/login')
 
-  const campaign = await prisma.campaign.findUnique({
+  const c = await prisma.campaign.findUnique({
     where: { id: params.id },
-    include: {
+    select: {
+      id: true, name: true, resourceTracksJson: true, system: { select: { id: true, name: true } },
       members: {
-        include: {
-          user: true,
-          character: true,
-        },
-        orderBy: { role: 'asc' },
+        orderBy: { joinedAt: 'asc' },
+        select: { id: true, role: true, joinedAt: true, lastSeenAt: true, user: { select: { username: true, discordId: true } }, character: { select: { id: true, name: true, race: true, class: true, level: true, hp: true, maxHp: true } } },
       },
     },
   }).catch(() => null)
+  if (!c) notFound()
+  const me = c.members.find(m => m.user.discordId === session.user.discordId)
+  if (!me) notFound()
 
-  if (!campaign) notFound()
+  const agora = Date.now()
+  const status = (d: Date | null): 'on' | 'away' | 'off' => (!d ? 'off' : agora - d.getTime() < ONLINE_MS ? 'on' : agora - d.getTime() < AUSENTE_MS ? 'away' : 'off')
+  const gm = c.members.find(m => m.role === 'GM')
+  const gmSt = gm ? status(gm.lastSeenAt) : 'off'
 
-  const myMembership = campaign.members.find(m => m.user.discordId === session.user.discordId)
-  if (!myMembership) notFound()
-
-  const gm = campaign.members.find(m => m.role === 'GM')
-  const players = campaign.members.filter(m => m.role !== 'GM')
-  const showHp = hasHpTrack(parseTracks(campaign.resourceTracksJson))
-
-  return (
-    <div className="p-4 sm:p-8 sm:pt-5">
-      <h2 className="font-cinzel text-lg font-semibold mb-4">Membros da Campanha</h2>
-
-      {/* GM */}
-      {gm && (
-        <div className="mb-6">
-          <p className="text-[11px] text-ink-soft font-bold uppercase tracking-widest mb-2">Mestre</p>
-          <MemberCard member={gm} isMe={gm.user.discordId === session.user.discordId} showHp={showHp} />
-        </div>
-      )}
-
-      {/* Players */}
-      <div>
-        <p className="text-[11px] text-ink-soft font-bold uppercase tracking-widest mb-2">
-          Jogadores · {players.length}
-        </p>
-        {players.length === 0 ? (
-          <div className="text-sm text-ink-soft bg-card border border-ink/20 rounded-lg px-4 py-10 text-center">
-            Nenhum jogador ainda. Use o comando <code className="font-mono text-gold">/campanha entrar</code> no Discord.
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {players.map(m => (
-              <MemberCard key={m.id} member={m} isMe={m.user.discordId === session.user.discordId} showHp={showHp} />
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-function MemberCard({ member, isMe, showHp }: { member: any; isMe: boolean; showHp: boolean }) {
-  const avatar = member.user.avatar
-  const initial = member.user.username[0]?.toUpperCase()
-
-  return (
-    <div className="flex items-center gap-3 bg-card border border-ink/20 rounded-lg p-4 hover:border-wax transition-all card-hover">
-      <div className="w-11 h-11 rounded-full overflow-hidden shrink-0 bg-gradient-to-br from-purple to-gold flex items-center justify-center text-sm font-bold">
-        {avatar ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={avatar} alt={member.user.username} className="w-full h-full object-cover" />
-        ) : (
-          initial
-        )}
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
-          <p className="font-medium truncate">{member.user.username}</p>
-          {member.role === 'GM' && <Badge variant="gold">Mestre</Badge>}
-          {isMe && <Badge variant="purple">Você</Badge>}
-        </div>
-        <p className="text-[11px] text-ink-soft mt-0.5">
-          {member.character
-            ? `${member.character.name} · ${member.character.race ?? ''} ${member.character.class ?? ''} · Nv.${member.character.level}`.trim()
-            : 'Sem personagem criado'}
-        </p>
-      </div>
-      {showHp && member.character && (
-        <div className="text-right shrink-0">
-          <p className="text-[11px] text-ink-soft">HP</p>
-          <p className="text-sm font-bold text-green-700">
-            {member.character.hp}/{member.character.maxHp}
-          </p>
-        </div>
-      )}
-    </div>
-  )
+  const dados: MembrosDados = {
+    campaignId: c.id, campanha: c.name, sistema: c.system?.name ?? null, sistemaId: c.system?.id ?? null,
+    souMestre: me.role === 'GM', eu: session.user.username,
+    mestre: {
+      nome: gm?.user.username ?? '—',
+      linha: gm ? `@${gm.user.username} · ${gmSt === 'on' ? 'online agora' : gm.lastSeenAt ? `visto ${haQuanto(gm.lastSeenAt, agora)}` : 'offline'} · narrando desde ${mesAno(gm.joinedAt)}` : '',
+    },
+    usaHp: hasHpTrack(parseTracks(c.resourceTracksJson)),
+    jogadores: c.members.filter(m => m.role === 'PLAYER').map(m => ({
+      memberId: m.id, u: m.user.username,
+      c: m.character?.name ?? null,
+      cls: m.character ? [m.character.race, m.character.class, `Nv ${m.character.level}`].filter(Boolean).join(' · ') : null,
+      hp: m.character?.hp ?? 0, max: m.character?.maxHp ?? 0,
+      st: status(m.lastSeenAt), quando: m.lastSeenAt ? haQuanto(m.lastSeenAt, agora) : 'nunca',
+      fichaId: m.character?.id ?? null,
+    })),
+  }
+  return <Membros dados={dados} />
 }

@@ -187,4 +187,20 @@ if (& $want 'importar') {
     WrapEnclosing $c '>alta confiança<' 'span' 'v.temConfianca'
   } 'sem página falsa atrás do modal nem arquivos de exemplo; sistema detectado pela extração.'
 }
+if (& $want 'membros') {
+  $p = Gen 'SAGA Membros' 'membros'
+  Edit $p {
+    param($c)
+    $c = Rep $c '>A Queda de Valdris</Link>' '>{v.campanha}</Link>'
+    $c = WrapEnclosing $c '>Visão de<' 'div' 'v.temVisao'
+    $c = Rep $c '>K<span' '>{v.gmInicial}<span'
+    $c = Rep $c "{'Kael '}" "{v.gmNome}{' '}"
+    $c = Rep $c '>@kael · online agora · narrando desde março<' '>{v.gmLinha}<'
+    $c = Rep $c '>KRAK-3D7M<' '>{v.codigo}<'
+    $c = Rep $c "v.`$href('SAGA Ficha.dc.html')" 'p.fichaHref'
+    # PV (número e barra) só quando a campanha usa PV.
+    $c = [regex]::new([regex]::Escape('{p.hasChar && (<div')).Replace($c, '{p.hasHp && (<div', 1)
+    WrapEnclosing $c '${p.pct}%' 'div' 'p.hasHp' 1
+  } 'campanha, mestre e código com dados reais; visão pelo papel (sem o seletor do protótipo); ficha de cada jogador.'
+}
 'pronto'
