@@ -5,6 +5,7 @@ import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { CampaignTabs } from '@/components/campaign/CampaignTabs'
+import { CromoAntigo } from '@/components/campaign/CromoAntigo'
 import { Crown, Map } from 'lucide-react'
 import { coverFor } from '@/lib/campaign-cover'
 
@@ -39,6 +40,7 @@ export default async function CampaignLayout({
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
+      <CromoAntigo campaignId={params.id} isGM={isGM}>
       {/* Banner */}
       <div className={`bg-gradient-to-br ${coverFor(0)} relative flex flex-col sm:flex-row sm:items-end px-5 sm:px-8 pt-5 pb-4 sm:pb-5 gap-3 shrink-0`}>
         <div className="flex-1 min-w-0">
@@ -49,7 +51,7 @@ export default async function CampaignLayout({
         </div>
         <div className="flex gap-2 shrink-0">
           {isGM && (
-            <Link href={`/campaign/${params.id}/gm`}>
+            <Link href={`/campaign/${params.id}`}>
               <Button variant="secondary" className="border-white/25 bg-white/8 hover:bg-white/15 hover:border-white/40">
                 <Crown size={14} className="inline mr-1.5 -mt-0.5" />
                 <span className="hidden sm:inline">Painel do Mestre</span>
@@ -71,6 +73,8 @@ export default async function CampaignLayout({
       <div className="overflow-x-auto scrollbar-none shrink-0">
         <CampaignTabs campaignId={params.id} isGM={isGM} />
       </div>
+
+      </CromoAntigo>
 
       {/* Page content */}
       <div className="flex-1 overflow-y-auto">

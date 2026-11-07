@@ -2,113 +2,99 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from 'database'
 import { notFound, redirect } from 'next/navigation'
-import { Badge } from '@/components/ui/Badge'
-import { Button } from '@/components/ui/Button'
-import Link from 'next/link'
-import { MembersOnlineStatus } from '@/components/campaign/MembersOnlineStatus'
-import { ArrowRight } from 'lucide-react'
+import { Painel } from '@/components/screens/painel/Painel'
+import type { PainelDados } from '@/components/screens/painel/vals'
+import { VisaoGeralAntiga } from '@/components/campaign/VisaoGeralAntiga'
+import { MarkTutorialVisited } from '@/components/tutorial/MarkTutorialVisited'
+import { freqLabel, ONLINE_MS } from '@/lib/campanha-labels'
+import { parseTracks } from '@/lib/resource-tracks'
+import { diaMes, duracao, haQuanto } from '@/lib/tempo'
 
-export default async function CampaignOverviewPage({ params }: { params: { id: string } }) {
+const XP: Record<string, string> = { beginner: 'Iniciante', intermediate: 'Intermediário', advanced: 'Veterano' }
+const NPC_TIPO: Record<string, string> = { VILLAIN: 'Vilão', ENEMY: 'Vilão', ALLY: 'Aliado', MERCHANT: 'Mercador', FAMILIAR: 'Familiar' }
+
+export default async function CampaignPage({ params, searchParams }: { params: { id: string }; searchParams: { aba?: string } }) {
   const session = await getServerSession(authOptions)
   if (!session) redirect('/login')
 
-  const campaign = await prisma.campaign.findUnique({
+  const me = await prisma.campaignMember.findFirst({
+    where: { campaignId: params.id, user: { discordId: session.user.discordId } },
+    select: { role: true, userId: true },
+  }).catch(() => null)
+  if (!me) notFound()
+  // O Painel do Mestre é só do mestre; jogadores seguem com a visão geral.
+  if (me.role !== 'GM') return <VisaoGeralAntiga params={params} />
+
+  const c = await prisma.campaign.findUnique({
     where: { id: params.id },
     include: {
+      system: { select: { id: true, name: true, isPreset: true } },
       members: {
-        include: { user: true, character: true },
-        orderBy: { role: 'asc' },
+        where: { role: 'PLAYER' }, orderBy: { joinedAt: 'asc' },
+        select: { lastSeenAt: true, user: { select: { username: true } }, character: { select: { name: true, class: true, level: true, hp: true, maxHp: true } } },
       },
-      sessions: { where: { isActive: true }, take: 1 },
+      sessions: { orderBy: { startedAt: 'asc' }, select: { id: true, name: true, isActive: true, startedAt: true, endedAt: true, summary: { select: { content: true } }, _count: { select: { rollLogs: true } } } },
+      npcs: { orderBy: { createdAt: 'desc' }, select: { id: true, name: true, type: true, description: true, isPublic: true, imageUrl: true } },
+      applications: { where: { status: 'pending' }, orderBy: { createdAt: 'asc' }, select: { id: true, characterDesc: true, experienceLevel: true, createdAt: true, user: { select: { username: true } } } },
+      notes: { where: { authorId: me.userId }, orderBy: { updatedAt: 'desc' }, select: { id: true, title: true, content: true, visibility: true } },
     },
   }).catch(() => null)
+  if (!c) notFound()
 
-  if (!campaign) notFound()
+  const agora = Date.now()
+  const live = c.sessions.find(s => s.isActive)
+  const rolls = await prisma.rollLog.findMany({
+    where: { session: { campaignId: c.id }, NOT: { expression: 'chat' } },
+    orderBy: { rolledAt: 'desc' }, take: 5,
+    select: { rolledBy: true, total: true, attribute: true, expression: true, rolledAt: true, session: { select: { name: true } } },
+  }).catch(() => [])
+  const totalRolls = c.sessions.reduce((n, s) => n + s._count.rollLogs, 0)
+  const ms = c.sessions.reduce((n, s) => n + ((s.endedAt?.getTime() ?? (s.isActive ? agora : s.startedAt.getTime())) - s.startedAt.getTime()), 0)
 
-  const myMembership = campaign.members.find(m => m.user.discordId === session.user.discordId)
-  if (!myMembership) notFound()
+  const feed = [
+    ...rolls.map(r => ({ at: r.rolledAt, t: `${r.rolledBy} rolou ${r.total} em ${r.attribute ?? r.expression}`, w: `${haQuanto(r.rolledAt, agora)}${r.session.name ? ` · ${r.session.name}` : ''}`, c: 'var(--gold)' })),
+    ...c.applications.map(a => ({ at: a.createdAt, t: `${a.user.username} se inscreveu pela Taverna`, w: haQuanto(a.createdAt, agora), c: '#3a6a7a' })),
+  ].sort((a, b) => b.at.getTime() - a.at.getTime()).slice(0, 5).map(({ t, w, c: cor }) => ({ t, w, c: cor }))
 
-  const activeSession = campaign.sessions[0] ?? null
-
-  const recentRolls = activeSession
-    ? await prisma.rollLog.findMany({
-        where: { sessionId: activeSession.id },
-        orderBy: { rolledAt: 'desc' },
-        take: 8,
-      }).catch(() => [])
-    : []
+  const partes = [c.system?.name, freqLabel(c.campaignType, c.sessionFrequency)].filter(Boolean)
+  const dados: PainelDados = {
+    id: c.id,
+    nome: c.name,
+    heroLine: partes.length ? `${partes.join(' · ')} · ` : '',
+    aoVivo: live ? live.name ?? `Sessão ${c.sessions.indexOf(live) + 1}` : null,
+    proximaSessao: c.sessions.length + 1,
+    party: c.members.map(m => ({
+      u: m.user.username,
+      c: m.character?.name ?? m.user.username,
+      cls: m.character ? [m.character.class, `Nv ${m.character.level}`].filter(Boolean).join(' · ') : 'Sem personagem',
+      hp: m.character?.hp ?? 0, mx: m.character?.maxHp ?? 0,
+      on: !!m.lastSeenAt && agora - m.lastSeenAt.getTime() < ONLINE_MS,
+    })),
+    vagas: Math.max(c.maxSlots ?? 6, c.members.length),
+    isOpen: c.isOpen,
+    kpis: { sessoes: c.sessions.length, horas: `${Math.round(ms / 3600000)} h`, rolagens: totalRolls },
+    feed,
+    past: c.sessions.map((s, i) => ({
+      id: s.id, n: i + 1, t: s.name ?? `Sessão ${i + 1}`, live: s.isActive,
+      w: s.isActive ? 'hoje · ao vivo' : `${diaMes(s.startedAt)}${s.endedAt ? ` · ${duracao(s.endedAt.getTime() - s.startedAt.getTime())}` : ''}`,
+      sum: s.summary?.content.slice(0, 220) ?? '',
+    })).reverse(),
+    npcs: c.npcs.map(n => ({ id: n.id, n: n.name, type: NPC_TIPO[n.type] ?? 'Neutro', d: n.description ?? '', vis: n.isPublic, img: n.imageUrl })),
+    apps: c.applications.map(a => ({
+      id: a.id, u: a.user.username, meta: `Experiência: ${XP[a.experienceLevel] ?? a.experienceLevel}`, msg: a.characterDesc,
+      tags: [{ l: XP[a.experienceLevel] ?? a.experienceLevel, ok: a.experienceLevel !== 'beginner' }],
+    })),
+    notes: c.notes.map(n => ({ id: n.id, t: n.title ?? '', b: n.content, sec: n.visibility !== 'CAMPAIGN' })),
+    tracks: parseTracks(c.resourceTracksJson),
+    modelo: c.system ? { nome: c.system.name, preset: c.system.isPreset, sistemaId: c.system.isPreset ? null : c.system.id } : null,
+    // TODO(api): nome do servidor e do canal do Discord ligados à campanha.
+    botLine: c.guildId ? 'Lembretes e rolagens no servidor do Discord da campanha' : 'Nenhum servidor do Discord ligado à campanha',
+  }
 
   return (
-    <div className="p-4 sm:p-8 sm:pt-5">
-      {/* Active session banner */}
-      {activeSession && (
-        <div className="flex items-center justify-between bg-green-600/10 border border-saga-success/20 rounded-lg px-5 py-3.5 mb-5">
-          <div className="flex items-center gap-3">
-            <div className="pulse-dot" />
-            <div>
-              <p className="text-sm font-semibold">{activeSession.name ?? 'Sessão em andamento'}</p>
-              <p className="text-[11px] text-ink-soft">
-                Iniciada às {new Date(activeSession.startedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-              </p>
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <Link href={`/campaign/${params.id}/sessions`}>
-              <Button variant="secondary">Ver resumo</Button>
-            </Link>
-            <Link href={`/campaign/${params.id}/mesa`}>
-              <Button variant="primary">Entrar na sessão <ArrowRight size={14} /></Button>
-            </Link>
-          </div>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-[1fr_260px] gap-5">
-        {/* Roll log */}
-        <div className="bg-card border border-ink/20 rounded-lg overflow-hidden">
-          <div className="px-4 py-3 border-b border-ink/20 text-[11px] font-bold text-ink-soft uppercase tracking-widest">
-            Log de Rolagens — {activeSession ? 'Sessão atual' : 'Nenhuma sessão ativa'}
-          </div>
-          {recentRolls.length === 0 ? (
-            <div className="px-4 py-10 text-center text-sm text-ink-soft">
-              {activeSession
-                ? 'Nenhuma rolagem ainda nesta sessão.'
-                : 'Inicie uma sessão pelo bot ou pelo Painel do Mestre.'}
-            </div>
-          ) : (
-            recentRolls.map(r => (
-              <div key={r.id} className="flex items-center justify-between px-4 py-3 border-b border-ink/20 last:border-0">
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-purple flex items-center justify-center text-[11px] font-bold shrink-0">
-                    {r.rolledBy[0]?.toUpperCase()}
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">{r.rolledBy}</p>
-                    <p className="text-[11px] text-ink-soft">
-                      {r.attribute ? `${r.attribute} · ` : ''}{r.expression}
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-cinzel text-xl font-bold text-gold">{r.total}</p>
-                  <p className="text-[11px] text-ink-soft">[{(r.rolls as number[]).join(', ')}]</p>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-
-        {/* Members */}
-        <MembersOnlineStatus
-          campaignId={params.id}
-          members={campaign.members.map(m => ({
-            id: m.id,
-            role: m.role,
-            user: { username: m.user.username },
-            character: m.character ? { name: m.character.name, level: m.character.level } : null,
-          }))}
-        />
-      </div>
-    </div>
+    <>
+      <MarkTutorialVisited tutorialKey="saga_visited_gm" />
+      <Painel dados={dados} aba={searchParams.aba ?? 'geral'} />
+    </>
   )
 }

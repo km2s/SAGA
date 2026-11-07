@@ -47,6 +47,21 @@ Copy que não está no design e precisa de confirmação:
 | Lista de servidores do Discord do usuário | chips "Servidor" (hoje vazios) |
 | `RPGSystem.baseDie` | "Dado base" (hoje um mapa fixo dos pré-definidos em `lib/system-dado.ts`) |
 
+## Painel do Mestre (`components/screens/painel/vals.ts`)
+
+Já funcionam com a API atual: iniciar sessão (`sessions/start`, 409), barras de recurso (`PATCH` campanha `resourceTracks`), Taverna aberta (`isOpen`), NPC rápido (`POST npcs`), visibilidade do NPC (`PATCH npcs/[npcId]` `isPublic`), inscrições (`PATCH applications/[appId]`), criar nota (`POST notes`, quando a nota tem conteúdo).
+
+| Chamada | Contrato | Observações |
+|---|---|---|
+| `POST /api/campaigns/[id]/fios` | `{ texto }` → fio; `PATCH .../fios/[fioId]` `{ feito }` | Fios soltos (Visão geral). Precisa de tabela; hoje a lista começa vazia e não persiste. |
+| `POST /api/campaigns/[id]/sessoes-agendadas` | `{ titulo, data, horario, lembrete }`; `DELETE .../[agId]` | "Agendar sessão" e "Próximas". O bot lembra 1 h antes. |
+| `PATCH /api/campaigns/[id]/notes/[noteId]` | `{ title, content, visibility }` | Edição de nota (hoje só existe criar). |
+| `PATCH /api/campaigns/[id]` `{ name }` | renomear | O PATCH atual não aceita `name`. |
+| Visibilidade das rolagens da campanha | Todos / Só o mestre / Cada um escolhe | Liga com as rolagens privadas. |
+| `POST /api/campaigns/[id]/convite` | `{ codigo }` → código confirmado | "Gerar novo" invalida o antigo (`Campaign.inviteCode`). |
+| Ligar/desligar o bot; servidor e canal do Discord | | Linha "Lembretes e rolagens em #canal · Servidor". |
+| `POST /api/campaigns/[id]/arquivar` | → `200` | `Campaign.archivedAt`; depois volta para /campanhas. |
+
 ## Convite (`components/screens/convite/vals.ts`)
 
 | Chamada | Contrato | Observações |

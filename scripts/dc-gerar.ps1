@@ -84,4 +84,17 @@ if (& $want 'convite') {
   } "'Recebidos no Discord' só aparece com códigos recebidos."
 }
 if (& $want 'novacampanha') { Gen 'SAGA Nova Campanha' 'novacampanha' | Out-Null }
+if (& $want 'painel') {
+  $p = Gen 'SAGA Painel do Mestre' 'painel'
+  Edit $p {
+    param($c)
+    $c = Rep $c '>A Queda de Valdris</h1>' '>{v.campanha}</h1>'
+    $c = Rep $c "{'D&D 5e · Semanal · quartas, 20h · '}" '{v.heroLine}'
+    $c = Rep $c '>Lembretes e rolagens em #a-queda-de-valdris · Taverna do Javali</p>' '>{v.botLine}</p>'
+    $c = Rep $c '>Modelo de ficha: D&D 5e (pré-definido)</p>' '>{v.modeloLine}</p>'
+    $c = Rep $c "<Link href={v.`$href('SAGA Criar Sistema.dc.html')}" '<Link href={v.modeloHref}'
+    $c = Rep $c "<Link href={v.`$href('SAGA Sessao.dc.html')}" '<Link href={p.href}'
+    $c
+  } 'nome, linha do topo, bot e modelo de ficha com dados da campanha; resumo por sessão.'
+}
 'pronto'

@@ -65,6 +65,19 @@ durante a implementação. Endpoints e campos que faltam estão em `api-pendente
 - Primeira sessão começa com a data de hoje; código de convite gerado no navegador. Sem servidores do Discord listados até a API.
 - O `?passo=N` do protótipo (que preenchia um nome de exemplo) não foi portado.
 
+## Painel do Mestre (`/campaign/[id]`)
+- Só o mestre vê o Painel; jogadores continuam com a visão geral antiga (o design não tem visão de jogador para essa rota). O banner e as abas antigas somem para o mestre nessa rota (`CromoAntigo`).
+- `/campaign/[id]/gm` redireciona para o Painel (decisão da nota 001).
+- Datas da crônica no fuso de Brasília (`lib/tempo.ts`). Sessão sem nome = "Sessão N". Iniciar sem nome grava "Sessão N" (em romano) como no design.
+- Atividade = últimas rolagens e inscrições (sem "caiu para X PV", "marcou ausência" ou resumos publicados, que não têm registro).
+- Inscrição: "Experiência: Iniciante/Intermediário/Veterano" na linha de cima e como etiqueta; a mensagem é o texto da carta.
+- Aceitar inscrição põe a pessoa no grupo como "Sem personagem".
+- Tipos de NPC: Inimigo aparece como Vilão; Montaria/Servo/Outro aparecem como Neutro. NPC rápido grava Vilão/Aliado/Mercador/Familiar/Neutro.
+- Vagas = `maxSlots` (6 quando vazio).
+- Linha do bot: "Lembretes e rolagens no servidor do Discord da campanha" / "Nenhum servidor do Discord ligado à campanha" até haver servidor e canal.
+- Fios soltos, agendamento, renomear, visibilidade das rolagens, código e arquivar chamam endpoints da fase da API.
+- Os componentes antigos do `/gm` ficam no repositório até a tela Membros (que absorve "Criar ficha para @x").
+
 ## Termos e Privacidade
 - O Sumário rola até a seção (no design só destacava).
 - Texto jurídico, vigência, versão e contato em `apps/web/src/lib/legal.ts` — preencher antes de publicar.

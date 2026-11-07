@@ -1,0 +1,50 @@
+/* Gerado por scripts/dc-to-jsx.ps1 a partir de SAGA Painel do Mestre.dc.html. */
+@keyframes painel-up {from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes painel-fadeIn {from{opacity:0}to{opacity:1}}
+@keyframes painel-popIn {from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes painel-popA {0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1)}}
+@keyframes painel-popB {0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1)}}
+@keyframes painel-stamp {0%{transform:scale(2.3) rotate(-22deg);opacity:0}60%{transform:scale(.92) rotate(3deg);opacity:1}100%{transform:scale(1) rotate(-8deg)}}
+@keyframes painel-spin {0%{transform:rotate(0) scale(.8)}70%{transform:rotate(620deg) scale(1.06)}100%{transform:rotate(720deg) scale(1)}}
+@keyframes painel-spinR {to{transform:rotate(360deg)}}
+@keyframes painel-pulse {0%,100%{box-shadow:0 0 0 0 rgb(224 106 67/.5)}50%{box-shadow:0 0 0 5px rgb(224 106 67/0)}}
+@keyframes painel-ringPulse {0%,100%{box-shadow:inset 0 0 0 2px var(--accent),0 0 0 0 rgb(224 106 67/.4)}50%{box-shadow:inset 0 0 0 2px var(--accent),0 0 0 6px rgb(224 106 67/0)}}
+@keyframes painel-shakeA {0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
+@keyframes painel-shakeB {0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
+@keyframes painel-slideIn {from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+@keyframes painel-unfold {from{opacity:0;clip-path:inset(0 0 100% 0)}to{opacity:1;clip-path:inset(0 0 0 0)}}
+@keyframes painel-toastIn {from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes painel-rowIn {from{opacity:0;transform:translateY(-8px);background:var(--gold-t)}to{opacity:1;transform:none}}
+@keyframes painel-letterOut {to{opacity:0;transform:translateX(40px) rotate(2deg)}}
+.painel-s1:hover { color:var(--ink) !important }
+.painel-s2:hover { filter:brightness(1.12) !important; color:#f6ecd6 !important }
+.painel-s3:hover { filter:brightness(1.12) !important }
+.painel-s4:hover { background:rgb(241 227 194/.1) !important; color:#fff !important }
+.painel-s5:hover { color:var(--ink) !important }
+.painel-s6:hover { background:var(--surface2) !important }
+.painel-s7:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.painel-s8:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.painel-s9:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.painel-s10:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.painel-s11:hover { background:var(--accent-d) !important }
+.painel-s12:hover { background:var(--surface2) !important; color:var(--accent) !important }
+.painel-s13:hover { border-color:var(--gold) !important }
+.painel-s14:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.painel-s15:hover { background:var(--accent-d) !important }
+.painel-s16:hover { background:var(--surface2) !important; color:var(--ink) !important }
+.painel-s17:hover { color:var(--ink) !important; background:var(--surface2) !important }
+.painel-s18:hover { filter:brightness(1.12) !important }
+.painel-s19:hover { background:#fffaf0 !important; color:#241c14 !important }
+.painel-s20:hover { color:#8a1c24 !important }
+.painel-s21:hover { background:var(--surface2) !important }
+.painel-s22:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.painel-s23:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.painel-s24:hover { background:var(--surface2) !important }
+.painel-s25:hover { background:var(--surface2) !important }
+.painel-s26:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.painel-s27:hover { background:var(--surface2) !important; color:var(--ink) !important }
+.painel-s28:hover { background:var(--surface2) !important; color:var(--ink) !important }
+.painel-s29:hover { background:rgb(255 255 255/.08) !important }
+.painel-s30:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.painel-s31:hover { background:var(--surface2) !important; color:var(--ink) !important }
+.painel-s32:hover { filter:brightness(1.12) !important }
