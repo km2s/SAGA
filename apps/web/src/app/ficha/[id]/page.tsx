@@ -1,132 +1,47 @@
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 import { prisma } from 'database'
-import { notFound } from 'next/navigation'
-import { Badge } from '@/components/ui/Badge'
-import Link from 'next/link'
-import { safeImageUrl } from '@/lib/safe-url'
-import { coverFor } from '@/lib/campaign-cover'
-import { ResourceTracksPanel } from '@/components/character/ResourceTracksPanel'
-import { parseResources, parseTracks } from '@/lib/resource-tracks'
-import {
-  Swords, Sparkles, Shield, Sword, Plus, Axe, Leaf, Music, Target, Dumbbell,
-  Wand2, Moon, ScrollText, User,
-} from 'lucide-react'
+import { FichaPublica } from '@/components/screens/fichapublica/FichaPublica'
+import type { FichaPublicaDados } from '@/components/screens/fichapublica/vals'
+import { parseResources, parseTracks, TRACK_COLORS, trackValue } from '@/lib/resource-tracks'
 
-const CLASS_ICONS: Record<string, React.ElementType> = {
-  Guerreiro: Swords, Mago: Sparkles, Paladino: Shield, Ladino: Sword, Clérigo: Plus,
-  Bárbaro: Axe, Druida: Leaf, Bardo: Music, Ranger: Target, Monge: Dumbbell,
-  Feiticeiro: Wand2, Bruxo: Moon, Arcanista: ScrollText,
-}
+const ORDEM = ['Força', 'Destreza', 'Constituição', 'Inteligência', 'Sabedoria', 'Carisma']
 
-const ATTRIBUTE_COLORS: Record<string, string> = {
-  Força: 'text-red-400', Destreza: 'text-yellow-400', Constituição: 'text-green-400',
-  Inteligência: 'text-blue-400', Sabedoria: 'text-teal-400', Carisma: 'text-purple-400',
-}
-
+/**
+ * Ficha pública: retrato, campanha, sistema, barras de recurso e atributos
+ * (o mesmo que a página antiga mostrava). Privada ou inexistente → "selada";
+ * o dono vê a barra para publicar ou esconder.
+ */
 export default async function PublicCharacterPage({ params }: { params: { id: string } }) {
+  const session = await getServerSession(authOptions)
   const char = await prisma.characterSheet.findUnique({
     where: { id: params.id },
     include: {
-      member: {
-        include: {
-          user: true,
-          campaign: { include: { system: true } },
-        },
-      },
-      attributes: {
-        include: { attribute: true },
-        orderBy: { attribute: { name: 'asc' } },
-      },
+      sheetSystem: { select: { name: true, category: true } },
+      member: { include: { user: { select: { discordId: true } }, campaign: { select: { name: true, resourceTracksJson: true, system: { select: { name: true, category: true } } } } } },
+      attributes: { include: { attribute: { select: { id: true, name: true } } } },
     },
   }).catch(() => null)
 
-  if (!char || !char.isPublic) notFound()
-
-  const ClassIcon = CLASS_ICONS[char.class ?? ''] ?? User
-
-  return (
-    <main className="min-h-screen bg-parchment bg-gradient-login">
-      {/* Header bar */}
-      <div className="border-b border-ink/20 bg-card/80 backdrop-blur-sm px-5 py-3 flex items-center justify-between">
-        <Link href="/">
-          <span className="font-cinzel text-lg font-bold tracking-[6px] text-gold-gradient">SAGA</span>
-        </Link>
-        <Link href="/login">
-          <span className="text-[12px] text-ink-soft hover:text-gold transition-colors">Entrar →</span>
-        </Link>
-      </div>
-
-      <div className="max-w-2xl mx-auto px-4 py-10">
-        {/* Portrait + name */}
-        <div className="bg-card border border-ink/20 rounded-lg overflow-hidden mb-5">
-          {safeImageUrl(char.imageUrl) ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={safeImageUrl(char.imageUrl)!} alt={char.name} className="w-full h-64 object-cover object-top" />
-          ) : (
-            <div className={`w-full h-48 bg-gradient-to-br ${coverFor(0)} flex items-center justify-center`}>
-              <ClassIcon size={80} className="text-white/40" />
-            </div>
-          )}
-
-          <div className="p-6">
-            <div className="flex items-start justify-between gap-3 flex-wrap">
-              <div>
-                <h1 className="font-cinzel text-2xl font-bold">{char.name}</h1>
-                <p className="text-ink-soft text-sm mt-0.5">
-                  {[char.race, char.class].filter(Boolean).join(' · ')}
-                </p>
-              </div>
-              <Badge variant="gold">Nível {char.level}</Badge>
-            </div>
-
-            {/* Campaign */}
-            <div className="mt-4 pt-4 border-t border-ink/20 flex items-center justify-between text-[12px] text-ink-soft">
-              <span>{char.member.campaign.name}</span>
-              {char.member.campaign.system && (
-                <span className="text-ink-soft">{char.member.campaign.system.name}</span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Barras de recurso da campanha — página pública, só leitura */}
-        <div className="mb-5">
-          <ResourceTracksPanel
-            tracks={parseTracks(char.member.campaign.resourceTracksJson)}
-            hp={char.hp}
-            maxHp={char.maxHp}
-            resources={parseResources(char.resourcesJson)}
-            canEdit={false}
-            endpoint={null}
-          />
-        </div>
-
-        {/* Attributes */}
-        {char.attributes.length > 0 && (
-          <div className="bg-card border border-ink/20 rounded-lg p-5 mb-5">
-            <p className="text-[11px] font-bold text-ink-soft uppercase tracking-widest mb-4">Atributos</p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {char.attributes.map(a => (
-                <div key={a.id} className="bg-parchment/60 rounded-lg p-3 text-center">
-                  <p className={`font-cinzel text-2xl font-bold ${ATTRIBUTE_COLORS[a.attribute.name] ?? 'text-gold'}`}>
-                    {a.value >= 0 ? '+' : ''}{a.value}
-                  </p>
-                  <p className="text-[10px] text-ink-soft mt-1">{a.attribute.name}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* CTA */}
-        <div className="text-center mt-8">
-          <p className="text-[12px] text-ink-soft mb-3">Criado com SAGA · Gerencie suas aventuras de RPG</p>
-          <Link href="/login">
-            <span className="inline-block px-5 py-2.5 rounded bg-gold/15 border border-gold/30 text-gold text-sm font-medium hover:bg-gold/15 transition-colors">
-              Criar minha conta grátis
-            </span>
-          </Link>
-        </div>
-      </div>
-    </main>
-  )
+  const dono = !!char && char.member.user.discordId === session?.user.discordId
+  let dados: FichaPublicaDados = null
+  if (char && (char.isPublic || dono)) {
+    const sys = char.sheetSystem ?? char.member.campaign.system
+    const attrs = [...char.attributes].sort((a, b) => {
+      const ia = ORDEM.indexOf(a.attribute.name), ib = ORDEM.indexOf(b.attribute.name)
+      return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.attribute.id.localeCompare(b.attribute.id)
+    })
+    const res = parseResources(char.resourcesJson)
+    dados = {
+      id: char.id, dono, publica: char.isPublic,
+      nome: char.name, sub: [char.race, char.class].filter(Boolean).join(' · '), nivel: `Nível ${char.level}`,
+      campanha: char.member.campaign.name, sistema: sys?.name ?? 'Sistema próprio', img: char.imageUrl,
+      tracks: parseTracks(char.member.campaign.resourceTracksJson).map(t => {
+        const v = trackValue(t, char.hp, char.maxHp, res)
+        return { n: t.label, v: v.current, max: v.max, color: TRACK_COLORS[t.color]?.hex ?? 'var(--ok)' }
+      }),
+      attrs: attrs.slice(0, 6).map(a => ({ n: a.attribute.name, v: a.value, fantasia: sys?.category === 'fantasy' })),
+    }
+  }
+  return <FichaPublica dados={dados} />
 }

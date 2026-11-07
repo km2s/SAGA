@@ -143,6 +143,11 @@ durante a implementação. Endpoints e campos que faltam estão em `api-pendente
 - Handouts do painel lateral = as duas imagens de handout mais recentes da campanha.
 - Horários no fuso do navegador.
 
+## Ficha Pública (`/ficha/[id]`, id da ficha)
+- Mostra retrato, campanha, sistema, barras de recurso e até 6 atributos (os seis clássicos primeiro). Modificador só em sistema de fantasia; nos outros, o valor.
+- Privada ou inexistente → "Esta ficha está selada". O dono vê a barra e o interruptor grava `isPublic`.
+- Link curto = o endereço real da página.
+
 ## Termos e Privacidade
 - O Sumário rola até a seção (no design só destacava).
 - Texto jurídico, vigência, versão e contato em `apps/web/src/lib/legal.ts` — preencher antes de publicar.

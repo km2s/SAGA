@@ -115,7 +115,8 @@ export function useFichaVals(d: FichaDados) {
   const tabs: [string, string, LucideIcon][] = [['main', 'Principal', ScrollText], ['spells', 'Magias', WandSparkles], ['inv', 'Inventário', Backpack], ['feat', 'Traços', Award], ['notes', 'Notas', NotebookPen]]
 
   return {
-    $href: (link: string) => dcHref(link, { campaignId: d.campaignId, characterId: d.memberId }),
+    // Id da ficha: /ficha/[id] usa ele e /personagens/[id] aceita os dois.
+    $href: (link: string) => dcHref(link, { campaignId: d.campaignId, characterId: d.id }),
     $img: (_id: string) => d.img,
     init: (d.nome[0] ?? '?').toUpperCase(), nome: d.nome, linha: d.linha, sysCamp: d.sysCamp,
     temXp: false, xp: '', xpPct: 0, // TODO(api): experiência

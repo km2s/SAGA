@@ -165,4 +165,16 @@ if (& $want 'perfil') {
     Rep $c "<a href={'#'}" '<a href={v.inviteUrl} target="_blank" rel="noopener noreferrer"'
   } 'sistemas favoritos, e-mail, senha e convite do bot com dados reais.'
 }
+if (& $want 'fichapublica') {
+  $p = Gen 'SAGA Ficha Publica' 'fichapublica'
+  Edit $p {
+    param($c)
+    $c = Rep $c '>saga.gg/ficha/ck7v2q…<' '>{v.linkCurto}<'
+    $c = Rep $c '>Sir Aldric de Vernay<' '>{v.nome}<'
+    $c = Rep $c '>Humano · Paladino<' '>{v.sub}<'
+    $c = Rep $c '>Nível 3<' '>{v.nivel}<'
+    $c = Rep $c '>A Queda de Valdris<' '>{v.campanha}<'
+    Rep $c '>D&D 5e<' '>{v.sistema}<'
+  } 'nome, linha, nível, campanha, sistema e link com dados da ficha.'
+}
 'pronto'
