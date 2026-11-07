@@ -116,6 +116,19 @@ durante a implementação. Endpoints e campos que faltam estão em `api-pendente
 - As três regras da mesa do design valem para todas as mesas (regras da Taverna).
 - Minhas cartas: suas inscrições com Aguardando/Aceita/Recusada.
 
+## Sistemas (`/sistemas`)
+- Estante = pré-definidos + sistemas de usuários (comunidade). "Personalizado" entra em Genérico. Ícone da lombada pela categoria (pena para homebrew seu).
+- Dado da lombada: o do mapa dos pré-definidos ou o dado mais comum entre os atributos. "Mesas no Saga" = campanhas que usam o sistema.
+- "Clonar e editar" cria a cópia (`POST /api/systems` com `copyFromSystemIds`) e abre a cópia em `/sistemas/[id]` (edição atual).
+- Importar de outro sistema: só em sistema seu, pelo `POST /api/systems/[id]/import`; a mensagem usa a contagem do servidor.
+- Removidos: a estante antiga e o modal antigo de criar sistema.
+
+## Criar Sistema (`/sistemas/novo`)
+- Começa em branco, com os seis atributos clássicos e "Pontos de vida" como ponto de partida (o design vem com um exemplo preenchido).
+- Salvar cria o sistema e grava atributos e perícias como atributos da ficha (dado = dado base; rolar abaixo → d100; parada → d10). Sigla e mínimo–máximo vão na descrição do atributo.
+- Rascunho fica no navegador.
+- Mecânica, dificuldade, crítico, recursos, couro/ícone, visibilidade e as chaves de clonar/importar seguem no corpo para a fase da API. Hoje todo sistema de usuário aparece na comunidade.
+
 ## Termos e Privacidade
 - O Sumário rola até a seção (no design só destacava).
 - Texto jurídico, vigência, versão e contato em `apps/web/src/lib/legal.ts` — preencher antes de publicar.

@@ -81,6 +81,10 @@ Já funcionam com a API atual: iniciar sessão (`sessions/start`, 409), barras d
 | PV temporários, testes contra a morte, inspiração, dados de vida gastos, reserva de Cura pelas Mãos | Hoje só na tela |
 | Atributo de conjuração | Ataque mágico e CD de magia |
 
+## Criar Sistema (`components/screens/criarsistema/vals.ts`)
+
+`POST /api/systems` já cria o sistema (nome, descrição, categoria) e `POST /api/systems/[id]/attributes` os atributos. O front manda também, para a API gravar: `dadoBase`, `mecanica` (sum/pool/under), `dificuldade`, `critico`, `couro`, `icone`, `recursos: [{ nome, formula, cor }]`, `visibilidade` (Privado / Só minhas mesas / Comunidade), `permitirClonar`, `permitirImportadas`. Sigla e faixa de cada atributo hoje vão na descrição; o ideal é ter campos próprios.
+
 ## Convite (`components/screens/convite/vals.ts`)
 
 | Chamada | Contrato | Observações |
