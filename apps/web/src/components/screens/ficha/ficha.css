@@ -1,0 +1,44 @@
+/* Gerado por scripts/dc-to-jsx.ps1 a partir de SAGA Ficha.dc.html. */
+@keyframes ficha-up {from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes ficha-fadeIn {from{opacity:0}to{opacity:1}}
+@keyframes ficha-popIn {from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes ficha-popA {0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1)}}
+@keyframes ficha-popB {0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1)}}
+@keyframes ficha-stamp {0%{transform:scale(2.3) rotate(-22deg);opacity:0}60%{transform:scale(.92) rotate(3deg);opacity:1}100%{transform:scale(1) rotate(-8deg)}}
+@keyframes ficha-spin {0%{transform:rotate(0) scale(.8)}70%{transform:rotate(620deg) scale(1.06)}100%{transform:rotate(720deg) scale(1)}}
+@keyframes ficha-spinR {to{transform:rotate(360deg)}}
+@keyframes ficha-pulse {0%,100%{box-shadow:0 0 0 0 rgb(224 106 67/.5)}50%{box-shadow:0 0 0 5px rgb(224 106 67/0)}}
+@keyframes ficha-ringPulse {0%,100%{box-shadow:inset 0 0 0 2px var(--accent),0 0 0 0 rgb(224 106 67/.4)}50%{box-shadow:inset 0 0 0 2px var(--accent),0 0 0 6px rgb(224 106 67/0)}}
+@keyframes ficha-shakeA {0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
+@keyframes ficha-shakeB {0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
+@keyframes ficha-slideIn {from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+@keyframes ficha-unfold {from{opacity:0;clip-path:inset(0 0 100% 0)}to{opacity:1;clip-path:inset(0 0 0 0)}}
+@keyframes ficha-toastIn {from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes ficha-hpHitA {0%,100%{transform:none;color:inherit}20%{transform:translateX(-5px);color:#c8424c}50%{transform:translateX(5px)}}
+@keyframes ficha-hpHitB {0%,100%{transform:none;color:inherit}20%{transform:translateX(-5px);color:#c8424c}50%{transform:translateX(5px)}}
+@keyframes ficha-healA {0%{color:#4f7a3a;transform:scale(1.12)}100%{transform:none}}
+@keyframes ficha-healB {0%{color:#4f7a3a;transform:scale(1.12)}100%{transform:none}}
+@keyframes ficha-toastOut {to{opacity:0;transform:translateX(20px)}}
+.ficha-s1:hover { color:var(--ink) !important }
+.ficha-s2:hover { background:var(--surface2) !important }
+.ficha-s3:hover { background:var(--surface2) !important }
+.ficha-s4:hover { background:var(--surface2) !important }
+.ficha-s5:hover { background:var(--surface2) !important; color:var(--ink) !important }
+.ficha-s6:hover { background:var(--surface2) !important; color:var(--ink) !important }
+.ficha-s7:hover { color:var(--ink) !important }
+.ficha-s8:hover { color:var(--accent) !important }
+.ficha-s9:hover { color:var(--accent) !important }
+.ficha-s10:hover { filter:brightness(.97) !important }
+.ficha-s11:hover { color:var(--ink) !important; background:var(--surface2) !important }
+.ficha-s12:hover { color:var(--ink) !important; background:var(--surface2) !important }
+.ficha-s13:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.ficha-s14:hover { filter:brightness(1.1) !important }
+.ficha-s15:hover { filter:brightness(1.1) !important }
+.ficha-s16:hover { background:var(--surface2) !important }
+.ficha-s17:hover { background:var(--accent) !important; color:#fff8f0 !important }
+.ficha-s18:hover { background:var(--ink) !important; color:var(--bg) !important }
+.ficha-s19:hover { background:var(--surface2) !important }
+.ficha-s20:hover { filter:brightness(1.08) !important }
+.ficha-s21:hover { background:var(--ok) !important; color:#fff !important }
+.ficha-s22:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.ficha-s23:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }

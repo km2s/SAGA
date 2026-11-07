@@ -32,13 +32,29 @@ function Rep([string]$c, [string]$a, [string]$b) {
   return $c.Replace($a, $b)
 }
 # Envolve o elemento <tag> que contém `anchor` (o mais próximo antes dele) em {cond && (...)}.
-function WrapEnclosing([string]$c, [string]$anchor, [string]$tag, [string]$cond) {
+# A tag que começa em $at termina em "/>"? (lê até o '>' fora de chaves: props podem ter "=>")
+function IsSelfClosing([string]$c, [int]$at) {
+  $b = 0
+  for ($k = $at; $k -lt $c.Length; $k++) {
+    $ch = $c[$k]
+    if ($ch -eq '{') { $b++ } elseif ($ch -eq '}') { $b-- }
+    elseif ($ch -eq '>' -and $b -eq 0) { return $c[$k - 1] -eq '/' }
+  }
+  return $false
+}
+# $up: quantos <tag> subir a partir do mais próximo (só vale sem outros <tag> no meio).
+function WrapEnclosing([string]$c, [string]$anchor, [string]$tag, [string]$cond, [int]$up = 0) {
   $i = $c.IndexOf($anchor, $O); if ($i -lt 0) { throw "âncora não achada: $anchor" }
   $s = $c.LastIndexOf("<$tag", $i, $O)
+  for ($k = 0; $k -lt $up; $k++) { $s = $c.LastIndexOf("<$tag", $s - 1, $O) }
   $depth = 0; $p = $s
   while ($true) {
     $nOpen = $c.IndexOf("<$tag", $p + 1, $O); $nClose = $c.IndexOf("</$tag>", $p + 1, $O)
-    if ($nOpen -ge 0 -and $nOpen -lt $nClose) { $depth++; $p = $nOpen; continue }
+    if ($nOpen -ge 0 -and $nOpen -lt $nClose) {
+      $p = $nOpen
+      if (-not (IsSelfClosing $c $nOpen)) { $depth++ }
+      continue
+    }
     if ($depth -eq 0) { $e = $nClose + "</$tag>".Length; break }
     $depth--; $p = $nClose
   }
@@ -112,5 +128,25 @@ if (& $want 'criarpersonagem') {
     $c = Rep $c '>D&D 5e</p>' '>{v.sistemaNome}</p>'
     Rep $c '>Livro do Jogador · ficha completa com rolagens</p>' '>{v.sistemaLinha}</p>'
   } 'cartão do sistema mostra o sistema da campanha escolhida.'
+}
+if (& $want 'ficha') {
+  $p = Gen 'SAGA Ficha' 'ficha'
+  Edit $p {
+    param($c)
+    $c = Rep $c ">A</span><ImageSlot src={v.`$img('pers-retrato-2')} />" ">{v.init}</span><ImageSlot src={v.`$img('retrato')} />"
+    $c = Rep $c '>D&D 5e · Sem campanha</p>' '>{v.sysCamp}</p>'
+    $c = Rep $c '>Sir Aldric de Vernay</h1>' '>{v.nome}</h1>'
+    $c = Rep $c '>Humano · Paladino (Juramento de Devoção) · Nível 3 · Acólito · Leal e Bom</p>' '>{v.linha}</p>'
+    $c = WrapEnclosing $c '{v.xp}' 'div' 'v.temXp'
+    $c = Rep $c '>+0</p>' '>{v.ini}</p>'
+    $c = WrapEnclosing $c '>Destruição Divina no próximo dano<' 'div' 'v.isPaladino' 1
+    $c = WrapEnclosing $c '>Cura pelas Mãos</p>' 'div' 'v.isPaladino'
+    $c = Rep $c '>/ 15</span>' '>/ {v.lohMax}</span>'
+    $c = Rep $c '>Espaços de 1º círculo<' '>{v.slotsTitulo}<'
+    $c = Rep $c '>Percepção passiva 11 · Intuição passiva 13<' '>{v.passivas}<'
+    $c = Rep $c "{' / 120 kg'}" "{' / '}{v.cargaMax}{' kg'}"
+    $c = Rep $c '>FOR 16 × 7,5 kg. A cota de malha impõe desvantagem em Furtividade.</p>' '>{v.cargaNota}</p>'
+    Rep $c '>Diário de Aldric<' '>{v.diarioTitulo}<'
+  } 'cabeçalho, passivas, carga e notas com dados da ficha; Destruição Divina e Cura pelas Mãos só para Paladino; XP escondido sem dado.'
 }
 'pronto'

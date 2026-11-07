@@ -70,6 +70,17 @@ Já funcionam com a API atual: iniciar sessão (`sessions/start`, 409), barras d
 | Segredo do personagem (só dono e mestre) | Campo "Segredos — só o mestre vê"; não pode aparecer na ficha pública. |
 | Retrato no momento da criação | Moldura da prévia. |
 
+## Ficha de D&D 5e (`components/screens/ficha/vals.ts`)
+
+| Recurso | Uso no front |
+|---|---|
+| Magias (nome, círculo, concentração, tempo/alcance, descrição) e preparadas | Aba Magias (hoje vazia) |
+| Inventário (ícone, nome, descrição, quantidade, peso, equipado/consumível/missão) e moedas | Aba Inventário, carga e CA por armadura/escudo |
+| XP | Barra de XP do cabeçalho (hoje escondida) |
+| Traços (origem, nome, descrição) e recursos de classe com usos | Aba Traços e recursos (Canalizar Divindade, Sentido Divino…) |
+| PV temporários, testes contra a morte, inspiração, dados de vida gastos, reserva de Cura pelas Mãos | Hoje só na tela |
+| Atributo de conjuração | Ataque mágico e CD de magia |
+
 ## Convite (`components/screens/convite/vals.ts`)
 
 | Chamada | Contrato | Observações |

@@ -94,6 +94,19 @@ durante a implementação. Endpoints e campos que faltam estão em `api-pendente
 - NPC: `POST /api/campaigns/[id]/npcs` com tipo, raça, classe, nível, PV, visibilidade e a história como descrição.
 - Removidos: a lista antiga de personagens, os modais antigos de criar ficha e de criar/entrar em campanha.
 
+## Ficha (`/personagens/[id]`)
+- `[id]` aceita o id da participação (links antigos, bot) ou o id da ficha (telas novas).
+- Só fichas de D&D 5e abrem a Ficha nova; as outras seguem com a ficha antiga até "Fichas por Sistema".
+- Atributos, salvaguardas (`Salv. X`), perícias, CA, Velocidade e Percepção Passiva vêm dos atributos do D&D 5e do seed. O ponto de proficiência aparece quando o bônus gravado é maior que o modificador.
+- Iniciativa = modificador de DES. Intuição passiva = 10 + bônus de Intuição.
+- Ataques = armas da ficha (bônus e dano gravados; o dano rola pelo "XdY+Z").
+- Espaços de magia: o primeiro círculo com espaços; gastar/recuperar grava (`spell-slots`).
+- Destruição Divina e Cura pelas Mãos só para Paladino (reserva = 5 × nível). Dado de vida pela classe.
+- PV grava na ficha; PV temporários, testes contra a morte, inspiração, dados de vida gastos e reserva de Cura pelas Mãos ficam só na tela.
+- Magias, inventário, moedas, XP, traços e recursos de classe: listas vazias (sem tabela). XP escondido.
+- Diário e "Juramentos e aliados" gravam como campos de texto da ficha.
+- A rolagem fica na tela (toast), como no design.
+
 ## Termos e Privacidade
 - O Sumário rola até a seção (no design só destacava).
 - Texto jurídico, vigência, versão e contato em `apps/web/src/lib/legal.ts` — preencher antes de publicar.
