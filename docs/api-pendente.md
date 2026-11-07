@@ -85,6 +85,20 @@ Já funcionam com a API atual: iniciar sessão (`sessions/start`, 409), barras d
 
 `POST /api/systems` já cria o sistema (nome, descrição, categoria) e `POST /api/systems/[id]/attributes` os atributos. O front manda também, para a API gravar: `dadoBase`, `mecanica` (sum/pool/under), `dificuldade`, `critico`, `couro`, `icone`, `recursos: [{ nome, formula, cor }]`, `visibilidade` (Privado / Só minhas mesas / Comunidade), `permitirClonar`, `permitirImportadas`. Sigla e faixa de cada atributo hoje vão na descrição; o ideal é ter campos próprios.
 
+## Mensagens (`components/screens/mensagens/vals.ts`)
+
+Hoje o canal da campanha é o chat da sessão ativa (`RollLog` com `expression = 'chat'`), lido pelo `GET rolls?since=` a cada 4 s. Falta:
+
+| Recurso | Uso no front |
+|---|---|
+| Mensagens diretas entre usuários | Grupo "Diretas" (hoje vazio) |
+| Canal da campanha fora da sessão | Hoje só dá para escrever com sessão ativa |
+| Mensagem em personagem (flag + nome do personagem) | Modo "Em personagem" |
+| Sussurro do mestre (selado, só um destinatário) | Bolha selada que rompe ao clicar |
+| Recado fixado e próxima sessão no painel lateral | "Fixado" e agenda |
+| Não lidas | Selo do header e contadores da lista |
+| Indicador "escrevendo…" | Linha de digitação (hoje usada para avisos de erro) |
+
 ## Perfil (`components/screens/perfil/vals.ts`)
 
 | Chamada | Contrato |
@@ -121,6 +135,7 @@ O filtro de visibilidade tem de valer em **todo** leitor de `RollLog`, não só 
 - `app/(app)/campaign/[id]/mesa/page.tsx` (rolagens iniciais, SSR)
 - `app/(app)/campaign/[id]/page.tsx` (rolagens recentes, SSR)
 - `app/(app)/campaign/[id]/sessions/[sessionId]/page.tsx` (registro e estatísticas)
+- Telas do redesign: `app/(app)/mensagens/page.tsx` (canal), `app/(app)/campaign/[id]/page.tsx` (Atividade do Painel), `app/(app)/perfil/page.tsx` (contagens), `app/(app)/dashboard` (rolagem rápida)
 - Bot `/iniciativa ver` (publica os totais no canal) e `/sessao` (conta as rolagens)
 
 Em aberto: iniciativa em modo privado no bot; se o `/sessao` conta só as públicas.

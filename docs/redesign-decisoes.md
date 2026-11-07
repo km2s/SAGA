@@ -136,6 +136,13 @@ durante a implementação. Endpoints e campos que faltam estão em `api-pendente
 - Discord sempre conectado (é o login); "Sincronizar agora" chama `POST /api/perfil/sincronizar`. Servidores, Google, e-mail/senha, 2FA e dispositivos ficam vazios ou "—" até a API.
 - Tema: Claro/Escuro/Sistema usam o mesmo tema do resto do app ("Sistema" aplica a preferência do aparelho na hora). Preferências de animação, sons, e-mails e resumo ficam no navegador.
 
+## Mensagens (`/mensagens`)
+- Conversas = canais das suas campanhas, sobre o chat da sessão (o único canal que existe hoje). Sem sessão ativa, mostra o registro da última sessão; enviar avisa "O canal abre para mensagens quando a sessão começa." na linha de digitação (o design não tem estado de erro).
+- `/r XdY+Z` rola no servidor e entra no registro; texto comum vira mensagem de chat.
+- Removidos da simulação do protótipo: respostas automáticas e "está escrevendo…". Diretas, sussurro selado, recado fixado e modo em personagem esperam a API (o modo muda só o visual do campo).
+- Handouts do painel lateral = as duas imagens de handout mais recentes da campanha.
+- Horários no fuso do navegador.
+
 ## Termos e Privacidade
 - O Sumário rola até a seção (no design só destacava).
 - Texto jurídico, vigência, versão e contato em `apps/web/src/lib/legal.ts` — preencher antes de publicar.
