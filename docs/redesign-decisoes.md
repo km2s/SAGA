@@ -179,6 +179,10 @@ durante a implementação. Endpoints e campos que faltam estão em `api-pendente
 - Jogador recebe só os NPCs revelados para ele, sem pastas nem controles. Banner antigo some nessa rota.
 - Removidos os controles antigos de NPC (pastas, botão de apagar, painel de atributos e o modal/ações antigos).
 
+## Pendente: Fichas por Sistema
+- Não implementada ainda. A moldura do design mostra atributos, trilhas e só os **nomes** das seções de cada sistema ("Cada seção vira uma aba"), mas as 27 fichas antigas (`components/character/sheets/*`) guardam e editam os campos dessas seções. Trocar agora tiraria de quem usa o site a edição desses campos.
+- Para fazer: mapear, ficha por ficha, as seções do design para os campos reais (textFields/atributos) e desenhar as abas de seção (o design só lista os nomes). Até lá, os sistemas fora do D&D 5e seguem com a ficha antiga.
+
 ## Termos e Privacidade
 - O Sumário rola até a seção (no design só destacava).
 - Texto jurídico, vigência, versão e contato em `apps/web/src/lib/legal.ts` — preencher antes de publicar.
