@@ -203,4 +203,20 @@ if (& $want 'membros') {
     WrapEnclosing $c '${p.pct}%' 'div' 'p.hasHp' 1
   } 'campanha, mestre e código com dados reais; visão pelo papel (sem o seletor do protótipo); ficha de cada jogador.'
 }
+if (& $want 'sessao') {
+  $p = Gen 'SAGA Sessao' 'sessao'
+  Edit $p {
+    param($c)
+    $c = Rep $c '>A Queda de Valdris<' '>{v.campanha}<'
+    $c = Rep $c '>Sessão 12 · encerrada<' '>{v.estado}<'
+    $c = Rep $c '>Sessão 12<' '>{v.sessaoN}<'
+    $c = Rep $c '>O cerco ao mosteiro<' '>{v.titulo}<'
+    $c = Rep $c '>3h 42m<' '>{v.duracao}<'
+    $c = WrapEnclosing $c '>Visão de<' 'div' 'v.temVisao'
+    $c = Rep $c '>@bruna acertou a flecha que derrubou o portão<' '>{v.destaque.t}<'
+    $c = Rep $c '>1d20+7 · [20] · maior rolagem da noite<' '>{v.destaque.d}<'
+    $c = Rep $c '>27<' '>{v.destaque.total}<'
+    WrapEnclosing $c '>Destaque da sessão<' 'section' 'v.temDestaque'
+  } 'cabeçalho e destaque com dados da sessão; visão pelo papel; destaque some sem rolagens.'
+}
 'pronto'

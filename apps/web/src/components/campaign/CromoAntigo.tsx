@@ -12,6 +12,6 @@ export function CromoAntigo({ campaignId, isGM, children }: { campaignId: string
   const pathname = usePathname()
   const base = `/campaign/${campaignId}`
   const novas = [`${base}/members`, ...(isGM ? [base] : [])]
-  if (novas.includes(pathname)) return null
+  if (novas.includes(pathname) || pathname.startsWith(`${base}/sessions/`)) return null
   return <>{children}</>
 }

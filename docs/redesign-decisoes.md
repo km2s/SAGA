@@ -162,6 +162,14 @@ durante a implementação. Endpoints e campos que faltam estão em `api-pendente
 - "Criar ficha para @x" (duas etapas) cria a ficha pelo `POST /api/characters` com o modelo do sistema da campanha. Removidos os componentes antigos do `/gm` que o Painel e o Membros substituíram.
 - Código de convite "—" até `inviteCode`.
 
+## Sessão (`/campaign/[id]/sessions/[sessionId]`)
+- Número = ordem da sessão na campanha. Título = nome da sessão, ou o primeiro "# título" do resumo, ou "Sessão N". Horários no fuso de Brasília.
+- Resumo grava pela rota `.../summary` que já existe (o mestre edita; jogador só lê).
+- Críticos = 1d20 com 20; "Na mesa" = quem rolou (ou a presença salva da sessão, o que for maior).
+- Destaque = a maior rolagem da sessão; some se não houve rolagens.
+- Rolagens privadas ainda não existem: todas aparecem como públicas, sem marcadores (TODO(api)).
+- Banner antigo some nessa rota. Removido: o editor antigo de resumo.
+
 ## Termos e Privacidade
 - O Sumário rola até a seção (no design só destacava).
 - Texto jurídico, vigência, versão e contato em `apps/web/src/lib/legal.ts` — preencher antes de publicar.
