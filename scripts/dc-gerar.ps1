@@ -97,4 +97,20 @@ if (& $want 'painel') {
     $c
   } 'nome, linha do topo, bot e modelo de ficha com dados da campanha; resumo por sessão.'
 }
+if (& $want 'personagens') {
+  $p = Gen 'SAGA Personagens' 'personagens'
+  Edit $p {
+    param($c)
+    $c = WrapEnclosing $c 'v.$img(v.sel.slot)' 'aside' 'v.temSel'
+    Rep $c "<Link href={v.`$href('SAGA Painel do Mestre.dc.html?aba=npcs')}" '<Link href={g.href}'
+  } 'painel do personagem só com personagem; link do grupo para o Painel daquela campanha.'
+}
+if (& $want 'criarpersonagem') {
+  $p = Gen 'SAGA Criar Personagem' 'criarpersonagem'
+  Edit $p {
+    param($c)
+    $c = Rep $c '>D&D 5e</p>' '>{v.sistemaNome}</p>'
+    Rep $c '>Livro do Jogador · ficha completa com rolagens</p>' '>{v.sistemaLinha}</p>'
+  } 'cartão do sistema mostra o sistema da campanha escolhida.'
+}
 'pronto'

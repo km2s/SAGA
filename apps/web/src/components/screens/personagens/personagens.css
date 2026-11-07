@@ -1,0 +1,14 @@
+/* Gerado por scripts/dc-to-jsx.ps1 a partir de SAGA Personagens.dc.html. */
+@keyframes personagens-up {from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes personagens-slideIn {from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+@keyframes personagens-pop {0%{transform:scale(1)}40%{transform:scale(1.25)}100%{transform:scale(1)}}
+@keyframes personagens-spin {0%{transform:rotate(0) scale(.85)}70%{transform:rotate(620deg) scale(1.05)}100%{transform:rotate(720deg) scale(1)}}
+.personagens-s1:hover { background:var(--surface2) !important }
+.personagens-s2:hover { background:var(--accent-d) !important }
+.personagens-s3:hover { transform:translateY(-3px) !important }
+.personagens-s4:hover { background:var(--surface2) !important }
+.personagens-s5:hover { background:var(--surface2) !important }
+.personagens-s6:hover { border-color:var(--accent) !important; transform:translateY(-2px) !important }
+.personagens-s7:hover { opacity:.88 !important; color:var(--bg) !important }
+.personagens-s8:hover { background:var(--surface2) !important }
+.personagens-s9:hover { filter:brightness(.97) !important }

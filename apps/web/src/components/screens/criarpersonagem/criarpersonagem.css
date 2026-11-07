@@ -1,0 +1,34 @@
+/* Gerado por scripts/dc-to-jsx.ps1 a partir de SAGA Criar Personagem.dc.html. */
+@keyframes criarpersonagem-up {from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes criarpersonagem-fadeIn {from{opacity:0}to{opacity:1}}
+@keyframes criarpersonagem-popIn {from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes criarpersonagem-popA {0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1)}}
+@keyframes criarpersonagem-popB {0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1)}}
+@keyframes criarpersonagem-stamp {0%{transform:scale(2.3) rotate(-22deg);opacity:0}60%{transform:scale(.92) rotate(3deg);opacity:1}100%{transform:scale(1) rotate(-8deg)}}
+@keyframes criarpersonagem-spin {0%{transform:rotate(0) scale(.8)}70%{transform:rotate(620deg) scale(1.06)}100%{transform:rotate(720deg) scale(1)}}
+@keyframes criarpersonagem-spinR {to{transform:rotate(360deg)}}
+@keyframes criarpersonagem-pulse {0%,100%{box-shadow:0 0 0 0 rgb(224 106 67/.5)}50%{box-shadow:0 0 0 5px rgb(224 106 67/0)}}
+@keyframes criarpersonagem-ringPulse {0%,100%{box-shadow:inset 0 0 0 2px var(--accent),0 0 0 0 rgb(224 106 67/.4)}50%{box-shadow:inset 0 0 0 2px var(--accent),0 0 0 6px rgb(224 106 67/0)}}
+@keyframes criarpersonagem-shakeA {0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
+@keyframes criarpersonagem-shakeB {0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
+@keyframes criarpersonagem-slideIn {from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+@keyframes criarpersonagem-unfold {from{opacity:0;clip-path:inset(0 0 100% 0)}to{opacity:1;clip-path:inset(0 0 0 0)}}
+@keyframes criarpersonagem-toastIn {from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes criarpersonagem-swapA {0%{transform:scale(.6);opacity:.3}100%{transform:none;opacity:1}}
+@keyframes criarpersonagem-swapB {0%{transform:scale(.6);opacity:.3}100%{transform:none;opacity:1}}
+@keyframes criarpersonagem-dieJig {0%,100%{transform:rotate(0)}25%{transform:rotate(-14deg)}75%{transform:rotate(14deg)}}
+.criarpersonagem-s1:hover { color:var(--ink) !important }
+.criarpersonagem-s2:hover { color:var(--ink) !important; background:var(--surface2) !important }
+.criarpersonagem-s3:hover { color:var(--ink) !important; background:var(--surface2) !important }
+.criarpersonagem-s4:hover { filter:brightness(1.12) !important }
+.criarpersonagem-s5:hover { background:var(--surface2) !important }
+.criarpersonagem-s6:hover { background:var(--surface2) !important }
+.criarpersonagem-s7:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.criarpersonagem-s8:hover { background:var(--surface2) !important }
+.criarpersonagem-s9:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.criarpersonagem-s10:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.criarpersonagem-s11:hover { color:var(--ink) !important; background:var(--surface2) !important }
+.criarpersonagem-s12:hover { background:var(--accent-d) !important }
+.criarpersonagem-s13:hover { filter:brightness(1.12) !important }
+.criarpersonagem-s14:hover { filter:brightness(1.12) !important; color:#f6ecd6 !important }
+.criarpersonagem-s15:hover { background:#fffaf0 !important }

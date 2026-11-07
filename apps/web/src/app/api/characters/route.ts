@@ -35,6 +35,7 @@ export async function POST(req: Request) {
     // import flow
     systemName?: string
     importedAttributes?: { name: string; value: number }[]
+    atributos?: { nome: string; valor: number }[]
   }
 
   if (!body.campaignId) return NextResponse.json({ error: 'campaignId obrigatório' }, { status: 400 })
@@ -99,6 +100,21 @@ export async function POST(req: Request) {
       sheetSystemId,
     },
   })
+
+  // Criar Personagem (redesign): valores dos atributos pelo nome, nos atributos
+  // do sistema da campanha. Nomes que o sistema não tem são ignorados.
+  if (Array.isArray(body.atributos) && body.atributos.length > 0 && body.atributos.length <= 50) {
+    const camp = await prisma.campaign.findUnique({ where: { id: body.campaignId }, select: { systemId: true } }).catch(() => null)
+    const systemId = sheetSystemId ?? camp?.systemId
+    if (systemId) {
+      const sysAttrs = await prisma.systemAttribute.findMany({ where: { systemId }, select: { id: true, name: true } }).catch(() => [])
+      const byName = new Map(sysAttrs.map(a => [a.name.toLowerCase(), a.id]))
+      const data = body.atributos
+        .filter(a => typeof a?.nome === 'string' && Number.isFinite(a?.valor) && byName.has(a.nome.toLowerCase()))
+        .map(a => ({ sheetId: character.id, attributeId: byName.get(a.nome.toLowerCase())!, value: Math.max(-999, Math.min(999, Math.round(a.valor))) }))
+      if (data.length) await prisma.characterAttribute.createMany({ data, skipDuplicates: true }).catch(() => null)
+    }
+  }
 
   if (templateAttrs.length > 0) {
     await prisma.characterAttribute.createMany({

@@ -78,6 +78,22 @@ durante a implementação. Endpoints e campos que faltam estão em `api-pendente
 - Fios soltos, agendamento, renomear, visibilidade das rolagens, código e arquivar chamam endpoints da fase da API.
 - Os componentes antigos do `/gm` ficam no repositório até a tela Membros (que absorve "Criar ficha para @x").
 
+## Personagens (`/personagens`)
+- Regra de rolagem pelo sistema da ficha: World of Darkness → pool de d10 (dif. 6); atributo com dado d100 → percentual; o resto → d20 + modificador. A rolagem fica na tela (não vai para o log), como no design.
+- Atributos mostrados: os 6 primeiros da ficha, com sigla de 3 letras ("Força" → FOR).
+- Barra extra = primeira barra de recurso da campanha além da vida.
+- PV ± grava na ficha (`PATCH /api/characters/[id]`) meio segundo depois do último clique.
+- Aba Mestre: NPCs das campanhas em que você é mestre; o olho grava `isPublic`.
+- Sem personagens: o painel lateral não aparece (o design não tem estado vazio).
+- "Importar ficha" (`?importar=1`) abre o modal de importação atual até a tela Importar Ficha.
+
+## Criar Personagem (`/personagens/novo`)
+- Assistente de D&D 5e do design para qualquer campanha; os atributos são gravados pelo nome nos atributos do sistema da campanha (o `POST /api/characters` passou a aceitar `atributos`). O cartão do sistema mostra o sistema da campanha.
+- "Sem campanha" não existe: a ficha pertence a uma participação na campanha. A lista mostra só as campanhas em que você ainda não tem ficha; vazia → "Entre numa campanha para criar um personagem."
+- Antecedente, alinhamento e história viram campos de texto da ficha. O segredo não é gravado ainda (campo de texto apareceria na ficha pública).
+- NPC: `POST /api/campaigns/[id]/npcs` com tipo, raça, classe, nível, PV, visibilidade e a história como descrição.
+- Removidos: a lista antiga de personagens, os modais antigos de criar ficha e de criar/entrar em campanha.
+
 ## Termos e Privacidade
 - O Sumário rola até a seção (no design só destacava).
 - Texto jurídico, vigência, versão e contato em `apps/web/src/lib/legal.ts` — preencher antes de publicar.

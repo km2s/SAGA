@@ -62,6 +62,14 @@ Já funcionam com a API atual: iniciar sessão (`sessions/start`, 409), barras d
 | Ligar/desligar o bot; servidor e canal do Discord | | Linha "Lembretes e rolagens em #canal · Servidor". |
 | `POST /api/campaigns/[id]/arquivar` | → `200` | `Campaign.archivedAt`; depois volta para /campanhas. |
 
+## Criar Personagem
+
+| Recurso | Uso no front |
+|---|---|
+| Ficha sem campanha | Opção "Sem campanha" do design (hoje `CharacterSheet.memberId` é obrigatório). |
+| Segredo do personagem (só dono e mestre) | Campo "Segredos — só o mestre vê"; não pode aparecer na ficha pública. |
+| Retrato no momento da criação | Moldura da prévia. |
+
 ## Convite (`components/screens/convite/vals.ts`)
 
 | Chamada | Contrato | Observações |
