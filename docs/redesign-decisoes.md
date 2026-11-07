@@ -170,6 +170,15 @@ durante a implementação. Endpoints e campos que faltam estão em `api-pendente
 - Rolagens privadas ainda não existem: todas aparecem como públicas, sem marcadores (TODO(api)).
 - Banner antigo some nessa rota. Removido: o editor antigo de resumo.
 
+## NPCs (`/campaign/[id]/npcs`)
+- A seleção vai em `?npc=`. "Ficha completa" abre a ficha de NPC atual em `/npcs/[npcId]` (fica até "Fichas por Sistema"); o README pedia que essa rota abrisse a lista com o NPC selecionado.
+- Pastas reais (criar, renomear inline, apagar com confirmação; os NPCs vão para "Sem pasta"). Mover para pasta grava `folderId`.
+- Visível para um jogador = `isPublic` ou `NPCVisibility.canView`. Ligar/desligar um jogador num NPC público passa a valer por jogador. "Revelar a todos" liga `isPublic`; "Esconder de todos" desliga e zera as visibilidades.
+- PV ±1/±5 grava no NPC. Atributos: até 6 (os clássicos primeiro), com modificador só em sistema de fantasia.
+- Tipos sem cor própria no design (Inimigo → Vilão; Familiar, Servo e Outro → Neutro).
+- Jogador recebe só os NPCs revelados para ele, sem pastas nem controles. Banner antigo some nessa rota.
+- Removidos os controles antigos de NPC (pastas, botão de apagar, painel de atributos e o modal/ações antigos).
+
 ## Termos e Privacidade
 - O Sumário rola até a seção (no design só destacava).
 - Texto jurídico, vigência, versão e contato em `apps/web/src/lib/legal.ts` — preencher antes de publicar.

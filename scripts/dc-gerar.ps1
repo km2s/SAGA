@@ -219,4 +219,13 @@ if (& $want 'sessao') {
     WrapEnclosing $c '>Destaque da sessão<' 'section' 'v.temDestaque'
   } 'cabeçalho e destaque com dados da sessão; visão pelo papel; destaque some sem rolagens.'
 }
+if (& $want 'npcs') {
+  $p = Gen 'SAGA NPCs' 'npcs'
+  Edit $p {
+    param($c)
+    $c = Rep $c '>A Queda de Valdris<' '>{v.campanha}<'
+    $c = WrapEnclosing $c '>Visão de<' 'div' 'v.temVisao'
+    Rep $c "v.`$href('SAGA Fichas por Sistema.dc.html')" 'v.fichaHref'
+  } 'campanha real; visão pelo papel; ficha completa do NPC selecionado.'
+}
 'pronto'
