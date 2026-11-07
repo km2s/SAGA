@@ -125,6 +125,16 @@ Hoje o canal da campanha é o chat da sessão ativa (`RollLog` com `expression =
 |---|---|
 | Progresso do tour no usuário (`phase`, ritos feitos, rito atual) | Hoje em `localStorage` (`lib/tour-store.ts`); no usuário, vale em qualquer dispositivo. |
 
+## Mesa (`components/screens/mesa/vals.ts`)
+
+| O quê | Observação |
+|---|---|
+| Cenas da sessão (nome, mapa, miniatura) | O cabeçalho do design troca de cena; hoje há um só `mapImageUrl`. |
+| Névoa na sessão (`nevoaJson`: áreas em casas, revelada ou não) | Hoje só no navegador do mestre; com isso o jogador passa a ver a névoa de verdade. |
+| Upload de imagem do mapa | "Trocar mapa" do design é soltar a imagem; hoje é link. |
+| Bônus de ataque e CA do token/ficha | O popover do design mostra CA e "Rolar ataque +N". |
+| Perícias na ficha | A aba Fichas do design lista perícias roláveis. |
+
 ## Rolagens privadas (SAGA Mesa, SAGA Sessao)
 
 Proposta do handoff: `enum RollVisibility { PUBLIC SELF GM BLIND GM_SECRET }`,
@@ -138,4 +148,12 @@ O filtro de visibilidade tem de valer em **todo** leitor de `RollLog`, não só 
 - Telas do redesign: `app/(app)/mensagens/page.tsx` (canal), `app/(app)/campaign/[id]/page.tsx` (Atividade do Painel), `app/(app)/perfil/page.tsx` (contagens), `app/(app)/dashboard` (rolagem rápida)
 - Bot `/iniciativa ver` (publica os totais no canal) e `/sessao` (conta as rolagens)
 
-Em aberto: iniciativa em modo privado no bot; se o `/sessao` conta só as públicas.
+Decidido com a Karine (2026-11-07):
+- **`/iniciativa ver` no bot:** uma iniciativa privada (às cegas, secreta) de jogador
+  aparece só para quem rolou e para o mestre. Se quem rolou foi o mestre, nenhum
+  jogador vê; só o mestre. Como o canal é público, a resposta para jogadores omite as
+  privadas e o mestre vê a lista completa numa resposta efêmera.
+- **`/sessao` no bot:** o mestre vê o total com contadores por tipo (ex.: "30
+  rolagens · 10 privadas · 10 às cegas"); jogadores veem só as públicas.
+- A mesma regra vale para as telas do site (Sessão, Painel, Perfil): o mestre vê
+  tudo com contadores; jogadores, só as públicas e as próprias.

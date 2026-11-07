@@ -11,7 +11,7 @@ interface Track {
   Icon: React.ElementType
 }
 
-const PRESETS: Track[] = [
+export const PRESETS: Track[] = [
   { id: 'tavern',   title: 'Taverna Medieval',      mood: 'Relaxante',  youtubeId: 'Wr5RFkh_h5I', Icon: Coffee  },
   { id: 'dungeon',  title: 'Masmorra Sombria',       mood: 'Tenso',      youtubeId: 'wpCbJWFmJRQ', Icon: Skull   },
   { id: 'forest',   title: 'Floresta Encantada',     mood: 'Misterioso', youtubeId: 'V4zjSjgfOZY', Icon: Leaf    },

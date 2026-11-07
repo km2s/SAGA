@@ -9,13 +9,15 @@ export interface Token {
   hp?: number; maxHp?: number
   imageUrl?: string | null
   allowedPlayers?: string[]
+  // Mesa nova (components/screens/mesa): condições, iniciativa e vez ficam no próprio token.
+  cond?: string[]; ini?: number; vez?: boolean; rodada?: number
 }
 
 export interface InitiativeEntry {
   tokenId: string; label: string; color: string; type: string
   initiative: number; hp?: number; maxHp?: number
 }
-export interface Marker { id: string; x: number; y: number; color: string; createdAt: number }
+export interface Marker { id: string; x: number; y: number; color: string; createdAt: number; who?: string }
 export interface RollLogEntry {
   id: string; expression: string; rolls: number[]; modifier: number
   total: number; attribute: string | null; rolledBy: string; rolledAt: string

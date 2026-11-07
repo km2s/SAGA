@@ -179,6 +179,21 @@ durante a implementação. Endpoints e campos que faltam estão em `api-pendente
 - Jogador recebe só os NPCs revelados para ele, sem pastas nem controles. Banner antigo some nessa rota.
 - Removidos os controles antigos de NPC (pastas, botão de apagar, painel de atributos e o modal/ações antigos).
 
+## Mesa (`/campaign/[id]/mesa?nova=1`, prévia)
+- Fica em prévia: a Mesa atual continua em `/campaign/[id]/mesa` até a nova ser testada numa sessão de verdade. As duas leem e gravam o mesmo estado da sessão, então dá para alternar no meio do jogo.
+- Tokens no formato da Mesa atual (centro em px do tabuleiro). A nova encaixa no meio da casa; a atual, no cruzamento das linhas. Condições, iniciativa, vez e rodada ficam no próprio token (`cond`, `ini`, `vez`, `rodada` em `tokensJson`), assim todos veem a mesma ordem e o mesmo turno.
+- Quem move o quê: o mestre move tudo; o jogador só move o próprio token (ou os liberados) e só se o mestre deu "ao vivo", como hoje. Vida, condições, novo token e remover são do mestre; o jogador não vê a vida dos inimigos.
+- "Rolar iniciativa" (só o mestre): d20 para cada token que não é NPC, mais o modificador de Destreza do personagem em sistema de fantasia. Sem registro no log, como na Mesa atual.
+- Rolagens sempre no servidor. Vantagem e desvantagem passam a existir na rota (`adv`: o mantido vai primeiro em `rolls`). "Rolar ataque" usa o modificador da barra de dados (não há bônus de ataque no banco); sem CA no popover pelo mesmo motivo.
+- Mapa: imagem da sessão no tamanho natural, com o tabuleiro crescendo para caber (como hoje); sem mapa, o terreno do design. "Trocar mapa" pede o link da imagem (não há upload); "Tirar mapa" remove.
+- Névoa: o mestre arrasta para cobrir uma área, clica para revelar ou esconder, e o botão direito apaga. Fica só no navegador do mestre (a Mesa atual também não sincroniza), então "Visão do jogador" serve de prévia.
+- Pings vão para todos pelos marcadores da sessão, com o nome de quem marcou.
+- Fichas: grupo e ficha dos jogadores com personagem; atributos rolam como na Mesa atual (d20 + modificador em fantasia, pool nos outros). Sem perícias no banco: no lugar entra "Abrir ficha completa".
+- Música: as atmosferas são as trilhas que a Mesa atual já tinha, e o mestre também pode colar um link do YouTube. Tocar ou pausar no mestre vale para a mesa; no jogador, só para ele. O vídeo usa `youtube-nocookie.com`, único frame liberado na CSP. A Mesa atual usa `youtube.com` e provavelmente está bloqueada.
+- Sem cenas (não existem no banco) e sem o seletor de rolagens privadas (TODO(api)).
+- Encerrar: só o mestre e só com sessão ao vivo; usa a rota que já existe. Textos trocados para não prometer o que não acontece: "O registro e a posição dos tokens ficam salvos" e, depois, "Escrever o resumo", que leva à página da sessão (o design dizia que o resumo já estava salvo e que o Discord foi avisado).
+- Ainda só na Mesa atual: controle ao vivo (liberar jogadores), handouts, chat da sessão, colocar NPC salvo como token, ficha completa lateral (recursos), tutorial. Precisam de design antes de a nova virar padrão.
+
 ## Pendente: Fichas por Sistema
 - Não implementada ainda. A moldura do design mostra atributos, trilhas e só os **nomes** das seções de cada sistema ("Cada seção vira uma aba"), mas as 27 fichas antigas (`components/character/sheets/*`) guardam e editam os campos dessas seções. Trocar agora tiraria de quem usa o site a edição desses campos.
 - Para fazer: mapear, ficha por ficha, as seções do design para os campos reais (textFields/atributos) e desenhar as abas de seção (o design só lista os nomes). Até lá, os sistemas fora do D&D 5e seguem com a ficha antiga.

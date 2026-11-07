@@ -1,0 +1,37 @@
+/* Gerado por scripts/dc-to-jsx.ps1 a partir de SAGA Mesa.dc.html. */
+@keyframes mesa-ping {from{transform:translate(-50%,-50%) scale(.2);opacity:1}to{transform:translate(-50%,-50%) scale(2.8);opacity:0}}
+@keyframes mesa-turnGlow {0%,100%{box-shadow:0 0 0 2px #f0d060,0 0 14px 3px rgb(240 208 96/.55)}50%{box-shadow:0 0 0 2px #f0d060,0 0 24px 8px rgb(240 208 96/.25)}}
+@keyframes mesa-spinR {to{transform:rotate(360deg)}}
+@keyframes mesa-diceSpin {0%{transform:translate(-160px,-80px) rotate(0) scale(.5)}55%{transform:translate(12px,8px) rotate(800deg) scale(1.1)}75%{transform:translate(-4px,0) rotate(700deg)}100%{transform:translate(0,0) rotate(720deg) scale(1)}}
+@keyframes mesa-critShake {0%,100%{transform:translate(0,0)}20%{transform:translate(-4px,2px) rotate(-4deg)}40%{transform:translate(4px,-2px) rotate(4deg)}60%{transform:translate(-3px,0)}80%{transform:translate(2px,0)}}
+@keyframes mesa-burst {from{transform:scale(.4);opacity:.9}to{transform:scale(2);opacity:0}}
+@keyframes mesa-stampV {0%{transform:scale(2.3) rotate(-22deg);opacity:0}60%{transform:scale(.92) rotate(3deg);opacity:1}100%{transform:scale(1) rotate(-8deg)}}
+@keyframes mesa-up {from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes mesa-logIn {from{opacity:0;transform:translateX(12px);background:var(--gold-t)}to{opacity:1;transform:none}}
+@keyframes mesa-eq {0%,100%{transform:scaleY(.25)}50%{transform:scaleY(1)}}
+@keyframes mesa-pulse {0%,100%{box-shadow:0 0 0 0 rgb(224 106 67/.55)}50%{box-shadow:0 0 0 5px rgb(224 106 67/0)}}
+@keyframes mesa-fadeIn {from{opacity:0}to{opacity:1}}
+@keyframes mesa-popIn {from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes mesa-stamp {0%{transform:scale(2.2) rotate(-20deg);opacity:0}60%{transform:scale(.92) rotate(3deg);opacity:1}100%{transform:scale(1) rotate(-8deg)}}
+.mesa-s1:hover { background:var(--surface2) !important; color:var(--ink) !important }
+.mesa-s2:hover { background:var(--surface2) !important }
+.mesa-s3:hover { color:var(--ink) !important }
+.mesa-s4:hover { opacity:.88 !important }
+.mesa-s6:hover { background:var(--surface2) !important; color:var(--ink) !important }
+.mesa-s7:hover { background:var(--surface2) !important; color:var(--ink) !important }
+.mesa-s8:hover { background:var(--surface2) !important }
+.mesa-s9:hover { filter:brightness(.95) !important }
+.mesa-s10:hover { background:var(--accent-d) !important }
+.mesa-s11:hover { color:var(--accent) !important }
+.mesa-s12:hover { transform:translateY(-2px) !important }
+.mesa-s12:active { transform:scale(.94) !important }
+.mesa-s13:hover { filter:brightness(1.12) !important }
+.mesa-s14:hover { color:var(--ink) !important }
+.mesa-s15:hover { background:var(--surface2) !important }
+.mesa-s16:hover { opacity:.88 !important }
+.mesa-s17:hover { border-color:var(--accent) !important }
+.mesa-s18:hover { color:var(--accent) !important }
+.mesa-s19:hover { color:var(--accent-d) !important }
+.mesa-s20:hover { background:var(--surface2) !important }
+.mesa-s21:hover { background:var(--surface2) !important }
+.mesa-s22:hover { color:var(--bg) !important; opacity:.88 !important }

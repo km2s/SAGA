@@ -103,7 +103,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   }).catch(() => null)
   if (!member) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const body      = await req.json().catch(() => ({})) as { expression?: string; attribute?: string; message?: string }
+  const body      = await req.json().catch(() => ({})) as { expression?: string; attribute?: string; message?: string; adv?: string }
   const rawExpr   = (body.expression ?? '1d20').trim().toLowerCase().slice(0, 30)
   const attribute = typeof body.attribute === 'string' ? body.attribute.slice(0, 80) : null
 
@@ -133,6 +133,16 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   }
 
   const result = rollDice(rawExpr)
+  // Vantagem/desvantagem (Mesa nova): só em 1d20±N. Rola um segundo d20 e
+  // guarda o mantido primeiro em `rolls` (leitores usam rolls[0] como natural).
+  const adv = body.adv === 'vant' || body.adv === 'desv' ? body.adv : null
+  if (result && adv && /^1?d20([+-]\d+)?$/.test(rawExpr)) {
+    const a = result.rolls[0]!, b = Math.floor(Math.random() * 20) + 1
+    const kept = adv === 'vant' ? Math.max(a, b) : Math.min(a, b)
+    result.rolls = [kept, kept === a ? b : a]
+    result.total = kept + result.modifier
+    result.isCrit = kept === 20
+  }
   if (!result) {
     return NextResponse.json(
       { error: 'Expressão inválida. Use o formato XdY±Z (ex: 2d6+3). Máximo: 100 dados, d1000, modificador ±10000.' },

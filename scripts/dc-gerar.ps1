@@ -228,4 +228,53 @@ if (& $want 'npcs') {
     Rep $c "v.`$href('SAGA Fichas por Sistema.dc.html')" 'v.fichaHref'
   } 'campanha real; visão pelo papel; ficha completa do NPC selecionado.'
 }
+if (& $want 'mesa') {
+  $p = Gen 'SAGA Mesa' 'mesa'
+  Edit $p {
+    param($c)
+    $F = '\''Geist\'',sans-serif'
+    $SC = '\''IM Fell English SC\'',serif'
+    # Cabeçalho: campanha, sessão e presença reais; controles do mestre só para ele.
+    $c = Rep $c "<Link href={v.`$href('SAGA Campanhas.dc.html')} title={'Voltar'}" "<Link href={v.voltarHref} title={'Voltar'}"
+    $c = Rep $c '>A Queda de Valdris</p>' '>{v.campanha}</p>'
+    $c = Rep $c ">{'Sessão XII · '}{v.sceneName}</p>" '>{v.sceneName}</p>'
+    $c = Rep $c '>4/5</span>' '>{v.onlineLabel}</span>'
+    $c = WrapEnclosing $c 'onClick={v.togglePV}' 'button' 'v.souMestre'
+    $c = WrapEnclosing $c 'onClick={v.toggleMapEdit}' 'button' 'v.souMestre'
+    $c = WrapEnclosing $c 'onClick={v.endAsk}' 'button' 'v.podeEncerrar'
+    # Tabuleiro cresce com o mapa e os tokens; o mapa é a imagem da sessão no tamanho natural (como na Mesa atual).
+    $c = Rep $c "width: '1200px', height: '800px', transformOrigin" 'width: `${v.boardW}px`, height: `${v.boardH}px`, transformOrigin'
+    $c = Rep $c "<svg width={'1200'} height={'800'}" '<svg width={v.boardW} height={v.boardH}'
+    $c = Rep $c 'outline: v.slotOutline }}><ImageSlot src={v.$img(v.mapSlot)} /></div>' "outline: v.slotOutline, pointerEvents: 'none' }}>{v.mapa && (<img src={v.mapa} alt={''} draggable={false} onLoad={v.onMapLoad} style={{ position: 'absolute', left: '0', top: '0', maxWidth: 'none' }} />)}</div>"
+    $c = AddAttr $c 'onClick={f.go}' 'div' 'data-nevoa="" onContextMenu={f.remove}'
+    $c = Rep $c 'animation: t.turn }}>{t.i}</span>' "animation: t.turn, overflow: 'hidden' }}>{t.img ? (<img src={t.img} alt={''} draggable={false} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />) : t.i}</span>"
+    $c = Rep $c ">Kael</span></Fragment>" '>{p.who}</span></Fragment>'
+    # Dica da ferramenta: ao trocar o mapa, campo para o link da imagem.
+    $c = Rep $c '<DynIcon icon={v.toolIcon} width={14} height={14} />{v.toolHint}</div>' ("<DynIcon icon={v.toolIcon} width={14} height={14} />{v.toolHint}{v.mapEdit && (<><input value={v.mapDraft} onChange={v.onMapDraft} onPointerDown={v.stop} placeholder={'https://…'} style={{ pointerEvents: 'auto', width: '260px', height: '22px', padding: '0 8px', borderRadius: '999px', border: '1px solid rgb(230 213 172/.4)', background: 'rgb(20 12 6/.6)', color: '#e6d5ac', font: '400 12px/1 $F' }} />{v.mapa && (<button onClick={v.tirarMapa} style={{ all: 'unset', cursor: 'pointer', pointerEvents: 'auto', textDecoration: 'underline' }}>Tirar mapa</button>)}</>)}</div>")
+    # Popover do token: sem CA (não existe no banco); vida e condições só o mestre mexe.
+    $c = Rep $c "{v.sel.kind}{' · CA '}{v.sel.ca}" '{v.sel.kind}'
+    $c = Rep $c "<div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', fontSize: '11px'" "{v.sel.hasHp && (<><div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', fontSize: '11px'"
+    $c = Rep $c "<div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '4px', marginTop: '8px' }}>{v.hpBtns.map" "{v.souMestre && (<div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '4px', marginTop: '8px' }}>{v.hpBtns.map"
+    $c = Rep $c '>{b.l}</button>))}</div>' '>{b.l}</button>))}</div>)}</>)}'
+    $c = WrapEnclosing $c '{v.conds.map' 'div' 'v.souMestre'
+    $c = WrapEnclosing $c 'onClick={v.attack}' 'button' 'v.sel.podeRolar'
+    $c = WrapEnclosing $c 'onClick={v.removeTok}' 'button' 'v.souMestre'
+    # TODO(api): rolagens privadas. O seletor volta quando RollLog.visibility existir.
+    $c = WrapEnclosing $c "role={'radiogroup'}" 'div' 'v.temVisibilidade'
+    # Iniciativa: vazio, rolar iniciativa e troca de turno (só o mestre).
+    $c = Rep $c ">{'Rodada '}{v.round}</span></div>" ">{'Rodada '}{v.round}</span></div>{v.iniVazia && (<p style={{ margin: '10px 0 0', color: 'var(--muted)' }}>Ninguém rolou iniciativa ainda.</p>)}"
+    $c = WrapEnclosing $c 'onClick={v.prevTurn}' 'div' 'v.souMestre && !v.iniVazia'
+    $c = Rep $c "{v.nextName}</button></div>)}" ("{v.nextName}</button></div>)}{v.souMestre && (<button onClick={v.rolarIniciativa} className=`"mesa-s15`" style={{ all: 'unset', cursor: 'pointer', display: 'block', boxSizing: 'border-box', width: '100%', marginTop: '6px', height: '36px', borderRadius: '4px', border: '1px solid var(--line)', textAlign: 'center', font: '500 12px/36px $F' }}>Rolar iniciativa</button>)}")
+    # Fichas: ficha real do jogador; sem perícias no banco, vira o link da ficha completa.
+    $c = Rep $c ">Grupo</span>" ">Grupo</span>{!v.temFicha && (<p style={{ margin: '10px 0 0', color: 'var(--muted)' }}>Nenhum jogador com ficha nesta campanha.</p>)}"
+    $c = WrapEnclosing $c '{v.sheet.n}' 'div' 'v.temFicha'
+    $c = Rep $c "<p style={{ margin: '12px 0 6px', font: '400 15px/1 $SC' }}>Perícias</p>" "<Link href={v.sheet.href} className=`"mesa-s19`" style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', marginTop: '12px', font: '500 11px/1 $F', color: 'var(--accent)' }}>Abrir ficha completa</Link>"
+    # Música: atmosferas e link do YouTube só para o mestre.
+    $c = Rep $c "<p style={{ margin: '14px 0 6px', font: '400 15px/1 $SC' }}>Atmosferas</p>" "{v.souMestre && (<><p style={{ margin: '14px 0 6px', font: '400 15px/1 $SC' }}>Atmosferas</p>"
+    $c = Rep $c '{t.d}</span></button>))}' ("{t.d}</span></button>))}<div style={{ display: 'flex', gap: '6px', marginTop: '10px' }}><input value={v.linkMusica} onChange={v.onLinkMusica} placeholder={'Link do YouTube'} style={{ flex: '1', minWidth: '0', height: '32px', padding: '0 10px', borderRadius: '4px', border: '1px solid var(--line)', background: 'var(--surface)', color: 'var(--ink)', font: '400 12px/1 $F' }} /><button onClick={v.tocarLink} className=`"mesa-s15`" style={{ all: 'unset', cursor: 'pointer', height: '32px', padding: '0 12px', borderRadius: '4px', border: '1px solid var(--line)', font: '500 12px/32px $F' }}>Tocar</button></div></>)}")
+    # Encerrar: leva ao resumo da sessão.
+    $c = Rep $c "<Link href={v.`$href('SAGA Campanhas.dc.html')} className=`"mesa-s22`"" '<Link href={v.resumoHref} className="mesa-s22"'
+    Rep $c '>Voltar às campanhas</Link>' '>Escrever o resumo</Link>'
+  } 'campanha, sessão, presença, tokens, mapa, música e rolagens reais; controles do mestre só para ele; sem cenas e sem rolagens privadas (TODO(api)).'
+}
 'pronto'
