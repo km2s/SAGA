@@ -3,6 +3,10 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from 'database'
 import { notFound, redirect } from 'next/navigation'
 import { FichaAntiga } from '@/components/character/FichaAntiga'
+import { FichaSistema } from '@/components/screens/fichasistema/FichaSistema'
+import { SPECS } from '@/lib/ficha-sistema/specs'
+import type { FichaSistemaDados } from '@/lib/ficha-sistema/montar'
+import { hasHpTrack, parseTracks } from '@/lib/resource-tracks'
 import { Ficha } from '@/components/screens/ficha/Ficha'
 import type { FichaDados } from '@/components/screens/ficha/vals'
 
@@ -27,11 +31,11 @@ export default async function PersonagemPage({ params }: { params: { id: string 
     where: { id: memberId },
     include: {
       user: { select: { discordId: true } },
-      campaign: { select: { id: true, name: true, system: { select: { name: true } } } },
+      campaign: { select: { id: true, name: true, resourceTracksJson: true, system: { select: { name: true } } } },
       character: {
         include: {
           sheetSystem: { select: { name: true } },
-          attributes: { include: { attribute: { select: { name: true } } } },
+          attributes: { include: { attribute: { select: { name: true, description: true, defaultDie: true } } } },
           weapons: { orderBy: { order: 'asc' } },
           spellSlots: { orderBy: { level: 'asc' } },
           textFields: true,
@@ -42,11 +46,26 @@ export default async function PersonagemPage({ params }: { params: { id: string 
   if (!m?.character) notFound()
 
   const sistema = m.character.sheetSystem?.name ?? m.campaign.system?.name ?? null
-  if (sistema !== 'D&D 5e') return <FichaAntiga params={{ id: memberId }} />
+  const spec = sistema ? SPECS[sistema] : undefined
+  if (sistema !== 'D&D 5e' && !spec) return <FichaAntiga params={{ id: memberId }} />
 
   const isMine = m.user.discordId === session.user.discordId
   const gm = isMine ? null : await prisma.campaignMember.findFirst({ where: { campaignId: m.campaignId, role: 'GM', user: { discordId: session.user.discordId } } }).catch(() => null)
   if (!isMine && !gm) notFound()
+
+  // Fichas por Sistema (lib/ficha-sistema): os mesmos dados que a ficha antiga gravava.
+  if (sistema && spec) {
+    const ch = m.character
+    const dados: FichaSistemaDados = {
+      id: ch.id, nome: ch.name, img: ch.imageUrl, sistema, campanha: m.campaign.name, podeEditar: true,
+      voltarHref: '/personagens', publicaHref: ch.isPublic ? `/ficha/${ch.id}` : null,
+      hp: ch.hp, max: ch.maxHp, temPv: hasHpTrack(parseTracks(m.campaign.resourceTracksJson)),
+      attrs: ch.attributes.map(a => ({ id: a.id, n: a.attribute.name, desc: a.attribute.description ?? '', v: a.value, die: a.customDie ?? a.attribute.defaultDie })),
+      tf: Object.fromEntries(ch.textFields.map(t => [t.key, t.value])),
+      armas: ch.weapons.map(w => ({ id: w.id, n: w.name, b: w.attackBonus ?? '', d: w.damage ?? '', ty: w.damageType ?? '', al: w.range ?? '', pr: w.properties ?? '' })),
+    }
+    return <FichaSistema dados={dados} />
+  }
 
   const ch = m.character
   const val = (nome: string) => ch.attributes.find(a => a.attribute.name.toLowerCase() === nome.toLowerCase())?.value ?? null

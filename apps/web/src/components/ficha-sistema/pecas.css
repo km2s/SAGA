@@ -1,0 +1,38 @@
+/* Gerado por scripts/dc-to-jsx.ps1 a partir de SAGA Pecas de Ficha.dc.html. */
+@keyframes pecas-up {from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes pecas-fadeIn {from{opacity:0}to{opacity:1}}
+@keyframes pecas-popIn {from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes pecas-slideIn {from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+@keyframes pecas-stamp {0%{transform:scale(2.3) rotate(-22deg);opacity:0}60%{transform:scale(.92) rotate(3deg);opacity:1}100%{transform:scale(1) rotate(-8deg)}}
+@keyframes pecas-spin {0%{transform:rotate(0) scale(.8)}70%{transform:rotate(620deg) scale(1.06)}100%{transform:rotate(720deg) scale(1)}}
+@keyframes pecas-spinR {to{transform:rotate(360deg)}}
+@keyframes pecas-pulse {0%,100%{box-shadow:0 0 0 0 rgb(79 122 58/.55)}50%{box-shadow:0 0 0 5px rgb(79 122 58/0)}}
+@keyframes pecas-shakeA {0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
+@keyframes pecas-shakeB {0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
+@keyframes pecas-toastIn {from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes pecas-unfold {from{opacity:0;clip-path:inset(0 0 100% 0)}to{opacity:1;clip-path:inset(0 0 0 0)}}
+.pecas-s1:hover { color:var(--ink) !important }
+.pecas-s2:hover { color:var(--ink) !important }
+.pecas-s3:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.pecas-s4:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.pecas-s5:hover { border-color:var(--line) !important }
+.pecas-s5:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.pecas-s6:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.pecas-s7:hover { background:var(--accent) !important; color:#fff8f0 !important }
+.pecas-s8:hover { color:var(--blood) !important; background:var(--surface2) !important }
+.pecas-s9:hover { color:var(--accent-d) !important }
+.pecas-s10:hover { background:var(--surface2) !important; color:var(--ink) !important }
+.pecas-s11:hover { background:var(--surface2) !important; color:var(--ink) !important }
+.pecas-s12:hover { border-color:var(--line) !important }
+.pecas-s12:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.pecas-s13:hover { background:var(--accent-t) !important }
+.pecas-s14:hover { background:var(--surface2) !important }
+.pecas-s15:hover { color:var(--blood) !important; background:var(--surface2) !important }
+.pecas-s16:hover { color:var(--accent-d) !important }
+.pecas-s17:hover { border-color:var(--line) !important }
+.pecas-s17:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.pecas-s18:hover { color:var(--blood) !important }
+.pecas-s19:hover { border-color:var(--line) !important }
+.pecas-s19:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.pecas-s20:hover { background:var(--accent) !important; color:#fff8f0 !important }
+.pecas-s21:hover { color:var(--accent-d) !important }
