@@ -45,6 +45,8 @@ export const RATE_LIMITS = {
   apply: { max: 5, windowMs: 60 * 60 * 1000 },
   // 30 requisições de estado por minuto por membro
   sessionState: { max: 30, windowMs: 60 * 1000 },
+  // 20 buscas de código de convite por minuto por usuário (o código é enumerável)
+  convite: { max: 20, windowMs: 60 * 1000 },
 } as const
 
 export function applyRateLimit(

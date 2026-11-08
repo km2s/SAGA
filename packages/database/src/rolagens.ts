@@ -36,7 +36,13 @@ export function modoRolagem(r: RolagemVis, l: Leitor): ModoRolagem {
 }
 
 /** Visibilidade que o papel pode escolher; o resto vira pública. */
-export function visibilidadeValida(v: unknown, gm: boolean): Visibilidade {
+/**
+ * `regra` = Campaign.rollVisibility (Painel › Config): "todos" deixa as rolagens
+ * dos jogadores públicas; "mestre" manda todas ao mestre; "escolha" deixa cada um escolher.
+ */
+export function visibilidadeValida(v: unknown, gm: boolean, regra: string = 'escolha'): Visibilidade {
+  if (!gm && regra === 'todos') return 'PUBLIC'
+  if (!gm && regra === 'mestre') return 'GM'
   const ok = gm ? VIS_MESTRE : VIS_JOGADOR
   return typeof v === 'string' && (ok as string[]).includes(v) ? v as Visibilidade : 'PUBLIC'
 }

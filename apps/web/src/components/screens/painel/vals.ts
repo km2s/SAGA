@@ -24,6 +24,9 @@ export type PainelDados = {
   tracks: { key: string; label: string; color: string }[]
   modelo: { nome: string; preset: boolean; sistemaId: string | null } | null
   botLine: string
+  /** Código de convite XXXX-XXXX, fios soltos, agenda, quem vê as rolagens, bot e capa. */
+  codigo: string | null; fios: Fio[]; agendadas: Agendada[]
+  rolagens: 'todos' | 'mestre' | 'escolha'; bot: boolean; capa: string | null
 }
 
 // Tipos de NPC do design → valores do banco (components/gm/CreateNPCModal.tsx).
@@ -32,6 +35,9 @@ const NPCC: Record<string, string> = { 'Vilão': '#8a1c24', 'Aliado': '#4f7a3a',
 const COV = ['linear-gradient(135deg,#2a1c08,#8f3a24)', 'linear-gradient(135deg,#1a120c,#5c4410)', 'linear-gradient(135deg,#1a0c04,#6a2817)', 'linear-gradient(135deg,#1e1a14,#6a5a3a)']
 const AV = ['#b8492a', '#b98a2a', '#4f7a3a', '#6b5a8a', '#7a5a3a', '#3a6a7a']
 const MES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'], DOW = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
+// Quem vê as rolagens dos jogadores (Campaign.rollVisibility).
+const ROLV: Record<string, string> = { todos: 'Todos', mestre: 'Só o mestre', escolha: 'Cada um escolhe' }
+const ROLV_API: Record<string, string> = { 'Todos': 'todos', 'Só o mestre': 'mestre', 'Cada um escolhe': 'escolha' }
 // Barras do design → chaves de lib/resource-tracks.ts.
 const TRK_BASE: [string, string, string, string][] = [['hp', 'Pontos de vida', 'var(--ok)', 'vida'], ['pe', 'Pontos de esforço', 'var(--gold)', 'esforco'], ['san', 'Sanidade', '#3a6a7a', 'sanidade']]
 const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
@@ -56,14 +62,13 @@ export function usePainelVals(d: PainelDados, abaInicial: string) {
   const [toast, setToast] = useState<string | null>(null)
   const [sealing, setSealing] = useState(false)
   const [party, setParty] = useState(d.party)
-  // TODO(api): fios soltos e sessões agendadas ainda não têm tabela; começam vazios.
-  const [threads, setThreads] = useState<Fio[]>([])
+  const [threads, setThreads] = useState<Fio[]>(d.fios)
   const [thDraft, setThDraft] = useState('')
   const [sTitle, setSTitle] = useState('')
   const [sDate, setSDate] = useState('')
   const [sTime, setSTime] = useState('20:00')
   const [remind, setRemind] = useState(true)
-  const [upcoming, setUpcoming] = useState<Agendada[]>([])
+  const [upcoming, setUpcoming] = useState<Agendada[]>(d.agendadas)
   const [openPast, setOpenPast] = useState<string | null>(d.past[0]?.id ?? null)
   const [npcs, setNpcs] = useState<Npc[]>(d.npcs)
   const [nName, setNName] = useState('')
@@ -73,11 +78,12 @@ export function usePainelVals(d: PainelDados, abaInicial: string) {
   const [notes, setNotes] = useState<Nota[]>(d.notes)
   const [curNote, setCurNote] = useState<string | null>(d.notes[0]?.id ?? null)
   const [cName, setCName] = useState(d.nome)
-  const [rolls, setRolls] = useState('Todos')
-  const [code, setCode] = useState<string | null>(null) // TODO(api): Campaign.inviteCode
+  const [rolls, setRolls] = useState(ROLV[d.rolagens])
+  const [code, setCode] = useState<string | null>(d.codigo)
   const [codeTick, setCodeTick] = useState(0)
   const [copied, setCopied] = useState(false)
-  const [bot, setBot] = useState(true)
+  const [bot, setBot] = useState(d.bot)
+  const nameSave = useRef<ReturnType<typeof setTimeout>>()
   const [arch, setArch] = useState('')
   const [sLive, setSLive] = useState<string | null>(d.aoVivo)
   const [sModal, setSModal] = useState(false)
@@ -91,7 +97,7 @@ export function usePainelVals(d: PainelDados, abaInicial: string) {
   useEffect(() => {
     setSDate(new Date().toISOString().slice(0, 10))
     const timers = t.current
-    return () => { timers.forEach(clearTimeout); clearTimeout(noteSave.current) }
+    return () => { timers.forEach(clearTimeout); clearTimeout(noteSave.current); clearTimeout(nameSave.current) }
   }, [])
   const later = (fn: () => void, ms: number) => { t.current.push(setTimeout(fn, ms)) }
   const say = (msg: string) => { setToast(msg); later(() => setToast(null), 2400) }
@@ -179,8 +185,8 @@ export function usePainelVals(d: PainelDados, abaInicial: string) {
 
   return {
     $href: (link: string) => dcHref(link, { campaignId: d.id }),
-    // TODO(api): Campaign.coverUrl; NPC usa a imagem da ficha.
-    $img: (id: string): string | null => (id.startsWith('npc-') ? npcs.find(n => `npc-${n.id}` === id)?.img ?? null : null),
+    // NPC usa a imagem da ficha; a capa é a da campanha.
+    $img: (id: string): string | null => (id.startsWith('npc-') ? npcs.find(n => `npc-${n.id}` === id)?.img ?? null : id === 'camp-capa-0' ? d.capa : null),
     campanha: cName, heroLine: d.heroLine,
     trkNew, onTrkNew: (e: ChangeEvent<HTMLInputElement>) => setTrkNew(e.target.value), onTrkKey: (e: KeyboardEvent) => { if (e.key === 'Enter') trkAdd() }, addTrk: trkAdd,
     trkOpts: trkList.map(([k, l, dot, color]) => {
@@ -220,15 +226,21 @@ export function usePainelVals(d: PainelDados, abaInicial: string) {
     partyLine: `${members} jogadores · ${party.filter(p => p.on).length} na mesa agora`,
     threads: threads.map(x => ({
       ...x, m: x.done ? '✓' : '', bg: x.done ? 'var(--ok)' : 'transparent', ring: x.done ? 'var(--ok)' : 'var(--muted)', color: x.done ? 'var(--muted)' : 'var(--ink)', td: x.done ? 'line-through' : 'none',
-      anim: x.id === fresh ? 'painel-rowIn .4s both' : 'none', go: () => setThreads(xs => xs.map(y => (y.id === x.id ? { ...y, done: !y.done } : y))),
+      anim: x.id === fresh ? 'painel-rowIn .4s both' : 'none',
+      go: () => { setThreads(xs => xs.map(y => (y.id === x.id ? { ...y, done: !y.done } : y))); if (!x.id.startsWith('fio-')) void json(`${api}/fios/${x.id}`, 'PATCH', { feito: !x.done }) },
     })),
     threadsLine: `${threads.filter(x => !x.done).length} em aberto`,
     thDraft, onTh: (e: ChangeEvent<HTMLInputElement>) => setThDraft(e.target.value),
     onThKey: (e: KeyboardEvent) => {
       if (e.key !== 'Enter' || !thDraft.trim()) return
-      const id = `fio-${Date.now()}`
-      setThreads(xs => [...xs, { id, t: thDraft.trim(), s: sLive ?? sDefault, done: false }]); setThDraft(''); setFresh(id)
-      void json(`${api}/fios`, 'POST', { texto: thDraft.trim() }) // TODO(api)
+      const id = `fio-${Date.now()}`, texto = thDraft.trim(), s = sLive ?? sDefault
+      setThreads(xs => [...xs, { id, t: texto, s, done: false }]); setThDraft(''); setFresh(id)
+      void (async () => {
+        const r = await json(`${api}/fios`, 'POST', { texto, sessao: s })
+        const f = r?.ok ? await r.json().catch(() => null) as { id?: string } | null : null
+        if (f?.id) setThreads(xs => xs.map(y => (y.id === id ? { ...y, id: f.id! } : y)))
+        else { setThreads(xs => xs.filter(y => y.id !== id)); say('Não foi possível guardar o fio. Tente de novo.') }
+      })()
     },
     kpis: [{ v: d.kpis.sessoes, l: 'sessões' }, { v: d.kpis.horas, l: 'jogadas' }, { v: d.kpis.rolagens, l: 'rolagens' }, { v: npcs.length, l: 'NPCs' }],
     feed: d.feed,
@@ -236,13 +248,18 @@ export function usePainelVals(d: PainelDados, abaInicial: string) {
     swRemind: sw(remind, () => setRemind(!remind)),
     schedule: () => {
       const id = `ag-${Date.now()}`, titulo = sTitle.trim() || `Sessão ${roman(d.proximaSessao + upcoming.length + (sLive ? 1 : 0))}`
-      setUpcoming(xs => [...xs, { id, t: titulo, date: sDate, time: sTime, bell: remind }].sort((a, b) => a.date.localeCompare(b.date))); setFresh(id); setSTitle('')
-      void json(`${api}/sessoes-agendadas`, 'POST', { titulo, data: sDate, horario: sTime, lembrete: remind }) // TODO(api)
-      say(remind ? 'Sessão agendada · o bot vai lembrar a mesa' : 'Sessão agendada')
+      setUpcoming(xs => [...xs, { id, t: titulo, date: sDate, time: sTime, bell: remind }].sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))); setFresh(id); setSTitle('')
+      void (async () => {
+        const r = await json(`${api}/sessoes-agendadas`, 'POST', { titulo, data: sDate, horario: sTime, lembrete: remind })
+        const ag = r?.ok ? await r.json().catch(() => null) as { id?: string } | null : null
+        if (ag?.id) { setUpcoming(xs => xs.map(x => (x.id === id ? { ...x, id: ag.id! } : x))); say(remind && bot ? 'Sessão agendada · o bot vai lembrar a mesa' : 'Sessão agendada'); return }
+        const j = r ? await r.json().catch(() => null) as { error?: string } | null : null
+        setUpcoming(xs => xs.filter(x => x.id !== id)); say(j?.error ?? 'Não foi possível agendar. Tente de novo.')
+      })()
     },
     upcoming: upcoming.map(u => {
       const dt = new Date(`${u.date}T12:00`)
-      return { t: u.t, d: dt.getDate(), m: MES[dt.getMonth()], s: `${DOW[dt.getDay()]} · ${u.time} · ${members} jogadores`, bellD: u.bell ? 'inline-flex' : 'none', anim: u.id === fresh ? 'painel-rowIn .5s both' : 'none', rm: () => setUpcoming(xs => xs.filter(x => x.id !== u.id)) }
+      return { t: u.t, d: dt.getDate(), m: MES[dt.getMonth()], s: `${DOW[dt.getDay()]} · ${u.time} · ${members} jogadores`, bellD: u.bell ? 'inline-flex' : 'none', anim: u.id === fresh ? 'painel-rowIn .5s both' : 'none', rm: () => { setUpcoming(xs => xs.filter(x => x.id !== u.id)); if (!u.id.startsWith('ag-')) void json(`${api}/sessoes-agendadas/${u.id}`, 'DELETE', {}) } }
     }),
     past: d.past.map(p => ({
       n: roman(p.n), t: p.t, w: p.w, sum: p.sum, open: openPast === p.id, href: `/campaign/${d.id}/sessions/${p.id}`,
@@ -288,23 +305,35 @@ export function usePainelVals(d: PainelDados, abaInicial: string) {
     cur: { t: nota?.t ?? '', b: nota?.b ?? '', hint: nota?.sec ? 'Só você vê esta nota.' : 'Visível para toda a companhia no canal da campanha.' },
     onNT: (e: ChangeEvent<HTMLInputElement>) => updNote({ t: e.target.value }), onNB: (e: ChangeEvent<HTMLTextAreaElement>) => updNote({ b: e.target.value }),
     swSecret: sw(!!nota?.sec, () => updNote({ sec: !nota?.sec })),
-    cName, onCName: (e: ChangeEvent<HTMLInputElement>) => setCName(e.target.value), // TODO(api): renomear (o PATCH ainda não aceita name)
+    cName, onCName: (e: ChangeEvent<HTMLInputElement>) => {
+      const v = e.target.value
+      setCName(v); clearTimeout(nameSave.current)
+      if (v.trim().length >= 2) nameSave.current = setTimeout(async () => { const r = await json(api, 'PATCH', { name: v.trim() }); if (!r?.ok) say('Não foi possível renomear. Tente de novo.') }, 900)
+    },
     visOpts: seg([['Privada', 'Só por convite'], ['Taverna', 'Listada na Taverna']], open ? 'Taverna' : 'Privada', k => { const v = k === 'Taverna'; setOpen(v); void json(api, 'PATCH', { isOpen: v }) }),
-    rollOpts: seg(['Todos', 'Só o mestre', 'Cada um escolhe'], rolls, setRolls), // TODO(api): visibilidade das rolagens da campanha
+    rollOpts: seg(['Todos', 'Só o mestre', 'Cada um escolhe'], rolls, k => { setRolls(k); void json(api, 'PATCH', { rollVisibility: ROLV_API[k] }) }),
     code: code ?? '—', codeAnim: codeTick ? `${codeTick % 2 ? 'painel-popA' : 'painel-popB'} .35s` : 'none',
     newCode: () => {
       const r = () => A[Math.floor(Math.random() * A.length)]
       const c = `${r()}${r()}${r()}${r()}-${r()}${r()}${r()}${r()}`
       setCode(c); setCodeTick(n => n + 1); setCopied(false)
-      void json(`${api}/convite`, 'POST', { codigo: c.replace('-', '') }) // TODO(api): regenerar código (o servidor confirma)
+      // O servidor confirma (ou troca, se o código já existir em outra mesa).
+      void (async () => {
+        const r = await json(`${api}/convite`, 'POST', { codigo: c.replace('-', '') })
+        const j = r?.ok ? await r.json().catch(() => null) as { codigo?: string } | null : null
+        if (j?.codigo) setCode(`${j.codigo.slice(0, 4)}-${j.codigo.slice(4)}`)
+        else { setCode(d.codigo); say('Não foi possível gerar outro código. Tente de novo.') }
+      })()
     },
     copy: () => { if (!code) return; try { void navigator.clipboard?.writeText(code) } catch { /* sem clipboard */ } setCopied(true) },
-    copyLabel: copied ? 'Copiado' : 'Copiar', copyIcon: copied ? Check : Copy, swBot: sw(bot, () => setBot(!bot)), // TODO(api): ligar/desligar o bot na campanha
+    copyLabel: copied ? 'Copiado' : 'Copiar', copyIcon: copied ? Check : Copy, swBot: sw(bot, () => { const v = !bot; setBot(v); void json(api, 'PATCH', { botEnabled: v }) }),
     arch, onArch: (e: ChangeEvent<HTMLInputElement>) => setArch(e.target.value), archOp: archOk ? 1 : 0.45, archBg: archOk ? 'var(--accent)' : 'transparent', archColor: archOk ? '#fff8f0' : 'var(--accent)', archLabel: 'Arquivar campanha',
     archive: async () => {
       if (!archOk) return
-      const r = await json(`${api}/arquivar`, 'POST', {}) // TODO(api): Campaign.archivedAt
-      if (r?.ok) router.push('/campanhas'); else say('Não foi possível concluir agora. Tente de novo.')
+      const r = await json(`${api}/arquivar`, 'POST', {})
+      if (r?.ok) { router.push('/campanhas'); return }
+      const j = r ? await r.json().catch(() => null) as { error?: string } | null : null
+      say(j?.error ?? 'Não foi possível concluir agora. Tente de novo.')
     },
     hasToast: !!toast, toast,
   }

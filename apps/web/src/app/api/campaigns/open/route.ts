@@ -24,7 +24,7 @@ export async function GET(req: Request) {
   )
 
   const campaigns = await prisma.campaign.findMany({
-    where: { isOpen: true },
+    where: { isOpen: true, archivedAt: null },
     include: {
       system:       true,
       _count:       { select: { members: true } },

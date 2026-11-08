@@ -6,6 +6,8 @@ import { Campanhas } from '@/components/screens/campanhas/Campanhas'
 import type { CampanhasDados } from '@/components/screens/campanhas/vals'
 import { freqLabel, mesAno, ONLINE_MS } from '@/lib/campanha-labels'
 import { roman } from '@/lib/roman'
+import { codigoDa, exibir, proximasDe, rotuloData } from '@/lib/convite'
+import { safeImageUrl } from '@/lib/safe-url'
 
 export default async function CampanhasPage() {
   const session = await getServerSession(authOptions)
@@ -31,6 +33,9 @@ export default async function CampanhasPage() {
   }).catch(() => [])
 
   const agora = Date.now()
+  const prox = await proximasDe(memberships.map(m => m.campaign.id))
+  // Código de convite só para o mestre (as campanhas antigas ganham um agora).
+  const codigos = new Map(await Promise.all(memberships.filter(m => m.role === 'GM').map(async m => [m.campaign.id, await codigoDa(m.campaign.id, m.campaign.inviteCode)] as const)))
   const dados: CampanhasDados = {
     campanhas: memberships.map(({ role, character, campaign: c }) => {
       const live = c.sessions[0]
@@ -44,9 +49,11 @@ export default async function CampanhasPage() {
         live: live ? { sessao: `Sessão ${roman(c._count.sessions)}${live.name ? ` — ${live.name}` : ''}`, startedAt: live.startedAt.toISOString() } : null,
         ses: c._count.sessions,
         since: mesAno(c.createdAt),
-        codigo: null, // TODO(api): Campaign.inviteCode (XXXX-XXXX)
+        codigo: codigos.get(c.id) ? exibir(codigos.get(c.id)!) : null,
         desc: c.description ?? '',
-        archived: false, // TODO(api): Campaign.archivedAt
+        archived: !!c.archivedAt,
+        proxima: prox.get(c.id) ? rotuloData(prox.get(c.id)!) : null,
+        capa: safeImageUrl(c.coverUrl),
         personagemId: character?.id ?? null,
         members: c.members.map(m => ({
           u: m.user.username,

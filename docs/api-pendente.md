@@ -25,10 +25,8 @@ Copy que não está no design e precisa de confirmação:
 
 | Campo/recurso | Uso no front |
 |---|---|
-| `Campaign.coverUrl String?` | Capa nos atalhos do header (`app/(app)/layout.tsx`, hoje `capa: null`) e nas telas de campanha. Sem capa, o front mostra o gradiente do design. |
-| `Campaign.inviteCode String @unique` (8 caracteres, exibido XXXX-XXXX) | Código de convite em Campanhas, Painel (regenerar) e Convite (entrar pelo código). Hoje o `/join` usa o id da campanha. |
-| `Campaign.archivedAt DateTime?` | Filtro "Arquivadas" em Campanhas e "Encerrar a crônica" no Painel › Config. |
-| Sessões agendadas (data/hora da próxima sessão) | Meta do atalho ("Tormenta20 · sábado, 20h") e agenda do Painel do Mestre / Início. |
+| Upload da capa | `Campaign.coverUrl` já existe e aparece no header, Campanhas, Painel, Convite e visão do jogador; falta enviar a imagem (hoje só por `PATCH` com link). |
+| Agenda no Início | A agenda e os pontos da semana do Início ainda mostram só a sessão ao vivo. |
 
 ## Nova Campanha (`components/screens/novacampanha/vals.ts`)
 
@@ -53,14 +51,7 @@ Já funcionam com a API atual: iniciar sessão (`sessions/start`, 409), barras d
 
 | Chamada | Contrato | Observações |
 |---|---|---|
-| `POST /api/campaigns/[id]/fios` | `{ texto }` → fio; `PATCH .../fios/[fioId]` `{ feito }` | Fios soltos (Visão geral). Precisa de tabela; hoje a lista começa vazia e não persiste. |
-| `POST /api/campaigns/[id]/sessoes-agendadas` | `{ titulo, data, horario, lembrete }`; `DELETE .../[agId]` | "Agendar sessão" e "Próximas". O bot lembra 1 h antes. |
-| `PATCH /api/campaigns/[id]/notes/[noteId]` | `{ title, content, visibility }` | Edição de nota (hoje só existe criar). |
-| `PATCH /api/campaigns/[id]` `{ name }` | renomear | O PATCH atual não aceita `name`. |
-| Visibilidade das rolagens da campanha | Todos / Só o mestre / Cada um escolhe | Liga com as rolagens privadas. |
-| `POST /api/campaigns/[id]/convite` | `{ codigo }` → código confirmado | "Gerar novo" invalida o antigo (`Campaign.inviteCode`). |
-| Ligar/desligar o bot; servidor e canal do Discord | | Linha "Lembretes e rolagens em #canal · Servidor". |
-| `POST /api/campaigns/[id]/arquivar` | → `200` | `Campaign.archivedAt`; depois volta para /campanhas. |
+| Servidor e canal do Discord | | Linha "Lembretes e rolagens em #canal · Servidor". O bot não guarda canal por campanha: os lembretes vão por DM. |
 
 ## Criar Personagem
 
@@ -115,8 +106,7 @@ Hoje o canal da campanha é o chat da sessão ativa (`RollLog` com `expression =
 
 | Chamada | Contrato | Observações |
 |---|---|---|
-| `GET /api/convites/[codigo]` | → `{ campanha: { id, n, sys, fmt, gm, when, next, tone, taken, tot, d, members: [{ u, t }] }, personagens: [{ id, t, d }] }` ou `404` | Código sem hífen, 8 caracteres (`Campaign.inviteCode`). `personagens` = fichas do usuário no mesmo sistema que podem ir para a mesa. `taken`/`tot` = vagas ocupadas/total (`maxSlots`). |
-| `POST /api/convites/[codigo]` | `{ personagem: <id> \| 'new' \| 'later' }` → `201 { campaignId }`, `409` se já é membro | Cria o `CampaignMember`; com `<id>`, leva a ficha. Avisa o mestre (Discord). |
+| Avisar o mestre (Discord) quando alguém entra pelo código | | Hoje a entrada não manda aviso. |
 | Códigos recebidos no Discord | lista `{ codigo, de }` | Linha "Recebidos no Discord"; sem fonte, fica escondida. |
 
 ## Primeiros Passos
@@ -134,6 +124,15 @@ Hoje o canal da campanha é o chat da sessão ativa (`RollLog` com `expression =
 | Upload de imagem do mapa | "Trocar mapa" do design é soltar a imagem; hoje é link. |
 | Bônus de ataque e CA do token/ficha | O popover do design mostra CA e "Rolar ataque +N". |
 | Perícias na ficha | A aba Fichas do design lista perícias roláveis. |
+
+## Campanha, convites e agenda — feito (2026-11-08)
+
+- Banco (migração `20261108300000_add_convite_agenda_fios`): `Campaign.inviteCode` (único; as campanhas antigas ganham um na primeira leitura, `lib/convite.ts`), `coverUrl`, `archivedAt`, `rollVisibility` (`todos` / `mestre` / `escolha`), `botEnabled`; tabelas `Fio` e `SessaoAgendada` (`quando` em horário de Brasília).
+- `PATCH /api/campaigns/[id]` aceita `name`, `coverUrl`, `rollVisibility`, `botEnabled`. `POST .../convite` (gera ou confirma o código), `POST/DELETE .../arquivar` (409 com sessão ao vivo), `PATCH/DELETE .../notes/[noteId]` (só o autor), `GET/POST .../fios` e `PATCH/DELETE .../fios/[fioId]`, `GET/POST .../sessoes-agendadas` e `DELETE .../[agId]`.
+- `GET/POST /api/convites/[codigo]`: busca com rate limit; entrar com uma ficha do mesmo sistema leva uma cópia dela. Arquivadas não aparecem na Taverna nem no convite.
+- Rolagens: a regra da campanha vale no servidor (`visibilidadeValida(v, gm, regra)`) e a Mesa esconde o seletor do jogador quando a regra fixa o modo.
+- Nova Campanha grava o código, a primeira sessão agendada e a regra de rolagens.
+- Bot: lembrete por DM 1 h antes de cada sessão agendada com lembrete (`apps/bot/src/lib/lembretes.ts`, a cada 5 min).
 
 ## Rolagens privadas (SAGA Mesa, SAGA Sessao) — feito (2026-11-08)
 

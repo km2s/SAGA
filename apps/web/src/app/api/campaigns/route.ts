@@ -2,6 +2,9 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from 'database'
 import { NextResponse } from 'next/server'
+import { dataValida, gravarCodigo, horarioValido, normalizar, quandoDe } from '@/lib/convite'
+
+const ROLV: Record<string, string> = { 'Todos': 'todos', 'Só o mestre': 'mestre', 'Cada um escolhe': 'escolha' }
 
 export async function GET() {
   const session = await getServerSession(authOptions)
@@ -74,10 +77,17 @@ export async function POST(req: Request) {
       minExperience: typeof minExperience === 'string' ? minExperience : null,
       isOpen: isOpen === true,
       maxSlots: isOpen && typeof maxSlots === 'number' && maxSlots > 0 ? maxSlots : null,
+      rollVisibility: ROLV[body.visibilidadeRolagens as string] ?? 'escolha',
       members: { create: { userId: user.id, role: 'GM' } },
     },
     include: { system: true },
   })
 
-  return NextResponse.json(campaign, { status: 201 })
+  // Nova Campanha: o código mostrado no fim (o servidor troca se já existir) e a primeira sessão agendada.
+  const inviteCode = await gravarCodigo(campaign.id, typeof body.inviteCode === 'string' ? normalizar(body.inviteCode) : null).catch(() => null)
+  const ag = body.agenda as { primeiraSessao?: unknown; horario?: unknown } | undefined
+  if (ag && dataValida(ag.primeiraSessao) && horarioValido(ag.horario) && quandoDe(ag.primeiraSessao, ag.horario).getTime() > Date.now()) {
+    await prisma.sessaoAgendada.create({ data: { campaignId: campaign.id, titulo: 'Sessão I', data: ag.primeiraSessao, horario: ag.horario, quando: quandoDe(ag.primeiraSessao, ag.horario) } }).catch(() => null)
+  }
+  return NextResponse.json({ ...campaign, inviteCode }, { status: 201 })
 }

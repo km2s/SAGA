@@ -6,6 +6,8 @@ import type { HeaderCampanha } from '@/components/header/SagaHeader'
 import { Tour } from '@/components/screens/tour/Tour'
 import { Suspense } from 'react'
 import { prisma } from 'database'
+import { proximasDe, rotuloAgenda } from '@/lib/convite'
+import { safeImageUrl } from '@/lib/safe-url'
 
 const DIA = 24 * 60 * 60 * 1000
 
@@ -27,6 +29,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         select: {
           id: true,
           name: true,
+          coverUrl: true,
           system: { select: { name: true } },
           sessions: { orderBy: { startedAt: 'desc' }, take: 1, select: { isActive: true, startedAt: true, endedAt: true } },
         },
@@ -41,18 +44,21 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const firstGMId       = gmMemberships[0]?.campaign.id ?? null
 
   // Atalhos do menu "Campanhas": as 3 mais recentes, como no design.
-  // TODO(api): sessões agendadas ("sábado, 20h") quando o agendamento do Painel existir.
-  const atalhos: HeaderCampanha[] = memberships.slice(0, 3).map(({ role, campaign: c }) => {
+  // Meta: ao vivo, a próxima agendada ("sábado, 20h") ou a última sessão.
+  const recentes = memberships.slice(0, 3)
+  const prox = await proximasDe(recentes.map(m => m.campaign.id))
+  const atalhos: HeaderCampanha[] = recentes.map(({ role, campaign: c }) => {
     const ultima = c.sessions[0]
     const aoVivo = !!ultima?.isActive
-    const quando = aoVivo ? 'sessão ao vivo agora' : ultima ? haQuanto(ultima.endedAt ?? ultima.startedAt) : null
+    const p = prox.get(c.id)
+    const quando = aoVivo ? 'sessão ao vivo agora' : p ? rotuloAgenda(p) : ultima ? haQuanto(ultima.endedAt ?? ultima.startedAt) : null
     return {
       id: c.id,
       nome: c.name,
       meta: [c.system?.name, quando].filter(Boolean).join(' · '),
       mestre: role === 'GM',
       aoVivo,
-      capa: null, // TODO(api): Campaign.coverUrl
+      capa: safeImageUrl(c.coverUrl),
     }
   })
 

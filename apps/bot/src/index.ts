@@ -12,6 +12,7 @@ import hp from './commands/hp/index.js'
 import iniciativa from './commands/iniciativa/index.js'
 import resumo from './commands/resumo/index.js'
 import handout from './commands/handout/index.js'
+import { iniciarLembretes } from './lib/lembretes.js'
 
 const client = new Client({
   intents: [
@@ -30,6 +31,7 @@ for (const cmd of [rolar, sessao, ficha, nota, npc, campanha, hp, iniciativa, re
 
 client.once('ready', () => {
   console.log(`✦ SAGA online como ${client.user?.tag}`)
+  iniciarLembretes(client)
 })
 
 // ── Slash commands ──────────────────────────────────────────

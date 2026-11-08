@@ -34,6 +34,8 @@ export type MesaDados = {
   totalRolagens: number
   /** SAGA Mapas: mestre recebe todos; jogador, só o que está na mesa. `aberto` vem de ?mapa=. */
   mapas: MapaItem[]; naMesa: string; aberto: string
+  /** Campaign.rollVisibility: todos · mestre · escolha. */
+  regraRolagens: string
 }
 
 type Handout = { id: string; t: string | null; x: string | null; img: string | null; at: string; por: string; vistos: string[] }
@@ -141,7 +143,9 @@ export function useMesaVals(d: MesaDados) {
   const [tab, setTab] = useState('ini')
   const [sheet, setSheet] = useState<string | null>(() => (d.membros.find(m => m.id === d.meuId && m.char) ?? d.membros.find(m => m.char && m.role !== 'GM'))?.id ?? null)
   const [dice, setDice] = useState({ n: 1, d: 20, mod: 0, adv: 'normal' })
-  const [rollVis, setRollVis] = useState<{ gm: VisKey; pl: VisKey }>({ gm: 'pub', pl: 'pub' })
+  // Regra da campanha: "todos" e "mestre" fixam o modo do jogador (o servidor confere).
+  const regraPl: VisKey | null = d.regraRolagens === 'todos' ? 'pub' : d.regraRolagens === 'mestre' ? 'gm' : null
+  const [rollVis, setRollVis] = useState<{ gm: VisKey; pl: VisKey }>({ gm: 'pub', pl: regraPl ?? 'pub' })
   const [roll, setRoll] = useState<Rolagem | null>(null)
   const [log, setLog] = useState<RollLogEntry[]>(d.rolagens)
   const [nRolls, setNRolls] = useState(d.totalRolagens)
@@ -825,9 +829,8 @@ export function useMesaVals(d: MesaDados) {
     nLabel: `${dice.n}×`, nDown: () => setDice(s => ({ ...s, n: Math.max(1, s.n - 1) })), nUp: () => setDice(s => ({ ...s, n: Math.min(12, s.n + 1) })),
     mLabel: sg(dice.mod), mDown: () => setDice(s => ({ ...s, mod: Math.max(-99, s.mod - 1) })), mUp: () => setDice(s => ({ ...s, mod: Math.min(99, s.mod + 1) })),
     advs: ([['desv', 'Desv', 'Desvantagem'], ['normal', 'Normal', 'Normal'], ['vant', 'Vant', 'Vantagem']] as const).map(([k, l, tt]) => ({ l, t: tt, go: () => setDice(s => ({ ...s, adv: k })), bg: dice.adv === k ? 'var(--surface)' : 'transparent', color: dice.adv === k ? (k === 'vant' ? 'var(--ok)' : k === 'desv' ? '#c8424c' : 'var(--ink)') : 'var(--muted)', sh: dice.adv === k ? '0 1px 2px rgb(0 0 0/.12)' : 'none' })),
-    // TODO(api): rolagens privadas (RollLog.visibility). Até lá o seletor fica escondido e tudo é público.
-    temVisibilidade: true,
-    visOpts: ((gm ? ['pub', 'secret'] : ['pub', 'self', 'gm', 'blind']) as VisKey[]).map(k => {
+    temVisibilidade: gm || !regraPl,
+    visOpts: ((gm ? ['pub', 'secret'] : regraPl ? [regraPl] : ['pub', 'self', 'gm', 'blind']) as VisKey[]).map(k => {
       const on = curVis === k
       return {
         l: VIS[k][0], t: `${VIS[k][0]} · ${VIS[k][2]}`, icon: VIS[k][1], on, lblD: on ? 'inline' : 'none',

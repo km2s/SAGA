@@ -170,7 +170,8 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   if (!activeSession) return NextResponse.json({ error: 'Nenhuma sessão ativa' }, { status: 400 })
 
   // Rolagem privada: o papel limita o modo (mestre: pública/secreta; jogador: pública/só para mim/para o Mestre/às cegas).
-  const visibility = visibilidadeValida(body.visibility, member.role === 'GM')
+  const regra = member.role === 'GM' ? 'escolha' : (await prisma.campaign.findUnique({ where: { id: params.id }, select: { rollVisibility: true } }).catch(() => null))?.rollVisibility
+  const visibility = visibilidadeValida(body.visibility, member.role === 'GM', regra ?? 'escolha')
   const rollLog = await prisma.rollLog.create({
     data: {
       expression: rawExpr,

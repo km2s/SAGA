@@ -10,6 +10,8 @@ export type MembrosDados = {
   campaignId: string; campanha: string; sistema: string | null; sistemaId: string | null; souMestre: boolean; eu: string
   mestre: { nome: string; linha: string }
   usaHp: boolean
+  /** Código de convite XXXX-XXXX (só o mestre recebe). */
+  codigo: string | null
   jogadores: { memberId: string; u: string; c: string | null; cls: string | null; hp: number; max: number; st: 'on' | 'away' | 'off'; quando: string; fichaId: string | null }[]
 }
 
@@ -66,13 +68,13 @@ export function useMembrosVals(d: MembrosDados) {
     $href: (link: string) => dcHref(link, { campaignId: d.campaignId }),
     campanha: d.campanha, temVisao: false,
     gmInicial: d.mestre.nome.charAt(0).toUpperCase(), gmNome: d.mestre.nome, gmLinha: d.mestre.linha,
-    codigo: '—', // TODO(api): Campaign.inviteCode
+    codigo: d.codigo ?? '—',
     isGM: gm, summary: `${online} de ${all.length + 1} na taverna agora · a presença se atualiza sozinha`,
     views: [] as { l: string; go: () => void; bg: string; color: string; sh: string }[],
     nPlayers: all.length,
     filters: ([['all', 'Todos'], ['on', 'Online'], ['none', 'Sem ficha']] as const).map(([k, l]) => ({ l, n: cnt[k], go: () => setFilter(k), bg: filter === k ? 'var(--ink)' : 'var(--surface)', color: filter === k ? 'var(--bg)' : 'var(--ink)', ring: filter === k ? 'var(--ink)' : 'var(--line)' })),
     players: all.filter(p => filter === 'all' || (filter === 'on' ? p.st === 'on' : p.noChar)).map((p, k) => ({ ...p, delay: (k * 0.05).toFixed(2) })),
-    copy: () => { clearTimeout(ct.current); setCopied(true); ct.current = setTimeout(() => setCopied(false), 2000) },
+    copy: () => { if (d.codigo) try { void navigator.clipboard?.writeText(d.codigo) } catch { /* sem clipboard */ } clearTimeout(ct.current); setCopied(true); ct.current = setTimeout(() => setCopied(false), 2000) },
     copyLabel: copied ? 'Copiado' : 'Copiar', copyIcon: copied ? Check : Copy, copyColor: copied ? 'var(--ok)' : 'var(--ink)',
   }
 }

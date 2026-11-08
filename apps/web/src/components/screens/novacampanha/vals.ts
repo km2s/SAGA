@@ -88,7 +88,7 @@ export function useNovaCampanhaVals(d: NovaCampanhaDados) {
       sessionFrequency: fmt === 'One-shot' ? null : FREQ[freq] ?? null,
       minExperience: newbie ? null : 'intermediate',
       isOpen: publish, maxSlots: seats,
-      // TODO(api): campos novos da Nova Campanha (docs/api-pendente.md). A API atual ignora os que não conhece.
+      // Gravados: código, agenda (primeira sessão) e visibilidade das rolagens. Os demais ainda não têm campo (docs/api-pendente.md).
       capa: cover, tons: tones, classificacao: rating, permitirImportadas: imp, visibilidadeRolagens: rollVis,
       agenda: { dia: day, primeiraSessao: date, horario: time, duracaoHoras: dur }, local: venue, inviteCode: code,
       discord: discord ? { servidor: server, canal: channel } : null, aprovarInscricoes: approve, chamadaTaverna: call.trim() || null,

@@ -24,7 +24,7 @@ export default async function ExplorarPage() {
 
   const [abertas, cartas, meus] = await Promise.all([
     prisma.campaign.findMany({
-      where: { isOpen: true, members: { none: { userId: me.id } } },
+      where: { isOpen: true, archivedAt: null, members: { none: { userId: me.id } } },
       orderBy: { updatedAt: 'desc' }, take: 60,
       select: {
         id: true, name: true, description: true, campaignType: true, sessionFrequency: true, contentTone: true, playStyle: true, minExperience: true, maxSlots: true,

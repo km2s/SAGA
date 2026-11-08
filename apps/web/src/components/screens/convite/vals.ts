@@ -6,11 +6,11 @@ import { dcHref } from '@/lib/dc-routes'
 
 /**
  * Porte do renderVals() de SAGA Convite.dc.html.
- * TODO(api): GET/POST /api/convites/[codigo] (contrato em docs/api-pendente.md).
+ * Dados de GET/POST /api/convites/[codigo] (app/api/convites/[codigo]/route.ts).
  */
 type Mesa = {
   id: string; n: string; sys: string; fmt: string; gm: string; when: string; next: string; tone: string
-  taken: number; tot: number; d: string; members: { u: string; t: string }[]
+  taken: number; tot: number; d: string; members: { u: string; t: string }[]; capa?: string | null
 }
 type Busca = { campanha: Mesa; personagens: { id: string; t: string; d: string }[] }
 
@@ -99,8 +99,7 @@ export function useConviteVals(inicial: string | null) {
   const stText = status === 'search' ? 'Procurando a mesa…' : status === 'found' ? 'Mesa encontrada' : status === 'nf' ? 'Nenhuma mesa com esse selo. Confira com o mestre.' : len ? `Faltam ${8 - len} ${8 - len > 1 ? 'caracteres' : 'caractere'}` : 'Digite os 8 caracteres do selo'
   return {
     $href: (link: string) => dcHref(link, { campaignId: joined ?? undefined }),
-    // TODO(api): Campaign.coverUrl
-    $img: (_id: string): string | null => null,
+    $img: (id: string): string | null => (id === 'convite-capa' ? C?.capa ?? null : null),
     boxesA: boxes.slice(0, 4), boxesB: boxes.slice(4), code, inRef,
     onCode: (e: ChangeEvent<HTMLInputElement>) => setCode(e.target.value), onFocus: () => setFocus(true), onBlur: () => setFocus(false),
     searching: status === 'search', stText, stColor: status === 'found' ? 'var(--ok)' : status === 'nf' ? 'var(--accent)' : 'var(--muted)',
@@ -114,7 +113,7 @@ export function useConviteVals(inicial: string | null) {
     recent: [] as { l: string; from: string; go: () => void }[],
     found: !!c, c: c!, chars,
     accept, joined: !!joined,
-    joinSub: !pickT || !C ? '' : pick === 'new' ? `${C.gm} foi avisada. Agora, crie sua ficha de ${C.sys}.` : pick === 'later' ? `${C.gm} foi avisada. Escolha sua ficha antes da sessão zero.` : `${pickT.t} foi apresentado à companhia.`,
+    joinSub: !pickT || !C ? '' : pick === 'new' ? `Você está na mesa de ${C.gm}. Agora, crie sua ficha de ${C.sys}.` : pick === 'later' ? `Você está na mesa de ${C.gm}. Escolha sua ficha antes da sessão zero.` : `${pickT.t} foi apresentado à companhia.`,
     nextHref: pick === 'new' ? `/personagens/novo${joined ? `?campanha=${joined}` : ''}` : '/mensagens',
     nextLabel: pick === 'new' ? 'Criar ficha agora' : `Falar com ${C ? C.gm : 'o mestre'}`,
   }

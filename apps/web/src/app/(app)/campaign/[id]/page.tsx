@@ -12,6 +12,8 @@ import { freqLabel, ONLINE_MS } from '@/lib/campanha-labels'
 import { parseTracks } from '@/lib/resource-tracks'
 import { mapasDa, publico } from '@/lib/mapas'
 import { diaMes, duracao, haQuanto } from '@/lib/tempo'
+import { codigoDa, exibir } from '@/lib/convite'
+import { safeImageUrl } from '@/lib/safe-url'
 
 const XP: Record<string, string> = { beginner: 'Iniciante', intermediate: 'Intermediário', advanced: 'Veterano' }
 const NPC_TIPO: Record<string, string> = { VILLAIN: 'Vilão', ENEMY: 'Vilão', ALLY: 'Aliado', MERCHANT: 'Mercador', FAMILIAR: 'Familiar' }
@@ -44,6 +46,8 @@ export default async function CampaignPage({ params, searchParams }: { params: {
       npcs: { orderBy: { createdAt: 'desc' }, select: { id: true, name: true, type: true, description: true, isPublic: true, imageUrl: true } },
       applications: { where: { status: 'pending' }, orderBy: { createdAt: 'asc' }, select: { id: true, characterDesc: true, experienceLevel: true, createdAt: true, user: { select: { username: true } } } },
       notes: { where: { authorId: me.userId }, orderBy: { updatedAt: 'desc' }, select: { id: true, title: true, content: true, visibility: true } },
+      fios: { orderBy: { createdAt: 'asc' }, select: { id: true, texto: true, sessao: true, feito: true } },
+      agendadas: { where: { quando: { gt: new Date(Date.now() - 3 * 3600_000) } }, orderBy: { quando: 'asc' }, select: { id: true, titulo: true, data: true, horario: true, lembrete: true } },
     },
   }).catch(() => null)
   if (!c) notFound()
@@ -67,6 +71,11 @@ export default async function CampaignPage({ params, searchParams }: { params: {
   const { mapas, naMesa } = await mapasDa(c.id)
   const dados: PainelDados = {
     mapas: mapas.map(publico), naMesa,
+    codigo: exibir(await codigoDa(c.id, c.inviteCode)),
+    fios: c.fios.map(f => ({ id: f.id, t: f.texto, s: f.sessao ?? '', done: f.feito })),
+    agendadas: c.agendadas.map(a => ({ id: a.id, t: a.titulo, date: a.data, time: a.horario, bell: a.lembrete })),
+    rolagens: c.rollVisibility === 'todos' || c.rollVisibility === 'mestre' ? c.rollVisibility : 'escolha',
+    bot: c.botEnabled, capa: safeImageUrl(c.coverUrl),
     id: c.id,
     nome: c.name,
     heroLine: partes.length ? `${partes.join(' · ')} · ` : '',

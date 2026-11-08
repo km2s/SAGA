@@ -3,6 +3,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from 'database'
 import { NextResponse } from 'next/server'
 import { sanitizeTracks } from '@/lib/resource-tracks'
+import { validateImageUrlOrError } from '@/lib/validate-url'
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
@@ -22,6 +23,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     sessionFrequency?: string | null
     minExperience?: string | null
     resourceTracks?: unknown
+    name?: string
+    coverUrl?: string | null
+    rollVisibility?: string
+    botEnabled?: boolean
   }
 
   const data: Record<string, unknown> = {}
@@ -31,6 +36,17 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     data.resourceTracksJson = JSON.stringify(tracks)
   }
   if (typeof body.isOpen === 'boolean') data.isOpen = body.isOpen
+  if (typeof body.name === 'string') {
+    const nome = body.name.trim().slice(0, 100)
+    if (nome.length < 2) return NextResponse.json({ error: 'O nome precisa de pelo menos 2 caracteres' }, { status: 400 })
+    data.name = nome
+  }
+  if ('coverUrl' in body) {
+    if (!body.coverUrl) data.coverUrl = null
+    else { const { value, error } = validateImageUrlOrError(body.coverUrl, 'coverUrl'); if (error) return NextResponse.json({ error }, { status: 400 }); data.coverUrl = value }
+  }
+  if (body.rollVisibility === 'todos' || body.rollVisibility === 'mestre' || body.rollVisibility === 'escolha') data.rollVisibility = body.rollVisibility
+  if (typeof body.botEnabled === 'boolean') data.botEnabled = body.botEnabled
   if ('maxSlots' in body) data.maxSlots = typeof body.maxSlots === 'number' && body.maxSlots > 0 ? body.maxSlots : null
   if (body.campaignType === 'campaign' || body.campaignType === 'oneshot') data.campaignType = body.campaignType
   if ('contentTone' in body) data.contentTone = typeof body.contentTone === 'string' ? body.contentTone : null
@@ -45,7 +61,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   const updated = await prisma.campaign.update({
     where: { id: params.id },
     data,
-    select: { id: true, isOpen: true, maxSlots: true, campaignType: true, contentTone: true, playStyle: true, sessionFrequency: true, minExperience: true, resourceTracksJson: true },
+    select: { id: true, name: true, coverUrl: true, rollVisibility: true, botEnabled: true, isOpen: true, maxSlots: true, campaignType: true, contentTone: true, playStyle: true, sessionFrequency: true, minExperience: true, resourceTracksJson: true },
   }).catch(() => null)
   if (!updated) return NextResponse.json({ error: 'Erro ao atualizar campanha' }, { status: 500 })
 

@@ -45,6 +45,14 @@ model Campaign {
   resourceTracksJson String?
   // Mapa que os jogadores veem (SAGA Mapas: "Na mesa"); null = o primeiro mapa.
   mapaNaMesaId      String?
+  // Código de convite (8 caracteres, exibido XXXX-XXXX); gerado na primeira leitura.
+  inviteCode        String?  @unique
+  coverUrl          String?
+  // "Arquivar campanha" (Painel › Config): sai da lista principal e da Taverna.
+  archivedAt        DateTime?
+  // Quem vê as rolagens dos jogadores: todos (públicas) · mestre · escolha (cada um escolhe).
+  rollVisibility    String   @default("escolha")
+  botEnabled        Boolean  @default(true)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -57,6 +65,40 @@ model Campaign {
   handouts     Handout[]
   applications CampaignApplication[]
   mapas        Mapa[]
+  fios         Fio[]
+  agendadas    SessaoAgendada[]
+}
+
+/// Fios soltos da crônica (Painel do Mestre › Visão geral).
+model Fio {
+  id         String   @id @default(cuid())
+  campaignId String
+  texto      String
+  sessao     String?  // sessão em que o fio apareceu (rótulo)
+  feito      Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId])
+}
+
+/// Sessões agendadas (Painel › Sessões). `quando` é data + horário em America/Sao_Paulo.
+model SessaoAgendada {
+  id         String    @id @default(cuid())
+  campaignId String
+  titulo     String
+  data       String    // AAAA-MM-DD
+  horario    String    // HH:MM
+  quando     DateTime
+  lembrete   Boolean   @default(true)
+  lembradoEm DateTime?
+  createdAt  DateTime  @default(now())
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId, quando])
+  @@index([quando])
 }
 
 model CampaignApplication {

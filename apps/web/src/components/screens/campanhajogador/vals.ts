@@ -8,6 +8,7 @@ import { safeImageUrl } from '@/lib/safe-url'
 export type CampanhaJogadorDados = {
   campaignId: string; campanha: string; descricao: string; sistema: string | null; mestre: string | null
   aoVivo: { nome: string } | null
+  capa: string | null; proxima: string | null
   pers: null | { id: string; n: string; sub: string; hp: number; max: number; img: string | null }
   temPv: boolean
   sessoes: { id: string; num: string; n: string; d: string; w: string }[]
@@ -24,13 +25,13 @@ export function useCampanhaJogadorVals(d: CampanhaJogadorDados) {
   const pct = p && p.max > 0 ? Math.max(0, Math.min(100, Math.round(p.hp / p.max * 100))) : 0
   return {
     $href: (link: string) => dcHref(link, { campaignId: d.campaignId }),
-    capa: null as string | null, // TODO(api): Campaign.coverUrl
+    capa: safeImageUrl(d.capa),
     linhaSis: [d.sistema ?? 'Sistema próprio', d.mestre ? `Mestre ${d.mestre}` : null].filter(Boolean).join(' · '),
     campanha: d.campanha, descricao: d.descricao,
     live: !!d.aoVivo, notLive: !d.aoVivo,
     aoVivoLabel: d.aoVivo ? `${d.aoVivo.nome} ao vivo · Entrar na mesa` : '',
     mesaHref: `${base}/mesa`,
-    proxima: 'A combinar', // TODO(api): agendamento de sessões
+    proxima: d.proxima ?? 'A combinar',
     pers: {
       i: (p?.n[0] ?? '?').toUpperCase(), img: safeImageUrl(p?.img ?? null), n: p?.n ?? 'Sem personagem',
       sub: p?.sub ?? 'Você ainda não tem ficha nesta campanha.',

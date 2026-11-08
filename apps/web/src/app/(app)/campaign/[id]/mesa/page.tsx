@@ -26,7 +26,7 @@ async function MesaNovaPage({ id, discordId, mapa }: { id: string; discordId: st
   const c = await prisma.campaign.findUnique({
     where: { id },
     select: {
-      id: true, name: true, resourceTracksJson: true, system: { select: { name: true, category: true, isPreset: true } },
+      id: true, name: true, rollVisibility: true, resourceTracksJson: true, system: { select: { name: true, category: true, isPreset: true } },
       members: {
         orderBy: { joinedAt: 'asc' },
         select: {
@@ -90,6 +90,7 @@ async function MesaNovaPage({ id, discordId, mapa }: { id: string; discordId: st
     rolagens: serializarTodas(rolls, leitor(me, me.user.username), (() => { const m = c.members.find(x => x.role === 'GM'); return { memberId: m?.id ?? null, username: m?.user.username ?? null } })()),
     totalRolagens: total,
     mapas: mapas.filter(m => gm || m.id === naMesa).map(publico), naMesa, aberto,
+    regraRolagens: c.rollVisibility,
   }
   return (
     <>

@@ -10,6 +10,7 @@ export type CampanhasDados = {
     id: string; n: string; sys: string; mestre: boolean; freq: string; k: number
     live: { sessao: string; startedAt: string } | null
     ses: number; since: string; codigo: string | null; desc: string; archived: boolean
+    proxima: string | null; capa: string | null
     personagemId: string | null
     members: { u: string; c: string; on: boolean }[]
   }[]
@@ -33,7 +34,7 @@ export function useCampanhasVals(d: CampanhasDados) {
 
   const all = d.campanhas.map((c, i) => ({
     ...c, idx: i, cover: COVERS[i % COVERS.length], slot: `camp-capa-${i}`, role: c.mestre ? 'Mestre' : 'Jogador',
-    next: c.live ? 'Ao vivo agora' : c.archived ? `${c.ses} sessões` : '—', // TODO(api): próxima sessão agendada
+    next: c.live ? 'Ao vivo agora' : c.archived ? `${c.ses} sessões` : c.proxima ?? '—',
   }))
   const qq = q.trim().toLowerCase()
   const list = all.filter(c => (st === 'Arquivadas') === c.archived && (role === 'Todas' || c.role === role) && (!qq || (c.n + c.sys).toLowerCase().includes(qq)))
@@ -79,8 +80,7 @@ export function useCampanhasVals(d: CampanhasDados) {
   const nM = all.filter(c => !c.archived && c.mestre).length, nA = all.filter(c => !c.archived).length, nLive = all.filter(c => c.live).length
   return {
     $href: (link: string) => dcHref(link, ctx),
-    // TODO(api): Campaign.coverUrl
-    $img: (_id: string): string | null => null,
+    $img: (id: string): string | null => all.find(c => c.slot === id)?.capa ?? null,
     summary: `${nA} ativas · ${nM} como mestre${nLive ? ` · ${nLive} ${nLive === 1 ? 'sessão acontecendo' : 'sessões acontecendo'} agora` : ''}`,
     roles: seg(['Todas', 'Mestre', 'Jogador'], role, setRole), states: seg(['Ativas', 'Arquivadas'], st, setSt),
     views: ([['grid', 'Grade', LayoutGrid], ['list', 'Lista', List]] as const).map(([k, l, icon]) => ({

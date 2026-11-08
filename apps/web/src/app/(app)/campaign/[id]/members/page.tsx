@@ -1,3 +1,4 @@
+import { codigoDa, exibir } from '@/lib/convite'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from 'database'
@@ -18,7 +19,7 @@ export default async function CampaignMembersPage({ params }: { params: { id: st
   const c = await prisma.campaign.findUnique({
     where: { id: params.id },
     select: {
-      id: true, name: true, resourceTracksJson: true, system: { select: { id: true, name: true } },
+      id: true, name: true, inviteCode: true, resourceTracksJson: true, system: { select: { id: true, name: true } },
       members: {
         orderBy: { joinedAt: 'asc' },
         select: { id: true, role: true, joinedAt: true, lastSeenAt: true, user: { select: { username: true, discordId: true } }, character: { select: { id: true, name: true, race: true, class: true, level: true, hp: true, maxHp: true } } },
@@ -37,6 +38,7 @@ export default async function CampaignMembersPage({ params }: { params: { id: st
   const dados: MembrosDados = {
     campaignId: c.id, campanha: c.name, sistema: c.system?.name ?? null, sistemaId: c.system?.id ?? null,
     souMestre: me.role === 'GM', eu: session.user.username,
+    codigo: me.role === 'GM' ? exibir(await codigoDa(c.id, c.inviteCode)) : null,
     mestre: {
       nome: gm?.user.username ?? '—',
       linha: gm ? `@${gm.user.username} · ${gmSt === 'on' ? 'online agora' : gm.lastSeenAt ? `visto ${haQuanto(gm.lastSeenAt, agora)}` : 'offline'} · narrando desde ${mesAno(gm.joinedAt)}` : '',
