@@ -305,4 +305,15 @@ if (& $want 'notas') {
     WrapEnclosing $c '>Visão de<' 'div' 'v.temVisao'
   } 'campanha real; visão pelo papel.'
 }
+if (& $want 'estados') {
+  $p = Gen 'SAGA Estados' 'estados'
+  Edit $p {
+    param($c)
+    # As abas são do protótipo (alternam os estados); no app cada estado aparece na sua tela.
+    $c = WrapEnclosing $c "role={'tablist'}" 'div' 'v.temAbas'
+    # Nota para o desenvolvedor, não é texto da tela.
+    $c = [regex]::Replace($c, "<p style=\{\{ margin: '12px 2px 0', fontSize: '12px', color: 'var\(--muted\)' \}\}>Neste estado o painel lateral[^<]*</p>", '')
+    Rep $c "v.`$href('SAGA Importar Ficha.dc.html')" 'v.importarHref'
+  } 'sem as abas do protótipo; importar abre o modal em /personagens?importar=1.'
+}
 'pronto'

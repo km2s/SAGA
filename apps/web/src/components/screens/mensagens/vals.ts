@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent } from 'react'
+import { CircleAlert, Loader } from 'lucide-react'
 import { dcHref } from '@/lib/dc-routes'
 
 /**
@@ -53,11 +54,42 @@ export function useMensagensVals(d: MensagensDados) {
     return () => clearInterval(iv)
   }, [c?.id, c?.aoVivo, regs])
 
+  // Erro ao enviar (SAGA Estados): sem rede ou falha do servidor, a mensagem fica aqui como "Não enviada".
+  const [pend, setPend] = useState<{ id: string; camp: string; x: string; st: 'sending' | 'failed' }[]>([])
+  const [offline, setOffline] = useState(false)
+  useEffect(() => {
+    const on = () => setOffline(false), off = () => setOffline(true)
+    setOffline(typeof navigator !== 'undefined' && !navigator.onLine)
+    window.addEventListener('online', on); window.addEventListener('offline', off)
+    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off) }
+  }, [])
+  const entregar = async (p: { id: string; camp: string; x: string }) => {
+    setPend(ps => ps.map(q => q.id === p.id ? { ...q, st: 'sending' } : q))
+    const r = await fetch(`/api/campaigns/${p.camp}/rolls`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ expression: 'chat', message: p.x }) }).catch(() => null)
+    const reg = r?.ok ? await r.json().catch(() => null) as Registro | null : null
+    if (!reg) {
+      // Recusa do servidor com motivo (ex.: sem sessão): a mensagem sai da fila e o motivo aparece na linha de digitação.
+      if (r && r.status < 500) { const e = await r.json().catch(() => null) as { error?: string } | null; setPend(ps => ps.filter(q => q.id !== p.id)); setErro(e?.error === 'Nenhuma sessão ativa' ? 'O canal abre para mensagens quando a sessão começa.' : e?.error ?? 'Não foi possível concluir agora. Tente de novo.'); return }
+      setPend(ps => ps.map(q => q.id === p.id ? { ...q, st: 'failed' } : q)); return
+    }
+    setPend(ps => ps.filter(q => q.id !== p.id))
+    const novo = { ...reg, rolledAt: new Date(reg.rolledAt).toISOString() }
+    setFresh(novo.id)
+    setRegs(rs => ({ ...rs, [p.camp]: [...(rs[p.camp] ?? []), novo] }))
+  }
+
   const send = async () => {
     const txt = draft.trim(); if (!txt || !c) return
     const m = txt.match(/^\/r\s*(\d*d\d+\s*(?:[+-]\s*\d+)?)/i)
-    const body = m ? { expression: m[1].replace(/\s/g, '') } : { expression: 'chat', message: txt } // TODO(api): marcar mensagem em personagem
     setErro('')
+    if (!m) {
+      // TODO(api): marcar mensagem em personagem
+      const p = { id: `p${Date.now()}`, camp: c.id, x: txt }
+      setDraft(''); setPend(ps => [...ps, { ...p, st: 'sending' }]); setFresh(p.id)
+      void entregar(p)
+      return
+    }
+    const body = { expression: m[1]!.replace(/\s/g, '') }
     const r = await fetch(`/api/campaigns/${c.id}/rolls`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).catch(() => null)
     const reg = r?.ok ? await r.json().catch(() => null) as Registro | null : null
     if (!reg) {
@@ -95,8 +127,20 @@ export function useMensagensVals(d: MensagensDados) {
       totalColor: !chat && /^1d20/i.test(x.expression) && rolls[0] === 20 ? '#f3dc94' : '#f1e3c2', dieAnim: rollingId === x.id ? 'mensagens-spin .8s cubic-bezier(.2,.7,.3,1) both' : 'none',
       sealed: false, opened: false, sealAnim: 'none', open: () => { /* TODO(api): sussurro selado */ },
       slot: '', anim: x.id === fresh ? 'mensagens-msgIn .35s cubic-bezier(.3,1.2,.5,1) both' : 'none',
+      temStatus: false, failed: false, st: '', stIcon: Loader, stC: '', retry: () => {}, drop: () => {},
     }
-  })
+  }).concat(pend.filter(p => p.camp === c?.id).map(p => {
+    const f = p.st === 'failed'
+    return {
+      justify: 'flex-end', align: 'flex-end', showAv: false, i: '', av: '', meta: 'Você',
+      isText: true, isIc: false, isRoll: false, isWhisper: false, isHandout: false, text: p.x, char: '',
+      radius: '12px 12px 3px 12px', bg: f ? 'transparent' : 'var(--accent)', fg: f ? 'var(--ink)' : '#fff8f0', ring: f ? 'var(--blood)' : 'transparent',
+      label: '', detail: '', total: '', totalColor: '', dieAnim: 'none', sealed: false, opened: false, sealAnim: 'none', open: () => {},
+      slot: '', anim: p.id === fresh ? 'mensagens-msgIn .35s cubic-bezier(.3,1.2,.5,1) both' : 'none',
+      temStatus: true, failed: f, st: f ? 'Não enviada' : 'Enviando…', stIcon: f ? CircleAlert : Loader, stC: f ? 'var(--blood)' : 'var(--muted)',
+      retry: () => { void entregar(p) }, drop: () => setPend(ps => ps.filter(q => q.id !== p.id)),
+    }
+  }))
 
   const ic = mode === 'ic'
   const personagem = c?.personagem ?? 'Mestre'
@@ -113,7 +157,7 @@ export function useMensagensVals(d: MensagensDados) {
       sub: `Canal da campanha · ${c.membros} membros${c.souMestre ? ' · você é o mestre' : ''}`, camp: c.n, sys: c.sys,
       next: c.aoVivo ? `Ao vivo agora · ${c.aoVivo}` : '—', char: personagem, pin: '—', // TODO(api): recado fixado e próxima sessão
     } : { n: '', i: '', av: AV[0], radius: '8px', slot: '', cover: COVERS[0], sub: '', camp: '', sys: '', next: '', char: '', pin: '' },
-    msgs, listRef, inputRef,
+    msgs, listRef, inputRef, offline,
     typing: !!erro, typingLabel: erro,
     modes: ([['ooc', 'Fora de personagem'], ['ic', `Em personagem · ${personagem.split(' ')[0]}`]] as const).map(([k, l]) => ({
       l, go: () => setMode(k), bg: mode === k ? 'var(--surface)' : 'transparent', color: mode === k ? 'var(--ink)' : 'var(--muted)', sh: mode === k ? '0 1px 2px rgb(0 0 0/.08)' : 'none',
