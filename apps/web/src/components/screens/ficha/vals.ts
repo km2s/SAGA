@@ -6,8 +6,10 @@ import { dcHref } from '@/lib/dc-routes'
 
 /**
  * Porte do renderVals() de SAGA Ficha.dc.html (ficha de D&D 5e) com os dados
- * reais da ficha. Magias, inventário, moedas, XP, traços e recursos de classe
- * ainda não têm tabela: as listas ficam vazias (TODO(api), docs/api-pendente.md).
+ * reais da ficha. Magias e habilidades vêm dos campos de texto da ficha antiga
+ * (spells_*, char_abilities); PV temporários, inspiração, dados de vida, testes
+ * contra a morte e Cura pelas Mãos ficam em `dnd_estado`. Inventário, moedas, XP
+ * e recursos de classe ainda não têm onde morar (docs/api-pendente.md).
  */
 export type FichaDados = {
   id: string; memberId: string; campaignId: string; podeEditar: boolean
@@ -20,10 +22,17 @@ export type FichaDados = {
   armas: { n: string; d: string; b: number; dano: string }[]
   slots: { level: number; total: number; used: number }[]
   textos: { diario: string; juramentos: string }
+  magias: { lv: number; n: string; cost: string; desc: string }[]
+  habilidades: { n: string; d: string; cost: string }[]
+  estado: Partial<Estado> | null
 }
+/** Estado de mesa da ficha (campo de texto `dnd_estado`). */
+export type Estado = { tmp: number; hdGastos: number; insp: boolean; dsOk: number; dsFail: number; lohGasto: number }
 
 type Toast = { id: number; label: string; detail: string; total: number | string; color: string; ring: string; tag: string; tagColor: string }
 // Dado de vida por classe (Livro do Jogador).
+// Atributo de conjuração por classe (sigla de AB).
+const CONJ: Record<string, string> = { 'Bardo': 'CAR', 'Bruxo': 'CAR', 'Feiticeiro': 'CAR', 'Paladino': 'CAR', 'Clérigo': 'SAB', 'Druida': 'SAB', 'Patrulheiro': 'SAB', 'Mago': 'INT' }
 const HD: Record<string, number> = { 'Bárbaro': 12, 'Guerreiro': 10, 'Paladino': 10, 'Patrulheiro': 10, 'Bardo': 8, 'Bruxo': 8, 'Clérigo': 8, 'Druida': 8, 'Ladino': 8, 'Monge': 8, 'Feiticeiro': 6, 'Mago': 6 }
 const sg = (v: number) => (v >= 0 ? '+' : '') + v
 const mod = (v: number) => Math.floor((v - 10) / 2)
@@ -39,17 +48,18 @@ function parseDano(s: string): [number, number, number] | null {
 export function useFichaVals(d: FichaDados) {
   const [tab, setTab] = useState('main')
   const [hp, setHpS] = useState(d.hp)
-  const [tmp, setTmp] = useState(0) // TODO(api): PV temporários
+  const e0 = d.estado ?? {}
+  const [tmp, setTmp] = useState(e0.tmp ?? 0)
   const [amt, setAmt] = useState(5)
   const [hpTick, setHpTick] = useState(0)
   const [hpKind, setHpKind] = useState<'hit' | 'heal'>('hit')
-  const [hdLeft, setHdLeft] = useState(d.nivel) // TODO(api): dados de vida gastos
-  const [insp, setInsp] = useState(false) // TODO(api): inspiração
+  const [hdLeft, setHdLeft] = useState(Math.max(0, d.nivel - (e0.hdGastos ?? 0)))
+  const [insp, setInsp] = useState(!!e0.insp)
   const [inspTick, setInspTick] = useState(0)
   const [smite, setSmite] = useState(false)
   const [slots, setSlots] = useState(d.slots)
-  const [ds, setDs] = useState({ ok: 0, fail: 0 })
-  const [loh, setLoh] = useState(d.nivel * 5) // TODO(api): reserva gasta
+  const [ds, setDs] = useState({ ok: e0.dsOk ?? 0, fail: e0.dsFail ?? 0 })
+  const [loh, setLoh] = useState(Math.max(0, d.nivel * 5 - (e0.lohGasto ?? 0)))
   const [toasts, setToasts] = useState<Toast[]>([])
   const [diary, setDiary] = useState(d.textos.diario)
   const [oaths, setOaths] = useState(d.textos.juramentos)
@@ -57,6 +67,15 @@ export function useFichaVals(d: FichaDados) {
   const saveHp = useRef<ReturnType<typeof setTimeout>>()
   const saveTxt = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
   useEffect(() => () => { tt.current.forEach(clearTimeout); clearTimeout(saveHp.current); Object.values(saveTxt.current).forEach(clearTimeout) }, [])
+  // Grava o estado de mesa quando ele muda (não no primeiro render).
+  const estadoPronto = useRef(false)
+  useEffect(() => {
+    if (!estadoPronto.current) { estadoPronto.current = true; return }
+    if (!d.podeEditar) return
+    const e: Estado = { tmp, hdGastos: d.nivel - hdLeft, insp, dsOk: ds.ok, dsFail: ds.fail, lohGasto: d.nivel * 5 - loh }
+    clearTimeout(saveTxt.current.estado)
+    saveTxt.current.estado = setTimeout(() => { void json(`/api/characters/${d.id}/text-fields`, 'POST', { key: 'dnd_estado', label: 'Estado da ficha', value: JSON.stringify(e), order: 98 }) }, 800)
+  }, [tmp, hdLeft, insp, ds, loh]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const api = `/api/characters/${d.id}`
   const M = Object.fromEntries(d.attrs.map(a => [a.k, mod(a.v)])) as Record<string, number>
@@ -179,11 +198,30 @@ export function useFichaVals(d: FichaDados) {
       const b = s.b ?? M[s.a] ?? 0
       return { n: s.n, a: s.a, b: sg(b), dot: b > (M[s.a] ?? 0) ? 'var(--accent)' : 'transparent', dis: '', go: () => roll(s.n, 1, 20, b) }
     }),
-    // TODO(api): atributo de conjuração da classe.
-    spStats: [{ v: '—', l: 'Atributo' }, { v: '—', l: 'Ataque mágico' }, { v: '—', l: 'CD de magia' }, { v: '0', l: 'Preparadas' }],
+    // Atributo de conjuração pela classe (Livro do Jogador).
+    spStats: (() => {
+      const k = CONJ[d.classe ?? '']
+      const m = k ? M[k] ?? 0 : null
+      return [{ v: k ?? '—', l: 'Atributo' }, { v: m === null ? '—' : sg(m + PB), l: 'Ataque mágico' }, { v: m === null ? '—' : String(8 + m + PB), l: 'CD de magia' }, { v: String(d.magias.filter(x => x.lv > 0).length), l: 'Magias' }]
+    })(),
     slotsTitulo: slot ? `Espaços de ${slot.level}º círculo` : 'Sem espaços de magia',
     slots: slot ? Array.from({ length: slot.total }, (_, i) => pip(i < slotsLeft, () => usar(i < slotsLeft ? 1 : -1), i < slotsLeft ? 'Gastar espaço' : 'Recuperar espaço')) : [],
-    spells: [] as { n: string; lv: string; tag: string; meta: string; d: string; anim: string; btn: string; btnBg: string; btnColor: string; cast: () => void }[], // TODO(api): magias
+    spells: d.magias.map(s => {
+      const livre = s.lv === 0 ? null : slots.find(x => x.level >= s.lv && x.used < x.total) ?? null
+      return {
+        n: s.n, lv: s.lv === 0 ? 'T' : String(s.lv), tag: s.lv === 0 ? 'truque' : '', meta: s.cost || (s.lv === 0 ? 'Truque' : `${s.lv}º círculo`), d: s.desc, anim: 'none',
+        btn: s.lv === 0 ? 'Usar' : livre ? `Conjurar (${livre.level}º)` : 'Sem espaços',
+        btnBg: s.lv === 0 || livre ? 'var(--ink)' : 'var(--surface2)', btnColor: s.lv === 0 || livre ? 'var(--bg)' : 'var(--muted)',
+        cast: () => {
+          if (s.lv > 0) {
+            if (!livre) return
+            const used = livre.used + 1
+            setSlots(xs => xs.map(x => (x.level === livre.level ? { ...x, used } : x))); salvarSlot(livre.level, used)
+          }
+          toast({ label: s.n, detail: s.lv === 0 ? 'Truque' : `Espaço de ${livre!.level}º círculo gasto`, total: '✦', color: '#f1e3c2', ring: 'rgb(201 162 42/.3)', tag: 'Magia', tagColor: '#8fbf6a' })
+        },
+      }
+    }),
     resources: [] as { n: string; d: string; pips: ReturnType<typeof pip>[] }[], // TODO(api): recursos de classe
     loh, lohMax, lohPct: lohMax ? Math.round(loh / lohMax * 100) : 0,
     lohBtns: [1, 5, 10].map(x => ({ l: `+${x} PV`, go: () => { const g = Math.min(x, loh, d.mx - hp); if (g > 0) { setLoh(loh - g); setHp(hp + g, 'heal') } } })),
@@ -191,7 +229,7 @@ export function useFichaVals(d: FichaDados) {
     coins: [['Ouro', 'radial-gradient(circle at 35% 30%, #fff1b0, #d9a22a 55%, #8a6320)'], ['Prata', 'radial-gradient(circle at 35% 30%, #ffffff, #b8b8b0 55%, #6a6a66)'], ['Cobre', 'radial-gradient(circle at 35% 30%, #f6c8a0, #b8642a 55%, #6e3210)']].map(([l, bg]) => ({ l, bg, v: 0, on: () => { /* TODO(api): moedas */ } })),
     load: '0', loadPct: 0, loadColor: 'var(--gold)',
     cargaMax: String(+(forca * 7.5).toFixed(1)).replace('.', ','), cargaNota: `FOR ${forca} × 7,5 kg.`,
-    feats: [] as { src: string; n: string; d: string }[], // TODO(api): traços
+    feats: d.habilidades.map(h => ({ src: h.cost || 'Habilidade', n: h.n, d: h.d })),
     diarioTitulo: `Diário de ${d.nome.split(' ')[0]}`,
     diary, onDiary: (e: ChangeEvent<HTMLTextAreaElement>) => { setDiary(e.target.value); salvarTexto('diario', 'Diário', e.target.value) },
     oaths, onOaths: (e: ChangeEvent<HTMLTextAreaElement>) => { setOaths(e.target.value); salvarTexto('juramentos', 'Juramentos e aliados', e.target.value) },

@@ -11,6 +11,15 @@ import { Ficha } from '@/components/screens/ficha/Ficha'
 import type { FichaDados } from '@/components/screens/ficha/vals'
 
 // Atributos do D&D 5e do seed (lib/systems-seed.ts).
+// Campos de texto em JSON da ficha antiga: listas de { name, cost?, desc? } (ou só nomes).
+type Item = { name?: unknown; cost?: unknown; desc?: unknown }
+const str = (v: unknown) => (typeof v === 'string' ? v : '')
+function lerLista(raw: string): Item[] {
+  try { const v = JSON.parse(raw || '[]') as unknown; return Array.isArray(v) ? v.map(x => (typeof x === 'string' ? { name: x } : x && typeof x === 'object' ? x as Item : {})) : [] } catch { return [] }
+}
+function lerObj(raw: string): Record<string, number | boolean> | null {
+  try { const v = JSON.parse(raw) as unknown; return v && typeof v === 'object' && !Array.isArray(v) ? v as Record<string, number | boolean> : null } catch { return null }
+}
 const ATTR: [string, string][] = [['Força', 'FOR'], ['Destreza', 'DES'], ['Constituição', 'CON'], ['Inteligência', 'INT'], ['Sabedoria', 'SAB'], ['Carisma', 'CAR']]
 const SK: [string, string][] = [['Acrobacia', 'DES'], ['Arcanismo', 'INT'], ['Atletismo', 'FOR'], ['Atuação', 'CAR'], ['Enganação', 'CAR'], ['Furtividade', 'DES'], ['História', 'INT'], ['Intimidação', 'CAR'], ['Intuição', 'SAB'], ['Investigação', 'INT'], ['Lidar com Animais', 'SAB'], ['Medicina', 'SAB'], ['Natureza', 'INT'], ['Percepção', 'SAB'], ['Persuasão', 'CAR'], ['Prestidigitação', 'DES'], ['Religião', 'INT'], ['Sobrevivência', 'SAB']]
 
@@ -94,6 +103,15 @@ export default async function PersonagemPage({ params }: { params: { id: string 
     })),
     slots: ch.spellSlots.map(s => ({ level: s.level, total: s.total, used: s.used })),
     textos: { diario: texto('diario'), juramentos: texto('juramentos') },
+    // Magias e habilidades gravadas pela ficha antiga (campos de texto em JSON).
+    magias: Array.from({ length: 10 }, (_, lv) => lerLista(texto(lv === 0 ? 'spells_cantrip' : `spells_lvl${lv}`))
+      .map(s => ({ lv, n: str(s.name), cost: str(s.cost), desc: str(s.desc) })).filter(s => s.n)).flat(),
+    habilidades: lerLista(texto('char_abilities')).map(h => ({ n: str(h.name), d: str(h.desc), cost: str(h.cost) })).filter(h => h.n),
+    estado: (() => {
+      const e = lerObj(texto('dnd_estado'))
+      // Testes contra a morte da ficha antiga, se o estado novo ainda não existe.
+      return e ?? { dsOk: parseInt(texto('deathSuccesses'), 10) || 0, dsFail: parseInt(texto('deathFailures'), 10) || 0 }
+    })(),
   }
   return <Ficha dados={dados} />
 }
