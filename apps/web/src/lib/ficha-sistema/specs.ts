@@ -262,6 +262,81 @@ export const SPECS: Record<string, SistemaSpec> = {
       { n: 'Notas', pecas: [{ tipo: 'texto', campos: [['race_notes', 'Raça'], ['class_notes', 'Classe'], ['background', 'Histórico Pessoal', true]] }] },
     ],
   },
+
+  // ─── Porcentagem ───
+  // components/character/sheets/CoC7eSheet.tsx
+  'Call of Cthulhu 7e': {
+    familia: 'pct', regra: 'coc', linha: ['occupation'],
+    atributos: { tipo: 'tiles', sel: { prefixo: ['Característica'] }, mostra: 'pct' },
+    trilhas: [{ n: 'Sanidade', forma: 'num', fonte: { attr: ['Sanidade', 'SAN'] }, max: 99, d: 'Perde em encontros com o Mito' }, { n: 'Sorte', forma: 'num', fonte: { tf: 'luck_current', label: 'Sorte Atual' }, max: 99, d: 'Pode gastar para passar' }],
+    pilulas: [{ l: 'Sorte', attr: ['Sorte'] }, { l: 'Crédito', tf: 'credit_rating' }],
+    secoes: [
+      { n: 'Perícias', pecas: [{ tipo: 'linhas', grupos: [{ sel: { prefixo: ['Perícia'] } }], min: '180px' }] },
+      { n: 'Derivados', pecas: [{ tipo: 'linhas', grupos: [{ sel: { prefixo: ['Derivado'] } }] }] },
+      { n: 'Perícias de Combate', pecas: [{ tipo: 'armas' }] },
+      { n: 'Personagem', pecas: [{ tipo: 'texto', campos: [['occupation', 'Ocupação'], ['credit_rating', 'Credenciamento'], ['fortune_max', 'Fortuna Máxima'], ['fortune_current', 'Fortuna Atual'], ['languages', 'Idiomas'], ['description', 'Descrição Física', true], ['backstory', 'Histórico', true]] }] },
+    ],
+  },
+  // components/character/sheets/DeltaGreenSheet.tsx
+  'Delta Green': {
+    familia: 'pct', regra: 'pct', linha: ['agency', 'occupation'],
+    atributos: { tipo: 'tiles', sel: { nomes: ['Força', 'Constituição', 'Destreza', 'Inteligência', 'Poder', 'Carisma', 'Educação'] }, mostra: 'x5' },
+    trilhas: [{ n: 'Sanidade', forma: 'num', fonte: { attr: ['Sanidade'] }, max: c => (c.attr(['Poder']) ?? 0) * 5 || 99, d: 'Limiar de ruptura nos Pontos de Ruptura' }],
+    pilulas: [{ l: 'Pontos de Ruptura', attr: ['Pontos de Ruptura'] }],
+    secoes: [
+      { n: 'Perícias (d100)', pecas: [{ tipo: 'linhas', grupos: [{ sel: { prefixo: ['Perícia'] } }], min: '180px' }] },
+      { n: 'Vínculos', pecas: [{ tipo: 'pares', l: 'Vínculos', max: 10, itens: [1, 2, 3, 4].map(i => ({ nome: [`bond${i}_name`, `Vínculo ${i}`] as [string, string], valor: [`bond${i}_score`, `Vínculo ${i} Pontuação`] as [string, string] })) }] },
+      { n: 'Transtornos', pecas: [{ tipo: 'texto', campos: [['disorders', 'Transtornos', true]] }] },
+      { n: 'Adaptado à Violência', pecas: [{ tipo: 'texto', campos: [['violence_adapted', 'Adaptado à Violência'], ['helpless_adapted', 'Adaptado à Impotência']] }] },
+      { n: 'Operações Anteriores', pecas: [{ tipo: 'texto', campos: [['ops_notes', 'Operações Anteriores', true]] }] },
+      { n: 'Inventário', pecas: [{ tipo: 'armas' }] },
+      { n: 'Personagem', pecas: [{ tipo: 'texto', campos: [['agency', 'Agência'], ['occupation', 'Ocupação'], ['training', 'Treinamento', true]] }] },
+    ],
+  },
+  // components/character/sheets/MothershipSheet.tsx
+  'Mothership': {
+    familia: 'pct', regra: 'ms', linha: ['class'],
+    atributos: { tipo: 'tiles', sel: { nomes: ['Força', 'Velocidade', 'Intelecto', 'Combate', 'Instinto'] }, mostra: 'pct' },
+    trilhas: [{ n: 'Estresse', forma: 'num', fonte: { attr: ['Estresse', 'Stress'] }, max: 20, d: 'Pânico ao falhar com Estresse alto' }],
+    pilulas: [{ sel: { prefixo: ['Salvaguarda', 'Save'] } }, { l: 'Sanidade', attr: ['Sanidade'] }],
+    secoes: [
+      { n: 'Salvaguardas', pecas: [{ tipo: 'linhas', grupos: [{ sel: { prefixo: ['Salvaguarda', 'Save'] } }] }, { tipo: 'texto', campos: [['save_notes', 'Notas de Salvaguarda', true]] }] },
+      { n: 'Perícias', pecas: [{ tipo: 'linhas', grupos: [{ sel: { prefixo: ['Perícia'] } }], min: '180px' }] },
+      { n: 'Ferimentos', pecas: [{ tipo: 'texto', campos: [['wounds', 'Ferimentos', true]] }] },
+      { n: 'Classe', pecas: [{ tipo: 'texto', campos: [['class', 'Classe'], ['class_abilities', 'Habilidades de Classe', true]] }] },
+      { n: 'Inventário', pecas: [{ tipo: 'texto', campos: [['equipment', 'Equipamento', true]] }, { tipo: 'armas' }] },
+    ],
+  },
+
+  // ─── 2d6 e jornadas ───
+  // components/character/sheets/DungeonWorldSheet.tsx
+  'Dungeon World': {
+    familia: 'pbta', regra: 'dw', linha: ['race_notes', 'alignment'], semPvFicha: true,
+    atributos: { tipo: 'tiles', sel: { nomes: D6 }, mostra: 'mod' },
+    trilhas: [{ n: 'Pontos de vida', forma: 'bar', fonte: { tf: 'hp_current', label: 'PV Atual' }, max: { attr: ['Pontos de Vida'] } }],
+    pilulas: [{ l: 'Dano', attr: ['Dano Base', 'Dano'] }, { l: 'Armadura', tf: 'armor_value' }, { l: 'XP', attr: ['XP'] }],
+    secoes: [
+      { n: 'Moves da Classe', pecas: [{ tipo: 'texto', campos: [['class_moves', 'Moves da Classe', true]] }] },
+      { n: 'Vínculos (Bonds)', pecas: [{ tipo: 'texto', campos: [['bonds_list', 'Vínculos (Bonds)', true]] }] },
+      { n: 'Estado', pecas: [{ tipo: 'texto', campos: [['hp_current', 'PV Atual'], ['armor_value', 'Armadura Total'], ['conditions', 'Condições / Deformidades', true]] }, { tipo: 'linhas', grupos: [{ sel: { nomes: ['Pontos de Vida', 'Armadura', 'Dano Base', 'XP'] } }] }] },
+      { n: 'Inventário', pecas: [{ tipo: 'armas' }] },
+      { n: 'Alinhamento', pecas: [{ tipo: 'texto', campos: [['alignment', 'Alinhamento'], ['race_notes', 'Raça / Traço de Raça'], ['background', 'Histórico', true]] }] },
+    ],
+  },
+  // components/character/sheets/IronswornSheet.tsx
+  'Ironsworn': {
+    familia: 'pbta', regra: 'isw', linha: [],
+    atributos: { tipo: 'tiles', sel: { nomes: ['Edge', 'Heart', 'Iron', 'Shadow', 'Wits'] }, mostra: 'sinal' },
+    trilhas: [{ n: 'Momentum', forma: 'momentum', fonte: { attr: ['Momentum'] } }, bola('Health', ['Health'], 5), bola('Spirit', ['Spirit'], 5), bola('Supply', ['Supply'], 5)],
+    pilulas: [],
+    secoes: [
+      { n: 'Juras', pecas: [1, 2, 3, 4, 5].map(i => ({ tipo: 'jura' as const, i })) },
+      { n: 'Assets', pecas: [{ tipo: 'texto', campos: [['asset1', 'Asset 1', true], ['asset2', 'Asset 2', true], ['asset3', 'Asset 3', true]] }] },
+      { n: 'Vínculos (Bonds)', pecas: [{ tipo: 'texto', campos: [['bonds_list', 'Vínculos (Bonds)', true]] }] },
+      { n: 'Condições', pecas: [{ tipo: 'marcas', l: 'Condições', itens: [['condition_wounded', 'Ferido'], ['condition_shaken', 'Abalado'], ['condition_unprepared', 'Despreparado'], ['condition_encumbered', 'Sobrecarregado']] }] },
+      { n: 'Notas', pecas: [{ tipo: 'texto', campos: [['background', 'Histórico', true]] }] },
+    ],
+  },
 }
 // Nome antigo do V20 no seed.
 SPECS['Vampire: The Masquerade'] = SPECS['Vampire: The Masquerade V20']!

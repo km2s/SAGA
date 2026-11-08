@@ -127,6 +127,12 @@ export function useFichaSistema(d: FichaSistemaDados, spec: SistemaSpec) {
         cells: t.niveis.map(([nome, pen], i): Cell => ({ t: nome, lab: flags[i] ? '✕' : '', cap: compacta ? '' : pen, hasCap: !compacta && pen !== '', capC: flags[i] ? 'var(--blood)' : 'var(--muted)', w: compacta ? '18px' : '28px', h: compacta ? '18px' : '24px', fs: compacta ? '11px' : '13px', r: '3px', ring: 'var(--blood)',
           bg: flags[i] ? 'var(--blood)' : 'transparent', fg: '#fff', go: () => { const nf = [...flags]; nf[i] = !nf[i]; salvaTf(t.tf, t.label, nf.map(x => (x ? '1' : '0')).join('')) } })) }
     }
+    if (t.forma === 'momentum') {
+      const v = 'attr' in t.fonte ? attr(t.fonte.attr)?.v ?? 2 : num(tf['tf' in t.fonte ? t.fonte.tf : ''])
+      const set = (x: number) => { const y = Math.max(-6, Math.min(10, x)); if ('attr' in t.fonte) { const a = attr(t.fonte.attr); if (a) salvaAttr(a.id, y) } else if ('tf' in t.fonte) salvaTf(t.fonte.tf, t.fonte.label, String(y)) }
+      return { n: t.n, d: t.d ?? 'De −6 a +10 · reseta em +2', hasD: true, val: sg(v), vc: 'var(--ink)', gap: '3px', acts: [], hasActs: false,
+        cells: Array.from({ length: 17 }, (_, i): Cell => { const x = i - 6; return { t: `Momentum ${x}`, lab: String(x), cap: '', hasCap: false, capC: '', w: '22px', h: '18px', fs: '9px', r: '3px', ring: x === v ? 'var(--accent)' : 'var(--line)', bg: x === v ? 'var(--accent)' : (x <= v && x > 0) ? 'var(--accent-t)' : 'transparent', fg: x === v ? '#fff8f0' : 'var(--muted)', go: () => set(x) } }) }
+    }
     const max = maximo(t.max)
     if (t.forma === 'estados') {
       const raw = (tf[t.tf] ?? '').split(',').filter(Boolean).map(Number)
@@ -153,6 +159,27 @@ export function useFichaSistema(d: FichaSistemaDados, spec: SistemaSpec) {
   const peca = (p: Peca): Widget[] => {
     if (p.tipo === 'texto') return [W({ isText: true, fields: p.campos.map(([key, l, longo]) => ({ l, v: tf[key] ?? '', on: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => salvaTf(key, l, e.target.value, 600), long: !!longo, short: !longo, rows: longo ? 4 : 3, ph: ed ? '' : '—', span: longo ? '1/-1' : 'auto' })) })]
     if (p.tipo === 'chips') return [W({ isChips: true, l: p.l, chips: p.opcoes.map(o => { const on = tf[p.tf] === o; return { l: o, t: o, on, hasDot: false, dot: '', bg: on ? 'var(--ink)' : 'var(--surface)', color: on ? 'var(--bg)' : 'var(--ink)', ring: on ? 'var(--ink)' : 'var(--line)', go: () => salvaTf(p.tf, p.label, on ? '' : o) } }) })]
+    if (p.tipo === 'marcas') return [W({ isChips: true, l: p.l, chips: p.itens.map(([key, l]) => { const on = tf[key] === '1'; return { l, t: l, on, hasDot: false, dot: '', bg: on ? 'var(--ink)' : 'var(--surface)', color: on ? 'var(--bg)' : 'var(--ink)', ring: on ? 'var(--ink)' : 'var(--line)', go: () => salvaTf(key, l, on ? '0' : '1') } }) })]
+    if (p.tipo === 'pares') return [W({
+      isRows: true, l: p.l,
+      groups: [{ l: '', hasL: false, rows: p.itens.map(({ nome: [nk, nl], valor: [vk, vl] }) => R({
+        n: tf[nk] ?? '', edit: ed, onN: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => salvaTf(nk, nl, e.target.value, 600),
+        hasStep: true, stepV: String(num(tf[vk])), dn: () => salvaTf(vk, vl, String(Math.max(0, num(tf[vk]) - 1))), up: () => salvaTf(vk, vl, String(Math.min(p.max, num(tf[vk]) + 1))),
+      })) }],
+    })]
+    if (p.tipo === 'jura') {
+      // Ironsworn: progresso em ticks (10 caixas × 4); cada marca soma os ticks do nível da jura.
+      const RANKS = ['Insignificante', 'Perigoso', 'Formidável', 'Extremo', 'Épico'], TICKS: Record<string, number> = { Insignificante: 12, Perigoso: 8, Formidável: 4, Extremo: 2, Épico: 1 }
+      const k = (s: string) => `vow${p.i}_${s}`, rank = tf[k('rank')] || 'Perigoso', prog = num(tf[k('progress')]), caixas = Math.floor(prog / 4)
+      const marca = (dd: number) => salvaTf(k('progress'), `Jura ${p.i} Progresso`, String(Math.max(0, Math.min(40, prog + dd))))
+      return [
+        W({ isText: true, fields: [{ l: `Jura ${p.i}`, v: tf[k('title')] ?? '', on: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => salvaTf(k('title'), `Jura ${p.i}`, e.target.value, 600), long: false, short: true, rows: 1, ph: 'Do que você jurou?', span: '1/-1' }] }),
+        W({ isChips: true, chips: RANKS.map(r => { const on = r === rank; return { l: r, t: `${r} · ${TICKS[r]} ticks por marca`, on, hasDot: false, dot: '', bg: on ? 'var(--ink)' : 'var(--surface)', color: on ? 'var(--bg)' : 'var(--ink)', ring: on ? 'var(--ink)' : 'var(--line)', go: () => salvaTf(k('rank'), `Jura ${p.i} Nível`, r) } }) }),
+        W({ isBox: true, tracks: [{ n: 'Progresso', d: '', hasD: false, val: `${caixas} / 10 · ${prog} ticks`, vc: 'var(--ink)', gap: '5px',
+          cells: Array.from({ length: 10 }, (_, i): Cell => { const t = Math.max(0, Math.min(4, prog - i * 4)); return { t: `Caixa ${i + 1}`, lab: t >= 4 ? '✕' : ['', '╲', '✕', '✱'][t] ?? '', cap: '', hasCap: false, capC: '', w: '24px', h: '24px', fs: '13px', r: '3px', ring: 'var(--accent)', bg: t >= 4 ? 'var(--accent)' : 'transparent', fg: t >= 4 ? '#fff' : 'var(--accent)', go: () => marca(TICKS[rank] ?? 4) } }),
+          acts: [{ l: 'Marcar progresso', icon: Swords, go: () => marca(TICKS[rank] ?? 4) }, { l: 'Desfazer', icon: Dices, go: () => marca(-(TICKS[rank] ?? 4)) }, { l: 'Rolar progresso', icon: Dices, go: () => rolar(`Progresso · ${tf[k('title')] || `Jura ${p.i}`}`, caixas, 'isw') }], hasActs: ed }] }),
+      ]
+    }
     if (p.tipo === 'espacos') {
       const comEspaco = slots.filter(s => s.total > 0)
       if (!comEspaco.length) return [W({ isRows: true, hasFoot: true, foot: 'Sem espaços de magia nesta ficha.' })]
@@ -261,6 +288,8 @@ export function useFichaSistema(d: FichaSistemaDados, spec: SistemaSpec) {
   const tiles = A.tipo === 'tiles' ? pega(A.sel).map(a => {
     const m = Math.floor((a.v - 10) / 2)
     const big = A.mostra === 'mod' ? sg(m) : A.mostra === 'dado' ? `d${a.v}` : A.mostra === 'sinal' ? sg(a.v) : String(a.v)
+    // Delta Green: o teste do atributo é atributo × 5 em d100.
+    if (A.mostra === 'x5') return { n: a.n, big: String(a.v), small: `×5 = ${a.v * 5}%`, go: () => rolar(`Teste de ${a.n}`, a.v * 5) }
     const small = A.mostra === 'mod' ? String(a.v) : A.mostra === 'pct' ? (spec.regra === 'coc' ? `½ ${Math.floor(a.v / 2)} · ⅕ ${Math.floor(a.v / 5)}` : '%') : A.mostra === 'dado' ? 'clique para rolar' : spec.regra === 'gurps' ? `3d6 ≤ ${a.v}` : 'rolar'
     return { n: a.n, big, small, go: () => rolar(A.mostra === 'mod' ? `Teste de ${a.n}` : a.n, A.mostra === 'mod' ? m : a.v) }
   }) : []

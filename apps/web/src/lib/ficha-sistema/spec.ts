@@ -11,7 +11,7 @@ export type Familia = 'dots' | 'd20' | 'pct' | 'pbta' | 'narr' | 'pool' | 'step'
 /** Atributos principais (bloco do topo da moldura). */
 export type Atributos =
   | { tipo: 'bolinhas'; grupos: { l: string; sel: Sel }[]; max?: Bolinhas }
-  | { tipo: 'tiles'; sel: Sel; mostra: 'mod' | 'valor' | 'pct' | 'dado' | 'sinal' }
+  | { tipo: 'tiles'; sel: Sel; mostra: 'mod' | 'valor' | 'pct' | 'dado' | 'sinal' | 'x5' }
 
 /** Quantidade que uma trilha mostra/grava. */
 export type Fonte =
@@ -23,6 +23,7 @@ export type Maximo = number | { attr: string[] } | { tf: string } | { soma: stri
 export type Trilha =
   | { n: string; forma: 'dot' | 'box'; fonte: Fonte; max: Maximo; d?: string; sangue?: boolean }
   | { n: string; forma: 'bar' | 'num'; fonte: Fonte; max: Maximo; d?: string }
+  | { n: string; forma: 'momentum'; fonte: Fonte; d?: string } // −6 a +10 (Ironsworn)
   | { n: string; forma: 'estados'; tf: string; label: string; max: Maximo; d?: string } // CSV 0/1/2 (vazia, superficial, agravado)
   | { n: string; forma: 'niveis'; tf: string; label: string; niveis: [nome: string, penalidade: string][]; d?: string } // "0110000": um 0/1 por nível (V20, Demônio, Geist)
 
@@ -38,6 +39,12 @@ export type Peca =
   | { tipo: 'armas' }
   /** Espaços de magia por círculo (CharacterSpellSlot): marca os gastos. */
   | { tipo: 'espacos' }
+  /** Marcas liga/desliga, cada uma num texto "1"/"0" (condições do Ironsworn). */
+  | { tipo: 'marcas'; l: string; itens: [key: string, label: string][] }
+  /** Linhas nome + valor, ambos em textos (vínculos do Delta Green). */
+  | { tipo: 'pares'; l: string; itens: { nome: [key: string, label: string]; valor: [key: string, label: string] }[]; max: number }
+  /** Jura do Ironsworn: vow{i}_title, vow{i}_rank, vow{i}_progress (ticks, até 40). */
+  | { tipo: 'jura'; i: number }
   | { tipo: 'chips'; l: string; tf: string; label: string; opcoes: string[] }
   | { tipo: 'trilhas'; trilhas: Trilha[] }
 
