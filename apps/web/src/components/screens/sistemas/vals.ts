@@ -7,6 +7,7 @@ import { dcHref } from '@/lib/dc-routes'
 
 /** Dados reais de /sistemas (app/(app)/sistemas/page.tsx). */
 export type SistemasDados = {
+  selId?: string | null
   sistemas: { id: string; n: string; cat: string; official: boolean; d: string; attrs: [string, string][]; die: string; uses: number; author: string | null; mine: boolean }[]
 }
 
@@ -25,7 +26,7 @@ export function useSistemasVals(d: SistemasDados) {
   const router = useRouter()
   const [cat, setCat] = useState('all')
   const [q, setQ] = useState('')
-  const [sel, setSel] = useState<number | null>(null)
+  const [sel, setSel] = useState<number | null>(() => { const i = d.selId ? d.sistemas.findIndex(x => x.id === d.selId) : -1; return i >= 0 ? i : null })
   const [cloned, setCloned] = useState<Record<number, boolean>>({})
   const [impOpen, setImpOpen] = useState(false)
   const [impFrom, setImpFrom] = useState<number[]>([])

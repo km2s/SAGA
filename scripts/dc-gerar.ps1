@@ -349,4 +349,14 @@ if (& $want 'campanhajogador') {
     Rep $c "v.`$img('camp-capa')" 'v.capa'
   } 'campanha, sessão ao vivo, personagem, sessões, handouts e companhia reais; próxima sessão "A combinar" até o agendamento (TODO(api)).'
 }
+if (& $want 'editarsistema') {
+  $p = Gen 'SAGA Editar Sistema' 'editarsistema'
+  Edit $p {
+    param($c)
+    $c = Rep $c '>Comunidade · por Kael · usado em 2 mesas<' '>{v.meta}<'
+    # "Ver na biblioteca" e "Importar de outro sistema" abrem o códice na estante (/sistemas?id=…).
+    $c = Rep $c "v.`$href('SAGA Sistemas.dc.html')} className=`"editarsistema-s2`"" 'v.bibliotecaHref} className="editarsistema-s2"'
+    Rep $c "v.`$href('SAGA Sistemas.dc.html')} className=`"editarsistema-s8`"" 'v.bibliotecaHref} className="editarsistema-s8"'
+  } 'meta real; biblioteca e importar abrem o códice em /sistemas?id=.'
+}
 'pronto'

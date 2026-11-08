@@ -10,7 +10,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   const campaign = await prisma.campaign.findUnique({
     where: { id: params.id },
     include: {
-      system: { include: { attributes: { orderBy: { name: 'asc' } } } },
+      system: { include: { attributes: { orderBy: [{ order: 'asc' }, { name: 'asc' }] } } },
       members: { where: { user: { discordId: session.user.discordId } } },
     },
   }).catch(() => null)

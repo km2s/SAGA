@@ -34,16 +34,19 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     .filter(a => !existing.has(a.name.trim().toLowerCase()))
 
   if (merged.length > 0) {
+    // Os importados entram no fim da ordem da ficha.
+    const ultimo = await prisma.systemAttribute.aggregate({ where: { systemId: params.id }, _max: { order: true } }).catch(() => null)
+    const base = Math.max(ultimo?._max.order ?? 0, system.attributes.length - 1) + 1
     await prisma.systemAttribute.createMany({
-      data: merged.map(a => ({
-        systemId: params.id, name: a.name, defaultDie: a.defaultDie, description: a.description,
+      data: merged.map((a, i) => ({
+        systemId: params.id, name: a.name, defaultDie: a.defaultDie, description: a.description, order: base + i,
       })),
     }).catch(() => null)
   }
 
   const attributes = await prisma.systemAttribute.findMany({
     where: { systemId: params.id },
-    orderBy: { name: 'asc' },
+    orderBy: [{ order: 'asc' }, { name: 'asc' }],
   }).catch(() => [])
 
   return NextResponse.json({ imported: merged.length, attributes })

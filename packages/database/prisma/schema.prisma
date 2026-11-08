@@ -126,6 +126,8 @@ model SystemAttribute {
   defaultDie  String  // "d20", "2d6"
   description String?
   systemId    String
+  // Ordem na ficha (Editar Sistema); empate cai no nome.
+  order       Int     @default(0)
 
   system              RPGSystem            @relation(fields: [systemId], references: [id])
   characterAttributes CharacterAttribute[]

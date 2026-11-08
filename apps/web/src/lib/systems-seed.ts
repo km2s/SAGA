@@ -1657,7 +1657,7 @@ export async function seedAndGetSystems() {
       ],
     },
     include: {
-      attributes: { orderBy: { name: 'asc' } },
+      attributes: { orderBy: [{ order: 'asc' }, { name: 'asc' }] },
       creator: { select: { username: true, discordId: true } },
     },
     orderBy: [{ isPreset: 'desc' }, { name: 'asc' }],

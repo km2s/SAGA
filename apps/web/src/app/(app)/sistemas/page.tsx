@@ -7,7 +7,7 @@ import type { SistemasDados } from '@/components/screens/sistemas/vals'
 import { dadoBase } from '@/lib/system-dado'
 import { seedAndGetSystems } from '@/lib/systems-seed'
 
-export default async function SistemasPage() {
+export default async function SistemasPage({ searchParams }: { searchParams: { id?: string } }) {
   const session = await getServerSession(authOptions)
   if (!session) redirect('/login')
 
@@ -19,12 +19,14 @@ export default async function SistemasPage() {
     select: {
       id: true, name: true, description: true, category: true, isPreset: true,
       creator: { select: { username: true, discordId: true } },
-      attributes: { orderBy: { id: 'asc' }, select: { name: true, defaultDie: true } },
+      attributes: { orderBy: [{ order: 'asc' }, { name: 'asc' }], select: { name: true, defaultDie: true } },
       _count: { select: { campaigns: true } },
     },
   }).catch(() => [])
 
   const dados: SistemasDados = {
+    // ?id= abre a estante com o códice selecionado (Editar Sistema › Ver na biblioteca / Importar).
+    selId: searchParams.id ?? null,
     sistemas: sistemas.map(s => {
       // Dado da lombada: o do mapa dos pré-definidos ou o mais comum entre os atributos.
       const freq = new Map<string, number>()
