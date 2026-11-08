@@ -280,4 +280,13 @@ if (& $want 'mesa') {
     $c = Rep $c "href={v.`$href('SAGA Campanhas.dc.html')}" 'href={v.resumoHref}'
     Rep $c '>Voltar às campanhas</Link>' '>Escrever o resumo</Link>'
   } 'campanha, sessão, presença, tokens, mapa, música, chat, handouts, ao vivo e fichas reais; controles do mestre só para ele; sem cenas e sem rolagens privadas (TODO(api)).'
-}'pronto'
+}if (& $want 'erro') {
+  $p = Gen 'SAGA Erro' 'erro'
+  Edit $p {
+    param($c)
+    # Referência de suporte = digest do erro do Next; some quando não há.
+    $c = Rep $c "{'Se continuar, mande este código para o suporte: '}<span" "{v.temRef && (<>{'Se continuar, mande este código para o suporte: '}<span"
+    Rep $c '>ref 7F3A-21C9</span>' '>ref {v.ref}</span></>)}'
+  } 'referência de suporte = digest do erro do Next.'
+}
+'pronto'
