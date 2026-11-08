@@ -7,6 +7,7 @@ const PROTECTED = ['/dashboard', '/campaign']
 // getToken procura um nome de cookie diferente e nunca encontra a sessão.
 const USE_SECURE_COOKIES = process.env.NODE_ENV === 'production'
 const SESSION_COOKIE_NAME = `${USE_SECURE_COOKIES ? '__Secure-' : ''}next-auth.session-token`
+const CANON_HOST = (() => { try { return process.env.NEXTAUTH_URL ? new URL(process.env.NEXTAUTH_URL).host : '' } catch { return '' } })()
 
 // Em desenvolvimento o webpack do Next usa `eval` para os source maps. Sem
 // 'unsafe-eval' o bundle principal morre com EvalError logo no início, a
@@ -41,6 +42,16 @@ function buildCsp(nonce: string): string {
 export async function middleware(req: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
   const csp   = buildCsp(nonce)
+
+  // Domínio único em produção. O Discord sempre devolve o login para o NEXTAUTH_URL;
+  // se a pessoa começou por outro endereço (URL do deploy, domínio extra), o cookie
+  // de `state` ficou no outro domínio e o NextAuth falha com "State cookie was missing".
+  const canonico = CANON_HOST
+  if (process.env.VERCEL_ENV === 'production' && canonico && req.nextUrl.host !== canonico) {
+    const url = req.nextUrl.clone()
+    url.host = canonico; url.protocol = 'https:'; url.port = ''
+    return NextResponse.redirect(url, 308)
+  }
 
   const { pathname } = req.nextUrl
   const isProtected = PROTECTED.some(p => pathname.startsWith(p))
