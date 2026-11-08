@@ -11,7 +11,7 @@ import type { ReactNode } from 'react'
 export function CromoAntigo({ campaignId, isGM, children }: { campaignId: string; isGM: boolean; children: ReactNode }) {
   const pathname = usePathname()
   const base = `/campaign/${campaignId}`
-  const novas = [`${base}/members`, `${base}/npcs`, `${base}/sessions`, `${base}/notes`, ...(isGM ? [base] : [])]
+  const novas = [`${base}/members`, `${base}/npcs`, `${base}/sessions`, `${base}/notes`, base]
   if (novas.includes(pathname) || pathname.startsWith(`${base}/sessions/`)) return null
   return <>{children}</>
 }

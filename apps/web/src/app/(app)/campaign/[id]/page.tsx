@@ -5,7 +5,8 @@ import { prisma } from 'database'
 import { notFound, redirect } from 'next/navigation'
 import { Painel } from '@/components/screens/painel/Painel'
 import type { PainelDados } from '@/components/screens/painel/vals'
-import { VisaoGeralAntiga } from '@/components/campaign/VisaoGeralAntiga'
+import { CampanhaJogador } from '@/components/screens/campanhajogador/CampanhaJogador'
+import { carregarCampanhaJogador } from '@/components/screens/campanhajogador/carregar'
 import { MarkTutorialVisited } from '@/components/tutorial/MarkTutorialVisited'
 import { freqLabel, ONLINE_MS } from '@/lib/campanha-labels'
 import { parseTracks } from '@/lib/resource-tracks'
@@ -23,8 +24,12 @@ export default async function CampaignPage({ params, searchParams }: { params: {
     select: { id: true, role: true, userId: true },
   }).catch(() => null)
   if (!me) notFound()
-  // O Painel do Mestre é só do mestre; jogadores seguem com a visão geral.
-  if (me.role !== 'GM') return <VisaoGeralAntiga params={params} />
+  // O Painel do Mestre é só do mestre; o jogador vê a SAGA Campanha Jogador.
+  if (me.role !== 'GM') {
+    const dj = await carregarCampanhaJogador(params.id, me.id)
+    if (!dj) notFound()
+    return <CampanhaJogador dados={dj} />
+  }
 
   const c = await prisma.campaign.findUnique({
     where: { id: params.id },

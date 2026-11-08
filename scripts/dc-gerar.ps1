@@ -316,4 +316,37 @@ if (& $want 'estados') {
     Rep $c "v.`$href('SAGA Importar Ficha.dc.html')" 'v.importarHref'
   } 'sem as abas do protótipo; importar abre o modal em /personagens?importar=1.'
 }
+if (& $want 'campanhajogador') {
+  $p = Gen 'SAGA Campanha Jogador' 'campanhajogador'
+  Edit $p {
+    param($c)
+    $c = Rep $c '<span>❦</span>D&D 5e · Mestre Kael</p>' '<span>❦</span>{v.linhaSis}</p>'
+    $c = Rep $c '>A Queda de Valdris</h1>' '>{v.campanha}</h1>'
+    $c = Rep $c '>Um mosteiro em ruínas, um cálice negro e uma carta que ninguém pode abrir.</p>' '>{v.descricao}</p>'
+    $c = WrapEnclosing $c '>{v.descricao}</p>' 'p' 'v.descricao'
+    $c = Rep $c "v.`$href('SAGA Mesa.dc.html')} className=`"campanhajogador-s2`"" 'v.mesaHref} className="campanhajogador-s2"'
+    $c = Rep $c '>Sessão XII ao vivo · Entrar na mesa</Link>' '>{v.aoVivoLabel}</Link>'
+    $c = Rep $c '>Quarta, 11 de novembro · 20h</p>' '>{v.proxima}</p>'
+    # Personagem do jogador nesta campanha.
+    $c = Rep $c "color: 'rgb(255 240 210/.5)' }}>A</span><ImageSlot src={v.`$img('pers-retrato-2')} />" "color: 'rgb(255 240 210/.5)' }}>{v.pers.i}</span><ImageSlot src={v.pers.img} />"
+    $c = Rep $c '>Sir Aldric de Vernay</p>' '>{v.pers.n}</p>'
+    $c = Rep $c '>Humano · Paladino · Nível 3</p>' '>{v.pers.sub}</p>'
+    $c = Rep $c '>24/28 PV</span>' '>{v.pers.hpTxt}</span>'
+    $c = Rep $c "width: '86%', background: 'var(--ok)' }}" 'width: `${v.pers.pct}%`, background: v.pers.hpC }}'
+    $c = WrapEnclosing $c '>{v.pers.hpTxt}</span>' 'div' 'v.pers.temHp'
+    $c = Rep $c "v.`$href('SAGA Ficha.dc.html')" 'v.pers.href'
+    $c = WrapEnclosing $c 'href={v.pers.href}' 'div' 'v.pers.temFicha'
+    # Sessões e handouts reais.
+    $c = Rep $c "key={sIdx} href={v.`$href('SAGA Sessao.dc.html')}" 'key={sIdx} href={s.href}'
+    $c = Rep $c "<Link href={v.`$href('SAGA Mesa.dc.html')} style={{ font: '500 13px/1 \'Geist\',sans-serif' }}>Ver na mesa →</Link>" "{v.live && (<Link href={v.mesaHref} style={{ font: '500 13px/1 \'Geist\',sans-serif' }}>Ver na mesa →</Link>)}"
+    $i = $c.IndexOf("<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(180px,1fr))', gap: '10px', marginTop: '12px' }}>", $O)
+    $f = $c.IndexOf('>Planta do claustro</p></div></div>', $O); if ($i -lt 0 -or $f -lt 0) { throw 'grade de handouts não achada' }
+    $f += '>Planta do claustro</p></div></div>'.Length
+    $grade = "{v.semHands && (<p style={{ margin: '12px 0 0', color: 'var(--muted)' }}>Nenhum handout ainda.</p>)}<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(180px,1fr))', gap: '10px', marginTop: '12px' }}>{v.hands.map((h, hIdx) => (<div key={hIdx} style={{ borderRadius: '4px', overflow: 'hidden', border: ``1px solid `${h.ring}``, boxShadow: h.sh }}><div style={{ position: 'relative', height: '80px', background: h.art }}>{h.isNew && (<span style={{ position: 'absolute', left: '0', top: '8px', height: '20px', padding: '0 10px 0 7px', display: 'flex', alignItems: 'center', background: 'var(--accent)', color: '#fff8f0', font: '400 12px/1 \'IM Fell English SC\',serif', clipPath: 'polygon(0 0,100% 0,calc(100% - 6px) 50%,100% 100%,0 100%)' }}>Novo</span>)}</div><p style={{ margin: '0', padding: '8px 10px', font: '400 16px/1.2 \'IM Fell English\',serif' }}>{h.t}</p></div>))}</div>"
+    $c = $c.Substring(0, $i) + $grade + $c.Substring($f)
+    $c = Rep $c "v.`$href('SAGA Sessoes.dc.html')" 'v.sessoesHref'
+    $c = Rep $c "v.`$href('SAGA Membros.dc.html')" 'v.membrosHref'
+    Rep $c "v.`$img('camp-capa')" 'v.capa'
+  } 'campanha, sessão ao vivo, personagem, sessões, handouts e companhia reais; próxima sessão "A combinar" até o agendamento (TODO(api)).'
+}
 'pronto'
