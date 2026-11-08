@@ -86,6 +86,12 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
       mapImageUrl:     activeSession.mapImageUrl,
       liveMembersJson: activeSession.liveMembersJson,
       markersJson:     activeSession.markersJson,
+      // Mapa na mesa (SAGA Mapas): tamanho do tabuleiro para todos.
+      mapa: await (async () => {
+        const c = await prisma.campaign.findUnique({ where: { id: params.id }, select: { mapaNaMesaId: true } }).catch(() => null)
+        if (!c?.mapaNaMesaId) return null
+        return prisma.mapa.findUnique({ where: { id: c.mapaNaMesaId }, select: { id: true, nome: true, colunas: true, linhas: true, escala: true, arte: true, imagemUrl: true } }).catch(() => null)
+      })(),
     },
   }))
 }

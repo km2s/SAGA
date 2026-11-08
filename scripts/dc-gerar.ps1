@@ -110,8 +110,10 @@ if (& $want 'painel') {
     $c = Rep $c '>Modelo de ficha: D&D 5e (pré-definido)</p>' '>{v.modeloLine}</p>'
     $c = Rep $c "<Link href={v.`$href('SAGA Criar Sistema.dc.html')}" '<Link href={v.modeloHref}'
     $c = Rep $c "<Link href={v.`$href('SAGA Sessao.dc.html')}" '<Link href={p.href}'
-    $c
-  } 'nome, linha do topo, bot e modelo de ficha com dados da campanha; resumo por sessão.'
+    # Aba Mapas: o <dc-import name="SagaMapas"> do design vira o componente real.
+    $c = Rep $c "border: '1px solid var(--line)' }}></section><aside style={{ flex: '1 1 260px', maxWidth: '340px'" "border: '1px solid var(--line)' }}><SagaMapas {...v.mapasProps} /></section><aside style={{ flex: '1 1 260px', maxWidth: '340px'"
+    Rep $c "import type { Vals } from './vals'" "import type { Vals } from './vals'`nimport { SagaMapas } from '@/components/screens/sagamapas/SagaMapas'"
+  } 'nome, linha do topo, bot e modelo de ficha com dados da campanha; resumo por sessão; aba Mapas com o SagaMapas.'
 }
 if (& $want 'personagens') {
   $p = Gen 'SAGA Personagens' 'personagens'
@@ -244,8 +246,6 @@ if (& $want 'mesa') {
     $c = WrapEnclosing $c 'onClick={v.toggleMapEdit}' 'button' 'v.souMestre'
     $c = Rep $c '{v.mLiveOn && (<button onClick={v.endAsk}' '{v.mLiveOn && v.podeEncerrar && (<button onClick={v.endAsk}'
     # Tabuleiro cresce com o mapa e os tokens; o mapa é a imagem da sessão no tamanho natural (como na Mesa antiga).
-    $c = Rep $c "width: '1200px', height: '800px', transformOrigin" 'width: `${v.boardW}px`, height: `${v.boardH}px`, transformOrigin'
-    $c = Rep $c "<svg width={'1200'} height={'800'}" '<svg width={v.boardW} height={v.boardH}'
     $c = Rep $c 'outline: v.slotOutline }}><ImageSlot src={v.$img(v.mapSlot)} /></div>' "outline: v.slotOutline, pointerEvents: 'none' }}>{v.mapa && (<img src={v.mapa} alt={''} draggable={false} onLoad={v.onMapLoad} style={{ position: 'absolute', left: '0', top: '0', maxWidth: 'none' }} />)}</div>"
     $c = AddAttr $c 'onClick={f.go}' 'div' 'data-nevoa="" onContextMenu={f.remove}'
     $c = Rep $c 'animation: t.turn }}>{t.i}</span>' "animation: t.turn, overflow: 'hidden' }}>{t.img ? (<img src={t.img} alt={''} draggable={false} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />) : t.i}</span>"
@@ -276,6 +276,9 @@ if (& $want 'mesa') {
     # Música: atmosferas e link do YouTube só para o mestre.
     $c = Rep $c "<p style={{ margin: '14px 0 6px', font: '400 15px/1 $SC' }}>Atmosferas</p>" "{v.souMestre && (<><p style={{ margin: '14px 0 6px', font: '400 15px/1 $SC' }}>Atmosferas</p>"
     $c = Rep $c '{t.d}</span></button>))}' ("{t.d}</span></button>))}<div style={{ display: 'flex', gap: '6px', marginTop: '10px' }}><input value={v.linkMusica} onChange={v.onLinkMusica} placeholder={'Link do YouTube'} style={{ flex: '1', minWidth: '0', height: '32px', padding: '0 10px', borderRadius: '4px', border: '1px solid var(--line)', background: 'var(--surface)', color: 'var(--ink)', font: '400 12px/1 $F' }} /><button onClick={v.tocarLink} className=`"mesa-s22`" style={{ all: 'unset', cursor: 'pointer', height: '32px', padding: '0 12px', borderRadius: '4px', border: '1px solid var(--line)', font: '500 12px/32px $F' }}>Tocar</button></div></>)}")
+    # Mapas (SAGA Mapas): o <dc-import name="SagaMapas"> do painel lateral vira o componente real.
+    $c = Rep $c "animation: 'mesa-popIn .25s both' }}></div>)}" "animation: 'mesa-popIn .25s both' }}><SagaMapas {...v.mapasProps} /></div>)}"
+    $c = Rep $c "import type { Vals } from './vals'" "import type { Vals } from './vals'`nimport { SagaMapas } from '@/components/screens/sagamapas/SagaMapas'"
     # Mesa sem sessão: "Ver a campanha" volta para a campanha real.
     $c = Rep $c "v.`$href('SAGA Campanha Jogador.dc.html?sessao=sem-sessao')" 'v.voltarHref'
     # Tutorial: os destaques medem os elementos reais (data-tour), como nos Primeiros Passos.

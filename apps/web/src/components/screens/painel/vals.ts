@@ -2,12 +2,15 @@
 
 import { useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import { CalendarDays, Check, Copy, Dices, Eye, EyeOff, Hourglass, LayoutDashboard, Mail, NotebookPen, Radio, Settings, Users, type LucideIcon } from 'lucide-react'
+import { CalendarDays, Check, Copy, Dices, Eye, EyeOff, Hourglass, LayoutDashboard, Mail, Map as MapIcon, NotebookPen, Radio, Settings, Users, type LucideIcon } from 'lucide-react'
+import type { MapaItem } from '@/components/screens/sagamapas/vals'
 import { dcHref } from '@/lib/dc-routes'
 import { roman } from '@/lib/roman'
 
 /** Dados reais do Painel do Mestre (app/(app)/campaign/[id]/page.tsx, só para o mestre). */
 export type PainelDados = {
+  /** Mapas da campanha (SAGA Mapas) e o que está na mesa. */
+  mapas: MapaItem[]; naMesa: string
   id: string; nome: string; heroLine: string
   aoVivo: string | null; proximaSessao: number
   party: { u: string; c: string; cls: string; hp: number; mx: number; on: boolean }[]
@@ -43,6 +46,8 @@ const json = (url: string, method: string, body: unknown) =>
 
 export function usePainelVals(d: PainelDados, abaInicial: string) {
   const router = useRouter()
+  const [mapas, setMapas] = useState<MapaItem[]>(d.mapas)
+  const [naMesa, setNaMesa] = useState(d.naMesa)
   const api = `/api/campaigns/${d.id}`
   const [tab, setTab] = useState(abaInicial)
   const [tracks, setTracks] = useState(d.tracks)
@@ -170,7 +175,7 @@ export function usePainelVals(d: PainelDados, abaInicial: string) {
   }
 
   const archOk = arch.trim() === cName.trim()
-  const icones: [string, string, LucideIcon][] = [['geral', 'Visão geral', LayoutDashboard], ['sessoes', 'Sessões', CalendarDays], ['npcs', 'NPCs', Users], ['inscricoes', 'Inscrições', Mail], ['notas', 'Notas', NotebookPen], ['config', 'Configurações', Settings]]
+  const icones: [string, string, LucideIcon][] = [['geral', 'Visão geral', LayoutDashboard], ['sessoes', 'Sessões', CalendarDays], ['npcs', 'NPCs', Users], ['mapas', 'Mapas', MapIcon], ['inscricoes', 'Inscrições', Mail], ['notas', 'Notas', NotebookPen], ['config', 'Configurações', Settings]]
 
   return {
     $href: (link: string) => dcHref(link, { campaignId: d.id }),
@@ -204,7 +209,9 @@ export function usePainelVals(d: PainelDados, abaInicial: string) {
       go: () => { setTab(k); window.history.replaceState(null, '', `?aba=${k}`) },
       color: tab === k ? 'var(--ink)' : 'var(--muted)', line: tab === k ? 'inset 0 -2px 0 var(--accent)' : 'none',
     })),
-    tOver: tab === 'geral', tSess: tab === 'sessoes', tNpc: tab === 'npcs', tApps: tab === 'inscricoes', tNotes: tab === 'notas', tCfg: tab === 'config',
+    tOver: tab === 'geral', tSess: tab === 'sessoes', tNpc: tab === 'npcs', tApps: tab === 'inscricoes', tNotes: tab === 'notas', tCfg: tab === 'config', tMapas: tab === 'mapas',
+    // Aba Mapas: SagaMapas no modo painel; "Abrir na mesa" leva à Mesa com o mapa aberto.
+    mapasProps: { campaignId: d.id, modo: 'painel' as const, mapas, naMesa, onChange: (ms: MapaItem[], nm: string) => { setMapas(ms); setNaMesa(nm) }, onAbrir: (id: string) => router.push(`/campaign/${d.id}/mesa?mapa=${id}`) },
 
     party: party.map((p, i) => {
       const pct = p.mx > 0 ? Math.round(p.hp / p.mx * 100) : 0

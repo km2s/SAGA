@@ -43,6 +43,8 @@ model Campaign {
   maxSlots          Int?
   // Barras de recurso da campanha, JSON [{key,label,color}] (null = só Pontos de Vida)
   resourceTracksJson String?
+  // Mapa que os jogadores veem (SAGA Mapas: "Na mesa"); null = o primeiro mapa.
+  mapaNaMesaId      String?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -54,6 +56,7 @@ model Campaign {
   notes        Note[]
   handouts     Handout[]
   applications CampaignApplication[]
+  mapas        Mapa[]
 }
 
 model CampaignApplication {
@@ -454,4 +457,26 @@ model Note {
   campaign Campaign @relation(fields: [campaignId], references: [id])
 
   @@index([campaignId, visibility])
+}
+
+// Mapas da campanha (SAGA Mapas, 2026-11-08). O tabuleiro tem colunas × linhas casas de 40 px.
+// Tokens e névoa pertencem ao mapa; o mapa "Na mesa" é espelhado na sessão ativa (Session.tokensJson).
+model Mapa {
+  id         String   @id @default(cuid())
+  campaignId String
+  nome       String
+  colunas    Int      @default(30)
+  linhas     Int      @default(20)
+  escala     Int      @default(0) // 0 = 1,5 m · 1 = 3 m · 2 = 1,5 km por casa
+  arte       Int      @default(0) // miniatura quando não há imagem
+  imagemUrl  String?
+  tokensJson String?  @db.Text
+  nevoaJson  String?  @db.Text
+  ordem      Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId])
 }

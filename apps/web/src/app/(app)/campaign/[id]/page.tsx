@@ -10,6 +10,7 @@ import { carregarCampanhaJogador } from '@/components/screens/campanhajogador/ca
 import { MarkTutorialVisited } from '@/components/tutorial/MarkTutorialVisited'
 import { freqLabel, ONLINE_MS } from '@/lib/campanha-labels'
 import { parseTracks } from '@/lib/resource-tracks'
+import { mapasDa, publico } from '@/lib/mapas'
 import { diaMes, duracao, haQuanto } from '@/lib/tempo'
 
 const XP: Record<string, string> = { beginner: 'Iniciante', intermediate: 'Intermediário', advanced: 'Veterano' }
@@ -63,7 +64,9 @@ export default async function CampaignPage({ params, searchParams }: { params: {
   ].sort((a, b) => b.at.getTime() - a.at.getTime()).slice(0, 5).map(({ t, w, c: cor }) => ({ t, w, c: cor }))
 
   const partes = [c.system?.name, freqLabel(c.campaignType, c.sessionFrequency)].filter(Boolean)
+  const { mapas, naMesa } = await mapasDa(c.id)
   const dados: PainelDados = {
+    mapas: mapas.map(publico), naMesa,
     id: c.id,
     nome: c.name,
     heroLine: partes.length ? `${partes.join(' · ')} · ` : '',

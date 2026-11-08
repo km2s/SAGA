@@ -11,6 +11,7 @@ import { toggleTema } from '@/lib/tema'
 import { safeImageUrl } from '@/lib/safe-url'
 import { attributeModifier, attributePool, isD20Category, type SheetCategory } from '@/lib/system-category'
 import { PRESETS } from '@/components/mesa/MusicPlayer'
+import { miniatura, type MapaItem, type SagaMapasProps } from '@/components/screens/sagamapas/vals'
 import { PLAYER_COLORS, initTokens, type Marker, type Member, type RollLogEntry, type SessionState, type Token } from '@/components/mesa/types'
 
 type Ficha = { ca: number | null; attrs: { n: string; v: number; die: string }[]; armas: { n: string; b: number; d: string }[] | null; nota: string | null }
@@ -31,6 +32,8 @@ export type MesaDados = {
   handouts: Handout[]
   rolagens: RollLogEntry[]
   totalRolagens: number
+  /** SAGA Mapas: mestre recebe todos; jogador, só o que está na mesa. `aberto` vem de ?mapa=. */
+  mapas: MapaItem[]; naMesa: string; aberto: string
 }
 
 type Handout = { id: string; t: string | null; x: string | null; img: string | null; at: string; por: string; vistos: string[] }
@@ -120,7 +123,19 @@ export function useMesaVals(d: MesaDados) {
   const [mapEdit, setMapEdit] = useState(false)
   const [mapDraft, setMapDraft] = useState('')
   const [mapa, setMapa] = useState<string | null>(d.sessao?.mapa ?? null)
-  const [mapSize, setMapSize] = useState({ w: 0, h: 0 })
+  const [, setMapSize] = useState({ w: 0, h: 0 })
+  // SAGA Mapas: a sessão espelha o mapa "na mesa"; o mestre pode abrir outro para preparar
+  // (tokens e imagem vão para o registro do mapa, os jogadores não veem).
+  const [mapas, setMapas] = useState<MapaItem[]>(d.mapas)
+  const [naMesa, setNaMesa] = useState(d.naMesa)
+  const [aberto, setAberto] = useState(d.naMesa)
+  const [mapsOpen, setMapsOpen] = useState(false)
+  const outro = gm && aberto !== naMesa
+  const abertoRef = useRef({ id: aberto, outro })
+  abertoRef.current = { id: aberto, outro }
+  // Último estado conhecido da sessão (null = desconhecido: lê o registro do mapa).
+  const sessaoRef = useRef<{ tokens: string | null; mapa: string | null } | null>({ tokens: d.sessao?.tokensJson ?? null, mapa: d.sessao?.mapa ?? null })
+  const mapaAberto = mapas.find(m => m.id === aberto) ?? mapas[0] ?? { id: '', nome: 'Mapa', colunas: 30, linhas: 20, escala: 0, arte: 0, imagemUrl: null }
   const [tokens, setTokens] = useState<Token[]>(() => parse<Token[] | null>(d.sessao?.tokensJson, null) ?? initTokens(membrosMesa))
   const [live, setLive] = useState<string[]>(() => parse<string[]>(d.sessao?.liveJson, []))
   const [tab, setTab] = useState('ini')
@@ -177,7 +192,10 @@ export function useMesaVals(d: MesaDados) {
   const syncT = useRef<ReturnType<typeof setTimeout>>()
   const pingsVistos = useRef(new Set<string>())
   const timers = useRef<ReturnType<typeof setTimeout>[]>([])
-  const nevoaKey = d.sessao ? `saga-mesa-nevoa-${d.sessao.id}` : null
+  // Névoa por mapa (a chave antiga, por sessão, vale para o mapa que estava na mesa).
+  const nevoaKey = aberto ? `saga-mesa-nevoa-${aberto}` : null
+  const nevoaAntiga = d.sessao && aberto === d.naMesa ? `saga-mesa-nevoa-${d.sessao.id}` : null
+  const pendRef = useRef<(() => void) | null>(null)
 
   const podeSync = gm || live.includes(d.meuId)
   const podeMover = useCallback((t: Token) => gm || (live.includes(d.meuId) && (t.id === d.meuId || !!t.allowedPlayers?.includes(d.meuId))), [gm, live, d.meuId])
@@ -187,11 +205,18 @@ export function useMesaVals(d: MesaDados) {
   // (o PATCH tem limite de 30/min por pessoa).
   const salvarTokens = useCallback((next: Token[], logo = false) => {
     editRef.current = Date.now()
+    const ab = abertoRef.current
+    const agenda = (send: () => void) => {
+      clearTimeout(syncT.current)
+      const fn = () => { pendRef.current = null; send() }
+      if (logo) fn(); else { pendRef.current = fn; syncT.current = setTimeout(fn, 400) }
+    }
+    // Mapa que os jogadores não veem: grava no registro do mapa.
+    if (ab.outro) { agenda(() => { void json(`/api/campaigns/${d.campaignId}/mapas/${ab.id}`, 'PATCH', { tokensJson: JSON.stringify(next) }) }); return }
+    sessaoRef.current = { tokens: JSON.stringify(next), mapa: sessaoRef.current?.mapa ?? null }
     // Modo preparo (mestre, sem sessão ao vivo): grava na última sessão, que a próxima copia ao iniciar.
     if (!(ativa || gravaPreparo) || !podeSync) return
-    clearTimeout(syncT.current)
-    const send = () => { void patch(d.campaignId, { tokensJson: JSON.stringify(next) }) }
-    if (logo) send(); else syncT.current = setTimeout(send, 400)
+    agenda(() => { void patch(d.campaignId, { tokensJson: JSON.stringify(next) }) })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ativa, podeSync, d.campaignId, prep])
   const mudarTokens = (fn: (ts: Token[]) => Token[], logo = false) => {
@@ -209,13 +234,17 @@ export function useMesaVals(d: MesaDados) {
   // Névoa só do mestre, guardada neste navegador (TODO(api): nevoaJson na sessão).
   // Estado (não ref): o efeito de gravar só roda depois do render com a névoa lida.
   const [nevoaLida, setNevoaLida] = useState(false)
+  // `nevoaDe`: de qual mapa é a névoa em memória (trocar de mapa não grava a do anterior no novo).
+  const [nevoaDe, setNevoaDe] = useState<string | null>(null)
   useEffect(() => {
-    if (nevoaKey) try { const v = localStorage.getItem(nevoaKey); if (v) setNevoa(JSON.parse(v) as Nevoa[]) } catch { /* sem storage */ }
+    let lida: Nevoa[] = []
+    if (nevoaKey) try { const v = localStorage.getItem(nevoaKey) ?? (nevoaAntiga ? localStorage.getItem(nevoaAntiga) : null); if (v) lida = JSON.parse(v) as Nevoa[] } catch { /* sem storage */ }
+    setNevoa(lida); setNevoaDe(nevoaKey)
     setNevoaLida(true)
-  }, [nevoaKey])
+  }, [nevoaKey, nevoaAntiga])
   useEffect(() => {
-    if (nevoaKey && gm && nevoaLida) try { localStorage.setItem(nevoaKey, JSON.stringify(nevoa)) } catch { /* sem storage */ }
-  }, [nevoa, nevoaKey, gm, nevoaLida])
+    if (nevoaKey && gm && nevoaLida && nevoaDe === nevoaKey) try { localStorage.setItem(nevoaKey, JSON.stringify(nevoa)) } catch { /* sem storage */ }
+  }, [nevoa, nevoaKey, gm, nevoaLida, nevoaDe])
   useEffect(() => {
     const tick = async () => {
       void fetch(`${api}/presence`, { method: 'POST' }).catch(() => null)
@@ -246,11 +275,19 @@ export function useMesaVals(d: MesaDados) {
       }
       const s = j?.sessionState
       if (!s) return
-      if (!st.current.drag && Date.now() - editRef.current > 6000 && s.tokensJson) {
+      const fora = abertoRef.current.outro
+      if (fora || Date.now() - editRef.current > 6000) sessaoRef.current = { tokens: s.tokensJson, mapa: s.mapImageUrl }
+      if (!fora && !st.current.drag && Date.now() - editRef.current > 6000 && s.tokensJson) {
         const ts = parse<Token[] | null>(s.tokensJson, null)
         if (ts) setTokens(ts)
       }
-      setMapa(s.mapImageUrl)
+      if (!fora) setMapa(s.mapImageUrl)
+      // O mapa na mesa mudou (outra aba do mestre) ou foi redimensionado.
+      const sm = s.mapa
+      if (sm) {
+        if (gm) setNaMesa(sm.id)
+        else { setMapas([sm]); setNaMesa(sm.id); setAberto(sm.id) }
+      }
       setMusica(s.musicYoutubeId)
       if (s.musicYoutubeId) setUltima(s.musicYoutubeId)
       if (!gm) setVol(s.musicVolume)
@@ -299,8 +336,69 @@ export function useMesaVals(d: MesaDados) {
     return { x: (e.clientX - r.left) / z, y: (e.clientY - r.top) / z }
   }
   const cel = (v: number) => Math.floor(v / CELL)
-  const W = Math.max(1200, mapSize.w, ...tokens.map(t => Math.ceil((t.x + CELL) / CELL) * CELL))
-  const H = Math.max(800, mapSize.h, ...tokens.map(t => Math.ceil((t.y + CELL) / CELL) * CELL))
+  // Tabuleiro = colunas × linhas do mapa aberto.
+  const W = mapaAberto.colunas * CELL, H = mapaAberto.linhas * CELL
+  const dims = useRef({ W, H }); dims.current = { W, H }
+  const vpZoomMin = .25
+  const ajustar = () => {
+    const r = vpRef.current?.getBoundingClientRect()
+    if (!r || !r.width || !r.height) return
+    const z = +Math.max(vpZoomMin, Math.min(1.8, Math.min((r.width - 48) / W, (r.height - 48) / H))).toFixed(2)
+    setZoom(z); setPan({ x: Math.round((r.width - W * z) / 2), y: Math.round((r.height - H * z) / 2) })
+  }
+  // Abrir um mapa (ou mudar o tamanho dele) já ajusta à tela.
+  useEffect(() => { ajustar() }, [aberto, W, H]) // eslint-disable-line react-hooks/exhaustive-deps
+  const abrirMapa = async (id: string) => {
+    if (!gm || !id) return
+    // A gravação pendente vai para o mapa de onde se está saindo.
+    clearTimeout(syncT.current); pendRef.current?.()
+    setSel(null); setMeasure(null); setMapEdit(false)
+    const s = sessaoRef.current
+    if (id === naMesa && s) {
+      setAberto(id); setTokens(parse<Token[] | null>(s.tokens, null) ?? initTokens(membrosMesa)); setMapa(s.mapa)
+      return
+    }
+    const r = await fetch(`${api}/mapas/${id}`).catch(() => null)
+    const j = r?.ok ? await r.json().catch(() => null) as (MapaItem & { tokensJson: string | null }) | null : null
+    if (!j) { avisar('Não foi possível abrir o mapa · tente de novo'); return }
+    editRef.current = Date.now()
+    setAberto(id); setTokens(parse<Token[] | null>(j.tokensJson, null) ?? (id === naMesa ? initTokens(membrosMesa) : [])); setMapa(j.imagemUrl)
+    if (id === naMesa) sessaoRef.current = { tokens: j.tokensJson, mapa: j.imagemUrl }
+  }
+  // ?mapa= do Painel do Mestre › Mapas: abre direto o mapa escolhido.
+  useEffect(() => { if (d.aberto !== d.naMesa) void abrirMapa(d.aberto) }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const limite = tokens.length ? { x: Math.max(...tokens.map(t => cel(t.x))), y: Math.max(...tokens.map(t => cel(t.y))) } : null
+  const mapasProps: SagaMapasProps = {
+    campaignId: d.campaignId, modo: 'mesa', mapas, naMesa, aberto, limite,
+    onAbrir: id => { void abrirMapa(id) }, onClose: () => setMapsOpen(false),
+    onChange: (ms, nm) => {
+      const a = ms.find(m => m.id === aberto)
+      // Diminuiu o mapa aberto: o servidor já prendeu os tokens; aqui só acompanha.
+      if (a && (a.colunas !== mapaAberto.colunas || a.linhas !== mapaAberto.linhas)) {
+        const mx = a.colunas * CELL - 20, my = a.linhas * CELL - 20
+        setTokens(ts => ts.map(t => ({ ...t, x: Math.min(mx, t.x), y: Math.min(my, t.y) })))
+      }
+      if (nm !== naMesa) {
+        if (nm === aberto) {
+          // O mapa aberto foi para a mesa: a sessão recebe o que está na tela agora.
+          clearTimeout(syncT.current); pendRef.current = null
+          const tj = JSON.stringify(st.current.tokens)
+          sessaoRef.current = { tokens: tj, mapa }
+          if (d.sessao) void patch(d.campaignId, { tokensJson: tj })
+        } else sessaoRef.current = null
+        setNaMesa(nm)
+      }
+      setMapas(ms)
+    },
+  }
+  // Imagem do mapa aberto (o PATCH do mapa na mesa também atualiza a sessão).
+  const gravarImagem = (url: string | null) => {
+    setMapa(url); setMapSize({ w: 0, h: 0 })
+    setMapas(ms => ms.map(m => m.id === aberto ? { ...m, imagemUrl: url } : m))
+    if (!outro) sessaoRef.current = { tokens: sessaoRef.current?.tokens ?? JSON.stringify(st.current.tokens), mapa: url }
+    if (gm && aberto) void json(`${api}/mapas/${aberto}`, 'PATCH', { imagemUrl: url })
+    else if (ativa || gravaPreparo) void patch(d.campaignId, { mapImageUrl: url })
+  }
 
   useEffect(() => {
     const mv = (e: PointerEvent) => {
@@ -316,7 +414,9 @@ export function useMesaVals(d: MesaDados) {
         const g = s.drag
         setDrag(null)
         // Centro do token em px do tabuleiro (formato da Mesa atual), no meio da casa.
-        if (g.moved) mudarTokens(ts => ts.map(t => t.id === g.id ? { ...t, x: Math.max(0, Math.round(g.px / CELL)) * CELL + 20, y: Math.max(0, Math.round(g.py / CELL)) * CELL + 20 } : t), true)
+        // Preso dentro do tabuleiro do mapa aberto.
+        const cx = Math.min(dims.current.W / CELL - 1, Math.max(0, Math.round(g.px / CELL))), cy = Math.min(dims.current.H / CELL - 1, Math.max(0, Math.round(g.py / CELL)))
+        if (g.moved) mudarTokens(ts => ts.map(t => t.id === g.id ? { ...t, x: cx * CELL + 20, y: cy * CELL + 20 } : t), true)
       }
       if (s.panning) setPanning(null)
       if (s.measure?.active) setMeasure({ ...s.measure, active: false })
@@ -493,7 +593,7 @@ export function useMesaVals(d: MesaDados) {
   const segundos = d.sessao && agora ? Math.max(0, Math.floor(((ended ?? (ativa ? agora : new Date(d.sessao.inicio).getTime())) - new Date(d.sessao.inicio).getTime()) / 1000)) : 0
   const timer = `${p2(Math.floor(segundos / 3600))}:${p2(Math.floor(segundos / 60) % 60)}:${p2(segundos % 60)}`
   const ms = measure
-  const msD = ms ? (() => { const cells = Math.max(Math.abs(ms.x2 - ms.x1), Math.abs(ms.y2 - ms.y1)) / CELL; return { ...ms, mx: (ms.x1 + ms.x2) / 2, my: (ms.y1 + ms.y2) / 2, label: `${cells} quadr. · ${(cells * 1.5).toFixed(1).replace('.', ',')} m · ${cells * 5} ft` } })() : { x1: 0, y1: 0, x2: 0, y2: 0, mx: 0, my: 0, label: '' }
+  const msD = ms ? (() => { const cells = Math.max(Math.abs(ms.x2 - ms.x1), Math.abs(ms.y2 - ms.y1)) / CELL; return { ...ms, mx: (ms.x1 + ms.x2) / 2, my: (ms.y1 + ms.y2) / 2, label: mapaAberto.escala === 0 ? `${cells} quadr. · ${(cells * 1.5).toFixed(1).replace('.', ',')} m · ${cells * 5} ft` : `${cells} quadr. · ${String(+(cells * (mapaAberto.escala === 1 ? 3 : 1.5)).toFixed(1)).replace('.', ',')} ${mapaAberto.escala === 1 ? 'm' : 'km'}` } })() : { x1: 0, y1: 0, x2: 0, y2: 0, mx: 0, my: 0, label: '' }
   const selLeft = selT ? selT.x - 20 : 0, selTop = selT ? selT.y - 20 : 0
   const pop = { x: Math.min(W - 260, selLeft + 50), y: Math.max(4, Math.min(H - 240, selTop - 20)) }
   const ePct = selT ? pctOf(selT) : 0
@@ -646,7 +746,15 @@ export function useMesaVals(d: MesaDados) {
     $img: (id: string) => id === 'mesa-musica-capa' ? ((musica ?? ultima) ? `https://i.ytimg.com/vi/${musica ?? ultima}/hqdefault.jpg` : null) : null,
     voltarHref: `/campaign/${d.campaignId}`,
     campanha: d.campanha, sceneName: nomeSessao,
-    toggleTema, timer, scenes: [] as { n: string; thumb: string; go: () => void; bg: string; ring: string; color: string }[],
+    toggleTema, timer,
+    // Abas de mapa no topo (• = o que os jogadores veem). Jogador: só o da mesa.
+    scenes: mapas.map(m => {
+      const on = m.id === aberto
+      return { n: `${gm && m.id === naMesa ? '• ' : ''}${m.nome}`, thumb: miniatura(m), go: () => { if (!on) void abrirMapa(m.id) }, bg: on ? 'var(--accent-t)' : 'transparent', ring: on ? 'var(--accent)' : 'var(--line)', color: on ? 'var(--accent)' : 'var(--ink)' }
+    }),
+    mapsToggle: () => setMapsOpen(o => !o), mapsOpen, mapsPanel: mapsOpen && gm && !pv, mapasProps, nMaps: mapas.length,
+    mapsC: mapsOpen ? 'var(--accent)' : 'var(--ink)', mapsRing: mapsOpen ? 'var(--accent)' : 'var(--line)', mapsBg: mapsOpen ? 'var(--accent-t)' : 'transparent',
+    fitNow: ajustar,
     members: d.membros.map(m => {
       const on = online.includes(m.id), q = quem.get(m.u)
       return { n: m.char && m.role !== 'GM' ? `${m.u} · ${m.char.n}` : m.u, i: (m.u[0] ?? '?').toUpperCase(), bg: q?.c ?? GM_COR, dot: on ? '#6a9a4a' : 'var(--line)', op: on ? 1 : .45 }
@@ -658,20 +766,20 @@ export function useMesaVals(d: MesaDados) {
       if (mapEdit) {
         const url = mapDraft.trim() ? safeImageUrl(mapDraft.trim()) : mapa
         if (mapDraft.trim() && !url) { avisar('Link de imagem inválido · use um endereço https'); return }
-        if (url !== mapa) { setMapa(url); setMapSize({ w: 0, h: 0 }); if (ativa || gravaPreparo) void patch(d.campaignId, { mapImageUrl: url }) }
+        if (url !== mapa) gravarImagem(url)
         setMapDraft('')
       } else setMapDraft(mapa ?? '')
       setMapEdit(!mapEdit); setSel(null)
     },
     meLabel: mapEdit ? 'Concluir mapa' : 'Trocar mapa', meBg: mapEdit ? 'var(--gold-t)' : 'transparent',
     mapEdit, mapDraft, onMapDraft: (e: ChangeEvent<HTMLInputElement>) => setMapDraft(e.target.value),
-    tirarMapa: () => { setMapa(null); setMapDraft(''); setMapSize({ w: 0, h: 0 }); if (ativa || gravaPreparo) void patch(d.campaignId, { mapImageUrl: null }) },
+    tirarMapa: () => { setMapDraft(''); gravarImagem(null) },
     tools: toolsOk.map(k => ({ l: TOOLS[k][0], icon: TOOLS[k][1], k: TOOLS[k][2], go: () => { setTool(k); setMeasure(null) }, bg: tool === k ? 'var(--accent)' : 'transparent', color: tool === k ? '#fff8f0' : 'var(--muted)', hover: tool === k ? 'var(--accent)' : 'var(--surface2)' })),
     toolIcon: mapEdit ? ImageUp : TOOLS[tool][1],
-    toolHint: aviso ?? (mapEdit ? 'Cole o link da imagem do mapa e clique em Concluir mapa' : !ativa ? 'Nenhuma sessão ao vivo · o Mestre inicia pelo Painel' : tool === 'token' && pend ? `Clique no mapa para posicionar ${pend.label}` : TOOLS[tool][3]),
+    toolHint: aviso ?? (outro && !mapEdit ? `Preparando “${mapaAberto.nome}” · os jogadores veem “${mapas.find(m => m.id === naMesa)?.nome ?? 'o mapa da mesa'}”` : mapEdit ? 'Cole o link da imagem do mapa e clique em Concluir mapa' : !ativa ? 'Nenhuma sessão ao vivo · o Mestre inicia pelo Painel' : tool === 'token' && pend ? `Clique no mapa para posicionar ${pend.label}` : TOOLS[tool][3]),
     zoom, zoomLabel: `${Math.round(zoom * 100)}%`,
-    zoomIn: () => setZoom(z => Math.min(1.8, +(z + .1).toFixed(2))), zoomOut: () => setZoom(z => Math.max(.5, +(z - .1).toFixed(2))),
-    onWheel: (e: WheelEvent) => setZoom(z => Math.max(.5, Math.min(1.8, +(z + (e.deltaY < 0 ? .08 : -.08)).toFixed(2)))),
+    zoomIn: () => setZoom(z => Math.min(1.8, +(z + .1).toFixed(2))), zoomOut: () => setZoom(z => Math.max(vpZoomMin, +(z - .1).toFixed(2))),
+    onWheel: (e: WheelEvent) => setZoom(z => Math.max(vpZoomMin, Math.min(1.8, +(z + (e.deltaY < 0 ? .08 : -.08)).toFixed(2)))),
     panX: pan.x, panY: pan.y, boardTr: panning ? 'none' : 'transform .2s ease-out',
     vpCursor: tool === 'pan' ? (panning ? 'grabbing' : 'grab') : tool === 'select' ? 'default' : 'crosshair',
     vpRef, boardRef, vpDown, stop: (e: { stopPropagation: () => void }) => e.stopPropagation(),

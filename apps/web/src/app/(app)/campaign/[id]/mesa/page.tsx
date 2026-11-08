@@ -9,6 +9,7 @@ import { Mesa } from '@/components/screens/mesa/Mesa'
 import type { MesaDados } from '@/components/screens/mesa/vals'
 import { MarkTutorialVisited } from '@/components/tutorial/MarkTutorialVisited'
 import { leitor, mestreDa, ondeVisivel, serializarTodas } from '@/lib/rolagens'
+import { mapasDa, publico } from '@/lib/mapas'
 
 // Ficha na Mesa: atributos, CA, armas e as notas da mesa (text field `mesa_notes`, como a Mesa antiga).
 const fichaSel = {
@@ -21,7 +22,7 @@ const armas = (ws: Arma[]) => ws.map(w => ({ n: w.name, b: parseInt(w.attackBonu
 const ca = (attrs: { value: number; attribute: { name: string } }[]) => attrs.find(a => a.attribute.name === 'Classe de Armadura')?.value ?? null
 const attrsDe = (attrs: { value: number; attribute: { name: string; defaultDie: string } }[]) => attrs.map(a => ({ n: a.attribute.name, v: a.value, die: a.attribute.defaultDie }))
 
-async function MesaNovaPage({ id, discordId }: { id: string; discordId: string }) {
+async function MesaNovaPage({ id, discordId, mapa }: { id: string; discordId: string; mapa?: string }) {
   const c = await prisma.campaign.findUnique({
     where: { id },
     select: {
@@ -54,6 +55,9 @@ async function MesaNovaPage({ id, discordId }: { id: string; discordId: string }
     prisma.handoutView.findMany({ where: { handout: { campaignId: id } }, select: { handoutId: true, memberId: true } }).catch(() => []),
   ])
   const n = s ? c.sessions.findIndex(x => x.id === s.id) + 1 : 0
+  // SAGA Mapas: o mestre vê todos (e abre ?mapa=); o jogador só o que está na mesa.
+  const { mapas, naMesa } = await mapasDa(id)
+  const aberto = gm && mapa && mapas.some(m => m.id === mapa) ? mapa : naMesa
 
   const dados: MesaDados = {
     campaignId: c.id, campanha: c.name, souMestre: gm, meuId: me.id,
@@ -85,6 +89,7 @@ async function MesaNovaPage({ id, discordId }: { id: string; discordId: string }
     // Rolagens privadas: o resultado só vem para quem pode ver (lib/rolagens.ts).
     rolagens: serializarTodas(rolls, leitor(me, me.user.username), (() => { const m = c.members.find(x => x.role === 'GM'); return { memberId: m?.id ?? null, username: m?.user.username ?? null } })()),
     totalRolagens: total,
+    mapas: mapas.filter(m => gm || m.id === naMesa).map(publico), naMesa, aberto,
   }
   return (
     <>
@@ -93,11 +98,11 @@ async function MesaNovaPage({ id, discordId }: { id: string; discordId: string }
     </>
   )
 }
-export default async function VirtualTablePage({ params, searchParams }: { params: { id: string }; searchParams: { antiga?: string } }) {
+export default async function VirtualTablePage({ params, searchParams }: { params: { id: string }; searchParams: { antiga?: string; mapa?: string } }) {
   const session = await getServerSession(authOptions)
   if (!session) redirect('/login')
   // A Mesa do redesign é a padrão; a antiga fica em ?antiga=1 por um tempo, como reserva.
-  if (searchParams.antiga !== '1') return <MesaNovaPage id={params.id} discordId={session.user.discordId} />
+  if (searchParams.antiga !== '1') return <MesaNovaPage id={params.id} discordId={session.user.discordId} mapa={searchParams.mapa} />
 
 
   const membership = await prisma.campaignMember.findFirst({
