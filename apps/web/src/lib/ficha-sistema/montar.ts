@@ -13,6 +13,8 @@ export type FichaSistemaDados = {
   attrs: { id: string; n: string; desc: string; v: number; die: string }[]
   tf: Record<string, string>
   armas: { id: string; n: string; b: string; d: string; ty: string; al: string; pr: string }[]
+  nivel: number
+  slots: { level: number; total: number; used: number }[]
 }
 
 type Toast = { id: number; label: string; detail: string; total: string | number; tag: string; color: string; ring: string; tagColor: string }
@@ -63,6 +65,7 @@ export function useFichaSistema(d: FichaSistemaDados, spec: SistemaSpec) {
   const [tf, setTf] = useState(d.tf)
   const [armas, setArmas] = useState(d.armas)
   const [hp, setHp] = useState(d.hp)
+  const [slots, setSlots] = useState(d.slots)
   const [aba, setAba] = useState(0)
   const [rascunho, setRascunho] = useState<Record<string, string>>({})
   const [toasts, setToasts] = useState<Toast[]>([])
@@ -77,7 +80,7 @@ export function useFichaSistema(d: FichaSistemaDados, spec: SistemaSpec) {
   const num = (s: string | undefined) => parseInt(s ?? '', 10) || 0
   const ctx: Ctx = { attr: nomes => attr(nomes)?.v, tf }
   const nBol = (b: Bolinhas | undefined, padrao = 5) => b === undefined ? padrao : typeof b === 'number' ? b : b(ctx)
-  const maximo = (m: Maximo): number => typeof m === 'number' ? m : typeof m === 'function' ? m(ctx) : 'attr' in m ? attr(m.attr)?.v ?? 0 : 'pv' in m ? d.max
+  const maximo = (m: Maximo): number => typeof m === 'number' ? m : typeof m === 'function' ? m(ctx) : 'tf' in m ? num(tf[m.tf]) : 'attr' in m ? attr(m.attr)?.v ?? 0 : 'pv' in m ? d.max
     : m.soma.reduce((n, ns) => n + (attr(ns)?.v ?? 0), 0) + (m.mais ?? 0)
   const fonte = (f: Fonte, max: number) => 'attr' in f ? attr(f.attr)?.v ?? 0 : 'pv' in f ? hp : f.gasto ? Math.max(0, max - num(tf[f.tf])) : num(tf[f.tf])
 
@@ -150,6 +153,22 @@ export function useFichaSistema(d: FichaSistemaDados, spec: SistemaSpec) {
   const peca = (p: Peca): Widget[] => {
     if (p.tipo === 'texto') return [W({ isText: true, fields: p.campos.map(([key, l, longo]) => ({ l, v: tf[key] ?? '', on: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => salvaTf(key, l, e.target.value, 600), long: !!longo, short: !longo, rows: longo ? 4 : 3, ph: ed ? '' : '—', span: longo ? '1/-1' : 'auto' })) })]
     if (p.tipo === 'chips') return [W({ isChips: true, l: p.l, chips: p.opcoes.map(o => { const on = tf[p.tf] === o; return { l: o, t: o, on, hasDot: false, dot: '', bg: on ? 'var(--ink)' : 'var(--surface)', color: on ? 'var(--bg)' : 'var(--ink)', ring: on ? 'var(--ink)' : 'var(--line)', go: () => salvaTf(p.tf, p.label, on ? '' : o) } }) })]
+    if (p.tipo === 'espacos') {
+      const comEspaco = slots.filter(s => s.total > 0)
+      if (!comEspaco.length) return [W({ isRows: true, hasFoot: true, foot: 'Sem espaços de magia nesta ficha.' })]
+      return [W({ isBox: true, tracks: comEspaco.map((s): Track => ({
+        n: `Círculo ${s.level}`, d: '', hasD: false, val: `${s.total - s.used} / ${s.total}`, vc: s.used >= s.total ? 'var(--muted)' : 'var(--ink)', gap: '6px', acts: [], hasActs: false,
+        cells: Array.from({ length: s.total }, (_, i): Cell => ({
+          t: `Espaço ${i + 1}`, lab: '', cap: '', hasCap: false, capC: '', w: '20px', h: '20px', fs: '10px', r: '50%', ring: 'var(--accent)', bg: i < s.total - s.used ? 'var(--accent)' : 'transparent', fg: '#fff',
+          go: () => {
+            if (!ed) return
+            const used = i < s.total - s.used ? s.total - i : s.total - i - 1
+            setSlots(xs => xs.map(x => x.level === s.level ? { ...x, used } : x))
+            void json(`${api}/spell-slots`, 'PATCH', { level: s.level, used })
+          },
+        })),
+      })) })]
+    }
     if (p.tipo === 'trilhas') return [W({ isBox: true, tracks: p.trilhas.map(t => trilha(t, false)) })]
     if (p.tipo === 'listaTf') {
       // Lista guardada em textos (V20): base da ficha (ex.: disciplinas do clã) + extras "a|b|c".
@@ -223,6 +242,11 @@ export function useFichaSistema(d: FichaSistemaDados, spec: SistemaSpec) {
         rows: pega(g.sel).map(a => {
           usados.add(a.id)
           const pool = spec.familia === 'dots'
+          if (p.prof) {
+            const nomes = ['Destreinado', 'Treinado', 'Especialista', 'Mestre', 'Lendário']
+            const rank = Math.max(0, Math.min(p.prof.length - 1, a.v)), b = rank ? d.nivel + 2 * rank : 0
+            return R({ n: a.n, hasSeg: true, seg: p.prof.map((l, i) => ({ l, t: nomes[i] ?? l, bg: i === rank ? 'var(--ink)' : 'transparent', color: i === rank ? 'var(--bg)' : 'var(--muted)', sh: 'none', go: () => salvaAttr(a.id, i) })), hasRoll: true, rollL: sg(b), roll: () => rolar(a.n, b) })
+          }
           return p.bolinhas
             ? R({ n: a.n, hasDots: true, dots: dots(a.id, a.v, nBol(p.bolinhas)), hasRoll: true, rollL: pool ? `${a.v}d10` : sg(a.v), roll: () => rolar(a.n, a.v) })
             : R({ n: a.n, hasIn: true, inV: String(a.v), onIn: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => { const v = parseInt((e.target.value.match(/-?\d+/) ?? ['0'])[0], 10); if (!isNaN(v)) salvaAttr(a.id, v) }, hasRoll: true, rollL: 'rolar', roll: () => rolar(a.n, a.v) })
@@ -244,7 +268,8 @@ export function useFichaSistema(d: FichaSistemaDados, spec: SistemaSpec) {
   const sels: Sel[] = [
     ...(A.tipo === 'bolinhas' ? A.grupos.map(g => g.sel) : [A.sel]),
     ...spec.secoes.flatMap(s => s.pecas.flatMap(p => p.tipo === 'linhas' ? p.grupos.map(g => g.sel) : [])),
-    { nomes: [...spec.trilhas, ...spec.secoes.flatMap(s => s.pecas.flatMap(p => p.tipo === 'trilhas' ? p.trilhas : []))].flatMap(t => 'fonte' in t && 'attr' in t.fonte ? t.fonte.attr : []).concat(spec.pilulas.flatMap(p => p.attr ?? [])) },
+    { nomes: [...spec.trilhas, ...spec.secoes.flatMap(s => s.pecas.flatMap(p => p.tipo === 'trilhas' ? p.trilhas : []))].flatMap(t => [...('fonte' in t && 'attr' in t.fonte ? t.fonte.attr : []), ...('max' in t && typeof t.max === 'object' && 'attr' in t.max ? t.max.attr : [])]).concat(spec.pilulas.flatMap(p => p.attr ?? [])) },
+    ...spec.pilulas.flatMap(p => p.sel ? [p.sel] : []),
   ]
   const naoUsados = attrs.filter(a => !sels.some(s => s.nomes?.some(n => n.toLowerCase() === a.n.toLowerCase()) || s.prefixo?.some(p => a.desc.startsWith(p))))
   const secoes = [...spec.secoes, ...(naoUsados.length ? [{ n: 'Outros', pecas: [{ tipo: 'linhas' as const, grupos: [{ sel: { nomes: naoUsados.map(a => a.n) } }] }] }] : [])]
@@ -253,9 +278,9 @@ export function useFichaSistema(d: FichaSistemaDados, spec: SistemaSpec) {
   return {
     voltarHref: d.voltarHref, sysName: d.sistema, campanha: d.campanha, charName: d.nome, charLine: linha || '—', ini: (d.nome[0] ?? '?').toUpperCase(), img: d.img,
     leather: LEATHER[spec.familia]!, famIcon: ICONE[spec.familia],
-    pills: spec.pilulas.map(p => ({ l: p.l, v: p.tf ? (tf[p.tf] || '—') : p.attr ? String(attr(p.attr)?.v ?? '—') : '—' })),
+    pills: spec.pilulas.flatMap(p => p.sel ? pega(p.sel).map(a => ({ l: a.n, v: String(a.v) })) : [{ l: p.l ?? '', v: p.tf ? (tf[p.tf] || '—') : p.attr ? String(attr(p.attr)?.v ?? '—') : '—' }]),
     attrTitle: 'Atributos', ruleLine: RULE[spec.regra], useDots: A.tipo === 'bolinhas', useTiles: A.tipo === 'tiles', dotGroups, tiles,
-    tracks: [...(d.temPv && spec.familia !== 'dots' ? [trilha({ n: 'Pontos de vida', forma: 'bar', fonte: { pv: true }, max: { pv: true } }, true)] : []), ...spec.trilhas.map(t => trilha(t, true))],
+    tracks: [...(d.temPv && spec.familia !== 'dots' && !spec.semPvFicha ? [trilha({ n: 'Pontos de vida', forma: 'bar', fonte: { pv: true }, max: { pv: true } }, true)] : []), ...spec.trilhas.map(t => trilha(t, true))],
     abas: secoes.map((s, i) => ({ l: s.n, on: s === atual, go: () => setAba(i), color: s === atual ? 'var(--ink)' : 'var(--muted)', line: s === atual ? 'inset 0 -2px 0 var(--accent)' : 'none' })),
     secao: atual ? atual.pecas.flatMap(peca) : [],
     podeEditar: ed, publicaHref: d.publicaHref,

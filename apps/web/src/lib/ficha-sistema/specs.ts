@@ -12,6 +12,9 @@ const notas = (...campos: [string, string, boolean?][]): Peca => ({ tipo: 'texto
 // V20: traço máximo e pool de sangue pela geração (GEN_TABLE, V20 p.269).
 const genRow = (c: Ctx) => GEN_TABLE[c.attr(['Geração', 'Generation']) ?? 13]
 const traco = (c: Ctx) => genRow(c)?.[1] ?? 5
+// d20: atributos clássicos e PV guardado em textos (hp_current / hp_max).
+const D6 = ['Força', 'Destreza', 'Constituição', 'Inteligência', 'Sabedoria', 'Carisma']
+const pvTf = (): Trilha => ({ n: 'Pontos de vida', forma: 'bar', fonte: { tf: 'hp_current', label: 'PV Atual' }, max: { tf: 'hp_max' } })
 
 /**
  * Um spec por sistema (nome igual ao RPGSystem.name do seed). Cada chave de
@@ -160,6 +163,103 @@ export const SPECS: Record<string, SistemaSpec> = {
       { n: 'Descrição do Geist', pecas: [{ tipo: 'texto', campos: [['geist_desc', 'Descrição do Geist', true]] }] },
       { n: 'Inventário', pecas: [{ tipo: 'armas' }] },
       { n: 'Notas', pecas: [{ tipo: 'texto', campos: [['archetype', 'Arquétipo'], ['xp_current', 'XP Atual'], ['xp_total', 'XP Total Gasto']] }] },
+    ],
+  },
+
+  // ─── Família d20 ───
+  // components/character/sheets/DnD35Sheet.tsx
+  'D&D 3.5e': {
+    familia: 'd20', regra: 'd20', linha: ['race_notes', 'class_notes', 'alignment'],
+    atributos: { tipo: 'tiles', sel: { nomes: D6 }, mostra: 'mod' },
+    trilhas: [],
+    pilulas: [{ sel: { prefixo: ['Combate'] } }],
+    secoes: [
+      { n: 'Perícias', pecas: [{ tipo: 'linhas', grupos: [{ sel: { prefixo: ['Perícia'] } }], min: '180px' }] },
+      { n: 'Testes de Resistência', pecas: [{ tipo: 'linhas', grupos: [{ sel: { prefixo: ['Salvaguarda'] } }] }] },
+      { n: 'Atributos de Combate', pecas: [{ tipo: 'linhas', grupos: [{ sel: { prefixo: ['Combate'] } }] }, { tipo: 'armas' }] },
+      { n: 'Espaços de Magia', pecas: [{ tipo: 'espacos' }] },
+      { n: 'Talentos', pecas: [{ tipo: 'texto', campos: [['feats', 'Talentos', true], ['special_abilities', 'Habilidades Especiais', true]] }] },
+      { n: 'Notas', pecas: [{ tipo: 'texto', campos: [['race_notes', 'Raça'], ['class_notes', 'Classe'], ['alignment', 'Alinhamento'], ['deity', 'Deidade']] }] },
+    ],
+  },
+  // components/character/sheets/Pathfinder1eSheet.tsx
+  'Pathfinder 1e': {
+    familia: 'd20', regra: 'd20', linha: ['race', 'class', 'alignment'], semPvFicha: true,
+    atributos: { tipo: 'tiles', sel: { nomes: D6 }, mostra: 'mod' },
+    trilhas: [pvTf()],
+    pilulas: [{ l: 'CA', tf: 'ac' }, { l: 'BBA', tf: 'bab' }, { l: 'CMD', tf: 'cmd' }],
+    secoes: [
+      { n: 'Perícias', pecas: [{ tipo: 'linhas', grupos: [{ sel: { prefixo: ['Perícia', 'Skill'] } }], min: '180px' }, { tipo: 'texto', campos: [['skills_text', 'Perícias (notas)', true]] }] },
+      { n: 'Combate', pecas: [{ tipo: 'texto', campos: [['bab', 'BAB'], ['initiative', 'Iniciativa'], ['ac', 'CA (AC)'], ['speed', 'Deslocamento'], ['hp_max', 'PV Máx.'], ['hp_current', 'PV Atual']] }, { tipo: 'linhas', grupos: [{ sel: { prefixo: ['Combate'] } }] }, { tipo: 'armas' }] },
+      { n: 'CMB', pecas: [{ tipo: 'texto', campos: [['cmb', 'CMB'], ['cmd', 'CMD']] }] },
+      { n: 'Testes de Resistência', pecas: [{ tipo: 'texto', campos: [['save_fort', 'Fortitude'], ['save_ref', 'Reflexo'], ['save_will', 'Vontade']] }, { tipo: 'linhas', grupos: [{ sel: { prefixo: ['Salvaguarda'] } }] }] },
+      { n: 'Magias', pecas: [{ tipo: 'texto', campos: [['spells_per_day', 'Magias por Dia', true], ['spells_known', 'Magias Conhecidas', true]] }] },
+      { n: 'Divindade', pecas: [{ tipo: 'texto', campos: [['deity', 'Divindade'], ['feats', 'Talentos (Feats)', true], ['traits', 'Traços', true]] }] },
+      { n: 'Notas', pecas: [{ tipo: 'texto', campos: [['class', 'Classe'], ['race', 'Raça'], ['alignment', 'Alinhamento'], ['backstory', 'História', true]] }] },
+    ],
+  },
+  // components/character/sheets/Pathfinder2eSheet.tsx
+  'Pathfinder 2e': {
+    familia: 'd20', regra: 'pf2', linha: ['ancestry', 'class', 'background'], semPvFicha: true,
+    atributos: { tipo: 'tiles', sel: { nomes: D6 }, mostra: 'mod' },
+    trilhas: [pvTf(), { n: 'Ferido', forma: 'dot', fonte: { tf: 'wounded', label: 'Ferido (Wounded)' }, max: 3, d: 'Condição Wounded' }],
+    pilulas: [{ l: 'CA', tf: 'ac' }, { l: 'Deslocamento', tf: 'speed' }],
+    secoes: [
+      { n: 'Perícias', pecas: [{ tipo: 'linhas', grupos: [{ sel: { prefixo: ['Perícia'] } }], prof: ['D', 'T', 'E', 'M', 'L'], min: '240px' }, { tipo: 'texto', campos: [['skills_text', 'Perícias (notas)', true]] }] },
+      { n: 'Testes de Resistência', pecas: [{ tipo: 'texto', campos: [['save_fort', 'Fortitude'], ['save_ref', 'Reflexo'], ['save_will', 'Vontade']] }, { tipo: 'linhas', grupos: [{ sel: { prefixo: ['Salvaguarda'] } }] }] },
+      { n: 'Combate', pecas: [{ tipo: 'texto', campos: [['ac', 'CA'], ['speed', 'Deslocamento'], ['hp_max', 'PV Máx.'], ['hp_current', 'PV Atual']] }, { tipo: 'linhas', grupos: [{ sel: { prefixo: ['Combate'] } }] }, { tipo: 'armas' }] },
+      { n: 'Ancestralidade', pecas: [{ tipo: 'texto', campos: [['ancestry', 'Ancestralidade'], ['background', 'Background'], ['alignment', 'Alinhamento'], ['feats', 'Talentos', true]] }] },
+      { n: 'Espaços de Magia', pecas: [{ tipo: 'texto', campos: [['spell_slots', 'Espaços de Magia', true]] }] },
+      { n: 'Magias Conhecidas', pecas: [{ tipo: 'texto', campos: [['spells_known', 'Magias Conhecidas', true]] }] },
+      { n: 'Notas', pecas: [{ tipo: 'texto', campos: [['class', 'Classe'], ['backstory', 'História', true]] }] },
+    ],
+  },
+  // components/character/sheets/Tormenta20Sheet.tsx
+  'Tormenta20': {
+    familia: 'd20', regra: 'd20', linha: ['race', 'class', 'origin'], semPvFicha: true,
+    atributos: { tipo: 'tiles', sel: { nomes: D6 }, mostra: 'mod' },
+    trilhas: [pvTf(), { n: 'Pontos de mana', forma: 'bar', fonte: { tf: 'pm_current', label: 'PM Atual' }, max: { tf: 'pm_max' } }],
+    pilulas: [{ l: 'Defesa', tf: 'defense' }, { l: 'Iniciativa', tf: 'initiative' }],
+    secoes: [
+      { n: 'Perícias', pecas: [{ tipo: 'linhas', grupos: [{ sel: { prefixo: ['Perícia'] } }], min: '180px' }, { tipo: 'texto', campos: [['skills_text', 'Perícias (notas)', true]] }] },
+      { n: 'Combate', pecas: [{ tipo: 'texto', campos: [['defense', 'Defesa'], ['initiative', 'Iniciativa'], ['hp_max', 'PV Máx.'], ['hp_current', 'PV Atual'], ['pm_max', 'PM Máx.'], ['pm_current', 'PM Atual'], ['save_fort', 'Fortitude'], ['save_ref', 'Reflexo'], ['save_will', 'Vontade']] }, { tipo: 'linhas', grupos: [{ sel: { prefixo: ['Combate', 'Salvaguarda'] } }] }, { tipo: 'armas' }] },
+      { n: 'Origem', pecas: [{ tipo: 'texto', campos: [['origin', 'Origem'], ['race', 'Raça'], ['class', 'Classe']] }] },
+      { n: 'Divindade', pecas: [{ tipo: 'texto', campos: [['deity', 'Divindade'], ['feats', 'Poderes', true]] }] },
+      { n: 'Magias Conhecidas', pecas: [{ tipo: 'texto', campos: [['spells_known', 'Magias Conhecidas', true], ['powers_list', 'Poderes / Habilidades de Classe', true]] }] },
+      { n: 'Notas', pecas: [{ tipo: 'texto', campos: [['backstory', 'História', true], ['notes', 'Notas', true]] }] },
+    ],
+  },
+  // components/character/sheets/StarfinderSheet.tsx
+  'Starfinder': {
+    familia: 'd20', regra: 'd20', linha: ['race', 'theme'],
+    atributos: { tipo: 'tiles', sel: { nomes: D6 }, mostra: 'mod' },
+    trilhas: [],
+    pilulas: [{ l: 'EAC', attr: ['EAC', 'CAE'] }, { l: 'KAC', attr: ['KAC', 'CAC'] }, { l: 'Pontos de Vigor', attr: ['Pontos de Vigor', 'SP', 'Stamina'] }],
+    secoes: [
+      { n: 'Salvaguardas', pecas: [{ tipo: 'linhas', grupos: [{ sel: { prefixo: ['Salvaguarda'] } }] }] },
+      { n: 'Perícias', pecas: [{ tipo: 'linhas', grupos: [{ sel: { prefixo: ['Perícia'] } }], min: '180px' }] },
+      { n: 'Combate', pecas: [{ tipo: 'linhas', grupos: [{ sel: { prefixo: ['Combate'] } }] }, { tipo: 'armas' }] },
+      { n: 'Bulk Atual', pecas: [{ tipo: 'texto', campos: [['bulk_current', 'Bulk Atual'], ['bulk_max', 'Bulk Máximo']] }] },
+      { n: 'Recursos', pecas: [{ tipo: 'texto', campos: [['class_abilities', 'Habilidades de Classe', true]] }] },
+      { n: 'Notas', pecas: [{ tipo: 'texto', campos: [['race', 'Raça'], ['theme', 'Tema'], ['xp_current', 'XP Atual']] }] },
+    ],
+  },
+  // components/character/sheets/Age13Sheet.tsx
+  '13th Age': {
+    familia: 'd20', regra: 'd20', linha: ['race_notes', 'class_notes'], semPvFicha: true,
+    atributos: { tipo: 'tiles', sel: { nomes: D6 }, mostra: 'mod' },
+    trilhas: [
+      { n: 'Pontos de vida', forma: 'bar', fonte: { tf: 'hp_current', label: 'PV Atual' }, max: { attr: ['Pontos de Vida'] } },
+      { n: 'Recuperações', forma: 'dot', fonte: { tf: 'recoveries_used', label: 'Usadas', gasto: true }, max: { attr: ['Recuperações'] } },
+    ],
+    pilulas: [{ l: 'CA', attr: ['Classe de Armadura'] }, { l: 'DF', attr: ['DP'] }, { l: 'DM', attr: ['DM'] }, { l: 'Dado de escalada', tf: 'escalation_die' }],
+    secoes: [
+      { n: 'One Unique Thing', pecas: [{ tipo: 'texto', campos: [['one_unique_thing', 'One Unique Thing', true]] }] },
+      { n: 'Nome do Ícone', pecas: [{ tipo: 'texto', campos: [1, 2, 3].flatMap(i => [[`icon${i}_name`, `Ícone ${i}`], [`icon${i}_dice`, `Dados de Relacionamento ${i}`]] as [string, string][]) }] },
+      { n: 'Backgrounds', pecas: [{ tipo: 'texto', campos: [['backgrounds', 'Backgrounds', true]] }] },
+      { n: 'Talentos de Classe', pecas: [{ tipo: 'texto', campos: [['talents', 'Talentos de Classe', true]] }] },
+      { n: 'Combate', pecas: [{ tipo: 'linhas', grupos: [{ sel: { prefixo: ['Combate'] } }] }, { tipo: 'texto', campos: [['escalation_die', 'Dado de escalada']] }, { tipo: 'armas' }] },
+      { n: 'Notas', pecas: [{ tipo: 'texto', campos: [['race_notes', 'Raça'], ['class_notes', 'Classe'], ['background', 'Histórico Pessoal', true]] }] },
     ],
   },
 }

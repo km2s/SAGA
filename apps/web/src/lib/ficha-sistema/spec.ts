@@ -19,7 +19,7 @@ export type Fonte =
   | { tf: string; label: string; gasto?: true }  // número num campo de texto (gasto = marca o que foi usado)
   | { pv: true }                                 // vida da ficha (hp/maxHp)
 /** soma: atributos somados (cada um pelo primeiro nome que existir) + `mais` (ex.: Vitalidade V5 = Vigor + 3). */
-export type Maximo = number | { attr: string[] } | { soma: string[][]; mais?: number } | { pv: true } | ((c: Ctx) => number)
+export type Maximo = number | { attr: string[] } | { tf: string } | { soma: string[][]; mais?: number } | { pv: true } | ((c: Ctx) => number)
 export type Trilha =
   | { n: string; forma: 'dot' | 'box'; fonte: Fonte; max: Maximo; d?: string; sangue?: boolean }
   | { n: string; forma: 'bar' | 'num'; fonte: Fonte; max: Maximo; d?: string }
@@ -34,8 +34,10 @@ export type Peca =
   /** Lista de bolinhas guardada em textos (V20): uma chave por nome; base vem da ficha, extras numa lista "a|b|c". */
   | { tipo: 'listaTf'; l: string; chave: (nome: string) => string; rotulo: (nome: string) => string; base: (c: Ctx) => string[]; extras: { key: string; label: string }; novo: string; bolinhas: Bolinhas }
   | { tipo: 'texto'; campos: [key: string, label: string, longo?: boolean][] }
-  | { tipo: 'linhas'; l?: string; grupos: { l?: string; sel: Sel }[]; bolinhas?: Bolinhas; adicionar?: { label: string; descricao: string; dado: string }; min?: string }
+  | { tipo: 'linhas'; l?: string; grupos: { l?: string; sel: Sel }[]; bolinhas?: Bolinhas; /** Seletor de proficiência no valor do atributo (PF2: D/T/E/M/L); rola d20 + nível + 2×rank. */ prof?: string[]; adicionar?: { label: string; descricao: string; dado: string }; min?: string }
   | { tipo: 'armas' }
+  /** Espaços de magia por círculo (CharacterSpellSlot): marca os gastos. */
+  | { tipo: 'espacos' }
   | { tipo: 'chips'; l: string; tf: string; label: string; opcoes: string[] }
   | { tipo: 'trilhas'; trilhas: Trilha[] }
 
@@ -45,6 +47,9 @@ export type SistemaSpec = {
   linha: string[]
   atributos: Atributos
   trilhas: Trilha[]
-  pilulas: { l: string; tf?: string; attr?: string[] }[]
+  /** Pílulas do cabeçalho: um valor (texto/atributo) ou todos os atributos de um grupo (`sel`). */
+  pilulas: { l?: string; tf?: string; attr?: string[]; sel?: Sel }[]
+  /** A vida fica em textos da ficha (hp_current/hp_max), não na barra de PV da campanha. */
+  semPvFicha?: boolean
   secoes: { n: string; pecas: Peca[] }[]
 }

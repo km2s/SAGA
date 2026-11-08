@@ -19,3 +19,7 @@ Rota: `/personagens/[id]` quando o sistema não é D&D 5e (o D&D 5e tem a `SAGA 
 
 ## Andamento
 Família por família; cada sistema migrado sai da `FichaAntiga`. Os que faltam continuam com a ficha antiga.
+- Bolinhas (feito): V5, V20 (e "Vampire: The Masquerade"), Lobisomem, Mago A Ascensão, Mago O Despertar, Caçador, Changeling, Demônio, Geist.
+- Falta: d20 (D&D 3.5, Pathfinder 1e/2e, Tormenta20, Starfinder, 13th Age), porcentagem (CoC 7e, Delta Green, Mothership),
+  2d6 (Dungeon World, Ironsworn), narrativos (Fate, Blades), paradas (Shadowrun 6e, Cyberpunk Red, Star Wars), passos (Savage, GURPS).
+- Depois: Ficha NPC (mesma moldura em modo NPC) e o mapa novo da Mesa e do Painel do Mestre (design de 2026-11-08).

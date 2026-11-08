@@ -63,6 +63,8 @@ export default async function PersonagemPage({ params }: { params: { id: string 
       attrs: ch.attributes.map(a => ({ id: a.id, n: a.attribute.name, desc: a.attribute.description ?? '', v: a.value, die: a.customDie ?? a.attribute.defaultDie })),
       tf: Object.fromEntries(ch.textFields.map(t => [t.key, t.value])),
       armas: ch.weapons.map(w => ({ id: w.id, n: w.name, b: w.attackBonus ?? '', d: w.damage ?? '', ty: w.damageType ?? '', al: w.range ?? '', pr: w.properties ?? '' })),
+      nivel: ch.level,
+      slots: ch.spellSlots.map(s => ({ level: s.level, total: s.total, used: s.used })),
     }
     return <FichaSistema dados={dados} />
   }
