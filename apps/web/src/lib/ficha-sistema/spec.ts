@@ -10,7 +10,7 @@ export type Familia = 'dots' | 'd20' | 'pct' | 'pbta' | 'narr' | 'pool' | 'step'
 
 /** Atributos principais (bloco do topo da moldura). */
 export type Atributos =
-  | { tipo: 'bolinhas'; grupos: { l: string; sel: Sel }[]; max?: number }
+  | { tipo: 'bolinhas'; grupos: { l: string; sel: Sel }[]; max?: Bolinhas }
   | { tipo: 'tiles'; sel: Sel; mostra: 'mod' | 'valor' | 'pct' | 'dado' | 'sinal' }
 
 /** Quantidade que uma trilha mostra/grava. */
@@ -19,15 +19,22 @@ export type Fonte =
   | { tf: string; label: string; gasto?: true }  // número num campo de texto (gasto = marca o que foi usado)
   | { pv: true }                                 // vida da ficha (hp/maxHp)
 /** soma: atributos somados (cada um pelo primeiro nome que existir) + `mais` (ex.: Vitalidade V5 = Vigor + 3). */
-export type Maximo = number | { attr: string[] } | { soma: string[][]; mais?: number } | { pv: true }
+export type Maximo = number | { attr: string[] } | { soma: string[][]; mais?: number } | { pv: true } | ((c: Ctx) => number)
 export type Trilha =
   | { n: string; forma: 'dot' | 'box'; fonte: Fonte; max: Maximo; d?: string; sangue?: boolean }
   | { n: string; forma: 'bar' | 'num'; fonte: Fonte; max: Maximo; d?: string }
   | { n: string; forma: 'estados'; tf: string; label: string; max: Maximo; d?: string } // CSV 0/1/2 (vazia, superficial, agravado)
+  | { n: string; forma: 'niveis'; tf: string; label: string; niveis: [nome: string, penalidade: string][]; d?: string } // "0110000": um 0/1 por nível (V20, Demônio, Geist)
+
+/** Contexto para regras que dependem da ficha (ex.: máximo de bolinhas pela geração no V20). */
+export type Ctx = { attr: (nomes: string[]) => number | undefined; tf: Record<string, string> }
+export type Bolinhas = number | ((c: Ctx) => number)
 
 export type Peca =
+  /** Lista de bolinhas guardada em textos (V20): uma chave por nome; base vem da ficha, extras numa lista "a|b|c". */
+  | { tipo: 'listaTf'; l: string; chave: (nome: string) => string; rotulo: (nome: string) => string; base: (c: Ctx) => string[]; extras: { key: string; label: string }; novo: string; bolinhas: Bolinhas }
   | { tipo: 'texto'; campos: [key: string, label: string, longo?: boolean][] }
-  | { tipo: 'linhas'; l?: string; grupos: { l?: string; sel: Sel }[]; bolinhas?: number; adicionar?: { label: string; descricao: string; dado: string }; min?: string }
+  | { tipo: 'linhas'; l?: string; grupos: { l?: string; sel: Sel }[]; bolinhas?: Bolinhas; adicionar?: { label: string; descricao: string; dado: string }; min?: string }
   | { tipo: 'armas' }
   | { tipo: 'chips'; l: string; tf: string; label: string; opcoes: string[] }
   | { tipo: 'trilhas'; trilhas: Trilha[] }

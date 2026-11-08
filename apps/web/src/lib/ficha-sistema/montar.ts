@@ -3,7 +3,7 @@
 import { useRef, useState, type ChangeEvent } from 'react'
 import { Cpu, Dices, Feather, Percent, Swords, Compass, CircleDot } from 'lucide-react'
 import { R, W, type Cell, type Track, type W as Widget } from './tipos'
-import type { Fonte, Maximo, Peca, Regra, Sel, SistemaSpec, Trilha } from './spec'
+import type { Bolinhas, Ctx, Fonte, Maximo, Peca, Regra, Sel, SistemaSpec, Trilha } from './spec'
 
 /** Dados reais da ficha (app/(app)/personagens/[id]/page.tsx). */
 export type FichaSistemaDados = {
@@ -64,6 +64,7 @@ export function useFichaSistema(d: FichaSistemaDados, spec: SistemaSpec) {
   const [armas, setArmas] = useState(d.armas)
   const [hp, setHp] = useState(d.hp)
   const [aba, setAba] = useState(0)
+  const [rascunho, setRascunho] = useState<Record<string, string>>({})
   const [toasts, setToasts] = useState<Toast[]>([])
   const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
 
@@ -74,7 +75,9 @@ export function useFichaSistema(d: FichaSistemaDados, spec: SistemaSpec) {
     .sort((a, b) => sel.nomes ? sel.nomes.findIndex(n => n.toLowerCase() === a.n.toLowerCase()) - sel.nomes.findIndex(n => n.toLowerCase() === b.n.toLowerCase()) : 0)
   const attr = (nomes: string[]) => nomes.map(n => attrs.find(a => a.n.toLowerCase() === n.toLowerCase())).find(Boolean)
   const num = (s: string | undefined) => parseInt(s ?? '', 10) || 0
-  const maximo = (m: Maximo): number => typeof m === 'number' ? m : 'attr' in m ? attr(m.attr)?.v ?? 0 : 'pv' in m ? d.max
+  const ctx: Ctx = { attr: nomes => attr(nomes)?.v, tf }
+  const nBol = (b: Bolinhas | undefined, padrao = 5) => b === undefined ? padrao : typeof b === 'number' ? b : b(ctx)
+  const maximo = (m: Maximo): number => typeof m === 'number' ? m : typeof m === 'function' ? m(ctx) : 'attr' in m ? attr(m.attr)?.v ?? 0 : 'pv' in m ? d.max
     : m.soma.reduce((n, ns) => n + (attr(ns)?.v ?? 0), 0) + (m.mais ?? 0)
   const fonte = (f: Fonte, max: number) => 'attr' in f ? attr(f.attr)?.v ?? 0 : 'pv' in f ? hp : f.gasto ? Math.max(0, max - num(tf[f.tf])) : num(tf[f.tf])
 
@@ -114,6 +117,13 @@ export function useFichaSistema(d: FichaSistemaDados, spec: SistemaSpec) {
 
   // ── Trilhas (caixas/bolinhas, estados, barra) ──
   const trilha = (t: Trilha, compacta: boolean): Track => {
+    if (t.forma === 'niveis') {
+      const flags = Array.from({ length: t.niveis.length }, (_, i) => (tf[t.tf] ?? '')[i] === '1')
+      const ultimo = flags.lastIndexOf(true)
+      return { n: t.n, d: t.d ?? '', hasD: !!t.d, val: ultimo >= 0 ? t.niveis[ultimo]![0] : 'Ileso', vc: ultimo >= 0 ? 'var(--blood)' : 'var(--ink)', gap: '5px', acts: [], hasActs: false,
+        cells: t.niveis.map(([nome, pen], i): Cell => ({ t: nome, lab: flags[i] ? '✕' : '', cap: compacta ? '' : pen, hasCap: !compacta && pen !== '', capC: flags[i] ? 'var(--blood)' : 'var(--muted)', w: compacta ? '18px' : '28px', h: compacta ? '18px' : '24px', fs: compacta ? '11px' : '13px', r: '3px', ring: 'var(--blood)',
+          bg: flags[i] ? 'var(--blood)' : 'transparent', fg: '#fff', go: () => { const nf = [...flags]; nf[i] = !nf[i]; salvaTf(t.tf, t.label, nf.map(x => (x ? '1' : '0')).join('')) } })) }
+    }
     const max = maximo(t.max)
     if (t.forma === 'estados') {
       const raw = (tf[t.tf] ?? '').split(',').filter(Boolean).map(Number)
@@ -141,6 +151,39 @@ export function useFichaSistema(d: FichaSistemaDados, spec: SistemaSpec) {
     if (p.tipo === 'texto') return [W({ isText: true, fields: p.campos.map(([key, l, longo]) => ({ l, v: tf[key] ?? '', on: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => salvaTf(key, l, e.target.value, 600), long: !!longo, short: !longo, rows: longo ? 4 : 3, ph: ed ? '' : '—', span: longo ? '1/-1' : 'auto' })) })]
     if (p.tipo === 'chips') return [W({ isChips: true, l: p.l, chips: p.opcoes.map(o => { const on = tf[p.tf] === o; return { l: o, t: o, on, hasDot: false, dot: '', bg: on ? 'var(--ink)' : 'var(--surface)', color: on ? 'var(--bg)' : 'var(--ink)', ring: on ? 'var(--ink)' : 'var(--line)', go: () => salvaTf(p.tf, p.label, on ? '' : o) } }) })]
     if (p.tipo === 'trilhas') return [W({ isBox: true, tracks: p.trilhas.map(t => trilha(t, false)) })]
+    if (p.tipo === 'listaTf') {
+      // Lista guardada em textos (V20): base da ficha (ex.: disciplinas do clã) + extras "a|b|c".
+      const extras = (tf[p.extras.key] ?? '').split('|').filter(Boolean)
+      const base = p.base(ctx)
+      const nomes = [...base, ...extras.filter(x => !base.includes(x))]
+      const max = nBol(p.bolinhas)
+      const salvaExtras = (xs: string[]) => salvaTf(p.extras.key, p.extras.label, xs.join('|'))
+      return [W({
+        isRows: true, l: p.l, hasAdd: ed, addL: p.novo,
+        add: () => { let n = 1; while (nomes.includes(`${p.novo} ${n}`)) n++; salvaExtras([...extras, `${p.novo} ${n}`]) },
+        groups: [{ l: '', hasL: false, rows: nomes.map(nome => {
+          const v = num(tf[p.chave(nome)]), extra = !base.includes(nome)
+          return R({
+            n: rascunho[nome] ?? nome, edit: extra && ed,
+            onN: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+              // Renomear leva o valor para a chave nova (a chave sai do nome, como na ficha antiga).
+              // Grava só depois de uma pausa, para não criar uma chave por letra digitada.
+              const novo = e.target.value
+              setRascunho(r => ({ ...r, [nome]: novo }))
+              clearTimeout(timers.current[`r${nome}`])
+              timers.current[`r${nome}`] = setTimeout(() => {
+                setRascunho(r => { const { [nome]: _, ...resto } = r; return resto })
+                if (!novo.trim() || novo === nome || nomes.includes(novo)) return
+                salvaExtras(extras.map(x => x === nome ? novo : x)); if (v) salvaTf(p.chave(novo), p.rotulo(novo), String(v))
+              }, 900)
+            },
+            hasDots: true, dots: Array.from({ length: max }, (_, i) => ({ t: `${i + 1}`, bg: i < v ? 'var(--accent)' : 'transparent', ring: 'var(--accent)', go: () => salvaTf(p.chave(nome), p.rotulo(nome), String(v === i + 1 ? i : i + 1)) })),
+            hasRoll: true, rollL: `${v}d10`, roll: () => rolar(nome, v),
+            hasDel: extra && ed, del: () => salvaExtras(extras.filter(x => x !== nome)),
+          })
+        }) }],
+      })]
+    }
     if (p.tipo === 'armas') return [W({
       isTable: true, head: ['Nome', 'Bônus', 'Dano', 'Tipo', 'Alcance', 'Propriedades'], addL: 'Adicionar arma',
       add: async () => {
@@ -181,7 +224,7 @@ export function useFichaSistema(d: FichaSistemaDados, spec: SistemaSpec) {
           usados.add(a.id)
           const pool = spec.familia === 'dots'
           return p.bolinhas
-            ? R({ n: a.n, hasDots: true, dots: dots(a.id, a.v, p.bolinhas), hasRoll: true, rollL: pool ? `${a.v}d10` : sg(a.v), roll: () => rolar(a.n, a.v) })
+            ? R({ n: a.n, hasDots: true, dots: dots(a.id, a.v, nBol(p.bolinhas)), hasRoll: true, rollL: pool ? `${a.v}d10` : sg(a.v), roll: () => rolar(a.n, a.v) })
             : R({ n: a.n, hasIn: true, inV: String(a.v), onIn: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => { const v = parseInt((e.target.value.match(/-?\d+/) ?? ['0'])[0], 10); if (!isNaN(v)) salvaAttr(a.id, v) }, hasRoll: true, rollL: 'rolar', roll: () => rolar(a.n, a.v) })
         }),
       })),
@@ -190,7 +233,7 @@ export function useFichaSistema(d: FichaSistemaDados, spec: SistemaSpec) {
 
   // ── Moldura ──
   const A = spec.atributos
-  const dotGroups = A.tipo === 'bolinhas' ? A.grupos.map(g => ({ l: g.l, rows: pega(g.sel).map(a => ({ n: a.n, roll: () => rolar(a.n, a.v), dots: Array.from({ length: A.max ?? 5 }, (_, i) => ({ t: `${a.n} ${i + 1}`, bg: i < a.v ? 'var(--accent)' : 'transparent', go: () => salvaAttr(a.id, a.v === i + 1 ? i : i + 1) })) })) })) : []
+  const dotGroups = A.tipo === 'bolinhas' ? A.grupos.map(g => ({ l: g.l, rows: pega(g.sel).map(a => ({ n: a.n, roll: () => rolar(a.n, a.v), dots: Array.from({ length: nBol(A.max) }, (_, i) => ({ t: `${a.n} ${i + 1}`, bg: i < a.v ? 'var(--accent)' : 'transparent', go: () => salvaAttr(a.id, a.v === i + 1 ? i : i + 1) })) })) })) : []
   const tiles = A.tipo === 'tiles' ? pega(A.sel).map(a => {
     const m = Math.floor((a.v - 10) / 2)
     const big = A.mostra === 'mod' ? sg(m) : A.mostra === 'dado' ? `d${a.v}` : A.mostra === 'sinal' ? sg(a.v) : String(a.v)
