@@ -3,8 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type PointerEvent as RPointerEvent, type WheelEvent } from 'react'
 import {
   CirclePlus, CloudFog, Crown, Eye, Hand, Image as ImageIcon, ImageUp, Lock, MessagesSquare, MousePointer2, Move, Music, Pause, Play, RadioTower, Ruler, ScrollText, Swords,
-  EyeOff, Globe, UserRound, Wifi, WifiOff, type LucideIcon,
+  EyeOff, Flame, Globe, UserRound, Wifi, WifiOff, type LucideIcon,
 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { dcHref } from '@/lib/dc-routes'
 import { toggleTema } from '@/lib/tema'
 import { safeImageUrl } from '@/lib/safe-url'
@@ -141,6 +142,13 @@ export function useMesaVals(d: MesaDados) {
   const [ended, setEnded] = useState<number | null>(null)
   const [endErro, setEndErro] = useState(false)
   const [aviso, setAviso] = useState<string | null>(null)
+  // Mesa sem sessão: preparo do mestre e o tutorial (SAGA Mesa, Tweaks sessao/tour).
+  const router = useRouter()
+  const [prep, setPrep] = useState(false)
+  const [iniciando, setIniciando] = useState(false)
+  const gravaPreparo = gm && !ativa && prep && !!d.sessao
+  const [tourStep, setTourStep] = useState(-1)
+  const [tourRect, setTourRect] = useState<{ x: number; y: number; w: number; h: number } | null>(null)
   // Ao vivo, adicionar token, chat, handouts e ficha lateral.
   const [liveOpen, setLiveOpen] = useState(false)
   const [liveExp, setLiveExp] = useState<string | null>(null)
@@ -179,11 +187,13 @@ export function useMesaVals(d: MesaDados) {
   // (o PATCH tem limite de 30/min por pessoa).
   const salvarTokens = useCallback((next: Token[], logo = false) => {
     editRef.current = Date.now()
-    if (!ativa || !podeSync) return
+    // Modo preparo (mestre, sem sessão ao vivo): grava na última sessão, que a próxima copia ao iniciar.
+    if (!(ativa || gravaPreparo) || !podeSync) return
     clearTimeout(syncT.current)
     const send = () => { void patch(d.campaignId, { tokensJson: JSON.stringify(next) }) }
     if (logo) send(); else syncT.current = setTimeout(send, 400)
-  }, [ativa, podeSync, d.campaignId])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ativa, podeSync, d.campaignId, prep])
   const mudarTokens = (fn: (ts: Token[]) => Token[], logo = false) => {
     const next = fn(st.current.tokens)
     setTokens(next)
@@ -562,7 +572,76 @@ export function useMesaVals(d: MesaDados) {
   const fsTabsList = ([['attr', 'Atributos'], ...(d20 ? [['skill', 'Perícias']] : []), ...(fs?.armas ? [['atk', 'Ataques']] : []), ...(fs?.nota !== null && fs ? [['notes', 'Notas']] : [])] as [string, string][])
   const fsTabOk = fsTabsList.some(([k]) => k === fsTab) ? fsTab : 'attr'
 
+  // ── Mesa sem sessão ──
+  // Jogador (e mestre em outra aba): a tela abre sozinha quando a sessão começa.
+  useEffect(() => {
+    if (ativa) return
+    const iv = setInterval(async () => {
+      const r = await fetch(`${api}/rolls`).catch(() => null)
+      const j = r?.ok ? await r.json().catch(() => null) as { sessionState?: unknown } | null : null
+      if (j?.sessionState) router.refresh()
+    }, 10_000)
+    return () => clearInterval(iv)
+  }, [ativa, api, router])
+  const iniciar = async () => {
+    if (iniciando) return
+    setIniciando(true)
+    const r = await json(`${api}/sessions/start`, 'POST', {})
+    setIniciando(false)
+    // 409 = já existe sessão ativa (outra aba): recarregar resolve igual.
+    if (r?.ok || r?.status === 409) { router.refresh(); return }
+    avisar('Não foi possível iniciar a sessão · tente de novo')
+  }
+
+  // ── Tutorial da Mesa: destaca os elementos reais (data-tour) ──
+  const TOUR: [string, string, string][] = [
+    ['ferramentas', 'As ferramentas', `À esquerda ficam ${gm ? 'selecionar, mover o mapa, token, ping, régua e névoa. As letras V, H, T, P, R e F' : 'selecionar, mover o mapa, ping e régua. As letras V, H, P e R'} trocam de ferramenta.`],
+    ['dados', 'A barra de dados', 'Escolha os dados, o modificador, vantagem e quem vê a rolagem. Espaço rola na hora.'],
+    ['painel', 'O painel lateral', 'Iniciativa, fichas, chat, handouts e música. A ficha lateral tem tudo o que você precisa no meio do combate.'],
+    ...(gm && !pv ? [['aovivo', 'Ao vivo', 'Libere quem pode mover o próprio token. Sem liberação, o jogador só olha.'] as [string, string, string]] : []),
+  ]
+  const tourKey = TOUR[tourStep]?.[0]
+  useEffect(() => {
+    if (!tourKey) { setTourRect(null); return }
+    const medir = () => {
+      const el = document.querySelector(`[data-tour="${tourKey}"]`)
+      const r = el?.getBoundingClientRect()
+      setTourRect(r ? { x: r.left - 4, y: r.top - 4, w: r.width + 8, h: r.height + 8 } : null)
+    }
+    medir()
+    window.addEventListener('resize', medir)
+    return () => window.removeEventListener('resize', medir)
+  }, [tourKey])
+  // Primeira visita à Mesa neste navegador: o tutorial abre sozinho.
+  useEffect(() => {
+    try { if (!localStorage.getItem('saga_tour_mesa')) { localStorage.setItem('saga_tour_mesa', '1'); setTourStep(0) } } catch { /* sem storage */ }
+  }, [])
+  const tourVals = (() => {
+    const r = tourRect ?? { x: 0, y: 0, w: 0, h: 0 }
+    const vw = typeof window === 'undefined' ? 1440 : window.innerWidth, vh = typeof window === 'undefined' ? 900 : window.innerHeight
+    // Balão ao lado do destaque, dentro da tela (330 px de largura).
+    const cx = r.x + r.w + 16 + 330 < vw ? r.x + r.w + 16 : Math.max(16, r.x - 346)
+    const cy = Math.max(16, Math.min(vh - 220, r.y + (r.h > vh / 2 ? 60 : r.h + 16 > vh - 220 ? -230 : 0)))
+    const t = TOUR[Math.max(0, tourStep)] ?? TOUR[0]!
+    return { n: tourStep + 1, t: t[1], x2: t[2], x: `${r.x}px`, y: `${r.y}px`, w: `${r.w}px`, h: `${r.h}px`, cx: `${cx}px`, cy: `${cy}px` }
+  })()
+
   return {
+    // Mesa no celular (screens/mesacelular): rolar ataque de um token e dados do token.
+    atacarToken: (id: string) => { const t = tokens.find(x => x.id === id); if (t) void rolar({ n: 1, d: 20, mod: dice.mod, adv: dice.adv, who: primeiro(t.label), what: 'Ataque' }) },
+    podeVerVida: (t: Token) => temHp(t) && (gm || t.type !== 'enemy'),
+    sessaoNome: d.sessao?.nome ?? null, campanhaId: d.campaignId,
+    // Sem sessão ao vivo (painel de espera, preparo e "Iniciar sessão").
+    mLiveOn: ativa, mIdle: !ativa && !(gm && prep), mGMIdle: gm && !ativa, mPrepOn: gm && !ativa && prep,
+    mIdleBg: !gm ? 'rgb(12 8 5/.72)' : 'rgb(12 8 5/.55)', mIdleIcon: !gm ? Lock : Flame,
+    mIdleTitle: !gm ? 'A mesa está fechada' : 'Nenhuma sessão ao vivo',
+    // TODO(api): "Próxima: <data>" quando houver agendamento de sessões.
+    mIdleLead: !gm ? 'O Mestre ainda não começou a sessão. Esta tela abre sozinha quando ele iniciar.' : 'Inicie a sessão para abrir a mesa para a companhia, ou prepare o mapa e os tokens antes, sem que ninguém veja.',
+    mStart: () => { void iniciar() },
+    mPrep: () => { setPrep(true); if (!d.sessao) avisar('Inicie a primeira sessão para guardar o mapa; até lá o preparo fica só nesta tela') },
+    tourOn: tourStep >= 0 && !!tourRect, tourOpen: () => setTourStep(0), tourClose: () => setTourStep(-1), tourTalk: tourStep >= 0,
+    tourNext: () => setTourStep(s => s >= TOUR.length - 1 ? -1 : s + 1), tourNextL: tourStep >= TOUR.length - 1 ? 'Começar' : 'Próximo',
+    tour: tourVals, tourDots: TOUR.map((_, i) => i === tourStep ? '#e8c46a' : 'rgb(232 196 106/.3)'),
     $href: (link: string) => dcHref(link, ctx),
     $img: (id: string) => id === 'mesa-musica-capa' ? ((musica ?? ultima) ? `https://i.ytimg.com/vi/${musica ?? ultima}/hqdefault.jpg` : null) : null,
     voltarHref: `/campaign/${d.campaignId}`,
@@ -579,14 +658,14 @@ export function useMesaVals(d: MesaDados) {
       if (mapEdit) {
         const url = mapDraft.trim() ? safeImageUrl(mapDraft.trim()) : mapa
         if (mapDraft.trim() && !url) { avisar('Link de imagem inválido · use um endereço https'); return }
-        if (url !== mapa) { setMapa(url); setMapSize({ w: 0, h: 0 }); if (ativa) void patch(d.campaignId, { mapImageUrl: url }) }
+        if (url !== mapa) { setMapa(url); setMapSize({ w: 0, h: 0 }); if (ativa || gravaPreparo) void patch(d.campaignId, { mapImageUrl: url }) }
         setMapDraft('')
       } else setMapDraft(mapa ?? '')
       setMapEdit(!mapEdit); setSel(null)
     },
     meLabel: mapEdit ? 'Concluir mapa' : 'Trocar mapa', meBg: mapEdit ? 'var(--gold-t)' : 'transparent',
     mapEdit, mapDraft, onMapDraft: (e: ChangeEvent<HTMLInputElement>) => setMapDraft(e.target.value),
-    tirarMapa: () => { setMapa(null); setMapDraft(''); setMapSize({ w: 0, h: 0 }); if (ativa) void patch(d.campaignId, { mapImageUrl: null }) },
+    tirarMapa: () => { setMapa(null); setMapDraft(''); setMapSize({ w: 0, h: 0 }); if (ativa || gravaPreparo) void patch(d.campaignId, { mapImageUrl: null }) },
     tools: toolsOk.map(k => ({ l: TOOLS[k][0], icon: TOOLS[k][1], k: TOOLS[k][2], go: () => { setTool(k); setMeasure(null) }, bg: tool === k ? 'var(--accent)' : 'transparent', color: tool === k ? '#fff8f0' : 'var(--muted)', hover: tool === k ? 'var(--accent)' : 'var(--surface2)' })),
     toolIcon: mapEdit ? ImageUp : TOOLS[tool][1],
     toolHint: aviso ?? (mapEdit ? 'Cole o link da imagem do mapa e clique em Concluir mapa' : !ativa ? 'Nenhuma sessão ao vivo · o Mestre inicia pelo Painel' : tool === 'token' && pend ? `Clique no mapa para posicionar ${pend.label}` : TOOLS[tool][3]),

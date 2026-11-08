@@ -242,7 +242,7 @@ if (& $want 'mesa') {
     $c = Rep $c '>4/5</span>' '>{v.onlineLabel}</span>'
     $c = WrapEnclosing $c 'onClick={v.togglePV}' 'button' 'v.souMestre'
     $c = WrapEnclosing $c 'onClick={v.toggleMapEdit}' 'button' 'v.souMestre'
-    $c = WrapEnclosing $c 'onClick={v.endAsk}' 'button' 'v.podeEncerrar'
+    $c = Rep $c '{v.mLiveOn && (<button onClick={v.endAsk}' '{v.mLiveOn && v.podeEncerrar && (<button onClick={v.endAsk}'
     # Tabuleiro cresce com o mapa e os tokens; o mapa é a imagem da sessão no tamanho natural (como na Mesa antiga).
     $c = Rep $c "width: '1200px', height: '800px', transformOrigin" 'width: `${v.boardW}px`, height: `${v.boardH}px`, transformOrigin'
     $c = Rep $c "<svg width={'1200'} height={'800'}" '<svg width={v.boardW} height={v.boardH}'
@@ -276,6 +276,13 @@ if (& $want 'mesa') {
     # Música: atmosferas e link do YouTube só para o mestre.
     $c = Rep $c "<p style={{ margin: '14px 0 6px', font: '400 15px/1 $SC' }}>Atmosferas</p>" "{v.souMestre && (<><p style={{ margin: '14px 0 6px', font: '400 15px/1 $SC' }}>Atmosferas</p>"
     $c = Rep $c '{t.d}</span></button>))}' ("{t.d}</span></button>))}<div style={{ display: 'flex', gap: '6px', marginTop: '10px' }}><input value={v.linkMusica} onChange={v.onLinkMusica} placeholder={'Link do YouTube'} style={{ flex: '1', minWidth: '0', height: '32px', padding: '0 10px', borderRadius: '4px', border: '1px solid var(--line)', background: 'var(--surface)', color: 'var(--ink)', font: '400 12px/1 $F' }} /><button onClick={v.tocarLink} className=`"mesa-s22`" style={{ all: 'unset', cursor: 'pointer', height: '32px', padding: '0 12px', borderRadius: '4px', border: '1px solid var(--line)', font: '500 12px/32px $F' }}>Tocar</button></div></>)}")
+    # Mesa sem sessão: "Ver a campanha" volta para a campanha real.
+    $c = Rep $c "v.`$href('SAGA Campanha Jogador.dc.html?sessao=sem-sessao')" 'v.voltarHref'
+    # Tutorial: os destaques medem os elementos reais (data-tour), como nos Primeiros Passos.
+    $c = AddAttr $c '{v.tools.map' 'nav' 'data-tour="ferramentas"'
+    $c = AddAttr $c "left: '50%', bottom: '16px'" 'div' 'data-tour="dados"'
+    $c = AddAttr $c "width: '320px', display: 'flex', flexDirection: 'column'" 'aside' 'data-tour="painel"'
+    $c = AddAttr $c 'onClick={v.liveToggle} aria-expanded' 'button' 'data-tour="aovivo"'
     # Encerrar: leva ao resumo da sessão.
     $c = Rep $c "href={v.`$href('SAGA Campanhas.dc.html')}" 'href={v.resumoHref}'
     Rep $c '>Voltar às campanhas</Link>' '>Escrever o resumo</Link>'
@@ -358,5 +365,25 @@ if (& $want 'editarsistema') {
     $c = Rep $c "v.`$href('SAGA Sistemas.dc.html')} className=`"editarsistema-s2`"" 'v.bibliotecaHref} className="editarsistema-s2"'
     Rep $c "v.`$href('SAGA Sistemas.dc.html')} className=`"editarsistema-s8`"" 'v.bibliotecaHref} className="editarsistema-s8"'
   } 'meta real; biblioteca e importar abrem o códice em /sistemas?id=.'
+}
+if (& $want 'mesacelular') {
+  $p = Gen 'SAGA Mesa Celular' 'mesacelular'
+  Edit $p {
+    param($c)
+    # O conversor gera ({…}) quando o filho único do && é um laço; vira fragmento.
+    $c = Rep $c '{v.tIni && ({v.ini.map(' '{v.tIni && (<>{v.ini.map('
+    $c = Rep $c '{r.now}</span></div>))})}' '{r.now}</span></div>))}</>)}'
+    $c = Rep $c "v.`$href('SAGA Campanha Jogador.dc.html')" 'v.voltarHref'
+    $c = Rep $c '>A Queda de Valdris</p>' '>{v.campanha}</p>'
+    $c = Rep $c '/>Sessão XII ao vivo · rodada 3</p>' '/>{v.subLinha}</p>'
+    # Mapa real: tabuleiro do tamanho do mapa, arrastar e pinça (o protótipo era fixo em 640×520).
+    $c = Rep $c "overflow: 'hidden', background: 'radial-gradient(circle at 40% 35%, #3a2a1c, #120c08 75%)' }}>" "overflow: 'hidden', background: 'radial-gradient(circle at 40% 35%, #3a2a1c, #120c08 75%)', touchAction: 'none' }} onPointerDown={v.mapDown} onPointerMove={v.mapMove} onPointerUp={v.mapUp} onPointerCancel={v.mapUp}>"
+    $c = Rep $c "left: '50%', top: v.mapTop, width: '640px', height: '520px', transform: ``translate(-50%,0) scale(`${v.zoom})``, transformOrigin: 'center top'" "left: '0', top: '0', width: ``$`{v.boardW}px``, height: ``$`{v.boardH}px``, transform: ``translate($`{v.panX}px,$`{v.panY}px) scale($`{v.zoom})``, transformOrigin: '0 0'"
+    $c = Rep $c '{v.toks.map((t, tIdx) => (' "<div style={{ position: 'absolute', inset: '0', background: v.terrain }} />{v.mapa && (<img src={v.mapa} alt={''} draggable={false} style={{ position: 'absolute', left: '0', top: '0', maxWidth: 'none', pointerEvents: 'none' }} />)}<div style={{ position: 'absolute', inset: '0', pointerEvents: 'none', backgroundImage: 'linear-gradient(rgb(40 25 10/.16) 1px, transparent 1px),linear-gradient(90deg, rgb(40 25 10/.16) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />{v.toks.map((t, tIdx) => ("
+    $c = Rep $c "{v.sel.hp}/{v.sel.max}{' PV · CA '}{v.sel.ca}" '{v.sel.linha}'
+    $c = Rep $c "v.`$href('SAGA Ficha.dc.html')" 'v.fichaHref'
+    $c = Rep $c "<input placeholder={'Mensagem ou /r 1d20+5'}" "<input value={v.chatIn} onChange={v.onChatIn} onKeyDown={v.chatKey} disabled={v.chatOff} placeholder={'Mensagem ou /r 1d20+5'}"
+    Rep $c "<button aria-label={'Enviar'}" "<button onClick={v.chatSend} aria-label={'Enviar'}"
+  } 'mapa, tokens, iniciativa, ficha, chat e dados da Mesa real (mesma lógica do desktop); arrastar e pinça no mapa.'
 }
 'pronto'

@@ -6,6 +6,7 @@
 @keyframes mesa-critShake {0%,100%{transform:translate(0,0)}20%{transform:translate(-4px,2px) rotate(-4deg)}40%{transform:translate(4px,-2px) rotate(4deg)}60%{transform:translate(-3px,0)}80%{transform:translate(2px,0)}}
 @keyframes mesa-burst {from{transform:scale(.4);opacity:.9}to{transform:scale(2);opacity:0}}
 @keyframes mesa-stampV {0%{transform:scale(2.3) rotate(-22deg);opacity:0}60%{transform:scale(.92) rotate(3deg);opacity:1}100%{transform:scale(1) rotate(-8deg)}}
+@keyframes mesa-ringPulseT {0%,100%{box-shadow:0 0 0 9999px rgb(10 6 3/.62),0 0 0 3px #e8c46a}50%{box-shadow:0 0 0 9999px rgb(10 6 3/.62),0 0 0 7px rgb(232 196 106/.35)}}
 @keyframes mesa-up {from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes mesa-logIn {from{opacity:0;transform:translateX(12px);background:var(--gold-t)}to{opacity:1;transform:none}}
 @keyframes mesa-eq {0%,100%{transform:scaleY(.25)}50%{transform:scaleY(1)}}
@@ -19,39 +20,45 @@
 .mesa-s4:hover { background:var(--surface2) !important; color:var(--ink) !important }
 .mesa-s5:hover { background:color-mix(in oklab, var(--blood) 10%, transparent) !important }
 .mesa-s6:hover { color:var(--ink) !important }
-.mesa-s7:hover { opacity:.88 !important }
-.mesa-s9:hover { background:var(--surface2) !important; color:var(--ink) !important }
-.mesa-s10:hover { background:var(--surface2) !important; color:var(--ink) !important }
-.mesa-s11:hover { background:var(--surface2) !important }
-.mesa-s12:hover { filter:brightness(.95) !important }
-.mesa-s13:hover { background:var(--accent-d) !important }
-.mesa-s14:hover { color:var(--accent) !important }
-.mesa-s15:hover { background:var(--surface2) !important; color:var(--ink) !important }
-.mesa-s16:hover { background:var(--surface2) !important; color:var(--ink) !important }
-.mesa-s17:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
-.mesa-s18:hover { background:var(--accent-d) !important; color:#fff8f0 !important }
-.mesa-s19:hover { transform:translateY(-2px) !important }
-.mesa-s19:active { transform:scale(.94) !important }
-.mesa-s20:hover { filter:brightness(1.12) !important }
-.mesa-s21:hover { color:var(--ink) !important }
-.mesa-s22:hover { background:var(--surface2) !important }
-.mesa-s23:hover { opacity:.88 !important }
-.mesa-s24:hover { background:var(--accent-t) !important }
-.mesa-s25:hover { border-color:var(--accent) !important }
+.mesa-s7:hover { color:var(--ink) !important }
+.mesa-s8:hover { opacity:.88 !important }
+.mesa-s9:hover { filter:brightness(1.12) !important }
+.mesa-s11:hover { background:var(--surface2) !important; color:var(--ink) !important }
+.mesa-s12:hover { background:var(--surface2) !important; color:var(--ink) !important }
+.mesa-s13:hover { background:var(--surface2) !important }
+.mesa-s14:hover { filter:brightness(.95) !important }
+.mesa-s15:hover { background:var(--accent-d) !important }
+.mesa-s16:hover { color:var(--accent) !important }
+.mesa-s17:hover { filter:brightness(1.12) !important }
+.mesa-s18:hover { background:rgb(255 255 255/.06) !important }
+.mesa-s19:hover { background:var(--surface2) !important; color:var(--ink) !important }
+.mesa-s20:hover { background:var(--surface2) !important; color:var(--ink) !important }
+.mesa-s21:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.mesa-s22:hover { background:var(--accent-d) !important; color:#fff8f0 !important }
+.mesa-s23:hover { transform:translateY(-2px) !important }
+.mesa-s23:active { transform:scale(.94) !important }
+.mesa-s24:hover { filter:brightness(1.12) !important }
+.mesa-s25:hover { color:var(--ink) !important }
 .mesa-s26:hover { background:var(--surface2) !important }
-.mesa-s27:hover { background:var(--surface2) !important }
-.mesa-s28:hover { background:var(--accent) !important; color:#fff8f0 !important }
-.mesa-s29:hover { background:var(--ink) !important; color:var(--bg) !important }
-.mesa-s30:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
-.mesa-s31:hover { background:var(--surface2) !important; color:var(--ink) !important }
-.mesa-s32:hover { color:var(--accent-d) !important }
-.mesa-s33:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
-.mesa-s34:hover { background:var(--accent-d) !important; color:#fff8f0 !important }
-.mesa-s35:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
-.mesa-s36:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.mesa-s27:hover { opacity:.88 !important }
+.mesa-s28:hover { background:var(--accent-t) !important }
+.mesa-s29:hover { border-color:var(--accent) !important }
+.mesa-s30:hover { background:var(--surface2) !important }
+.mesa-s31:hover { background:var(--surface2) !important }
+.mesa-s32:hover { background:var(--accent) !important; color:#fff8f0 !important }
+.mesa-s33:hover { background:var(--ink) !important; color:var(--bg) !important }
+.mesa-s34:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.mesa-s35:hover { background:var(--surface2) !important; color:var(--ink) !important }
+.mesa-s36:hover { color:var(--accent-d) !important }
 .mesa-s37:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
 .mesa-s38:hover { background:var(--accent-d) !important; color:#fff8f0 !important }
-.mesa-s39:hover { color:var(--blood) !important; background:var(--surface2) !important }
-.mesa-s40:hover { background:var(--surface2) !important }
-.mesa-s41:hover { background:var(--surface2) !important }
-.mesa-s42:hover { color:var(--bg) !important; opacity:.88 !important }
+.mesa-s39:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.mesa-s40:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.mesa-s41:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.mesa-s42:hover { background:var(--accent-d) !important; color:#fff8f0 !important }
+.mesa-s43:hover { color:var(--blood) !important; background:var(--surface2) !important }
+.mesa-s44:hover { background:var(--surface2) !important }
+.mesa-s45:hover { background:var(--surface2) !important }
+.mesa-s46:hover { color:var(--bg) !important; opacity:.88 !important }
+.mesa-s47:hover { color:#f1e3c2 !important }
+.mesa-s48:hover { filter:brightness(1.1) !important }
