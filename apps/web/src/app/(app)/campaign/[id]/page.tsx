@@ -1,4 +1,5 @@
 import { getServerSession } from 'next-auth'
+import { ondeVisivel } from '@/lib/rolagens'
 import { authOptions } from '@/lib/auth'
 import { prisma } from 'database'
 import { notFound, redirect } from 'next/navigation'
@@ -19,7 +20,7 @@ export default async function CampaignPage({ params, searchParams }: { params: {
 
   const me = await prisma.campaignMember.findFirst({
     where: { campaignId: params.id, user: { discordId: session.user.discordId } },
-    select: { role: true, userId: true },
+    select: { id: true, role: true, userId: true },
   }).catch(() => null)
   if (!me) notFound()
   // O Painel do Mestre é só do mestre; jogadores seguem com a visão geral.
@@ -33,7 +34,7 @@ export default async function CampaignPage({ params, searchParams }: { params: {
         where: { role: 'PLAYER' }, orderBy: { joinedAt: 'asc' },
         select: { lastSeenAt: true, user: { select: { username: true } }, character: { select: { name: true, class: true, level: true, hp: true, maxHp: true } } },
       },
-      sessions: { orderBy: { startedAt: 'asc' }, select: { id: true, name: true, isActive: true, startedAt: true, endedAt: true, summary: { select: { content: true } }, _count: { select: { rollLogs: true } } } },
+      sessions: { orderBy: { startedAt: 'asc' }, select: { id: true, name: true, isActive: true, startedAt: true, endedAt: true, summary: { select: { content: true } }, _count: { select: { rollLogs: { where: ondeVisivel(me.id) } } } } },
       npcs: { orderBy: { createdAt: 'desc' }, select: { id: true, name: true, type: true, description: true, isPublic: true, imageUrl: true } },
       applications: { where: { status: 'pending' }, orderBy: { createdAt: 'asc' }, select: { id: true, characterDesc: true, experienceLevel: true, createdAt: true, user: { select: { username: true } } } },
       notes: { where: { authorId: me.userId }, orderBy: { updatedAt: 'desc' }, select: { id: true, title: true, content: true, visibility: true } },
@@ -44,7 +45,7 @@ export default async function CampaignPage({ params, searchParams }: { params: {
   const agora = Date.now()
   const live = c.sessions.find(s => s.isActive)
   const rolls = await prisma.rollLog.findMany({
-    where: { session: { campaignId: c.id }, NOT: { expression: 'chat' } },
+    where: { session: { campaignId: c.id }, NOT: { expression: 'chat' }, ...ondeVisivel(me.id) },
     orderBy: { rolledAt: 'desc' }, take: 5,
     select: { rolledBy: true, total: true, attribute: true, expression: true, rolledAt: true, session: { select: { name: true } } },
   }).catch(() => [])

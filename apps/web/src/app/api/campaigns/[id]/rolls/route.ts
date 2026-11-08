@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { prisma } from 'database'
+import { prisma, visibilidadeValida } from 'database'
+import { leitor, mestreDa, ondeVisivel, serializar, serializarTodas } from '@/lib/rolagens'
 import { NextResponse } from 'next/server'
 import { applyRateLimit, RATE_LIMITS } from '@/lib/rate-limit'
 import { withNoCache } from '@/lib/no-cache'
@@ -62,17 +63,22 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     if (!isNaN(parsed.getTime())) sinceDate = parsed
   }
 
-  const rolls = await prisma.rollLog.findMany({
-    where: {
-      sessionId: activeSession.id,
-      ...(sinceDate ? { rolledAt: { gt: sinceDate } } : {}),
-    },
-    orderBy: { rolledAt: 'desc' },
-    take: 30,
-  }).catch(() => [])
+  const [rolls, gm] = await Promise.all([
+    prisma.rollLog.findMany({
+      where: {
+        sessionId: activeSession.id,
+        // "Revelar à mesa" muda uma rolagem antiga: ela volta junto com as novas.
+        AND: [ondeVisivel(member.id), ...(sinceDate ? [{ OR: [{ rolledAt: { gt: sinceDate } }, { revealedAt: { gt: sinceDate } }] }] : [])],
+      },
+      orderBy: { rolledAt: 'desc' },
+      take: 30,
+    }).catch(() => []),
+    mestreDa(params.id),
+  ])
 
   return withNoCache(NextResponse.json({
-    rolls,
+    // Filtro no servidor: total e dados só para quem pode ver (lib/rolagens.ts).
+    rolls: serializarTodas(rolls, leitor(member, session.user.username), gm),
     sessionState: {
       tokensJson:      activeSession.tokensJson,
       musicYoutubeId:  activeSession.musicYoutubeId,
@@ -103,7 +109,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   }).catch(() => null)
   if (!member) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const body      = await req.json().catch(() => ({})) as { expression?: string; attribute?: string; message?: string; adv?: string }
+  const body      = await req.json().catch(() => ({})) as { expression?: string; attribute?: string; message?: string; adv?: string; visibility?: string }
   const rawExpr   = (body.expression ?? '1d20').trim().toLowerCase().slice(0, 30)
   const attribute = typeof body.attribute === 'string' ? body.attribute.slice(0, 80) : null
 
@@ -127,6 +133,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         attribute:  message,
         rolledBy:   session.user.username,
         sessionId:  activeSession.id,
+        memberId:   member.id,
       },
     })
     return NextResponse.json({ ...rollLog, isCrit: false }, { status: 201 })
@@ -156,6 +163,8 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   }).catch(() => null)
   if (!activeSession) return NextResponse.json({ error: 'Nenhuma sessão ativa' }, { status: 400 })
 
+  // Rolagem privada: o papel limita o modo (mestre: pública/secreta; jogador: pública/só para mim/para o Mestre/às cegas).
+  const visibility = visibilidadeValida(body.visibility, member.role === 'GM')
   const rollLog = await prisma.rollLog.create({
     data: {
       expression: rawExpr,
@@ -165,8 +174,13 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       attribute,
       rolledBy:   session.user.username,
       sessionId:  activeSession.id,
+      visibility,
+      memberId:   member.id,
     },
   })
 
-  return NextResponse.json({ ...rollLog, isCrit: result.isCrit }, { status: 201 })
+  // Às cegas: nem quem rolou recebe o resultado.
+  const gm = { memberId: member.role === 'GM' ? member.id : null, username: member.role === 'GM' ? session.user.username : null }
+  const out = serializar(rollLog, leitor(member, session.user.username), gm)
+  return NextResponse.json({ ...out, isCrit: out?.oculto ? false : result.isCrit }, { status: 201 })
 }

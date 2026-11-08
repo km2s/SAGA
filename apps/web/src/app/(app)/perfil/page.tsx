@@ -22,7 +22,8 @@ export default async function PerfilPage({ searchParams }: { searchParams: { aba
   const [rolagens, vintes] = await Promise.all([
     prisma.rollLog.count({ where: { rolledBy: u.username, NOT: { expression: 'chat' } } }).catch(() => 0),
     // Vinte natural: rolagem de d20 com um 20 entre os dados.
-    prisma.rollLog.count({ where: { rolledBy: u.username, expression: { contains: 'd20' }, rolls: { array_contains: [20] } } }).catch(() => 0),
+    // Às cegas não reveladas não entram: nem quem rolou sabe o resultado.
+    prisma.rollLog.count({ where: { rolledBy: u.username, expression: { contains: 'd20' }, rolls: { array_contains: [20] }, NOT: { visibility: 'BLIND', revealedAt: null } } }).catch(() => 0),
   ])
   const agora = Date.now()
   const sessoes = u.memberships.flatMap(m => m.campaign.sessions)

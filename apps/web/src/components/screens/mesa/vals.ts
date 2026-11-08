@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type PointerEvent as RPointerEvent, type WheelEvent } from 'react'
 import {
   CirclePlus, CloudFog, Crown, Eye, Hand, Image as ImageIcon, ImageUp, Lock, MessagesSquare, MousePointer2, Move, Music, Pause, Play, RadioTower, Ruler, ScrollText, Swords,
-  Wifi, WifiOff, type LucideIcon,
+  EyeOff, Globe, UserRound, Wifi, WifiOff, type LucideIcon,
 } from 'lucide-react'
 import { dcHref } from '@/lib/dc-routes'
 import { toggleTema } from '@/lib/tema'
@@ -36,7 +36,15 @@ type Handout = { id: string; t: string | null; x: string | null; img: string | n
 type Tool = 'select' | 'pan' | 'token' | 'ping' | 'measure' | 'fog'
 type Pend = { label: string; i: string; type: Token['type']; c: string; hp?: number; max?: number; ca?: number | null; npc?: string; img?: string | null }
 type Nevoa = { id: string; label: string; x: number; y: number; w: number; h: number; on: boolean }
-type Rolagem = { face: string | number; label: string; done: boolean; total?: number; detail?: string; crit?: boolean; fail?: boolean }
+// Rolagens privadas (README do redesign): chaves do design → enum do banco.
+type VisKey = 'pub' | 'secret' | 'self' | 'gm' | 'blind'
+const VIS: Record<VisKey, [string, LucideIcon, string]> = {
+  pub: ['Pública', Globe, 'Todos na mesa veem'], secret: ['Secreta', EyeOff, 'Só você, Mestre, vê o resultado'], self: ['Só para mim', UserRound, 'Só você vê: nem o Mestre'],
+  gm: ['Para o Mestre', Crown, 'Você e o Mestre veem'], blind: ['Às cegas', EyeOff, 'Só o Mestre vê o resultado: nem você'],
+}
+const VIS_API: Record<VisKey, string> = { pub: 'PUBLIC', secret: 'GM_SECRET', self: 'SELF', gm: 'GM', blind: 'BLIND' }
+const VIS_DE: Record<string, VisKey> = { PUBLIC: 'pub', GM_SECRET: 'secret', SELF: 'self', GM: 'gm', BLIND: 'blind' }
+type Rolagem = { face: string | number; label: string; done: boolean; total?: number; detail?: string; crit?: boolean; fail?: boolean; vis?: VisKey; sealed?: boolean }
 
 const CELL = 40
 const GM_COR = '#b98a2a'
@@ -117,6 +125,7 @@ export function useMesaVals(d: MesaDados) {
   const [tab, setTab] = useState('ini')
   const [sheet, setSheet] = useState<string | null>(() => (d.membros.find(m => m.id === d.meuId && m.char) ?? d.membros.find(m => m.char && m.role !== 'GM'))?.id ?? null)
   const [dice, setDice] = useState({ n: 1, d: 20, mod: 0, adv: 'normal' })
+  const [rollVis, setRollVis] = useState<{ gm: VisKey; pl: VisKey }>({ gm: 'pub', pl: 'pub' })
   const [roll, setRoll] = useState<Rolagem | null>(null)
   const [log, setLog] = useState<RollLogEntry[]>(d.rolagens)
   const [nRolls, setNRolls] = useState(d.totalRolagens)
@@ -216,11 +225,12 @@ export function useMesaVals(d: MesaDados) {
       const j = await r.json().catch(() => null) as { rolls?: RollLogEntry[]; sessionState?: SessionState | null } | null
       const novas = (j?.rolls ?? []).map(x => ({ ...x, rolledAt: new Date(x.rolledAt).toISOString() }))
       if (novas.length) {
-        sinceRef.current = novas[0]!.rolledAt
+        // Revelações voltam com o rolledAt antigo: o "desde" nunca anda para trás.
+        if (novas[0]!.rolledAt > sinceRef.current) sinceRef.current = novas[0]!.rolledAt
         const ids = new Set(st.current.log.map(x => x.id))
-        const add = novas.filter(x => !ids.has(x.id))
-        if (add.length) {
-          setLog(prev => [...add, ...prev.filter(x => !add.some(a => a.id === x.id))].slice(0, 80))
+        const add = novas.filter(x => !ids.has(x.id)), muda = novas.filter(x => ids.has(x.id))
+        if (add.length || muda.length) {
+          setLog(prev => [...add, ...prev.map(x => muda.find(m => m.id === x.id) ?? x)].slice(0, 80))
           setNRolls(n => n + add.filter(x => x.expression !== 'chat').length)
         }
       }
@@ -324,10 +334,12 @@ export function useMesaVals(d: MesaDados) {
     const who = c.who ?? euNome
     const adv = c.d === 20 && c.n === 1 ? c.adv : 'normal'
     const expr = `${c.n}d${c.d}${c.mod ? sg(c.mod) : ''}`
-    setRoll({ face: '?', label: `${who} · ${c.what}`, done: false })
+    // Quem vê esta rolagem: o modo escolhido na barra de dados vale para toda rolagem (barra, ficha, popover, /r).
+    const vis = gm ? rollVis.gm : rollVis.pl
+    setRoll({ face: '?', label: `${who} · ${c.what}`, done: false, vis })
     const spin = setInterval(() => setRoll(r => r && !r.done ? { ...r, face: 1 + Math.floor(Math.random() * c.d) } : r), 70)
     const [res] = await Promise.all([
-      fetch(`${api}/rolls`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ expression: expr, attribute: `${who} · ${c.what}`, ...(adv !== 'normal' ? { adv } : {}) }) }).catch(() => null),
+      fetch(`${api}/rolls`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ expression: expr, attribute: `${who} · ${c.what}`, visibility: VIS_API[vis], ...(adv !== 'normal' ? { adv } : {}) }) }).catch(() => null),
       new Promise(r => setTimeout(r, 1000)),
     ])
     clearInterval(spin)
@@ -343,7 +355,9 @@ export function useMesaVals(d: MesaDados) {
     setLog(prev => [entry, ...prev.filter(x => x.id !== entry.id)].slice(0, 50))
     setNRolls(n => n + 1)
     setFresh(entry.id)
-    setRoll({ face: c.n === 1 ? entry.rolls[0] ?? entry.total : entry.total, label: `${who} · ${c.what}`, done: true, total: entry.total, detail: detalhe(entry), crit: nat === 20, fail: nat === 1 })
+    // Às cegas: o servidor não manda o resultado nem para quem rolou; termina no selo.
+    if (entry.oculto) setRoll({ face: '?', label: `${who} · ${c.what}`, done: true, vis, sealed: true })
+    else setRoll({ face: c.n === 1 ? entry.rolls[0] ?? entry.total : entry.total, label: `${who} · ${c.what}`, done: true, total: entry.total, detail: detalhe(entry), crit: nat === 20, fail: nat === 1, vis })
     const t = setTimeout(() => setRoll(null), 2200)
     timers.current.push(t)
     return entry
@@ -480,6 +494,7 @@ export function useMesaVals(d: MesaDados) {
   const playersOnline = d.membros.filter(m => online.includes(m.id)).length
   const rl = roll
   const vazio = () => {}
+  const curVis: VisKey = gm ? rollVis.gm : rollVis.pl
 
   const encerrar = async () => {
     const r = await fetch(`${api}/sessions/end`, { method: 'POST' }).catch(() => null)
@@ -624,13 +639,23 @@ export function useMesaVals(d: MesaDados) {
     mLabel: sg(dice.mod), mDown: () => setDice(s => ({ ...s, mod: Math.max(-99, s.mod - 1) })), mUp: () => setDice(s => ({ ...s, mod: Math.min(99, s.mod + 1) })),
     advs: ([['desv', 'Desv', 'Desvantagem'], ['normal', 'Normal', 'Normal'], ['vant', 'Vant', 'Vantagem']] as const).map(([k, l, tt]) => ({ l, t: tt, go: () => setDice(s => ({ ...s, adv: k })), bg: dice.adv === k ? 'var(--surface)' : 'transparent', color: dice.adv === k ? (k === 'vant' ? 'var(--ok)' : k === 'desv' ? '#c8424c' : 'var(--ink)') : 'var(--muted)', sh: dice.adv === k ? '0 1px 2px rgb(0 0 0/.12)' : 'none' })),
     // TODO(api): rolagens privadas (RollLog.visibility). Até lá o seletor fica escondido e tudo é público.
-    temVisibilidade: false, visOpts: [] as { l: string; t: string; icon: LucideIcon; on: boolean; lblD: string; go: () => void; bg: string; color: string; sh: string }[],
-    rollBtnLabel: `Rolar ${dice.n}d${dice.d}${dice.mod ? sg(dice.mod) : ''}`, rollBtnBg: 'linear-gradient(180deg,#a8262f,#7a1820)',
+    temVisibilidade: true,
+    visOpts: ((gm ? ['pub', 'secret'] : ['pub', 'self', 'gm', 'blind']) as VisKey[]).map(k => {
+      const on = curVis === k
+      return {
+        l: VIS[k][0], t: `${VIS[k][0]} · ${VIS[k][2]}`, icon: VIS[k][1], on, lblD: on ? 'inline' : 'none',
+        go: () => setRollVis(v => gm ? { ...v, gm: k } : { ...v, pl: k }),
+        bg: on ? (k === 'pub' ? 'var(--surface)' : '#2a1a10') : 'transparent', color: on ? (k === 'pub' ? 'var(--ink)' : '#e8c46a') : 'var(--muted)', sh: on ? '0 1px 2px rgb(0 0 0/.15)' : 'none',
+      }
+    }),
+    rollBtnLabel: `Rolar ${dice.n}d${dice.d}${dice.mod ? sg(dice.mod) : ''}${curVis === 'pub' ? '' : ` · ${VIS[curVis][0].toLowerCase()}`}`,
+    rollBtnBg: curVis === 'pub' ? 'linear-gradient(180deg,#a8262f,#7a1820)' : 'linear-gradient(180deg,#4a2e1c,#24150c)',
     rollNow: () => { void rolar({ ...dice, what: 'Rolagem livre' }) },
     showRoll: !!rl,
     roll: rl ? {
-      ...rl, hasVis: false, visL: '', visIcon: Eye, openDone: rl.done, sealedDone: false,
-      anim: !rl.done ? 'mesa-diceSpin 1s cubic-bezier(.2,.7,.3,1) both' : rl.crit ? 'mesa-critShake .45s 2' : 'none',
+      ...rl, hasVis: !!rl.vis && rl.vis !== 'pub', visL: rl.vis && rl.vis !== 'pub' ? `${VIS[rl.vis][0]} · ${VIS[rl.vis][2]}` : '', visIcon: VIS[rl.vis ?? 'pub'][1],
+      openDone: rl.done && !rl.sealed, sealedDone: rl.done && !!rl.sealed,
+      anim: !rl.done ? 'mesa-diceSpin 1s cubic-bezier(.2,.7,.3,1) both' : rl.crit && !rl.sealed ? 'mesa-critShake .45s 2' : 'none',
       tag: rl.crit ? 'Crítico!' : rl.fail ? 'Falha crítica' : '', tagColor: rl.crit ? '#f3dc94' : '#e8a080',
     } : { face: '', label: '', crit: false, hasVis: false, visL: '', visIcon: Eye, openDone: false, sealedDone: false, anim: 'none', total: 0, detail: '', tag: '', tagColor: '' },
     tabs: TABS.map(([k, l, ic]) => ({ l, icon: ic, go: () => setTab(k), color: tab === k ? 'var(--accent)' : 'var(--muted)', line: tab === k ? 'inset 0 -2px 0 var(--accent)' : 'none' })),
@@ -704,12 +729,27 @@ export function useMesaVals(d: MesaDados) {
         }
       }
       const [a, ...b] = (l.attribute ?? '').split(' · ')
-      const crit = /^1?d20/i.test(l.expression) && l.rolls[0] === 20
+      // Rolagens privadas: o modo vem do servidor (full / sealed = a própria às cegas / ghost = de outro, sem resultado).
+      const mode = l.mode ?? 'full', vk = VIS_DE[l.visibility ?? 'PUBLIC'] ?? 'pub', V = VIS[vk]
+      const crit = mode === 'full' && /^1?d20/i.test(l.expression) && l.rolls[0] === 20
       const who = b.length ? a! : (q?.n ?? l.rolledBy), what = b.length ? b.join(' · ') : (l.attribute || l.expression)
+      const hora = agora ? hhmm(l.rolledAt) : ''
       return {
         isMsg: false, isRoll: true, id: l.id, who, i: (who[0] ?? '?').toUpperCase(), c: q?.c ?? GM_COR, text: '', gm: false, t: '', font: '', anim,
-        whatS: what, detailS: `${detalhe(l)}${agora ? ` · ${hhmm(l.rolledAt)}` : ''}`, total: l.total, color: crit ? 'var(--accent)' : 'var(--ink)',
-        hasVis: false, visL: '', visIcon: Eye, visBg: '', visC: '', showTotal: true, sealed: false, avOp: 1, rowBg: 'transparent', canReveal: false, reveal: vazio,
+        whatS: mode === 'ghost' ? (l.porMestre ? 'rolou em segredo' : 'rolou para o Mestre') : what,
+        detailS: mode === 'full' ? `${detalhe(l)}${hora ? ` · ${hora}` : ''}` : mode === 'sealed' ? `resultado com o Mestre${hora ? ` · ${hora}` : ''}` : hora,
+        total: l.total, color: crit ? 'var(--accent)' : 'var(--ink)',
+        hasVis: vk !== 'pub' || !!l.revealed, visL: l.revealed ? 'Revelada' : V[0], visIcon: l.revealed ? Eye : V[1],
+        visBg: l.revealed ? 'color-mix(in oklab, var(--ok) 14%, transparent)' : 'var(--gold-t)', visC: l.revealed ? 'var(--ok)' : 'color-mix(in oklab, var(--gold) 65%, var(--ink))',
+        showTotal: mode === 'full', sealed: mode !== 'full', avOp: mode === 'ghost' ? .55 : 1,
+        rowBg: mode === 'full' && vk !== 'pub' && gm ? 'color-mix(in oklab, var(--gold-t) 45%, transparent)' : 'transparent',
+        canReveal: gm && vk !== 'pub' && vk !== 'self',
+        reveal: async () => {
+          const r = await json(`${api}/rolls/${l.id}`, 'PATCH', { revelar: true })
+          const e = r?.ok ? await r.json().catch(() => null) as RollLogEntry | null : null
+          if (!e) { avisar('Não foi possível revelar · tente de novo'); return }
+          setLog(prev => prev.map(x => x.id === l.id ? { ...e, rolledAt: new Date(e.rolledAt).toISOString() } : x)); setFresh(l.id)
+        },
       }
     }),
     // Handouts.

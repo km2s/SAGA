@@ -22,6 +22,8 @@ export interface Marker { id: string; x: number; y: number; color: string; creat
 export interface RollLogEntry {
   id: string; expression: string; rolls: number[]; modifier: number
   total: number; attribute: string | null; rolledBy: string; rolledAt: string
+  // Rolagens privadas (lib/rolagens.ts): o servidor manda o modo de quem lê.
+  visibility?: string; mode?: 'full' | 'sealed' | 'ghost' | 'hide'; mine?: boolean; porMestre?: boolean; revealed?: boolean; oculto?: boolean
 }
 export interface CharAttr { id: string; value: number; name: string; defaultDie: string }
 /** Payload de rolagem de atributo — a família d20 (fantasy) rola 1d20+modificador;

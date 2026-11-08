@@ -1,4 +1,5 @@
 import { getServerSession } from 'next-auth'
+import { ondeVisivel } from '@/lib/rolagens'
 import { authOptions } from '@/lib/auth'
 import { prisma } from 'database'
 import { notFound, redirect } from 'next/navigation'
@@ -29,7 +30,7 @@ export default async function CampaignSessionsPage({ params }: { params: { id: s
 
   const sessions = await prisma.session.findMany({
     where: { campaignId: params.id },
-    include: { _count: { select: { rollLogs: true } }, summary: true },
+    include: { _count: { select: { rollLogs: { where: ondeVisivel(myMembership.id) } } }, summary: true },
     orderBy: { startedAt: 'desc' },
   }).catch(() => [])
 

@@ -373,10 +373,22 @@ model RollLog {
   rolledBy   String
   rolledAt   DateTime @default(now())
   sessionId  String
+  visibility RollVisibility @default(PUBLIC)
+  revealedAt DateTime?
+  memberId   String?
 
   session Session @relation(fields: [sessionId], references: [id])
 
   @@index([sessionId, rolledAt(sort: Desc)])
+  @@index([memberId])
+}
+
+enum RollVisibility {
+  PUBLIC
+  SELF
+  GM
+  BLIND
+  GM_SECRET
 }
 
 model SessionSummary {

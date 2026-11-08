@@ -8,4 +8,6 @@ const globalForPrisma = globalThis as unknown as { prisma: PrismaClient }
 export const prisma: PrismaClient = globalForPrisma.prisma ?? new PrismaClient()
 globalForPrisma.prisma = prisma
 
+export * from './rolagens'
+
 export * from '@prisma/client'

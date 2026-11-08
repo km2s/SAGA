@@ -117,6 +117,8 @@ async function saveRollLog(discordId: string, guildId: string, expression: strin
 
     const user = await prisma.user.findUnique({ where: { discordId } })
     if (!user) return
+    // Membro de quem rolou: as regras de rolagem privada reconhecem a rolagem pelo membro.
+    const member = await prisma.campaignMember.findFirst({ where: { campaignId: campaign.id, userId: user.id }, select: { id: true } })
 
     await prisma.rollLog.create({
       data: {
@@ -127,6 +129,7 @@ async function saveRollLog(discordId: string, guildId: string, expression: strin
         attribute: attribute ?? null,
         rolledBy: user.username,
         sessionId: session.id,
+        memberId: member?.id ?? null,
       },
     })
   } catch { /* log não crítico */ }

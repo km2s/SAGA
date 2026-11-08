@@ -135,25 +135,12 @@ Hoje o canal da campanha é o chat da sessão ativa (`RollLog` com `expression =
 | Bônus de ataque e CA do token/ficha | O popover do design mostra CA e "Rolar ataque +N". |
 | Perícias na ficha | A aba Fichas do design lista perícias roláveis. |
 
-## Rolagens privadas (SAGA Mesa, SAGA Sessao)
+## Rolagens privadas (SAGA Mesa, SAGA Sessao) — feito (2026-11-08)
 
-Proposta do handoff: `enum RollVisibility { PUBLIC SELF GM BLIND GM_SECRET }`,
-`RollLog.visibility @default(PUBLIC)` e `RollLog.revealedAt DateTime?`.
-
-O filtro de visibilidade tem de valer em **todo** leitor de `RollLog`, não só no
-`GET /api/campaigns/[id]/rolls`:
-- `app/(app)/campaign/[id]/mesa/page.tsx` (rolagens iniciais, SSR)
-- `app/(app)/campaign/[id]/page.tsx` (rolagens recentes, SSR)
-- `app/(app)/campaign/[id]/sessions/[sessionId]/page.tsx` (registro e estatísticas)
-- Telas do redesign: `app/(app)/mensagens/page.tsx` (canal), `app/(app)/campaign/[id]/page.tsx` (Atividade do Painel), `app/(app)/perfil/page.tsx` (contagens), `app/(app)/dashboard` (rolagem rápida)
-- Bot `/iniciativa ver` (publica os totais no canal) e `/sessao` (conta as rolagens)
-
-Decidido com a Karine (2026-11-07):
-- **`/iniciativa ver` no bot:** uma iniciativa privada (às cegas, secreta) de jogador
-  aparece só para quem rolou e para o mestre. Se quem rolou foi o mestre, nenhum
-  jogador vê; só o mestre. Como o canal é público, a resposta para jogadores omite as
-  privadas e o mestre vê a lista completa numa resposta efêmera.
-- **`/sessao` no bot:** o mestre vê o total com contadores por tipo (ex.: "30
-  rolagens · 10 privadas · 10 às cegas"); jogadores veem só as públicas.
-- A mesma regra vale para as telas do site (Sessão, Painel, Perfil): o mestre vê
-  tudo com contadores; jogadores, só as públicas e as próprias.
+- Banco: `enum RollVisibility { PUBLIC SELF GM BLIND GM_SECRET }`, `RollLog.visibility @default(PUBLIC)`, `RollLog.revealedAt`, `RollLog.memberId` (migração `20261108000000_add_roll_visibility`).
+- Regra única de quem vê o quê em `packages/database/src/rolagens.ts` (site e bot). No site, `lib/rolagens.ts` serializa: o total e os dados nunca saem para quem não pode ver.
+- `POST /api/campaigns/[id]/rolls` aceita `visibility` (limitada pelo papel; o resto vira pública). Às cegas: nem quem rolou recebe o resultado.
+- `GET .../rolls` filtra e devolve `mode` (`full` / `sealed` / `ghost`), `porMestre`, `revealed`; revelações voltam pela sondagem (`revealedAt > since`).
+- `PATCH .../rolls/[rollId]` `{ revelar: true }` (só o mestre; não vale para "só para mim" de jogador).
+- Leitores filtrados: Mesa (nova e antiga), Painel (atividade e contagem), Sessão (registro, estatísticas e destaque contam só o que o leitor vê; o mestre vê os contadores), lista de sessões, Mensagens (canal), Perfil (vinte natural ignora às cegas), visão geral do jogador.
+- Bot: `/iniciativa ver` mostra no canal só as públicas e manda a quem pode ver mais a ordem completa numa resposta só para si; `/sessao status|encerrar` conta só as públicas no canal e manda ao mestre, só para ele, "N rolagens · X secretas · Y às cegas". O bot grava `memberId` nas rolagens. Mensagens de chat deixaram de contar como rolagem no `/sessao`.

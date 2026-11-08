@@ -1,4 +1,5 @@
 import { getServerSession } from 'next-auth'
+import { ondeResultadoVisivel } from '@/lib/rolagens'
 import { authOptions } from '@/lib/auth'
 import { prisma } from 'database'
 import { notFound, redirect } from 'next/navigation'
@@ -33,7 +34,7 @@ export async function VisaoGeralAntiga({ params }: { params: { id: string } }) {
 
   const recentRolls = activeSession
     ? await prisma.rollLog.findMany({
-        where: { sessionId: activeSession.id },
+        where: { sessionId: activeSession.id, ...ondeResultadoVisivel({ memberId: myMembership.id, username: session.user.username, gm: myMembership.role === 'GM' }) },
         orderBy: { rolledAt: 'desc' },
         take: 8,
       }).catch(() => [])

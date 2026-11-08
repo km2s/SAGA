@@ -45,8 +45,9 @@ export function useMensagensVals(d: MensagensDados) {
     const iv = setInterval(async () => {
       const ult = (regs[c.id] ?? []).at(-1)?.rolledAt
       const r = await fetch(`/api/campaigns/${c.id}/rolls${ult ? `?since=${encodeURIComponent(ult)}` : ''}`).catch(() => null)
-      const body = r?.ok ? await r.json().catch(() => null) as { rolls?: Registro[] } | null : null
-      const novos = (body?.rolls ?? []).map(x => ({ ...x, rolledAt: new Date(x.rolledAt).toISOString() })).reverse()
+      const body = r?.ok ? await r.json().catch(() => null) as { rolls?: (Registro & { oculto?: boolean })[] } | null : null
+      // Rolagens privadas sem resultado para este leitor não entram no canal.
+      const novos = (body?.rolls ?? []).filter(x => !x.oculto).map(x => ({ ...x, rolledAt: new Date(x.rolledAt).toISOString() })).reverse()
       if (novos.length) setRegs(rs => { const ja = new Set((rs[c.id] ?? []).map(x => x.id)); return { ...rs, [c.id]: [...(rs[c.id] ?? []), ...novos.filter(x => !ja.has(x.id))] } })
     }, 4000)
     return () => clearInterval(iv)

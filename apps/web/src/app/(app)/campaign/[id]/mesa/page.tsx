@@ -8,6 +8,7 @@ import { parseResources, parseTracks, hasHpTrack } from '@/lib/resource-tracks'
 import { Mesa } from '@/components/screens/mesa/Mesa'
 import type { MesaDados } from '@/components/screens/mesa/vals'
 import { MarkTutorialVisited } from '@/components/tutorial/MarkTutorialVisited'
+import { leitor, mestreDa, ondeVisivel, serializarTodas } from '@/lib/rolagens'
 
 // Ficha na Mesa: atributos, CA, armas e as notas da mesa (text field `mesa_notes`, como a Mesa antiga).
 const fichaSel = {
@@ -46,8 +47,8 @@ async function MesaNovaPage({ id, discordId }: { id: string; discordId: string }
     select: { id: true, name: true, isActive: true, startedAt: true, tokensJson: true, musicYoutubeId: true, musicVolume: true, mapImageUrl: true, liveMembersJson: true },
   }).catch(() => null)
   const [rolls, total, npcs, handouts, views] = await Promise.all([
-    s?.isActive ? prisma.rollLog.findMany({ where: { sessionId: s.id }, orderBy: { rolledAt: 'desc' }, take: 50 }).catch(() => []) : [],
-    s?.isActive ? prisma.rollLog.count({ where: { sessionId: s.id, NOT: { expression: 'chat' } } }).catch(() => 0) : 0,
+    s?.isActive ? prisma.rollLog.findMany({ where: { sessionId: s.id, ...ondeVisivel(me.id) }, orderBy: { rolledAt: 'desc' }, take: 50 }).catch(() => []) : [],
+    s?.isActive ? prisma.rollLog.count({ where: { sessionId: s.id, NOT: { expression: 'chat' }, ...ondeVisivel(me.id) } }).catch(() => 0) : 0,
     gm ? prisma.nPC.findMany({ where: { campaignId: id }, orderBy: { name: 'asc' }, select: { id: true, name: true, type: true, hp: true, maxHp: true, imageUrl: true, ...fichaSel } }).catch(() => []) : [],
     prisma.handout.findMany({ where: { campaignId: id }, orderBy: { createdAt: 'desc' }, include: { sharedBy: { select: { user: { select: { username: true } } } } } }).catch(() => []),
     prisma.handoutView.findMany({ where: { handout: { campaignId: id } }, select: { handoutId: true, memberId: true } }).catch(() => []),
@@ -81,7 +82,8 @@ async function MesaNovaPage({ id, discordId }: { id: string; discordId: string }
       // Jogador só sabe se ele mesmo viu.
       vistos: views.filter(v => v.handoutId === h.id && (gm || v.memberId === me.id)).map(v => v.memberId),
     })),
-    rolagens: rolls.map(r => ({ id: r.id, expression: r.expression, rolls: r.rolls as number[], modifier: r.modifier, total: r.total, attribute: r.attribute, rolledBy: r.rolledBy, rolledAt: r.rolledAt.toISOString() })),
+    // Rolagens privadas: o resultado só vem para quem pode ver (lib/rolagens.ts).
+    rolagens: serializarTodas(rolls, leitor(me, me.user.username), (() => { const m = c.members.find(x => x.role === 'GM'); return { memberId: m?.id ?? null, username: m?.user.username ?? null } })()),
     totalRolagens: total,
   }
   return (
@@ -156,7 +158,7 @@ export default async function VirtualTablePage({ params, searchParams }: { param
   // Roll logs apenas da sessão ativa — sessões encerradas não precisam de logs em tempo real
   const initialRolls = activeSession?.isActive
     ? await prisma.rollLog.findMany({
-        where: { sessionId: activeSession.id },
+        where: { sessionId: activeSession.id, ...ondeVisivel(membership.id) },
         orderBy: { rolledAt: 'desc' },
         take: 30,
       }).catch(() => [])
@@ -206,16 +208,7 @@ export default async function VirtualTablePage({ params, searchParams }: { param
     })),
   }))
 
-  const serializedRolls = initialRolls.map(r => ({
-    id: r.id,
-    expression: r.expression,
-    rolls: r.rolls as number[],
-    modifier: r.modifier,
-    total: r.total,
-    attribute: r.attribute,
-    rolledBy: r.rolledBy,
-    rolledAt: r.rolledAt.toISOString(),
-  }))
+  const serializedRolls = serializarTodas(initialRolls, leitor(membership, session.user.username), await mestreDa(params.id))
 
   const serializedMembers = members.map(m => ({
     id: m.id,

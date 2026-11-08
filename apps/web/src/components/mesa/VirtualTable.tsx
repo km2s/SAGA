@@ -143,7 +143,8 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
       const res = await fetch(`/api/campaigns/${campaign.id}/rolls?since=${encodeURIComponent(sinceRef.current)}`).catch(()=>null)
       if (!res?.ok) return
       const data: { rolls: RollLogEntry[]; sessionState: SessionState | null } = await res.json().catch(() => ({ rolls: [], sessionState: null }))
-      const fresh = data.rolls ?? []
+      // Rolagens privadas sem resultado para este leitor ficam fora da Mesa antiga.
+      const fresh = (data.rolls ?? []).filter(r => !r.oculto)
       const st = data.sessionState
       if (fresh.length) {
         sinceRef.current = fresh[0]!.rolledAt

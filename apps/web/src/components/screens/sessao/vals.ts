@@ -2,7 +2,7 @@
 
 import { useState, type ChangeEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import { Dices, Save, Sparkles, Trophy, Users, type LucideIcon } from 'lucide-react'
+import { Crown, Dices, EyeOff, Save, Sparkles, Trophy, UserRound, Users, type LucideIcon } from 'lucide-react'
 import { dcHref } from '@/lib/dc-routes'
 
 /** Dados reais de /campaign/[id]/sessions/[sessionId]. */
@@ -11,11 +11,14 @@ export type SessaoDados = {
   sessaoN: string; estado: string; titulo: string; duracao: string
   resumo: string
   stats: { rolagens: number; criticos: number; maior: number | null; naMesa: number }
+  /** Só para o mestre: "30 rolagens · 10 secretas · 10 às cegas". */
+  contagem: string | null
   destaque: { t: string; d: string; total: number } | null
   rollers: { u: string; n: number }[]
-  log: { u: string; what: string; e: string; d: string; t: number; h: string; crit: boolean; um: boolean }[]
+  log: { u: string; what: string; e: string; d: string; t: number; h: string; crit: boolean; um: boolean; vis: string; modo: 'full' | 'sealed' | 'ghost'; porMestre: boolean }[]
 }
 
+const VL: Record<string, [string, LucideIcon]> = { GM_SECRET: ['Secreta', EyeOff], GM: ['Para o Mestre', Crown], BLIND: ['Às cegas', EyeOff], SELF: ['Só para si', UserRound] }
 const AVS = ['linear-gradient(135deg,#3a6a4a,#1e3a28)', 'linear-gradient(135deg,#5a1a2e,#2a0a16)', 'linear-gradient(135deg,#7a4a14,#3a2208)', 'linear-gradient(135deg,#6a5a3a,#2e2618)', 'linear-gradient(135deg,#c9a22a,#8a6320)']
 
 export function useSessaoVals(d: SessaoDados) {
@@ -38,7 +41,7 @@ export function useSessaoVals(d: SessaoDados) {
   }
 
   const stats: [LucideIcon, string, number | string, string, string][] = [
-    [Dices, 'Rolagens', d.stats.rolagens, 'var(--gold-t)', 'color-mix(in oklab, var(--gold) 70%, var(--ink))'],
+    [Dices, d.contagem?.includes(' · ') ? `Rolagens · ${d.contagem.split(' · ').slice(1).join(' · ')}` : 'Rolagens', d.stats.rolagens, 'var(--gold-t)', 'color-mix(in oklab, var(--gold) 70%, var(--ink))'],
     [Sparkles, 'Críticos', d.stats.criticos, 'color-mix(in oklab, var(--ok) 14%, transparent)', 'var(--ok)'],
     [Trophy, 'Maior total', d.stats.maior ?? '—', 'var(--accent-t)', 'var(--accent)'],
     [Users, 'Na mesa', d.stats.naMesa, 'var(--surface2)', 'var(--muted)'],
@@ -63,12 +66,17 @@ export function useSessaoVals(d: SessaoDados) {
     temDestaque: !!d.destaque, destaque: d.destaque ?? { t: '', d: '', total: 0 },
     rollers: d.rollers.map((r, k) => ({ u: r.u, i: r.u.charAt(0).toUpperCase(), n: r.n, av: AVS[k % AVS.length], k: k + 1, pct: Math.round(r.n / topo * 100) })),
     toggleCrit: () => setOnlyCrit(!onlyCrit), critBg: onlyCrit ? 'var(--gold-t)' : 'transparent', critColor: onlyCrit ? 'color-mix(in oklab, var(--gold) 70%, var(--ink))' : 'var(--muted)', critRing: onlyCrit ? 'var(--gold)' : 'var(--line)',
-    // TODO(api): rolagens privadas (marcadores e resultado escondido) quando RollLog tiver visibilidade.
-    log: d.log.filter(r => !onlyCrit || r.crit).map(r => ({
-      u: r.u, crit: r.crit, what: r.what, t: r.t, detail: `${r.e} · [${r.d}] · ${r.h}`,
-      hasVis: false, visL: '', visIcon: Sparkles,
-      bg: r.crit ? 'color-mix(in oklab, var(--gold-t) 60%, transparent)' : 'transparent', color: r.crit ? 'var(--gold)' : r.um ? 'var(--blood)' : 'var(--ink)',
-    })),
+    // Rolagens privadas: o servidor já tirou o resultado do que este leitor não vê.
+    log: d.log.filter(r => !onlyCrit || r.crit).map(r => {
+      const oculto = r.modo !== 'full', V = VL[r.vis]
+      return {
+        u: r.u, crit: r.crit, t: oculto ? '—' : r.t,
+        what: r.modo === 'ghost' ? (r.porMestre ? 'rolou em segredo' : 'rolou para o Mestre') : r.what,
+        detail: r.modo === 'ghost' ? r.h : r.modo === 'sealed' ? `resultado com o Mestre · ${r.h}` : `${r.e} · [${r.d}] · ${r.h}`,
+        hasVis: gm && !!V, visL: V?.[0] ?? '', visIcon: V?.[1] ?? Sparkles,
+        bg: r.crit ? 'color-mix(in oklab, var(--gold-t) 60%, transparent)' : 'transparent', color: oculto ? 'var(--muted)' : r.crit ? 'var(--gold)' : r.um ? 'var(--blood)' : 'var(--ink)',
+      }
+    }),
   }
 }
 

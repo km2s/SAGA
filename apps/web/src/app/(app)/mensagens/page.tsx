@@ -1,6 +1,6 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { prisma } from 'database'
+import { prisma, modoRolagem } from 'database'
 import { redirect } from 'next/navigation'
 import { Mensagens } from '@/components/screens/mensagens/Mensagens'
 import type { MensagensDados } from '@/components/screens/mensagens/vals'
@@ -13,7 +13,7 @@ export default async function MensagensPage({ searchParams }: { searchParams: { 
     where: { user: { discordId: session.user.discordId } },
     orderBy: { campaign: { updatedAt: 'desc' } },
     select: {
-      role: true,
+      id: true, role: true,
       character: { select: { name: true } },
       campaign: {
         select: {
@@ -41,7 +41,8 @@ export default async function MensagensPage({ searchParams }: { searchParams: { 
         mestre: m.campaign.members.find(x => x.role === 'GM')?.user.username ?? '', souMestre: m.role === 'GM',
         membros: m.campaign.members.length, personagem: m.character?.name ?? null,
         aoVivo: s?.isActive ? s.name ?? 'sessão em andamento' : null,
-        registros: logs.filter(l => l.sessionId === s?.id).slice(0, 40).reverse().map(l => ({
+        // Rolagens privadas: no canal só entra o que este membro vê com resultado.
+        registros: logs.filter(l => l.sessionId === s?.id && (l.expression === 'chat' || modoRolagem(l, { memberId: m.id, username: session.user.username, gm: m.role === 'GM' }) === 'full')).slice(0, 40).reverse().map(l => ({
           id: l.id, rolledBy: l.rolledBy, expression: l.expression, attribute: l.attribute, total: l.total, rolls: l.rolls, rolledAt: l.rolledAt.toISOString(),
         })),
         handouts: m.campaign.handouts.map(h => h.imageUrl!).filter(Boolean),

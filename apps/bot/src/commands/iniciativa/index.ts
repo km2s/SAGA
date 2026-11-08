@@ -3,7 +3,7 @@ import type { Command } from '../../types.js'
 import { getCampaignByGuild, getMember, getActiveSession } from '../../lib/permissions.js'
 import { initiativeRollEmbed, initiativeOrderEmbed, errorEmbed, infoEmbed } from '../../lib/embeds.js'
 import { roll } from '../../lib/dice.js'
-import { prisma } from 'database'
+import { prisma, modoRolagem } from 'database'
 
 const INIT_ATTR = 'Iniciativa'
 
@@ -66,6 +66,7 @@ const command: Command = {
           attribute: INIT_ATTR,
           rolledBy: charName,
           sessionId: session.id,
+          memberId: member.id,
         },
       })
 
@@ -78,13 +79,17 @@ const command: Command = {
         orderBy: { rolledAt: 'asc' },
       })
 
-      // Keep only the last roll per character (by rolledBy)
-      const latest = new Map<string, { name: string; total: number; rolledBy: string }>()
-      for (const log of logs) {
-        latest.set(log.rolledBy, { name: log.rolledBy, total: log.total, rolledBy: log.rolledBy })
-      }
+      // Rolagens privadas (combinado de 2026-11-07): o canal é público, então a resposta mostra só as
+      // públicas. Iniciativa privada de jogador: só ele e o mestre veem; a do mestre, só o mestre.
+      // Quem pode ver mais recebe a ordem completa numa resposta só para si.
+      const quem = { memberId: member.id, username: interaction.user.username, gm: member.role === 'GM' }
+      const publicas = logs.filter(l => l.visibility === 'PUBLIC' || l.revealedAt)
+      const minhas = logs.filter(l => modoRolagem(l, quem) === 'full')
 
-      await interaction.editReply({ embeds: [initiativeOrderEmbed(Array.from(latest.values()), session.name)] })
+      await interaction.editReply({ embeds: [initiativeOrderEmbed(ultimaPorPersonagem(publicas), session.name)] })
+      if (minhas.length > publicas.length) {
+        await interaction.followUp({ embeds: [initiativeOrderEmbed(ultimaPorPersonagem(minhas), `${session.name ?? 'Sessão'} · só você vê`)], ephemeral: true })
+      }
     }
 
     if (sub === 'limpar') {
@@ -137,6 +142,7 @@ const command: Command = {
           attribute: INIT_ATTR,
           rolledBy: charName,
           sessionId: session.id,
+          memberId: member.id,
         },
       })
 
@@ -148,13 +154,17 @@ const command: Command = {
         where: { sessionId: session.id, attribute: INIT_ATTR },
         orderBy: { rolledAt: 'asc' },
       })
-      const latest = new Map<string, { name: string; total: number; rolledBy: string }>()
-      for (const log of logs) {
-        latest.set(log.rolledBy, { name: log.rolledBy, total: log.total, rolledBy: log.rolledBy })
-      }
-      return void await message.reply({ embeds: [initiativeOrderEmbed(Array.from(latest.values()), session.name)] })
+      // Comando por prefixo não tem resposta privada: só as públicas.
+      return void await message.reply({ embeds: [initiativeOrderEmbed(ultimaPorPersonagem(logs.filter(l => l.visibility === 'PUBLIC' || l.revealedAt)), session.name)] })
     }
   },
+}
+
+// Última rolagem de cada personagem (por rolledBy).
+function ultimaPorPersonagem(logs: { rolledBy: string; total: number }[]) {
+  const latest = new Map<string, { name: string; total: number; rolledBy: string }>()
+  for (const log of logs) latest.set(log.rolledBy, { name: log.rolledBy, total: log.total, rolledBy: log.rolledBy })
+  return Array.from(latest.values())
 }
 
 export default command
