@@ -15,6 +15,10 @@ export type FichaSistemaDados = {
   armas: { id: string; n: string; b: string; d: string; ty: string; al: string; pr: string }[]
   nivel: number
   slots: { level: number; total: number; used: number }[]
+  /** Onde gravar a vida (NPC usa a rota do NPC; personagem, a da ficha). */
+  pvUrl?: string
+  /** false = só leitura também nas rolagens (jogador vendo NPC revelado). */
+  podeRolar?: boolean
 }
 
 type Toast = { id: number; label: string; detail: string; total: string | number; tag: string; color: string; ring: string; tagColor: string }
@@ -101,17 +105,19 @@ export function useFichaSistema(d: FichaSistemaDados, spec: SistemaSpec) {
   const grava = (f: Fonte, max: number, v: number) => {
     const x = Math.max(0, Math.min(max, v))
     if ('attr' in f) { const a = attr(f.attr); if (a) salvaAttr(a.id, x) }
-    else if ('pv' in f) { if (ed) { setHp(x); clearTimeout(timers.current.hp); timers.current.hp = setTimeout(() => { void json(api, 'PATCH', { hp: x }) }, 300) } }
+    else if ('pv' in f) { if (ed) { setHp(x); clearTimeout(timers.current.hp); timers.current.hp = setTimeout(() => { void json(d.pvUrl ?? api, 'PATCH', { hp: x }) }, 300) } }
     else salvaTf(f.tf, f.label, String(f.gasto ? max - x : x))
   }
 
   // ── Rolagem ──
   const rolar = (label: string, v: number, regra: Regra = spec.regra) => {
+    if (d.podeRolar === false) return
     const r = rolarRegra(regra, v), id = Date.now() + Math.random()
     setToasts(ts => [...ts, { id, label, detail: r.detail, total: r.total, tag: r.tag, color: r.good === 'crit' ? '#f3dc94' : r.good === 'bad' ? '#e8a080' : '#f1e3c2', ring: r.good === 'crit' ? '#c9a22a' : 'rgb(201 162 42/.3)', tagColor: r.good === 'crit' ? '#f3dc94' : r.good === 'bad' ? '#e8a080' : '#8fbf6a' }].slice(-4))
     setTimeout(() => setToasts(ts => ts.filter(t => t.id !== id)), 4600)
   }
   const rolarExpr = (label: string, e: string) => {
+    if (d.podeRolar === false) return
     const m = e.match(/(\d*)d(\d+)\s*([+-]\s*\d+)?/i)
     if (!m) { rolar(label, 0); return }
     const n = +(m[1] || 1), dd = +m[2]!, mod = +((m[3] ?? '0').replace(/\s/g, '')), rs = Array.from({ length: n }, () => 1 + Math.floor(Math.random() * dd)), id = Date.now() + Math.random()

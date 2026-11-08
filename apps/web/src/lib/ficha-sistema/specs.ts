@@ -169,6 +169,19 @@ export const SPECS: Record<string, SistemaSpec> = {
   },
 
   // ─── Família d20 ───
+  // D&D 5e: personagens usam a SAGA Ficha própria; este spec serve à Ficha NPC.
+  'D&D 5e': {
+    familia: 'd20', regra: 'd20', linha: [],
+    atributos: { tipo: 'tiles', sel: { nomes: D6 }, mostra: 'mod' },
+    trilhas: [],
+    pilulas: [{ l: 'CA', attr: ['Classe de Armadura'] }, { l: 'Iniciativa', attr: ['Iniciativa'] }],
+    secoes: [
+      { n: 'Perícias', pecas: [{ tipo: 'linhas', grupos: [{ sel: { prefixo: ['Perícia'] } }], min: '180px' }] },
+      { n: 'Salvaguardas', pecas: [{ tipo: 'linhas', grupos: [{ sel: { prefixo: ['Salvaguarda'] } }] }] },
+      { n: 'Ataques', pecas: [{ tipo: 'armas' }] },
+      { n: 'Notas', pecas: [{ tipo: 'texto', campos: [['notes', 'Notas', true]] }] },
+    ],
+  },
   // components/character/sheets/DnD35Sheet.tsx
   'D&D 3.5e': {
     familia: 'd20', regra: 'd20', linha: ['race_notes', 'class_notes', 'alignment'],

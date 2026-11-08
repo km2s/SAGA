@@ -54,7 +54,7 @@ export default async function PersonagemPage({ params }: { params: { id: string 
   if (!isMine && !gm) notFound()
 
   // Fichas por Sistema (lib/ficha-sistema): os mesmos dados que a ficha antiga gravava.
-  if (sistema && spec) {
+  if (sistema && spec && sistema !== 'D&D 5e') {
     const ch = m.character
     const dados: FichaSistemaDados = {
       id: ch.id, nome: ch.name, img: ch.imageUrl, sistema, campanha: m.campaign.name, podeEditar: true,

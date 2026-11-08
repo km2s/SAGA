@@ -399,11 +399,31 @@ if (& $want 'fichasistema') {
     $c = Rep $c "<ImageSlot src={v.`$img('ficha-sis-retrato')} />" '<ImageSlot src={v.img} />'
     $c = Rep $c "{' · A Queda de Valdris'}" '{v.campanha ? ` · ${v.campanha}` : ''''}'
     # "Cada seção vira uma aba": abas com as peças de SAGA Pecas de Ficha (components/ficha-sistema/Pecas.tsx).
-    $i = $c.IndexOf("<section style={{ padding: '14px 18px', borderRadius: '5px'", $O)
-    $f = $c.IndexOf('</section></div><aside', $O); if ($i -lt 0 -or $f -lt 0) { throw 'bloco de seções não achado' }
+    $i = $c.LastIndexOf('<section', $c.IndexOf("{'Seções próprias de '}", $O), $O)
+    $fim = $c.IndexOf('</section></div><aside', $O); if ($i -lt 0 -or $fim -lt 0) { throw 'bloco de seções não achado' }
     $abas = "<section style={{ padding: '6px 18px 18px', borderRadius: '5px', background: 'linear-gradient(180deg, var(--surface), color-mix(in oklab, var(--surface) 60%, var(--surface2)))', border: '1px solid var(--line)' }}><div role={'tablist'} aria-label={'Seções da ficha'} style={{ display: 'flex', gap: '4px', borderBottom: '1px solid var(--line)', overflowX: 'auto' }}>{v.abas.map((a, aIdx) => (<button key={aIdx} role={'tab'} aria-selected={a.on} onClick={a.go} className=`"fichasistema-s2`" style={{ all: 'unset', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 14px', font: '400 17px/1 $F', color: a.color, boxShadow: a.line, whiteSpace: 'nowrap' }}>{a.l}</button>))}</div><Pecas ws={v.secao} />"
-    $c = $c.Substring(0, $i) + $abas + $c.Substring($f)
+    $c = $c.Substring(0, $i) + $abas + $c.Substring($fim)
     Rep $c "import type { Vals } from './vals'" "import type { Vals } from './vals'`nimport { Pecas } from '@/components/ficha-sistema/Pecas'"
   } 'ficha de um personagem (sem o mostruário de famílias); seções viram abas com as peças de SAGA Pecas de Ficha.'
+}
+if (& $want 'fichanpc') {
+  $p = Gen 'SAGA Ficha NPC' 'fichanpc'
+  Edit $p {
+    param($c)
+    $F = '\''IM Fell English SC\'',serif'
+    # Mesmo tratamento da Ficha por Sistema (sem o mostruário; seções viram abas com as peças).
+    $c = Rep $c "v.`$href('SAGA NPCs.dc.html')" 'v.voltarHref'
+    $c = WrapEnclosing $c "aria-label={'Famílias de regras'}" 'div' 'v.mostruario'
+    $c = WrapEnclosing $c '{v.famNote}' 'div' 'v.mostruario'
+    $c = Rep $c "<ImageSlot src={v.`$img('ficha-sis-retrato')} />" '<ImageSlot src={v.img} />'
+    $c = Rep $c "{' · A Queda de Valdris'}" '{v.campanha ? ` · ${v.campanha}` : ''''}'
+    # Só o mestre alterna Mestre/Jogador (prévia do que a companhia vê).
+    $c = WrapEnclosing $c '>Visão de<' 'div' 'v.trocaVisao'
+    $i = $c.LastIndexOf('<section', $c.IndexOf("{'Seções próprias de '}", $O), $O)
+    $fim = $c.IndexOf('</section></div><aside', $O); if ($i -lt 0 -or $fim -lt 0) { throw 'bloco de seções não achado' }
+    $abas = "<section style={{ padding: '6px 18px 18px', borderRadius: '5px', background: 'linear-gradient(180deg, var(--surface), color-mix(in oklab, var(--surface) 60%, var(--surface2)))', border: '1px solid var(--line)' }}><div role={'tablist'} aria-label={'Seções da ficha'} style={{ display: 'flex', gap: '4px', borderBottom: '1px solid var(--line)', overflowX: 'auto' }}>{v.abas.map((a, aIdx) => (<button key={aIdx} role={'tab'} aria-selected={a.on} onClick={a.go} className=`"fichanpc-s2`" style={{ all: 'unset', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 14px', font: '400 17px/1 $F', color: a.color, boxShadow: a.line, whiteSpace: 'nowrap' }}>{a.l}</button>))}</div><Pecas ws={v.secao} />"
+    $c = $c.Substring(0, $i) + $abas + $c.Substring($fim)
+    Rep $c "import type { Vals } from './vals'" "import type { Vals } from './vals'`nimport { Pecas } from '@/components/ficha-sistema/Pecas'"
+  } 'ficha de um NPC real; visibilidade por jogador, segredos e a troca de visão (só o mestre).'
 }
 'pronto'

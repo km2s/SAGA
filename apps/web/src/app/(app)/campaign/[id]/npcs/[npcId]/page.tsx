@@ -5,7 +5,10 @@ import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/Badge'
 import { ResourceTracksPanel } from '@/components/character/ResourceTracksPanel'
-import { parseResources, parseTracks } from '@/lib/resource-tracks'
+import { parseResources, parseTracks, hasHpTrack } from '@/lib/resource-tracks'
+import { FichaNpc } from '@/components/screens/fichanpc/FichaNpc'
+import type { FichaNpcDados } from '@/components/screens/fichanpc/vals'
+import { SPECS } from '@/lib/ficha-sistema/specs'
 import { NPCInfoEditor } from '@/components/gm/NPCInfoEditor'
 import { CharacterSheetView, type SheetCategory } from '@/components/character/CharacterSheetView'
 import { safeImageUrl } from '@/lib/safe-url'
@@ -161,6 +164,28 @@ export default async function NPCDetailPage({ params }: { params: { id: string; 
   }
 
   const players = npc.campaign.members.filter(m => m.role === 'PLAYER')
+
+  // SAGA Ficha NPC: a Ficha por Sistema em modo NPC, quando o sistema tem spec (lib/ficha-sistema).
+  const nomeSistema = (npc.sheetSystem ?? npc.campaign.system)?.name ?? null
+  if (nomeSistema && SPECS[nomeSistema]) {
+    const armasNpc = await prisma.nPCWeapon.findMany({ where: { npcId: npc.id }, orderBy: { order: 'asc' } }).catch(() => [])
+    const dados: FichaNpcDados = {
+      id: npc.id, npcId: npc.id, campaignId: params.id, nome: npc.name, img: npc.imageUrl, sistema: nomeSistema, campanha: npc.campaign.name,
+      podeEditar: isGM, voltarHref: `/campaign/${params.id}/npcs?npc=${npc.id}`, publicaHref: null,
+      hp: npc.hp, max: npc.maxHp, temPv: hasHpTrack(parseTracks(npc.campaign.resourceTracksJson)),
+      attrs: npc.attributes.map(a => ({ id: a.id, n: a.attribute.name, desc: a.attribute.description ?? '', v: a.value, die: a.customDie ?? a.attribute.defaultDie })),
+      // Segredos nunca saem para jogadores.
+      tf: Object.fromEntries(npc.textFields.filter(t => isGM || t.key !== 'gm_secrets').map(t => [t.key, t.value])),
+      armas: armasNpc.map(w => ({ id: w.id, n: w.name, b: w.attackBonus ?? '', d: w.damage ?? '', ty: w.damageType ?? '', al: w.range ?? '', pr: w.properties ?? '' })),
+      nivel: npc.level, slots: [],
+      tipo: npc.type, publico: npc.isPublic, souMestre: isGM,
+      jogadores: isGM ? players.map(p => ({ memberId: p.id, u: p.user.username })) : [],
+      vis: isGM ? npc.visibilities.filter(v => v.canView).map(v => v.memberId) : [],
+      segredo: isGM ? npc.textFields.find(t => t.key === 'gm_secrets')?.value ?? '' : null,
+    }
+    return <FichaNpc dados={dados} />
+  }
+
   const TypeIcon = NPC_TYPE_ICONS[npc.type] ?? User
   const system = npc.campaign.system
   // A ficha renderiza pelo template do NPC quando ele existe (ex.: NPC "só
