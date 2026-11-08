@@ -67,7 +67,7 @@ export function MusicPlayer({ open, onClose, onMusicChange }: MusicPlayerProps) 
   }
 
   const embedSrc = current
-    ? `https://www.youtube.com/embed/${current.youtubeId}?autoplay=1&loop=1&playlist=${current.youtubeId}&controls=0&disablekb=1&modestbranding=1`
+    ? `https://www.youtube-nocookie.com/embed/${current.youtubeId}?autoplay=1&loop=1&playlist=${current.youtubeId}&controls=0&disablekb=1&modestbranding=1`
     : null
 
   return (

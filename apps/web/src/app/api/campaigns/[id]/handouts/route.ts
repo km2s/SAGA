@@ -28,6 +28,15 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     orderBy: { createdAt: 'desc' },
   })
 
+  // Mestre: também quem já viu cada handout (Mesa nova: "visto por N/4").
+  // `seenBy` continua sendo só de quem pede, como a Mesa antiga espera.
+  if (member.role === 'GM') {
+    const views = await prisma.handoutView.findMany({
+      where: { handoutId: { in: handouts.map(h => h.id) } },
+      select: { handoutId: true, memberId: true },
+    }).catch(() => [])
+    return withNoCache(NextResponse.json(handouts.map(h => ({ ...h, vistos: views.filter(v => v.handoutId === h.id).map(v => v.memberId) }))))
+  }
   return withNoCache(NextResponse.json(handouts))
 }
 

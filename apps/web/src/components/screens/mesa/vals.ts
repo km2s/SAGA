@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type PointerEvent as RPointerEvent, type WheelEvent } from 'react'
 import {
-  CirclePlus, CloudFog, Crown, Eye, Hand, ImageUp, List, MousePointer2, Music, Pause, Play, RadioTower, Ruler, ScrollText, Swords,
-  type LucideIcon,
+  CirclePlus, CloudFog, Crown, Eye, Hand, Image as ImageIcon, ImageUp, Lock, MessagesSquare, MousePointer2, Move, Music, Pause, Play, RadioTower, Ruler, ScrollText, Swords,
+  Wifi, WifiOff, type LucideIcon,
 } from 'lucide-react'
 import { dcHref } from '@/lib/dc-routes'
 import { toggleTema } from '@/lib/tema'
@@ -12,7 +12,9 @@ import { attributeModifier, attributePool, isD20Category, type SheetCategory } f
 import { PRESETS } from '@/components/mesa/MusicPlayer'
 import { PLAYER_COLORS, initTokens, type Marker, type Member, type RollLogEntry, type SessionState, type Token } from '@/components/mesa/types'
 
-/** Dados reais de /campaign/[id]/mesa?nova=1 (app/(app)/campaign/[id]/mesa/page.tsx). */
+type Ficha = { ca: number | null; attrs: { n: string; v: number; die: string }[]; armas: { n: string; b: number; d: string }[] | null; nota: string | null }
+
+/** Dados reais de /campaign/[id]/mesa (app/(app)/campaign/[id]/mesa/page.tsx). */
 export type MesaDados = {
   campaignId: string; campanha: string; souMestre: boolean; meuId: string
   categoria: SheetCategory; temPv: boolean
@@ -22,38 +24,52 @@ export type MesaDados = {
   }
   membros: {
     id: string; role: string; u: string
-    char: null | { id: string; n: string; raca: string | null; classe: string | null; nivel: number; hp: number; max: number; img: string | null; attrs: { n: string; v: number; die: string }[] }
+    char: null | ({ id: string; n: string; raca: string | null; classe: string | null; nivel: number; hp: number; max: number; img: string | null } & Ficha)
   }[]
+  npcs: ({ id: string; n: string; type: string; hp: number; max: number; img: string | null } & Ficha)[]
+  handouts: Handout[]
   rolagens: RollLogEntry[]
   totalRolagens: number
 }
 
+type Handout = { id: string; t: string | null; x: string | null; img: string | null; at: string; por: string; vistos: string[] }
 type Tool = 'select' | 'pan' | 'token' | 'ping' | 'measure' | 'fog'
+type Pend = { label: string; i: string; type: Token['type']; c: string; hp?: number; max?: number; ca?: number | null; npc?: string; img?: string | null }
 type Nevoa = { id: string; label: string; x: number; y: number; w: number; h: number; on: boolean }
 type Rolagem = { face: string | number; label: string; done: boolean; total?: number; detail?: string; crit?: boolean; fail?: boolean }
 
 const CELL = 40
 const GM_COR = '#b98a2a'
-const ORDEM = ['Força', 'Destreza', 'Constituição', 'Inteligência', 'Sabedoria', 'Carisma']
 const CONDS = ['Envenenado', 'Caído', 'Agarrado', 'Oculto']
 const TERRENO = 'radial-gradient(ellipse 18% 22% at 20% 30%, rgb(70 90 40/.35), transparent 70%),radial-gradient(ellipse 14% 18% at 70% 80%, rgb(70 90 40/.3), transparent 70%),linear-gradient(110deg, transparent 44%, rgb(70 110 130/.45) 45%, rgb(90 130 150/.5) 52%, transparent 53%),radial-gradient(ellipse at 50% 45%, #ead8b0, #d6bc86 75%, #b8955c)'
 const TOOLS: Record<Tool, [string, LucideIcon, string, string]> = {
   select: ['Selecionar e mover', MousePointer2, 'V', 'Arraste tokens · clique para ver detalhes'],
   pan: ['Mover mapa', Hand, 'H', 'Arraste para mover o mapa · role para zoom'],
-  token: ['Novo token', CirclePlus, 'T', 'Clique no mapa para adicionar um inimigo'],
+  token: ['Novo token', CirclePlus, 'T', 'Escolha um NPC salvo ou crie um token avulso'],
   ping: ['Ping', RadioTower, 'P', 'Clique para marcar um ponto para todos'],
   measure: ['Régua', Ruler, 'R', 'Arraste para medir · 1 quadrado = 1,5 m'],
   fog: ['Névoa', CloudFog, 'F', 'Arraste para cobrir uma área · clique nela para revelar ou esconder'],
 }
 const KEYS: Record<string, Tool> = { v: 'select', h: 'pan', t: 'token', p: 'ping', r: 'measure', f: 'fog' }
-const TABS: [string, string, LucideIcon][] = [['ini', 'Iniciativa', Swords], ['fichas', 'Fichas', ScrollText], ['log', 'Registro', List], ['music', 'Música', Music]]
+const TABS: [string, string, LucideIcon][] = [['ini', 'Iniciativa', Swords], ['fichas', 'Fichas', ScrollText], ['log', 'Chat', MessagesSquare], ['hand', 'Handouts', ImageIcon], ['music', 'Música', Music]]
+const AB: [string, string][] = [['Força', 'FOR'], ['Destreza', 'DES'], ['Constituição', 'CON'], ['Inteligência', 'INT'], ['Sabedoria', 'SAB'], ['Carisma', 'CAR']]
+const SK: [string, string][] = [['Acrobacia', 'DES'], ['Arcanismo', 'INT'], ['Atletismo', 'FOR'], ['Atuação', 'CAR'], ['Enganação', 'CAR'], ['Furtividade', 'DES'], ['História', 'INT'], ['Intimidação', 'CAR'], ['Intuição', 'SAB'], ['Investigação', 'INT'], ['Lidar com Animais', 'SAB'], ['Medicina', 'SAB'], ['Natureza', 'INT'], ['Percepção', 'SAB'], ['Persuasão', 'CAR'], ['Prestidigitação', 'DES'], ['Religião', 'INT'], ['Sobrevivência', 'SAB']]
+// Tipos de NPC do banco → rótulo, cor e tipo de token (cores do design; os sem cor própria herdam como na tela NPCs).
+const NT: Record<string, [string, string, Token['type']]> = {
+  VILLAIN: ['Vilão', '#8a1c24', 'enemy'], ENEMY: ['Inimigo', '#8a1c24', 'enemy'], ALLY: ['Aliado', '#4f7a3a', 'npc'], MERCHANT: ['Mercador', '#9c7a2a', 'npc'],
+  MOUNT: ['Montaria', '#3a6a7a', 'npc'], NEUTRAL: ['Neutro', '#76695a', 'npc'], FAMILIAR: ['Familiar', '#76695a', 'npc'], SERVANT: ['Servo', '#76695a', 'npc'], OTHER: ['Outro', '#76695a', 'npc'],
+}
+const FT: Record<Token['type'], [string, string]> = { player: ['Jogador', '#b8492a'], enemy: ['Inimigo', '#5a1a14'], npc: ['NPC', '#3a6a7a'] }
+const ART_CARTA = 'repeating-linear-gradient(180deg, transparent 0 13px, rgb(120 80 30/.18) 13px 14px), linear-gradient(160deg,#f6ead0,#e2cfa4)'
+const json = (url: string, method: string, body?: unknown) =>
+  fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: body === undefined ? undefined : JSON.stringify(body) }).catch(() => null)
+type HandoutApi = { id: string; title: string | null; content: string | null; imageUrl: string | null; createdAt: string; sharedBy?: { user?: { username?: string } }; seenBy?: unknown[]; vistos?: string[] }
 
 const hpC = (p: number) => p > 50 ? '#6a9a4a' : p > 25 ? '#d9a22a' : '#c8424c'
 const sg = (v: number) => (v >= 0 ? '+' : '') + v
 const p2 = (n: number) => String(n).padStart(2, '0')
 const hhmm = (iso: string) => { const d = new Date(iso); return `${p2(d.getHours())}:${p2(d.getMinutes())}` }
 const primeiro = (s: string) => s.split(/[ ,]/)[0] || s
-const sigla = (nome: string) => nome.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z]/g, '').slice(0, 3).toUpperCase()
 const ytId = (s: string) => s.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube-nocookie\.com\/embed\/)([a-zA-Z0-9_-]{11})/)?.[1] ?? (/^[a-zA-Z0-9_-]{11}$/.test(s) ? s : null)
 const parse = <T,>(raw: string | null | undefined, fb: T): T => { if (!raw) return fb; try { return JSON.parse(raw) as T } catch { return fb } }
 const patch = (campaignId: string, body: Record<string, unknown>) =>
@@ -116,6 +132,23 @@ export function useMesaVals(d: MesaDados) {
   const [ended, setEnded] = useState<number | null>(null)
   const [endErro, setEndErro] = useState(false)
   const [aviso, setAviso] = useState<string | null>(null)
+  // Ao vivo, adicionar token, chat, handouts e ficha lateral.
+  const [liveOpen, setLiveOpen] = useState(false)
+  const [liveExp, setLiveExp] = useState<string | null>(null)
+  const [lockTick, setLockTick] = useState(0)
+  const [addTab, setAddTab] = useState<'npc' | 'free'>('npc')
+  const [pend, setPend] = useState<Pend | null>(null)
+  const [freeName, setFreeName] = useState('')
+  const [freeType, setFreeType] = useState<Token['type']>('enemy')
+  const [chatIn, setChatIn] = useState('')
+  const [fsTab, setFsTab] = useState('attr')
+  const [notas, setNotas] = useState<Record<string, string>>({})
+  const [noteSt, setNoteSt] = useState<'idle' | 'saving' | 'saved'>('idle')
+  const [hf, setHf] = useState({ t: '', x: '', u: '' })
+  const [hands, setHands] = useState<Handout[]>(d.handouts)
+  const [openHand, setOpenHand] = useState<string | null>(null)
+  const [freshHand, setFreshHand] = useState<string | null>(null)
+  const noteT = useRef<ReturnType<typeof setTimeout>[]>([])
 
   const boardRef = useRef<HTMLDivElement>(null)
   const vpRef = useRef<HTMLElement>(null)
@@ -184,10 +217,12 @@ export function useMesaVals(d: MesaDados) {
       const novas = (j?.rolls ?? []).map(x => ({ ...x, rolledAt: new Date(x.rolledAt).toISOString() }))
       if (novas.length) {
         sinceRef.current = novas[0]!.rolledAt
-        const dados = novas.filter(x => x.expression !== 'chat')
         const ids = new Set(st.current.log.map(x => x.id))
-        const add = dados.filter(x => !ids.has(x.id))
-        if (add.length) { setLog(prev => [...add, ...prev.filter(x => !add.some(a => a.id === x.id))].slice(0, 50)); setNRolls(n => n + add.length) }
+        const add = novas.filter(x => !ids.has(x.id))
+        if (add.length) {
+          setLog(prev => [...add, ...prev.filter(x => !add.some(a => a.id === x.id))].slice(0, 80))
+          setNRolls(n => n + add.filter(x => x.expression !== 'chat').length)
+        }
       }
       const s = j?.sessionState
       if (!s) return
@@ -211,7 +246,21 @@ export function useMesaVals(d: MesaDados) {
     return () => clearInterval(iv)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [api, ativa, ended, gm])
-  useEffect(() => () => { timers.current.forEach(clearTimeout); clearTimeout(syncT.current) }, [])
+  useEffect(() => () => { timers.current.forEach(clearTimeout); noteT.current.forEach(clearTimeout); clearTimeout(syncT.current) }, [])
+  // Handouts novos do mestre chegam a cada 15 s.
+  const lerHandouts = useCallback(async () => {
+    const r = await fetch(`${api}/handouts`).catch(() => null)
+    const j = r?.ok ? await r.json().catch(() => null) as HandoutApi[] | null : null
+    if (!j) return
+    setHands(j.map(h => ({
+      id: h.id, t: h.title, x: h.content, img: h.imageUrl, at: new Date(h.createdAt).toISOString(), por: h.sharedBy?.user?.username ?? '',
+      vistos: h.vistos ?? ((h.seenBy?.length ?? 0) > 0 ? [d.meuId] : []),
+    })))
+  }, [api, d.meuId])
+  useEffect(() => {
+    const iv = setInterval(() => { void lerHandouts() }, 15_000)
+    return () => clearInterval(iv)
+  }, [lerHandouts])
 
   // ── Música (YouTube sem cookies: é o único frame liberado na CSP) ──
   const yt = (func: string, args: unknown[] = []) =>
@@ -269,9 +318,9 @@ export function useMesaVals(d: MesaDados) {
   }
 
   // ── Rolagens (sempre no servidor: o resultado é o que fica no registro) ──
-  const rolar = async (c: { n: number; d: number; mod: number; adv: string; what: string; who?: string }) => {
-    if (st.current.roll && !st.current.roll.done) return
-    if (!ativa) { avisar('Nenhuma sessão ao vivo · o Mestre inicia pelo Painel'); return }
+  const rolar = async (c: { n: number; d: number; mod: number; adv: string; what: string; who?: string }): Promise<RollLogEntry | null> => {
+    if (st.current.roll && !st.current.roll.done) return null
+    if (!ativa || ended) { avisar('Nenhuma sessão ao vivo · o Mestre inicia pelo Painel'); return null }
     const who = c.who ?? euNome
     const adv = c.d === 20 && c.n === 1 ? c.adv : 'normal'
     const expr = `${c.n}d${c.d}${c.mod ? sg(c.mod) : ''}`
@@ -286,7 +335,7 @@ export function useMesaVals(d: MesaDados) {
     if (!e) {
       setRoll(null)
       avisar(res?.status === 429 ? 'Muitas rolagens seguidas · espere um instante' : 'Não foi possível rolar · tente de novo')
-      return
+      return null
     }
     const entry: RollLogEntry = { ...e, rolls: e.rolls as number[], rolledAt: new Date(e.rolledAt).toISOString() }
     const nat = c.d === 20 && c.n === 1 ? entry.rolls[0] ?? null : null
@@ -297,6 +346,7 @@ export function useMesaVals(d: MesaDados) {
     setRoll({ face: c.n === 1 ? entry.rolls[0] ?? entry.total : entry.total, label: `${who} · ${c.what}`, done: true, total: entry.total, detail: detalhe(entry), crit: nat === 20, fail: nat === 1 })
     const t = setTimeout(() => setRoll(null), 2200)
     timers.current.push(t)
+    return entry
   }
   function detalhe(l: RollLogEntry) {
     const adv = /^1?d20/i.test(l.expression) && l.rolls.length === 2 ? (l.rolls[0]! >= l.rolls[1]! ? ' vant.' : ' desv.') : ''
@@ -335,10 +385,14 @@ export function useMesaVals(d: MesaDados) {
     }
     if (tool === 'measure') { const x = cel(p.x) * CELL + 20, y = cel(p.y) * CELL + 20; return setMeasure({ x1: x, y1: y, x2: x, y2: y, active: true }) }
     if (tool === 'fog' && gm) return setFogDraw({ x1: cel(p.x), y1: cel(p.y), x2: cel(p.x), y2: cel(p.y) })
-    if (tool === 'token' && gm) {
-      const n = tokens.filter(t => t.label.startsWith('Inimigo')).length + 1, id = crypto.randomUUID()
-      setSel(id)
-      mudarTokens(ts => [...ts, { id, label: `Inimigo ${n}`, initial: 'I', x: cel(p.x) * CELL + 20, y: cel(p.y) * CELL + 20, type: 'enemy', color: '#5a1a14', cond: [] }], true)
+    // Novo token: escolhido no painel (NPC salvo ou avulso) e posicionado com um clique.
+    if (tool === 'token' && gm && pend) {
+      const id = crypto.randomUUID(), pd = pend
+      setSel(id); setPend(null)
+      mudarTokens(ts => [...ts, {
+        id, label: pd.label, initial: pd.i, x: cel(p.x) * CELL + 20, y: cel(p.y) * CELL + 20, type: pd.type, color: pd.c, cond: [],
+        ...(pd.hp !== undefined ? { hp: pd.hp, maxHp: pd.max } : {}), ca: pd.ca ?? null, npc: pd.npc ?? null, imageUrl: pd.img ?? null,
+      }], true)
     }
   }
   const tokDown = (t: Token, e: RPointerEvent) => {
@@ -346,7 +400,9 @@ export function useMesaVals(d: MesaDados) {
     e.stopPropagation()
     setSel(t.id)
     if (t.type === 'player' && d.membros.some(m => m.id === t.id && m.char)) setSheet(t.id)
-    if (!podeMover(t)) return
+    else if (t.npc && gm) setSheet(t.npc)
+    // Jogador sem permissão: o aviso no mapa balança.
+    if (!podeMover(t)) { if (!gm) setLockTick(n => n + 1); return }
     const p = pt(e)
     setDrag({ id: t.id, ox: p.x - (t.x - 20), oy: p.y - (t.y - 20), px: t.x - 20, py: t.y - 20 })
   }
@@ -370,12 +426,40 @@ export function useMesaVals(d: MesaDados) {
     mudarTokens(() => ts.map(t => t.id === first?.id ? { ...t, vez: true, rodada: 1 } : t))
   }
 
-  // ── Fichas ──
-  const sheetM = d.membros.find(m => m.id === sheet && m.char)
+  // ── Fichas: jogadores com personagem e (para o mestre) NPCs salvos que estão no mapa ──
   const d20 = isD20Category(d.categoria)
-  const sheetAttrs = sheetM?.char ? (d20
-    ? [...sheetM.char.attrs].sort((a, b) => { const ia = ORDEM.indexOf(a.n), ib = ORDEM.indexOf(b.n); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) })
-    : sheetM.char.attrs).slice(0, 9) : []
+  type FichaMesa = Ficha & { key: string; kind: 'player' | 'npc'; charId: string; n: string; sub: string; hp: number; max: number; c: string; tokenId: string | null; dono: boolean }
+  const fichas: FichaMesa[] = [
+    ...d.membros.filter(m => m.char && m.role !== 'GM').map(m => {
+      const ch = m.char!, t = tokens.find(x => x.id === m.id)
+      return { ...ch, key: m.id, kind: 'player' as const, charId: ch.id, n: ch.n, sub: [ch.raca, ch.classe, `Nv ${ch.nivel}`].filter(Boolean).join(' · '),
+        hp: t && typeof t.hp === 'number' ? t.hp : ch.hp, max: t?.maxHp ?? ch.max, c: quem.get(m.u)?.c ?? GM_COR, tokenId: t?.id ?? null, dono: m.id === d.meuId }
+    }),
+    ...(gm ? d.npcs.filter(x => tokens.some(t => t.npc === x.id)).map(x => {
+      const t = tokens.find(y => y.npc === x.id)!
+      return { ...x, key: x.id, kind: 'npc' as const, charId: x.id, sub: `${(NT[x.type] ?? NT.NEUTRAL!)[0]} · ficha do grimório`,
+        hp: typeof t.hp === 'number' ? t.hp : x.hp, max: t.maxHp ?? x.max, c: t.color, tokenId: t.id, dono: false }
+    }) : []),
+  ]
+  const fs = fichas.find(f => f.key === sheet) ?? fichas.find(f => f.dono) ?? fichas[0] ?? null
+  const fsEdit = !!fs && (gm || fs.dono)
+  const valDe = (nome: string) => fs?.attrs.find(a => a.n.toLowerCase() === nome.toLowerCase())?.v ?? null
+  const modDe = (k: string) => { const n = AB.find(a => a[1] === k)?.[0]; const v = n ? valDe(n) : null; return v === null ? 0 : attributeModifier(v, d.categoria) }
+  const sheetAttrs = fs ? (d20
+    ? AB.map(([n]) => fs.attrs.find(a => a.n === n)).filter((a): a is NonNullable<typeof a> => !!a)
+    : fs.attrs.filter(a => a.n !== 'Classe de Armadura')).slice(0, 9) : []
+  const rolarComo = (what: string, mod: number, o: { n?: number; d?: number } = {}) =>
+    rolar({ n: o.n ?? 1, d: o.d ?? 20, mod, adv: o.d ? 'normal' : dice.adv, who: fs ? primeiro(fs.n) : euNome, what })
+  const mudarHpFicha = (dd: number) => {
+    if (!fs || !fsEdit) return
+    const novo = Math.max(0, Math.min(fs.max, fs.hp + dd))
+    if (fs.tokenId) mudarTokens(ts => ts.map(t => t.id === fs.tokenId ? { ...t, hp: novo, maxHp: t.maxHp ?? fs.max } : t))
+    // A vida da ficha também (como a ficha lateral antiga).
+    const url = fs.kind === 'player' ? `/api/characters/${fs.charId}` : `${api}/npcs/${fs.charId}`
+    clearTimeout(hpT.current); hpT.current = setTimeout(() => { void json(url, 'PATCH', { hp: novo }) }, 500)
+  }
+  const hpT = useRef<ReturnType<typeof setTimeout>>()
+  const notaAtual = fs ? (notas[fs.key] ?? fs.nota ?? '') : ''
 
   // ── Valores do template ──
   const selT = tokens.find(t => t.id === sel)
@@ -404,6 +488,65 @@ export function useMesaVals(d: MesaDados) {
     setEnded(Date.now())
   }
 
+  // ── Ao vivo (mestre libera jogadores; extras em token.allowedPlayers) ──
+  const jogadores = d.membros.filter(m => m.role !== 'GM')
+  const nLive = jogadores.filter(m => live.includes(m.id)).length
+  const salvarLive = (next: string[]) => { setLive(next); if (ativa) void patch(d.campaignId, { liveMembersJson: JSON.stringify(next) }) }
+  const nomeDe = (memberId: string) => { const m = d.membros.find(x => x.id === memberId); return m?.char ? m.char.n : m?.u ?? '' }
+  const meuToken = tokens.find(t => t.id === d.meuId)
+  const meuNomeTok = primeiro(meuToken?.label ?? nomeDe(d.meuId))
+  const extrasMeus = tokens.filter(t => t.id !== d.meuId && t.allowedPlayers?.includes(d.meuId)).map(t => t.label.split(',')[0]!)
+  const myLive = live.includes(d.meuId)
+
+  // ── Chat: mensagens (expression "chat") e rolagens no mesmo fluxo ──
+  const gmU = d.membros.find(m => m.role === 'GM')?.u
+  const sendChat = async () => {
+    const txt = chatIn.trim()
+    if (!txt || !ativa || ended) return
+    const m = txt.match(/^\/r\s+(\d*)d(\d+)\s*([+-]\s*\d+)?$/i)
+    if (m) { setChatIn(''); void rolar({ n: +(m[1] || 1), d: +m[2]!, mod: +((m[3] || '0').replace(/\s/g, '')), adv: 'normal', what: 'Rolagem no chat' }); return }
+    setChatIn('')
+    const r = await json(`${api}/rolls`, 'POST', { expression: 'chat', message: txt })
+    const e = r?.ok ? await r.json().catch(() => null) as RollLogEntry | null : null
+    if (!e) { setChatIn(txt); avisar('Não foi possível enviar · tente de novo'); return }
+    const entry = { ...e, rolledAt: new Date(e.rolledAt).toISOString() }
+    setLog(prev => [entry, ...prev.filter(x => x.id !== entry.id)].slice(0, 80))
+    setFresh(entry.id)
+  }
+  const nMsgs = log.filter(l => l.expression === 'chat').length
+
+  // ── Handouts ──
+  const hfOk = !!(hf.x.trim() || hf.u.trim())
+  const compartilhar = async () => {
+    if (!hfOk) return
+    const r = await json(`${api}/handouts`, 'POST', { title: hf.t.trim() || undefined, content: hf.x.trim() || undefined, imageUrl: hf.u.trim() || undefined })
+    if (!r?.ok) { const j = await r?.json().catch(() => null) as { error?: string } | null; avisar(j?.error ?? 'Não foi possível compartilhar · tente de novo'); return }
+    const h = await r.json().catch(() => null) as HandoutApi | null
+    setHf({ t: '', x: '', u: '' })
+    if (h) { setHands(prev => [{ id: h.id, t: h.title, x: h.content, img: h.imageUrl, at: new Date(h.createdAt).toISOString(), por: eu.u, vistos: [] }, ...prev]); setFreshHand(h.id) }
+  }
+  const quando = (iso: string) => {
+    if (!agora) return ''
+    const dt = new Date(iso), hoje = new Date(agora)
+    return dt.toDateString() === hoje.toDateString() ? hhmm(iso) : `${p2(dt.getDate())}/${p2(dt.getMonth() + 1)}`
+  }
+
+  // ── Notas da ficha (salvam sozinhas, como na ficha) ──
+  const onNote = (e: ChangeEvent<HTMLTextAreaElement>) => {
+    if (!fs || !fsEdit) return
+    const v = e.target.value, f = fs
+    setNotas(n => ({ ...n, [f.key]: v })); setNoteSt('saving')
+    noteT.current.forEach(clearTimeout)
+    noteT.current = [setTimeout(async () => {
+      const r = await json(`/api/characters/${f.charId}/text-fields`, 'POST', { key: 'mesa_notes', label: 'Notas da Sessão', value: v, order: 99 })
+      setNoteSt(r?.ok ? 'saved' : 'idle')
+      if (!r?.ok) avisar('Não foi possível salvar a nota')
+      noteT.current.push(setTimeout(() => setNoteSt('idle'), 1700))
+    }, 700)]
+  }
+  const fsTabsList = ([['attr', 'Atributos'], ...(d20 ? [['skill', 'Perícias']] : []), ...(fs?.armas ? [['atk', 'Ataques']] : []), ...(fs?.nota !== null && fs ? [['notes', 'Notas']] : [])] as [string, string][])
+  const fsTabOk = fsTabsList.some(([k]) => k === fsTab) ? fsTab : 'attr'
+
   return {
     $href: (link: string) => dcHref(link, ctx),
     $img: (id: string) => id === 'mesa-musica-capa' ? ((musica ?? ultima) ? `https://i.ytimg.com/vi/${musica ?? ultima}/hqdefault.jpg` : null) : null,
@@ -431,7 +574,7 @@ export function useMesaVals(d: MesaDados) {
     tirarMapa: () => { setMapa(null); setMapDraft(''); setMapSize({ w: 0, h: 0 }); if (ativa) void patch(d.campaignId, { mapImageUrl: null }) },
     tools: toolsOk.map(k => ({ l: TOOLS[k][0], icon: TOOLS[k][1], k: TOOLS[k][2], go: () => { setTool(k); setMeasure(null) }, bg: tool === k ? 'var(--accent)' : 'transparent', color: tool === k ? '#fff8f0' : 'var(--muted)', hover: tool === k ? 'var(--accent)' : 'var(--surface2)' })),
     toolIcon: mapEdit ? ImageUp : TOOLS[tool][1],
-    toolHint: aviso ?? (mapEdit ? 'Cole o link da imagem do mapa e clique em Concluir mapa' : !ativa ? 'Nenhuma sessão ao vivo · o Mestre inicia pelo Painel' : TOOLS[tool][3]),
+    toolHint: aviso ?? (mapEdit ? 'Cole o link da imagem do mapa e clique em Concluir mapa' : !ativa ? 'Nenhuma sessão ao vivo · o Mestre inicia pelo Painel' : tool === 'token' && pend ? `Clique no mapa para posicionar ${pend.label}` : TOOLS[tool][3]),
     zoom, zoomLabel: `${Math.round(zoom * 100)}%`,
     zoomIn: () => setZoom(z => Math.min(1.8, +(z + .1).toFixed(2))), zoomOut: () => setZoom(z => Math.max(.5, +(z - .1).toFixed(2))),
     onWheel: (e: WheelEvent) => setZoom(z => Math.max(.5, Math.min(1.8, +(z + (e.deltaY < 0 ? .08 : -.08)).toFixed(2)))),
@@ -468,6 +611,7 @@ export function useMesaVals(d: MesaDados) {
       i: selT?.initial ?? '', c: selT?.color ?? '', label: selT?.label ?? '',
       kind: selT ? (selT.type === 'enemy' ? 'Inimigo' : selT.type === 'npc' ? 'NPC' : 'Jogador') + (selT.cond?.length ? ` · ${selT.cond.join(', ')}` : '') : '',
       hasHp: !!selT && temHp(selT), hpText: selT && temHp(selT) ? (selEsconde ? '?' : `${selT.hp} / ${selT.maxHp}`) : '', pct: selEsconde ? 100 : ePct, hpC: selEsconde ? 'var(--line)' : hpC(ePct),
+      caTxt: selT?.ca != null ? ` · CA ${selT.ca}` : '',
       atk: dice.mod ? sg(dice.mod) : '', podeRolar: !!selT && (gm || selT.id === d.meuId),
     },
     pop, deselect: () => setSel(null),
@@ -501,36 +645,137 @@ export function useMesaVals(d: MesaDados) {
     nextTurn: () => { if (order.length) irPara((curIdx + 1) % order.length, (curIdx + 1) % order.length === 0 ? round + 1 : round) },
     prevTurn: () => { if (order.length) irPara((curIdx - 1 + order.length) % order.length, curIdx === 0 ? Math.max(1, round - 1) : round) },
     rolarIniciativa,
-    party: d.membros.filter(m => m.char && m.role !== 'GM').map(m => {
-      const t = tokens.find(x => x.id === m.id), hp = t && typeof t.hp === 'number' ? t.hp : m.char!.hp, max = t?.maxHp ?? m.char!.max
-      const p = max > 0 ? Math.max(0, Math.min(100, Math.round(hp / max * 100))) : 100
-      return { label: primeiro(m.char!.n), i: (m.char!.n[0] ?? '?').toUpperCase(), c: quem.get(m.u)?.c ?? GM_COR, pct: d.temPv ? p : 100, hpC: d.temPv ? hpC(p) : 'var(--line)', bg: sheet === m.id ? 'var(--accent-t)' : 'transparent', ring: sheet === m.id ? 'var(--accent)' : 'var(--line)', go: () => { setSheet(m.id); if (t) setSel(t.id) } }
-    }),
-    temFicha: !!sheetM,
+    // Ficha lateral completa.
+    fsChips: fichas.filter(f => gm && !pv ? true : f.kind === 'player').map(f => ({
+      label: primeiro(f.n), full: f.n, i: (f.n[0] ?? '?').toUpperCase(), c: f.c, bg: fs?.key === f.key ? 'var(--accent-t)' : 'var(--surface)', ring: fs?.key === f.key ? 'var(--accent)' : 'var(--line)',
+      go: () => { setSheet(f.key); if (f.tokenId) setSel(f.tokenId) },
+    })),
+    temFicha: !!fs,
+    fs: fs ? (() => {
+      const p = fs.max > 0 ? Math.max(0, Math.min(100, Math.round(fs.hp / fs.max * 100))) : 100, desM = modDe('DES')
+      const tok = fs.tokenId ? tokens.find(t => t.id === fs.tokenId) : undefined
+      return {
+        n: fs.n, i: (fs.n[0] ?? '?').toUpperCase(), c: fs.c, sub: fs.sub, hp: fs.hp, max: fs.max, pct: p, hpC: hpC(p), ca: fs.ca ?? tok?.ca ?? '—', iniMod: d20 ? sg(desM) : '+0', canEdit: fsEdit && d.temPv,
+        rollIni: async () => {
+          const e = await rolarComo('Iniciativa', d20 ? desM : 0)
+          // Só o mestre grava a iniciativa no token: de jogadores o servidor só aceita a posição.
+          if (e && fs.tokenId && gm) mudarTokens(ts => ts.map(t => t.id === fs.tokenId ? { ...t, ini: e.total } : t))
+        },
+        hasCond: (tok?.cond?.length ?? 0) > 0, cond: tok?.cond ?? [],
+        hpBtns: ([[-5, '−5'], [-1, '−1'], [1, '+1'], [5, '+5']] as const).map(([dd, l]) => ({ l, go: () => mudarHpFicha(dd), bg: dd < 0 ? 'color-mix(in oklab, var(--blood) 12%, transparent)' : 'color-mix(in oklab, var(--ok) 14%, transparent)', color: dd < 0 ? 'var(--blood)' : 'var(--ok)' })),
+        temSaves: d20,
+        saves: d20 ? AB.map(([n, k]) => { const m = modDe(k), sv = valDe(`Salv. ${n}`), b = sv ?? m; return { k, b: sg(b), dot: sv !== null && sv > m ? 'var(--accent)' : 'transparent', go: () => { void rolarComo(`Salvaguarda de ${k}`, b) } } }) : [],
+        skills: d20 ? SK.map(([n, k]) => { const m = modDe(k), v = valDe(n), b = v ?? m; return { n, a: k, b: sg(b), dot: v !== null && v > m ? 'var(--accent)' : 'transparent', go: () => { void rolarComo(n, b) } } }) : [],
+        attacks: (fs.armas ?? []).map(w => ({
+          n: w.n, b: sg(w.b), d: w.d || '—',
+          atk: () => { void rolarComo(`Ataque · ${w.n}`, w.b) },
+          dmg: () => { const x = w.d.match(/(\d+)d(\d+)\s*([+-]\s*\d+)?/); if (!x) return; void rolarComo(`Dano · ${w.n}`, +((x[3] ?? '0').replace(/\s/g, '')), { n: +x[1]!, d: +x[2]! }) },
+        })),
+        note: notaAtual, ro: !fsEdit, onNote,
+        saveTxt: !fsEdit ? 'só leitura' : noteSt === 'saving' ? 'Salvando…' : noteSt === 'saved' ? 'Salvo' : 'salva sozinha', saveC: noteSt === 'saved' ? 'var(--ok)' : 'var(--muted)',
+        href: fs.kind === 'player' ? `/personagens/${fs.charId}` : `/campaign/${d.campaignId}/npcs?npc=${fs.charId}`,
+      }
+    })() : { n: '', i: '', c: '', sub: '', hp: 0, max: 0, pct: 0, hpC: '', ca: '—' as string | number, iniMod: '', canEdit: false, rollIni: vazio, hasCond: false, cond: [] as string[], hpBtns: [] as { l: string; go: () => void; bg: string; color: string }[], temSaves: false, saves: [] as { k: string; b: string; dot: string; go: () => void }[], skills: [] as { n: string; a: string; b: string; dot: string; go: () => void }[], attacks: [] as { n: string; b: string; d: string; atk: () => void; dmg: () => void }[], note: '', ro: true, onNote, saveTxt: '', saveC: '', href: '#' },
+    fsTabs: fsTabsList.map(([k, l]) => ({ l, on: fsTabOk === k, go: () => setFsTab(k), bg: fsTabOk === k ? 'var(--surface)' : 'transparent', color: fsTabOk === k ? 'var(--ink)' : 'var(--muted)', sh: fsTabOk === k ? '0 1px 2px rgb(0 0 0/.12)' : 'none' })),
+    fsAttr: fsTabOk === 'attr', fsSkill: fsTabOk === 'skill', fsAtk: fsTabOk === 'atk', fsNotes: fsTabOk === 'notes',
     sheet: {
-      n: sheetM?.char?.n ?? '', href: sheetM?.char ? `/personagens/${sheetM.char.id}` : '#',
-      sub: sheetM?.char ? [sheetM.char.raca, sheetM.char.classe, `Nv ${sheetM.char.nivel}`].filter(Boolean).join(' · ') : '',
       attrs: sheetAttrs.map(a => {
-        const who = primeiro(sheetM!.char!.n), pool = attributePool(a.v, a.die), m = attributeModifier(a.v, d.categoria)
+        const pool = attributePool(a.v, a.die), m = attributeModifier(a.v, d.categoria)
         return {
-          k: d20 ? sigla(a.n) : a.n.slice(0, 10).toUpperCase(), v: a.v, m: d20 ? sg(m) : `${pool.count}${pool.die}`,
-          go: () => { void (d20 ? rolar({ n: 1, d: 20, mod: m, adv: dice.adv, who, what: a.n }) : rolar({ n: pool.count, d: Number(pool.die.slice(1)), mod: 0, adv: 'normal', who, what: a.n })) },
+          k: d20 ? (AB.find(x => x[0] === a.n)?.[1] ?? a.n.slice(0, 3).toUpperCase()) : a.n.slice(0, 10).toUpperCase(), v: a.v, m: d20 ? sg(m) : `${pool.count}${pool.die}`,
+          go: () => { void (d20 ? rolarComo(a.n, m) : rolarComo(a.n, 0, { n: pool.count, d: Number(pool.die.slice(1)) })) },
         }
       }),
-      skills: [] as { n: string; v: string; go: () => void }[],
     },
     nRolls,
+    // Chat: rolagens e mensagens no mesmo fluxo.
+    chatCount: `${nMsgs} mensage${nMsgs === 1 ? 'm' : 'ns'} · ${log.length - nMsgs} rolage${log.length - nMsgs === 1 ? 'm' : 'ns'}`,
+    chatIn, onChatIn: (e: ChangeEvent<HTMLInputElement>) => setChatIn(e.target.value),
+    chatKey: (e: { key: string }) => { if (e.key === 'Enter') void sendChat() }, chatSend: () => { void sendChat() },
+    chatOff: !ativa || ended !== null, chatPh: ended !== null ? 'Sessão encerrada' : !ativa ? 'Nenhuma sessão ao vivo' : 'Mensagem para a mesa…', chatOp: chatIn.trim() ? 1 : .5,
     log: log.map(l => {
+      const q = quem.get(l.rolledBy), anim = l.id === fresh ? 'mesa-logIn .5s both' : 'none'
+      if (l.expression === 'chat') {
+        const isGm = l.rolledBy === gmU, who = q?.n ?? l.rolledBy
+        return {
+          isMsg: true, isRoll: false, id: l.id, who, i: (who[0] ?? '?').toUpperCase(), c: q?.c ?? GM_COR, text: l.attribute ?? '', gm: isGm, t: agora ? hhmm(l.rolledAt) : '', anim,
+          font: isGm ? "italic 400 15px/1.4 'IM Fell English',serif" : "400 13px/1.45 'Geist',sans-serif",
+          whatS: '', detailS: '', total: 0, color: '', hasVis: false, visL: '', visIcon: Eye, visBg: '', visC: '', showTotal: false, sealed: false, avOp: 1, rowBg: 'transparent', canReveal: false, reveal: vazio,
+        }
+      }
       const [a, ...b] = (l.attribute ?? '').split(' · ')
-      const q = quem.get(l.rolledBy), crit = /^1?d20/i.test(l.expression) && l.rolls[0] === 20
+      const crit = /^1?d20/i.test(l.expression) && l.rolls[0] === 20
       const who = b.length ? a! : (q?.n ?? l.rolledBy), what = b.length ? b.join(' · ') : (l.attribute || l.expression)
       return {
-        id: l.id, who, i: (who[0] ?? '?').toUpperCase(), c: q?.c ?? GM_COR, whatS: what, detailS: `${detalhe(l)}${agora ? ` · ${hhmm(l.rolledAt)}` : ''}`, total: l.total,
-        color: crit ? 'var(--accent)' : 'var(--ink)', anim: l.id === fresh ? 'mesa-logIn .5s both' : 'none',
+        isMsg: false, isRoll: true, id: l.id, who, i: (who[0] ?? '?').toUpperCase(), c: q?.c ?? GM_COR, text: '', gm: false, t: '', font: '', anim,
+        whatS: what, detailS: `${detalhe(l)}${agora ? ` · ${hhmm(l.rolledAt)}` : ''}`, total: l.total, color: crit ? 'var(--accent)' : 'var(--ink)',
         hasVis: false, visL: '', visIcon: Eye, visBg: '', visC: '', showTotal: true, sealed: false, avOp: 1, rowBg: 'transparent', canReveal: false, reveal: vazio,
       }
     }),
-    togglePlay: () => {
+    // Handouts.
+    hf: { ...hf, onT: (e: ChangeEvent<HTMLInputElement>) => setHf(h => ({ ...h, t: e.target.value })), onX: (e: ChangeEvent<HTMLTextAreaElement>) => setHf(h => ({ ...h, x: e.target.value })), onU: (e: ChangeEvent<HTMLInputElement>) => setHf(h => ({ ...h, u: e.target.value })), op: hfOk ? 1 : .45, go: () => { void compartilhar() } },
+    handLine: gm ? `${hands.length} compartilhado(s)` : `${hands.filter(h => !h.vistos.includes(d.meuId)).length} novo(s)`,
+    noHands: hands.length === 0,
+    hands: hands.map(h => {
+      const open = openHand === h.id, isNew = !gm && !h.vistos.includes(d.meuId), nSeen = jogadores.filter(j => h.vistos.includes(j.id)).length, img = safeImageUrl(h.img)
+      return {
+        id: h.id, t: h.t || 'Handout sem título', x: h.x ?? '', isNew, gm, imgH: open ? '170px' : '92px', clamp: open ? 20 : 2,
+        art: img ? `url("${img.replace(/["\\]/g, '')}") center/cover, #2a1c10` : ART_CARTA,
+        ring: isNew ? 'var(--accent)' : 'var(--line)', sh: isNew ? '0 0 0 3px var(--accent-t)' : 'none', anim: h.id === freshHand ? 'mesa-popIn .35s both' : 'none',
+        meta: `${h.por} · ${quando(h.at)}`, seenTxt: jogadores.length && nSeen === jogadores.length ? 'todos viram' : `visto por ${nSeen}/${jogadores.length}`,
+        seen: jogadores.map(j => ({ n: nomeDe(j.id), i: (nomeDe(j.id)[0] ?? '?').toUpperCase(), c: quem.get(j.u)?.c ?? GM_COR, op: h.vistos.includes(j.id) ? 1 : .3 })),
+        open: () => {
+          setOpenHand(open ? null : h.id)
+          if (isNew) { setHands(xs => xs.map(x => x.id === h.id ? { ...x, vistos: [...x.vistos, d.meuId] } : x)); void json(`${api}/handouts/${h.id}`, 'PATCH') }
+        },
+        del: async () => {
+          const r = await json(`${api}/handouts/${h.id}`, 'DELETE')
+          if (r?.ok) setHands(xs => xs.filter(x => x.id !== h.id)); else avisar('Não foi possível apagar o handout')
+        },
+      }
+    }),
+    // Ao vivo.
+    isGMView: gm && !pv, pv: !gm,
+    liveOpen, liveToggle: () => setLiveOpen(o => !o), liveCount: `${nLive}/${jogadores.length}`,
+    liveIcon: nLive ? Wifi : WifiOff, liveRing: nLive ? 'color-mix(in oklab, var(--ok) 45%, var(--line))' : 'var(--line)', liveBg: nLive ? 'color-mix(in oklab, var(--ok) 12%, var(--surface))' : 'var(--surface)', liveColor: nLive ? 'var(--ok)' : 'var(--ink)',
+    anyLive: nLive > 0, liveOffAll: () => { setLiveExp(null); salvarLive([]) },
+    liveRows: jogadores.map(m => {
+      const tk = tokens.find(t => t.id === m.id), nome = tk?.label ?? nomeDe(m.id), on = live.includes(m.id), open = on && liveExp === m.id, first = primeiro(nome)
+      const extras = tokens.filter(t => t.id !== m.id).map(t => ({
+        n: t.label, c: t.color, on: !!t.allowedPlayers?.includes(m.id),
+        go: () => mudarTokens(ts => ts.map(x => x.id === t.id ? { ...x, allowedPlayers: x.allowedPlayers?.includes(m.id) ? x.allowedPlayers.filter(y => y !== m.id) : [...(x.allowedPlayers ?? []), m.id] } : x), true),
+      }))
+      return {
+        n: nome, i: (nome[0] ?? '?').toUpperCase(), c: tk?.color ?? quem.get(m.u)?.c ?? GM_COR, u: m.u, on, open, first, extras, nExtra: extras.filter(x => x.on).length || '',
+        icon: on ? Wifi : WifiOff, ic: on ? 'var(--ok)' : 'var(--muted)',
+        ring: on ? 'color-mix(in oklab, var(--ok) 35%, var(--line))' : 'var(--line)', bg: on ? 'color-mix(in oklab, var(--ok) 8%, transparent)' : 'transparent', tokC: open ? 'var(--ok)' : 'var(--muted)', tokRing: open ? 'var(--ok)' : 'var(--line)',
+        exp: () => setLiveExp(x => x === m.id ? null : m.id),
+        sw: { on, l: `Liberar ${first} ao vivo`, go: () => { salvarLive(on ? live.filter(x => x !== m.id) : [...live, m.id]); if (on && liveExp === m.id) setLiveExp(null) }, track: on ? 'var(--ok)' : 'var(--line)', knob: on ? '21px' : '3px' },
+      }
+    }),
+    lockText: myLive ? (extrasMeus.length ? `Você move ${meuNomeTok} e ${extrasMeus.join(', ')}` : `Você pode mover ${meuNomeTok}`) : 'Aguardando o Mestre liberar seus movimentos',
+    lockIcon: myLive ? Move : Lock, lockBg: myLive ? 'rgb(40 70 30/.85)' : 'rgb(20 12 6/.8)', lockC: myLive ? '#d8f0c0' : '#e6d5ac', lockAnim: lockTick ? `${lockTick % 2 ? 'mesa-shakeA' : 'mesa-shakeB'} .45s both` : 'none',
+    // Adicionar token.
+    addOpen: tool === 'token' && gm && !pv, addClose: () => { setTool('select'); setPend(null) },
+    addTabs: ([['npc', 'NPCs salvos'], ['free', 'Token avulso']] as const).map(([k, l]) => ({ l, go: () => setAddTab(k), bg: addTab === k ? 'var(--surface)' : 'transparent', color: addTab === k ? 'var(--ink)' : 'var(--muted)', sh: addTab === k ? '0 1px 2px rgb(0 0 0/.12)' : 'none' })),
+    addNpc: addTab === 'npc', addFree: addTab === 'free', semNpcs: d.npcs.length === 0,
+    npcPick: d.npcs.map(x => {
+      const T2 = NT[x.type] ?? NT.NEUTRAL!, on = pend?.npc === x.id
+      return {
+        n: x.n, i: (x.n[0] ?? '?').toUpperCase(), c: T2[1], type: T2[0], tc: T2[1], hp: x.max, onMap: tokens.some(t => t.npc === x.id), cta: on ? 'clique no mapa' : 'Posicionar',
+        bg: on ? 'var(--accent-t)' : 'transparent', ring: on ? 'var(--accent)' : 'transparent',
+        go: () => setPend(on ? null : { npc: x.id, label: x.n, i: (x.n[0] ?? '?').toUpperCase(), type: T2[2], c: T2[1], hp: x.hp, max: x.max, ca: x.ca, img: x.img }),
+      }
+    }),
+    freeName, onFreeName: (e: ChangeEvent<HTMLInputElement>) => setFreeName(e.target.value),
+    freeTypes: (Object.entries(FT) as [Token['type'], [string, string]][]).map(([k, [l, dot]]) => ({ l, dot, go: () => setFreeType(k), bg: freeType === k ? 'var(--ink)' : 'var(--surface)', color: freeType === k ? 'var(--bg)' : 'var(--ink)', ring: freeType === k ? 'var(--ink)' : 'var(--line)' })),
+    freeCta: pend && !pend.npc ? 'Clique no mapa para posicionar' : 'Posicionar no mapa',
+    freeGo: () => {
+      const n = tokens.filter(t => t.label.startsWith('Inimigo')).length + 1
+      const nm = freeName.trim() || (freeType === 'enemy' ? `Inimigo ${n}` : 'Token')
+      setPend({ label: nm, i: (nm[0] ?? '?').toUpperCase(), type: freeType, c: FT[freeType][1] }); setFreeName('')
+    },
+    tabHand: tab === 'hand',    togglePlay: () => {
       if (gm) tocar(musica ? null : ultima ?? PRESETS[0]!.youtubeId)
       else setMudo(m => !m)
     },

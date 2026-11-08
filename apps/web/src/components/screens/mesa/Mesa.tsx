@@ -2,6 +2,7 @@
 
 import { Template } from './Template'
 import { useMesaVals, type MesaDados } from './vals'
+import './mesa-extra.css'
 
 export function Mesa({ dados }: { dados: MesaDados }) {
   const v = useMesaVals(dados)

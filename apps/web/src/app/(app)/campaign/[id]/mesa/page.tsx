@@ -9,6 +9,17 @@ import { Mesa } from '@/components/screens/mesa/Mesa'
 import type { MesaDados } from '@/components/screens/mesa/vals'
 import { MarkTutorialVisited } from '@/components/tutorial/MarkTutorialVisited'
 
+// Ficha na Mesa: atributos, CA, armas e as notas da mesa (text field `mesa_notes`, como a Mesa antiga).
+const fichaSel = {
+  attributes: { select: { value: true, attribute: { select: { name: true, defaultDie: true } } } },
+  weapons: { orderBy: { order: 'asc' as const }, select: { name: true, attackBonus: true, damage: true } },
+  textFields: { where: { key: 'mesa_notes' }, select: { value: true } },
+}
+type Arma = { name: string; attackBonus: string | null; damage: string | null }
+const armas = (ws: Arma[]) => ws.map(w => ({ n: w.name, b: parseInt(w.attackBonus ?? '0', 10) || 0, d: w.damage ?? '' }))
+const ca = (attrs: { value: number; attribute: { name: string } }[]) => attrs.find(a => a.attribute.name === 'Classe de Armadura')?.value ?? null
+const attrsDe = (attrs: { value: number; attribute: { name: string; defaultDie: string } }[]) => attrs.map(a => ({ n: a.attribute.name, v: a.value, die: a.attribute.defaultDie }))
+
 async function MesaNovaPage({ id, discordId }: { id: string; discordId: string }) {
   const c = await prisma.campaign.findUnique({
     where: { id },
@@ -18,7 +29,7 @@ async function MesaNovaPage({ id, discordId }: { id: string; discordId: string }
         orderBy: { joinedAt: 'asc' },
         select: {
           id: true, role: true, user: { select: { username: true, discordId: true } },
-          character: { select: { id: true, name: true, race: true, class: true, level: true, hp: true, maxHp: true, imageUrl: true, attributes: { select: { value: true, attribute: { select: { name: true, defaultDie: true } } } } } },
+          character: { select: { id: true, name: true, race: true, class: true, level: true, hp: true, maxHp: true, imageUrl: true, ...fichaSel } },
         },
       },
       sessions: { orderBy: { startedAt: 'asc' }, select: { id: true } },
@@ -27,34 +38,48 @@ async function MesaNovaPage({ id, discordId }: { id: string; discordId: string }
   if (!c) notFound()
   const me = c.members.find(m => m.user.discordId === discordId)
   if (!me) notFound()
+  const gm = me.role === 'GM'
 
-  // Mesma sessão que a Mesa atual restaura: a mais recente, ativa ou não.
+  // Mesma sessão que a Mesa antiga restaura: a mais recente, ativa ou não.
   const s = await prisma.session.findFirst({
     where: { campaignId: id }, orderBy: { startedAt: 'desc' },
     select: { id: true, name: true, isActive: true, startedAt: true, tokensJson: true, musicYoutubeId: true, musicVolume: true, mapImageUrl: true, liveMembersJson: true },
   }).catch(() => null)
-  const [rolls, total] = s?.isActive
-    ? await Promise.all([
-        prisma.rollLog.findMany({ where: { sessionId: s.id, NOT: { expression: 'chat' } }, orderBy: { rolledAt: 'desc' }, take: 30 }).catch(() => []),
-        prisma.rollLog.count({ where: { sessionId: s.id, NOT: { expression: 'chat' } } }).catch(() => 0),
-      ])
-    : [[], 0]
+  const [rolls, total, npcs, handouts, views] = await Promise.all([
+    s?.isActive ? prisma.rollLog.findMany({ where: { sessionId: s.id }, orderBy: { rolledAt: 'desc' }, take: 50 }).catch(() => []) : [],
+    s?.isActive ? prisma.rollLog.count({ where: { sessionId: s.id, NOT: { expression: 'chat' } } }).catch(() => 0) : 0,
+    gm ? prisma.nPC.findMany({ where: { campaignId: id }, orderBy: { name: 'asc' }, select: { id: true, name: true, type: true, hp: true, maxHp: true, imageUrl: true, ...fichaSel } }).catch(() => []) : [],
+    prisma.handout.findMany({ where: { campaignId: id }, orderBy: { createdAt: 'desc' }, include: { sharedBy: { select: { user: { select: { username: true } } } } } }).catch(() => []),
+    prisma.handoutView.findMany({ where: { handout: { campaignId: id } }, select: { handoutId: true, memberId: true } }).catch(() => []),
+  ])
   const n = s ? c.sessions.findIndex(x => x.id === s.id) + 1 : 0
 
   const dados: MesaDados = {
-    campaignId: c.id, campanha: c.name, souMestre: me.role === 'GM', meuId: me.id,
+    campaignId: c.id, campanha: c.name, souMestre: gm, meuId: me.id,
     categoria: resolveSheetCategory(c.system), temPv: hasHpTrack(parseTracks(c.resourceTracksJson)),
     sessao: s ? {
       id: s.id, nome: s.name ?? `Sessão ${n}`, numero: n, ativa: s.isActive, inicio: s.startedAt.toISOString(),
       tokensJson: s.tokensJson, mapa: s.mapImageUrl, musica: s.musicYoutubeId, volume: s.musicVolume, liveJson: s.liveMembersJson,
     } : null,
-    membros: c.members.map(m => ({
-      id: m.id, role: m.role, u: m.user.username,
-      char: m.character ? {
-        id: m.character.id, n: m.character.name, raca: m.character.race, classe: m.character.class, nivel: m.character.level,
-        hp: m.character.hp, max: m.character.maxHp, img: m.character.imageUrl,
-        attrs: m.character.attributes.map(a => ({ n: a.attribute.name, v: a.value, die: a.attribute.defaultDie })),
-      } : null,
+    membros: c.members.map(m => {
+      // Armas e notas só para o dono e o mestre (mesma regra de /api/characters/[id]/full).
+      const privado = gm || m.id === me.id
+      return {
+        id: m.id, role: m.role, u: m.user.username,
+        char: m.character ? {
+          id: m.character.id, n: m.character.name, raca: m.character.race, classe: m.character.class, nivel: m.character.level,
+          hp: m.character.hp, max: m.character.maxHp, img: m.character.imageUrl, ca: ca(m.character.attributes),
+          attrs: attrsDe(m.character.attributes),
+          armas: privado ? armas(m.character.weapons) : null,
+          nota: privado ? m.character.textFields[0]?.value ?? '' : null,
+        } : null,
+      }
+    }),
+    npcs: npcs.map(x => ({ id: x.id, n: x.name, type: x.type, hp: x.hp, max: x.maxHp, img: x.imageUrl, ca: ca(x.attributes), attrs: attrsDe(x.attributes), armas: armas(x.weapons), nota: x.textFields[0]?.value ?? '' })),
+    handouts: handouts.map(h => ({
+      id: h.id, t: h.title, x: h.content, img: h.imageUrl, at: h.createdAt.toISOString(), por: h.sharedBy.user.username,
+      // Jogador só sabe se ele mesmo viu.
+      vistos: views.filter(v => v.handoutId === h.id && (gm || v.memberId === me.id)).map(v => v.memberId),
     })),
     rolagens: rolls.map(r => ({ id: r.id, expression: r.expression, rolls: r.rolls as number[], modifier: r.modifier, total: r.total, attribute: r.attribute, rolledBy: r.rolledBy, rolledAt: r.rolledAt.toISOString() })),
     totalRolagens: total,
@@ -66,12 +91,11 @@ async function MesaNovaPage({ id, discordId }: { id: string; discordId: string }
     </>
   )
 }
-
-export default async function VirtualTablePage({ params, searchParams }: { params: { id: string }; searchParams: { nova?: string } }) {
+export default async function VirtualTablePage({ params, searchParams }: { params: { id: string }; searchParams: { antiga?: string } }) {
   const session = await getServerSession(authOptions)
   if (!session) redirect('/login')
-  // Prévia da Mesa do redesign: abre em ?nova=1 até ser testada numa sessão de verdade.
-  if (searchParams.nova === '1') return <MesaNovaPage id={params.id} discordId={session.user.discordId} />
+  // A Mesa do redesign é a padrão; a antiga fica em ?antiga=1 por um tempo, como reserva.
+  if (searchParams.antiga !== '1') return <MesaNovaPage id={params.id} discordId={session.user.discordId} />
 
 
   const membership = await prisma.campaignMember.findFirst({

@@ -965,7 +965,7 @@ export function VirtualTable({ campaign, activeSession, members, npcs, initialRo
       {!isGM && sessionMusic.youtubeId && (
         <iframe
           key={sessionMusic.youtubeId}
-          src={`https://www.youtube.com/embed/${sessionMusic.youtubeId}?autoplay=1&loop=1&playlist=${sessionMusic.youtubeId}&controls=0&disablekb=1&modestbranding=1`}
+          src={`https://www.youtube-nocookie.com/embed/${sessionMusic.youtubeId}?autoplay=1&loop=1&playlist=${sessionMusic.youtubeId}&controls=0&disablekb=1&modestbranding=1`}
           allow="autoplay"
           className="w-0 h-0 fixed opacity-0 pointer-events-none"
           title="session-music"

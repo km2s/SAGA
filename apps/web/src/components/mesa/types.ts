@@ -11,6 +11,7 @@ export interface Token {
   allowedPlayers?: string[]
   // Mesa nova (components/screens/mesa): condições, iniciativa e vez ficam no próprio token.
   cond?: string[]; ini?: number; vez?: boolean; rodada?: number
+  npc?: string | null; ca?: number | null
 }
 
 export interface InitiativeEntry {
