@@ -25,8 +25,22 @@ function sameOrigin(url?: string): string | undefined {
   }
 }
 
+// Erros que o NextAuth devolve em /login?error=… (antes a tela voltava em silêncio).
+const AUTH_ERRO: Record<string, string> = {
+  OAuthSignin: 'Não deu para abrir o Discord. Tente de novo.',
+  OAuthCallback: 'O Discord respondeu, mas não conseguimos concluir a entrada. Tente de novo em instantes.',
+  Callback: 'Não conseguimos concluir a entrada. Tente de novo em instantes.',
+  AccessDenied: 'Não conseguimos registrar sua conta agora. Tente de novo em instantes.',
+  OAuthAccountNotLinked: 'Este e-mail já está ligado a outra forma de entrada.',
+  SessionRequired: 'Entre para continuar.',
+}
+export function authErroMsg(code?: string): string {
+  if (!code) return ''
+  return AUTH_ERRO[code] ?? 'Não foi possível entrar. Tente de novo.'
+}
+
 /** Porte de Saga NOVO/SAGA Login.dc.html. */
-export function LoginView({ initialMode, callbackUrl }: { initialMode: LoginMode; callbackUrl?: string }) {
+export function LoginView({ initialMode, callbackUrl, erro }: { initialMode: LoginMode; callbackUrl?: string; erro?: string }) {
   const [mode, setMode] = useState<LoginMode>(initialMode)
   const [tx, setTx] = useState(0)
   const [show, setShow] = useState(false)
@@ -40,7 +54,7 @@ export function LoginView({ initialMode, callbackUrl }: { initialMode: LoginMode
   const [rEmail, setREmail] = useState('')
   const [rSent, setRSent] = useState(false)
   const [rBusy, setRBusy] = useState(false)
-  const [err, setErr] = useState('')
+  const [err, setErr] = useState(() => authErroMsg(erro))
   const [shake, setShake] = useState(0)
   const [sealed, setSealed] = useState<{ title: string; sub: string } | null>(null)
   const t1 = useRef<ReturnType<typeof setTimeout>>()

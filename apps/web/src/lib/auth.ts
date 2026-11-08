@@ -59,11 +59,17 @@ export const authOptions: NextAuthOptions = {
       const avatarUrl = p.avatar
         ? `https://cdn.discordapp.com/avatars/${p.id}/${p.avatar}.png`
         : null
-      await prisma.user.upsert({
-        where: { discordId: p.id },
-        update: { username: p.username, avatar: avatarUrl },
-        create: { discordId: p.id, username: p.username, avatar: avatarUrl },
-      })
+      try {
+        await prisma.user.upsert({
+          where: { discordId: p.id },
+          update: { username: p.username, avatar: avatarUrl },
+          create: { discordId: p.id, username: p.username, avatar: avatarUrl },
+        })
+      } catch (e) {
+        // Aparece nos logs da Vercel; a tela de login mostra "AccessDenied".
+        console.error('[auth] falha ao gravar o usuário no login:', e instanceof Error ? e.message : e)
+        return false
+      }
       return true
     },
     async jwt({ token, profile }) {
