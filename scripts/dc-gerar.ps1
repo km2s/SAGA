@@ -289,4 +289,20 @@ if (& $want 'mesa') {
     Rep $c '>ref 7F3A-21C9</span>' '>ref {v.ref}</span></>)}'
   } 'referência de suporte = digest do erro do Next.'
 }
+if (& $want 'sessoes') {
+  $p = Gen 'SAGA Sessoes' 'sessoes'
+  Edit $p {
+    param($c)
+    $c = Rep $c '>A Queda de Valdris<' '>{v.campanha}<'
+    WrapEnclosing $c '>Visão de<' 'div' 'v.temVisao'
+  } 'campanha real; visão pelo papel.'
+}
+if (& $want 'notas') {
+  $p = Gen 'SAGA Notas' 'notas'
+  Edit $p {
+    param($c)
+    $c = Rep $c '>A Queda de Valdris<' '>{v.campanha}<'
+    WrapEnclosing $c '>Visão de<' 'div' 'v.temVisao'
+  } 'campanha real; visão pelo papel.'
+}
 'pronto'
