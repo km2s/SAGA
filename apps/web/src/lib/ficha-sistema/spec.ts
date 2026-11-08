@@ -4,7 +4,7 @@
  */
 
 /** Seleciona atributos da ficha: pelo prefixo da descrição do seed ("Habilidade Social —") ou pelo nome. */
-export type Sel = { prefixo?: string[]; nomes?: string[] }
+export type Sel = { prefixo?: string[]; nomes?: string[]; /** começo do nome ("Insight —" no Blades) */ nomePrefixo?: string[]; /** todos os atributos (Fate: as perícias são os atributos) */ todos?: boolean }
 export type Regra = 'v5' | 'wod' | 'cod' | 'd20' | 'pf2' | 'coc' | 'pct' | 'ms' | 'dw' | 'isw' | 'fate' | 'bitd' | 'sr' | 'cpr' | 'sw' | 'savage' | 'gurps'
 export type Familia = 'dots' | 'd20' | 'pct' | 'pbta' | 'narr' | 'pool' | 'step'
 
@@ -24,6 +24,7 @@ export type Trilha =
   | { n: string; forma: 'dot' | 'box'; fonte: Fonte; max: Maximo; d?: string; sangue?: boolean }
   | { n: string; forma: 'bar' | 'num'; fonte: Fonte; max: Maximo; d?: string }
   | { n: string; forma: 'momentum'; fonte: Fonte; d?: string } // −6 a +10 (Ironsworn)
+  | { n: string; forma: 'marcadas'; tf: string; label: string; max: Maximo; d?: string } // "1,0,0": caixas marcadas (estresse do Fate)
   | { n: string; forma: 'estados'; tf: string; label: string; max: Maximo; d?: string } // CSV 0/1/2 (vazia, superficial, agravado)
   | { n: string; forma: 'niveis'; tf: string; label: string; niveis: [nome: string, penalidade: string][]; d?: string } // "0110000": um 0/1 por nível (V20, Demônio, Geist)
 
@@ -58,5 +59,7 @@ export type SistemaSpec = {
   pilulas: { l?: string; tf?: string; attr?: string[]; sel?: Sel }[]
   /** A vida fica em textos da ficha (hp_current/hp_max), não na barra de PV da campanha. */
   semPvFicha?: boolean
+  /** Nome da aba com os atributos que nenhum grupo cobre (padrão "Outros"; ex.: "Perícias"). */
+  outrosNome?: string
   secoes: { n: string; pecas: Peca[] }[]
 }

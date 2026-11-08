@@ -20,6 +20,8 @@ Rota: `/personagens/[id]` quando o sistema não é D&D 5e (o D&D 5e tem a `SAGA 
 ## Andamento
 Família por família; cada sistema migrado sai da `FichaAntiga`. Os que faltam continuam com a ficha antiga.
 - Bolinhas (feito): V5, V20 (e "Vampire: The Masquerade"), Lobisomem, Mago A Ascensão, Mago O Despertar, Caçador, Changeling, Demônio, Geist.
-- Falta: d20 (D&D 3.5, Pathfinder 1e/2e, Tormenta20, Starfinder, 13th Age), porcentagem (CoC 7e, Delta Green, Mothership),
-  2d6 (Dungeon World, Ironsworn), narrativos (Fate, Blades), paradas (Shadowrun 6e, Cyberpunk Red, Star Wars), passos (Savage, GURPS).
+- d20, porcentagem, 2d6, narrativos, paradas e passos (feito): todos os sistemas pré-definidos.
+- A ficha antiga (`FichaAntiga`) fica só para sistemas personalizados (sem spec).
+- Perícias sem prefixo no seed (Shadowrun, Cyberpunk, Star Wars, Savage) caem na aba de sobras, renomeada por `outrosNome`.
+- Ficaram de fora (os dados continuam salvos): as marcas de XP por ação do Blades (`xp_*`) e a armadura "0,0,0" do Blades.
 - Depois: Ficha NPC (mesma moldura em modo NPC) e o mapa novo da Mesa e do Painel do Mestre (design de 2026-11-08).

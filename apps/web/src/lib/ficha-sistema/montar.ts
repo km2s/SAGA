@@ -72,8 +72,9 @@ export function useFichaSistema(d: FichaSistemaDados, spec: SistemaSpec) {
   const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
 
   // ── Leitura ──
-  const pega = (sel: Sel) => attrs.filter(a =>
+  const pega = (sel: Sel) => attrs.filter(a => sel.todos ||
     (sel.nomes?.some(n => n.toLowerCase() === a.n.toLowerCase())) ||
+    (sel.nomePrefixo?.some(p => a.n.startsWith(p))) ||
     (sel.prefixo?.some(p => a.desc.startsWith(p))))
     .sort((a, b) => sel.nomes ? sel.nomes.findIndex(n => n.toLowerCase() === a.n.toLowerCase()) - sel.nomes.findIndex(n => n.toLowerCase() === b.n.toLowerCase()) : 0)
   const attr = (nomes: string[]) => nomes.map(n => attrs.find(a => a.n.toLowerCase() === n.toLowerCase())).find(Boolean)
@@ -134,6 +135,13 @@ export function useFichaSistema(d: FichaSistemaDados, spec: SistemaSpec) {
         cells: Array.from({ length: 17 }, (_, i): Cell => { const x = i - 6; return { t: `Momentum ${x}`, lab: String(x), cap: '', hasCap: false, capC: '', w: '22px', h: '18px', fs: '9px', r: '3px', ring: x === v ? 'var(--accent)' : 'var(--line)', bg: x === v ? 'var(--accent)' : (x <= v && x > 0) ? 'var(--accent-t)' : 'transparent', fg: x === v ? '#fff8f0' : 'var(--muted)', go: () => set(x) } }) }
     }
     const max = maximo(t.max)
+    if (t.forma === 'marcadas') {
+      const raw = (tf[t.tf] ?? '').split(',')
+      const box = Array.from({ length: max }, (_, i) => raw[i] === '1')
+      return { n: t.n, d: t.d ?? '', hasD: !!t.d, val: `${box.filter(Boolean).length} / ${max}`, vc: 'var(--ink)', gap: '6px', acts: [], hasActs: false,
+        cells: box.map((x, i): Cell => ({ t: `${t.n} ${i + 1}`, lab: compacta ? '' : String(i + 1), cap: '', hasCap: false, capC: '', w: compacta ? '18px' : '26px', h: compacta ? '18px' : '26px', fs: '11px', r: '3px', ring: 'var(--accent)', bg: x ? 'var(--accent)' : 'transparent', fg: x ? '#fff' : 'var(--accent)',
+          go: () => { const nb = [...box]; nb[i] = !nb[i]; salvaTf(t.tf, t.label, nb.map(y => (y ? '1' : '0')).join(',')) } })) }
+    }
     if (t.forma === 'estados') {
       const raw = (tf[t.tf] ?? '').split(',').filter(Boolean).map(Number)
       const box = Array.from({ length: max }, (_, i) => raw[i] ?? 0)
@@ -300,8 +308,8 @@ export function useFichaSistema(d: FichaSistemaDados, spec: SistemaSpec) {
     { nomes: [...spec.trilhas, ...spec.secoes.flatMap(s => s.pecas.flatMap(p => p.tipo === 'trilhas' ? p.trilhas : []))].flatMap(t => [...('fonte' in t && 'attr' in t.fonte ? t.fonte.attr : []), ...('max' in t && typeof t.max === 'object' && 'attr' in t.max ? t.max.attr : [])]).concat(spec.pilulas.flatMap(p => p.attr ?? [])) },
     ...spec.pilulas.flatMap(p => p.sel ? [p.sel] : []),
   ]
-  const naoUsados = attrs.filter(a => !sels.some(s => s.nomes?.some(n => n.toLowerCase() === a.n.toLowerCase()) || s.prefixo?.some(p => a.desc.startsWith(p))))
-  const secoes = [...spec.secoes, ...(naoUsados.length ? [{ n: 'Outros', pecas: [{ tipo: 'linhas' as const, grupos: [{ sel: { nomes: naoUsados.map(a => a.n) } }] }] }] : [])]
+  const naoUsados = attrs.filter(a => !sels.some(s => s.todos || s.nomes?.some(n => n.toLowerCase() === a.n.toLowerCase()) || s.nomePrefixo?.some(p => a.n.startsWith(p)) || s.prefixo?.some(p => a.desc.startsWith(p))))
+  const secoes = [...spec.secoes, ...(naoUsados.length ? [{ n: spec.outrosNome ?? 'Outros', pecas: [{ tipo: 'linhas' as const, grupos: [{ sel: { nomes: naoUsados.map(a => a.n) } }] }] }] : [])]
   const atual = secoes[Math.min(aba, secoes.length - 1)]
   const linha = spec.linha.map(k => tf[k]).filter(Boolean).join(' · ')
   return {

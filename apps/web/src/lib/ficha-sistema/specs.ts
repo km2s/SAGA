@@ -14,6 +14,8 @@ const genRow = (c: Ctx) => GEN_TABLE[c.attr(['Geração', 'Generation']) ?? 13]
 const traco = (c: Ctx) => genRow(c)?.[1] ?? 5
 // d20: atributos clássicos e PV guardado em textos (hp_current / hp_max).
 const D6 = ['Força', 'Destreza', 'Constituição', 'Inteligência', 'Sabedoria', 'Carisma']
+// Fate: caixas de estresse pela perícia (0 → 2, 1–2 → 3, 3+ → 4), como na ficha antiga.
+const estresseFate = (v: number | undefined) => (v ?? 0) >= 3 ? 4 : (v ?? 0) >= 1 ? 3 : 2
 const pvTf = (): Trilha => ({ n: 'Pontos de vida', forma: 'bar', fonte: { tf: 'hp_current', label: 'PV Atual' }, max: { tf: 'hp_max' } })
 
 /**
@@ -335,6 +337,124 @@ export const SPECS: Record<string, SistemaSpec> = {
       { n: 'Vínculos (Bonds)', pecas: [{ tipo: 'texto', campos: [['bonds_list', 'Vínculos (Bonds)', true]] }] },
       { n: 'Condições', pecas: [{ tipo: 'marcas', l: 'Condições', itens: [['condition_wounded', 'Ferido'], ['condition_shaken', 'Abalado'], ['condition_unprepared', 'Despreparado'], ['condition_encumbered', 'Sobrecarregado']] }] },
       { n: 'Notas', pecas: [{ tipo: 'texto', campos: [['background', 'Histórico', true]] }] },
+    ],
+  },
+
+  // ─── Narrativos ───
+  // components/character/sheets/FateCoreSheet.tsx
+  'Fate Core': {
+    familia: 'narr', regra: 'fate', linha: ['highConcept'],
+    atributos: { tipo: 'tiles', sel: { todos: true }, mostra: 'sinal' },
+    trilhas: [
+      { n: 'Estresse físico', forma: 'marcadas', tf: 'physicalStress', label: 'Estresse físico', max: c => estresseFate(c.attr(['Vigor', 'Físico', 'Physique'])) },
+      { n: 'Estresse mental', forma: 'marcadas', tf: 'mentalStress', label: 'Estresse mental', max: c => estresseFate(c.attr(['Vontade', 'Will'])) },
+    ],
+    pilulas: [],
+    secoes: [
+      { n: 'Aspectos', pecas: [{ tipo: 'texto', campos: [['highConcept', 'Conceito Principal'], ['trouble', 'Problema'], ['aspect3', 'Aspecto Livre 1'], ['aspect4', 'Aspecto Livre 2'], ['aspect5', 'Aspecto Livre 3']] }] },
+      { n: 'Façanhas', pecas: [{ tipo: 'texto', campos: [1, 2, 3, 4, 5].map(i => [`stunt${i}`, `Façanha ${i}`, true] as [string, string, boolean]) }] },
+      { n: 'Consequências', pecas: [{ tipo: 'texto', campos: [['consMild', 'Leve (2)'], ['consModerate', 'Moderada (4)'], ['consSevere', 'Grave (6)'], ['consExtreme', 'Extrema (8)']] }] },
+      { n: 'Notas', pecas: [{ tipo: 'texto', campos: [['notes', 'Notas', true]] }] },
+    ],
+  },
+  // components/character/sheets/BitDSheet.tsx
+  'Blades in the Dark': {
+    familia: 'narr', regra: 'bitd', linha: ['playbook', 'heritage'],
+    atributos: { tipo: 'bolinhas', grupos: [{ l: 'Insight', sel: { nomePrefixo: ['Insight'] } }, { l: 'Prowess', sel: { nomePrefixo: ['Prowess'] } }, { l: 'Resolve', sel: { nomePrefixo: ['Resolve'] } }], max: 4 },
+    trilhas: [bola('Estresse', ['Stress', 'Estresse'], 9, 'Ao chegar em 9, um Trauma'), bola('Trauma', ['Trauma'], 4)],
+    pilulas: [{ l: 'Carga', tf: 'load' }, { l: 'Vício', tf: 'vice' }],
+    secoes: [
+      { n: 'Playbook', pecas: [{ tipo: 'texto', campos: [['playbook', 'Playbook'], ['specialAbils', 'Habilidades Especiais', true]] }] },
+      { n: 'Herança', pecas: [{ tipo: 'texto', campos: [['heritage', 'Herança'], ['background', 'Background'], ['alias', 'Alias']] }] },
+      { n: 'Vício', pecas: [{ tipo: 'texto', campos: [['vice', 'Vício'], ['vicePurveyor', 'Fornecedor do Vício']] }] },
+      { n: 'Dano', pecas: [{ tipo: 'texto', campos: [['harm1a', 'Dano Menor 1'], ['harm1b', 'Dano Menor 2'], ['harm2a', 'Dano Moderado 1'], ['harm2b', 'Dano Moderado 2'], ['harm3', 'Dano Grave'], ['harm4', 'Fatal'], ['trauma', 'Traumas', true]] }] },
+      { n: 'Contatos', pecas: [{ tipo: 'texto', campos: [['contacts', 'Contatos', true]] }] },
+      { n: 'Armadura', pecas: [{ tipo: 'texto', campos: [['load', 'Carga']] }, { tipo: 'armas' }] },
+      { n: 'Notas', pecas: [{ tipo: 'texto', campos: [['notes', 'Notas', true]] }] },
+    ],
+  },
+
+  // ─── Paradas e monitores ───
+  // components/character/sheets/Shadowrun6eSheet.tsx
+  'Shadowrun 6e': {
+    familia: 'pool', regra: 'sr', linha: ['metatype'], outrosNome: 'Perícias Ativas',
+    atributos: { tipo: 'tiles', sel: { nomes: ['Corpo', 'Agilidade', 'Reação', 'Força', 'Vontade', 'Lógica', 'Intuição', 'Carisma'] }, mostra: 'valor' },
+    trilhas: [
+      { n: 'Monitor físico', forma: 'box', fonte: { tf: 'physical_damage', label: 'Monitor Físico' }, max: c => 8 + Math.ceil((c.attr(['Corpo']) ?? 0) / 2), sangue: true },
+      { n: 'Monitor mental', forma: 'box', fonte: { tf: 'mental_damage', label: 'Monitor Mental' }, max: c => 8 + Math.ceil((c.attr(['Vontade']) ?? 0) / 2), sangue: true },
+      { n: 'Edge', forma: 'dot', fonte: { tf: 'edge_current', label: 'Atual' }, max: c => c.attr(['Edge']) ?? 7 },
+    ],
+    pilulas: [{ l: 'Essência', attr: ['Essência'] }, { l: 'Karma', tf: 'karma_current' }, { l: 'Nuyen', tf: 'nuyen' }],
+    secoes: [
+      { n: 'Recursos Especiais', pecas: [{ tipo: 'linhas', grupos: [{ sel: { nomes: ['Essência', 'Magia', 'Resonância', 'Edge'] } }] }] },
+      { n: 'Karma Total', pecas: [{ tipo: 'texto', campos: [['karma_current', 'Karma Atual'], ['karma_total', 'Karma Total'], ['nuyen', 'Nuyen']] }] },
+      { n: 'Cyberware', pecas: [{ tipo: 'texto', campos: [['cyberware', 'Cyberware/Bioware', true], ['qualities', 'Qualidades', true]] }] },
+      { n: 'Inventário', pecas: [{ tipo: 'armas' }] },
+      { n: 'Notas', pecas: [{ tipo: 'texto', campos: [['metatype', 'Metatipo'], ['contacts', 'Contatos', true]] }] },
+    ],
+  },
+  // components/character/sheets/CyberpunkRedSheet.tsx
+  'Cyberpunk Red': {
+    familia: 'pool', regra: 'cpr', linha: ['role', 'origin'], outrosNome: 'Perícias',
+    atributos: { tipo: 'tiles', sel: { nomes: ['Inteligência', 'Reflexos', 'Destreza', 'Habilidade Técnica', 'Cool', 'Força de Vontade', 'Sorte', 'Movimento', 'Corpo', 'Empatia'] }, mostra: 'valor' },
+    trilhas: [{ n: 'Humanidade', forma: 'num', fonte: { tf: 'humanity_current', label: 'Humanidade' }, max: c => (c.attr(['Empatia']) ?? 0) * 10 || 100 }],
+    pilulas: [{ l: 'Reputação', tf: 'reputation' }],
+    secoes: [
+      { n: 'Habilidade de Papel', pecas: [{ tipo: 'texto', campos: [['role', 'Papel (Role)'], ['role_ability', 'Habilidade de Papel', true]] }] },
+      { n: 'Cyberware', pecas: [{ tipo: 'texto', campos: [['cyberware_list', 'Cyberware', true]] }] },
+      { n: 'Armadura', pecas: [{ tipo: 'texto', campos: [['armor_head_sp', 'Cabeça · SP'], ['armor_head_pen', 'Cabeça · Penalidade'], ['armor_body_sp', 'Corpo · SP'], ['armor_body_pen', 'Corpo · Penalidade']] }, { tipo: 'armas' }] },
+      { n: 'Reputação', pecas: [{ tipo: 'texto', campos: [['reputation', 'Reputação'], ['xp_current', 'XP Atual'], ['xp_total', 'XP Total']] }] },
+      { n: 'Notas', pecas: [{ tipo: 'texto', campos: [['origin', 'Origens'], ['family', 'Família', true], ['friends_enemies', 'Amigos e Inimigos', true], ['style', 'Estilo']] }] },
+    ],
+  },
+  // components/character/sheets/StarWarsSheet.tsx
+  'Star Wars: Edge of the Empire': {
+    familia: 'pool', regra: 'sw', linha: ['species', 'career'], outrosNome: 'Perícias',
+    atributos: { tipo: 'tiles', sel: { nomes: ['Vigor', 'Agilidade', 'Intelecto', 'Astúcia', 'Força de Vontade', 'Presença'] }, mostra: 'valor' },
+    trilhas: [
+      { n: 'Ferimentos', forma: 'box', fonte: { tf: 'wounds_current', label: 'Ferimentos' }, max: { attr: ['Ferimento Limiar', 'Wound Threshold'] }, sangue: true },
+      { n: 'Tensão', forma: 'box', fonte: { tf: 'strain_current', label: 'Tensão' }, max: { attr: ['Tensão Limiar', 'Strain Threshold'] } },
+    ],
+    pilulas: [{ l: 'Obrigação', tf: 'obligation_magnitude' }, { l: 'Destino (luz)', tf: 'destiny_light' }, { l: 'Destino (trevas)', tf: 'destiny_dark' }],
+    secoes: [
+      { n: 'Tipo de Obrigação', pecas: [{ tipo: 'texto', campos: [['obligation_type', 'Tipo de Obrigação'], ['obligation_magnitude', 'Magnitude']] }] },
+      { n: 'Perícias de Combate', pecas: [{ tipo: 'linhas', grupos: [{ sel: { prefixo: ['Perícia Combate'] } }] }, { tipo: 'armas' }] },
+      { n: 'Carreira', pecas: [{ tipo: 'texto', campos: [['career', 'Carreira'], ['specialization', 'Especialização'], ['species', 'Espécie']] }] },
+      { n: 'Notas', pecas: [{ tipo: 'texto', campos: [['destiny_light', 'Destino Luz'], ['destiny_dark', 'Destino Trevas'], ['xp_current', 'XP Atual'], ['xp_total', 'XP Total'], ['background', 'Background', true]] }] },
+    ],
+  },
+
+  // ─── Passos e pontos ───
+  // components/character/sheets/SavageWorldsSheet.tsx
+  'Savage Worlds': {
+    familia: 'step', regra: 'savage', linha: ['race'], outrosNome: 'Perícias',
+    atributos: { tipo: 'tiles', sel: { nomes: ['Agilidade', 'Astúcia', 'Espírito', 'Força', 'Vigor'] }, mostra: 'dado' },
+    trilhas: [
+      { n: 'Bennies', forma: 'dot', fonte: { tf: 'bennies', label: 'Bennies' }, max: 5, d: 'Rerrolar ou absorver' },
+      { n: 'Ferimentos', forma: 'box', fonte: { tf: 'wounds_current', label: 'Ferimentos' }, max: 3, d: '−1 por ferimento', sangue: true },
+      { n: 'Fadiga', forma: 'box', fonte: { tf: 'fatigue_current', label: 'Fadiga' }, max: 2 },
+    ],
+    pilulas: [{ l: 'Dado selvagem', attr: ['Wild Die'] }, { l: 'XP', tf: 'xp_current' }],
+    secoes: [
+      { n: 'Vantagens (Edges)', pecas: [{ tipo: 'texto', campos: [['edges', 'Vantagens (Edges)', true], ['hindrances', 'Impedimentos (Hindrances)', true]] }] },
+      { n: 'Poderes Arcanos', pecas: [{ tipo: 'texto', campos: [['powers_list', 'Poderes Arcanos', true]] }] },
+      { n: 'Inventário', pecas: [{ tipo: 'armas' }] },
+      { n: 'Raça', pecas: [{ tipo: 'texto', campos: [['race', 'Raça'], ['xp_current', 'XP']] }] },
+    ],
+  },
+  // components/character/sheets/GURPSSheet.tsx
+  'GURPS 4e': {
+    familia: 'step', regra: 'gurps', linha: [],
+    atributos: { tipo: 'tiles', sel: { nomes: ['Força', 'Destreza', 'Inteligência', 'Saúde'] }, mostra: 'valor' },
+    trilhas: [],
+    pilulas: [{ l: 'Pontos', tf: 'points_total' }, { sel: { nomes: ['Pontos de Vida', 'Vontade', 'Percepção', 'Fadiga'] } }],
+    secoes: [
+      { n: 'Vantagens', pecas: [{ tipo: 'texto', campos: [['advantages', 'Vantagens', true]] }] },
+      { n: 'Desvantagens e Quirks', pecas: [{ tipo: 'texto', campos: [['disadvantages', 'Desvantagens', true]] }] },
+      { n: 'Perícias', pecas: [{ tipo: 'texto', campos: [['skills_list', 'Perícias', true]] }] },
+      { n: 'Defesas Ativas', pecas: [{ tipo: 'linhas', grupos: [{ sel: { nomes: ['Pontos de Vida', 'Vontade', 'Percepção', 'Fadiga'] } }] }] },
+      { n: 'Inventário', pecas: [{ tipo: 'armas' }] },
+      { n: 'Notas', pecas: [{ tipo: 'texto', campos: [['points_total', 'Pontos Totais'], ['points_spent', 'Pontos Gastos'], ['background', 'Histórico', true]] }] },
     ],
   },
 }
