@@ -9,7 +9,8 @@ import { Mesa } from '@/components/screens/mesa/Mesa'
 import type { MesaDados } from '@/components/screens/mesa/vals'
 import { MarkTutorialVisited } from '@/components/tutorial/MarkTutorialVisited'
 import { leitor, mestreDa, ondeVisivel, serializarTodas } from '@/lib/rolagens'
-import { mapasDa, publico } from '@/lib/mapas'
+import { mapasDa, nevoaPublica, publico } from '@/lib/mapas'
+import { proximasDe, rotuloData } from '@/lib/convite'
 
 // Ficha na Mesa: atributos, CA, armas e as notas da mesa (text field `mesa_notes`, como a Mesa antiga).
 const fichaSel = {
@@ -91,6 +92,8 @@ async function MesaNovaPage({ id, discordId, mapa }: { id: string; discordId: st
     totalRolagens: total,
     mapas: mapas.filter(m => gm || m.id === naMesa).map(publico), naMesa, aberto,
     regraRolagens: c.rollVisibility,
+    proxima: await proximasDe([c.id]).then(m => { const p = m.get(c.id); return p ? `${p.titulo} · ${rotuloData(p)}` : null }),
+    nevoa: (() => { const m = mapas.find(x => x.id === naMesa); return m ? (gm ? m.nevoaJson : nevoaPublica(m.nevoaJson)) : null })(),
   }
   return (
     <>

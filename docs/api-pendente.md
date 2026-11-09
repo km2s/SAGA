@@ -108,7 +108,6 @@ Feito (2026-11-09): tabela `Mensagem` (canal da campanha fora da sessão, direta
 | O quê | Observação |
 |---|---|
 | Cenas da sessão (nome, mapa, miniatura) | O cabeçalho do design troca de cena; hoje há um só `mapImageUrl`. |
-| Névoa na sessão (`nevoaJson`: áreas em casas, revelada ou não) | Hoje só no navegador do mestre; com isso o jogador passa a ver a névoa de verdade. |
 | Upload de imagem do mapa | "Trocar mapa" do design é soltar a imagem; hoje é link. |
 | Bônus de ataque e CA do token/ficha | O popover do design mostra CA e "Rolar ataque +N". |
 | Perícias na ficha | A aba Fichas do design lista perícias roláveis. |

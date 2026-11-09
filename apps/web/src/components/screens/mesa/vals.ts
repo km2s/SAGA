@@ -32,6 +32,10 @@ export type MesaDados = {
   handouts: Handout[]
   rolagens: RollLogEntry[]
   totalRolagens: number
+  /** Névoa do mapa na mesa (Mapa.nevoaJson; o jogador recebe só as áreas cobertas). */
+  nevoa: string | null
+  /** Próxima sessão agendada ("Sessão IV · sábado 14/11 · 20h"). */
+  proxima: string | null
   /** SAGA Mapas: mestre recebe todos; jogador, só o que está na mesa. `aberto` vem de ?mapa=. */
   mapas: MapaItem[]; naMesa: string; aberto: string
   /** Campaign.rollVisibility: todos · mestre · escolha. */
@@ -196,9 +200,6 @@ export function useMesaVals(d: MesaDados) {
   const syncT = useRef<ReturnType<typeof setTimeout>>()
   const pingsVistos = useRef(new Set<string>())
   const timers = useRef<ReturnType<typeof setTimeout>[]>([])
-  // Névoa por mapa (a chave antiga, por sessão, vale para o mapa que estava na mesa).
-  const nevoaKey = aberto ? `saga-mesa-nevoa-${aberto}` : null
-  const nevoaAntiga = d.sessao && aberto === d.naMesa ? `saga-mesa-nevoa-${d.sessao.id}` : null
   const pendRef = useRef<(() => void) | null>(null)
 
   const podeSync = gm || live.includes(d.meuId)
@@ -235,20 +236,27 @@ export function useMesaVals(d: MesaDados) {
     const iv = setInterval(() => setAgora(Date.now()), 1000)
     return () => clearInterval(iv)
   }, [])
-  // Névoa só do mestre, guardada neste navegador (TODO(api): nevoaJson na sessão).
-  // Estado (não ref): o efeito de gravar só roda depois do render com a névoa lida.
-  const [nevoaLida, setNevoaLida] = useState(false)
-  // `nevoaDe`: de qual mapa é a névoa em memória (trocar de mapa não grava a do anterior no novo).
+  // Névoa por mapa no servidor (Mapa.nevoaJson): o mestre grava; o jogador recebe só as
+  // áreas cobertas do mapa na mesa, pela sondagem. `nevoaDe` = de qual mapa é a névoa em
+  // memória (trocar de mapa não grava a do anterior no novo).
   const [nevoaDe, setNevoaDe] = useState<string | null>(null)
+  const nevoaT = useRef<ReturnType<typeof setTimeout>>()
+  const carregarNevoa = (id: string, raw: string | null | undefined) => {
+    let lida = parse<Nevoa[] | null>(raw, null)
+    // Névoa antiga, guardada só no navegador do mestre: sobe para o mapa na primeira vez.
+    if (!lida && gm) try {
+      const v = localStorage.getItem(`saga-mesa-nevoa-${id}`) ?? (d.sessao && id === d.naMesa ? localStorage.getItem(`saga-mesa-nevoa-${d.sessao.id}`) : null)
+      if (v) lida = JSON.parse(v) as Nevoa[]
+    } catch { /* sem storage */ }
+    setNevoa(lida ?? []); setNevoaDe(id)
+  }
+  useEffect(() => { carregarNevoa(d.naMesa, d.nevoa) }, []) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
-    let lida: Nevoa[] = []
-    if (nevoaKey) try { const v = localStorage.getItem(nevoaKey) ?? (nevoaAntiga ? localStorage.getItem(nevoaAntiga) : null); if (v) lida = JSON.parse(v) as Nevoa[] } catch { /* sem storage */ }
-    setNevoa(lida); setNevoaDe(nevoaKey)
-    setNevoaLida(true)
-  }, [nevoaKey, nevoaAntiga])
-  useEffect(() => {
-    if (nevoaKey && gm && nevoaLida && nevoaDe === nevoaKey) try { localStorage.setItem(nevoaKey, JSON.stringify(nevoa)) } catch { /* sem storage */ }
-  }, [nevoa, nevoaKey, gm, nevoaLida, nevoaDe])
+    if (!gm || !nevoaDe || nevoaDe !== aberto) return
+    clearTimeout(nevoaT.current)
+    const id = nevoaDe, v = JSON.stringify(nevoa)
+    nevoaT.current = setTimeout(() => { void json(`${api}/mapas/${id}`, 'PATCH', { nevoaJson: v }) }, 600)
+  }, [nevoa]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     const tick = async () => {
       void fetch(`${api}/presence`, { method: 'POST' }).catch(() => null)
@@ -290,7 +298,11 @@ export function useMesaVals(d: MesaDados) {
       const sm = s.mapa
       if (sm) {
         if (gm) setNaMesa(sm.id)
-        else { setMapas([sm]); setNaMesa(sm.id); setAberto(sm.id) }
+        else {
+          setMapas([sm]); setNaMesa(sm.id); setAberto(sm.id)
+          // Névoa do mapa na mesa (só as áreas cobertas).
+          setNevoa(parse<Nevoa[]>(sm.nevoaJson ?? null, []))
+        }
       }
       setMusica(s.musicYoutubeId)
       if (s.musicYoutubeId) setUltima(s.musicYoutubeId)
@@ -356,16 +368,19 @@ export function useMesaVals(d: MesaDados) {
     if (!gm || !id) return
     // A gravação pendente vai para o mapa de onde se está saindo.
     clearTimeout(syncT.current); pendRef.current?.()
+    if (nevoaDe) { clearTimeout(nevoaT.current); void json(`${api}/mapas/${nevoaDe}`, 'PATCH', { nevoaJson: JSON.stringify(nevoa) }) }
     setSel(null); setMeasure(null); setMapEdit(false)
+    const r = await fetch(`${api}/mapas/${id}`).catch(() => null)
+    const j = r?.ok ? await r.json().catch(() => null) as (MapaItem & { tokensJson: string | null; nevoaJson: string | null }) | null : null
+    if (!j) { avisar('Não foi possível abrir o mapa · tente de novo'); return }
+    editRef.current = Date.now()
+    carregarNevoa(id, j.nevoaJson)
+    // Mapa na mesa: tokens e imagem vêm da sessão (o espelho dele); os outros, do registro do mapa.
     const s = sessaoRef.current
     if (id === naMesa && s) {
       setAberto(id); setTokens(parse<Token[] | null>(s.tokens, null) ?? initTokens(membrosMesa)); setMapa(s.mapa)
       return
     }
-    const r = await fetch(`${api}/mapas/${id}`).catch(() => null)
-    const j = r?.ok ? await r.json().catch(() => null) as (MapaItem & { tokensJson: string | null }) | null : null
-    if (!j) { avisar('Não foi possível abrir o mapa · tente de novo'); return }
-    editRef.current = Date.now()
     setAberto(id); setTokens(parse<Token[] | null>(j.tokensJson, null) ?? (id === naMesa ? initTokens(membrosMesa) : [])); setMapa(j.imagemUrl)
     if (id === naMesa) sessaoRef.current = { tokens: j.tokensJson, mapa: j.imagemUrl }
   }
@@ -593,7 +608,9 @@ export function useMesaVals(d: MesaDados) {
   const selT = tokens.find(t => t.id === sel)
   const temHp = (t: Token) => d.temPv && typeof t.hp === 'number' && !!t.maxHp
   const pctOf = (t: Token) => temHp(t) ? Math.max(0, Math.min(100, Math.round(t.hp! / t.maxHp! * 100))) : 100
-  const escondido = (t: Token) => pv && t.type === 'enemy' && nevoa.some(f => f.on && cel(t.x) >= f.x && cel(t.x) < f.x + f.w && cel(t.y) >= f.y && cel(t.y) < f.y + f.h)
+  // Visão do jogador: o jogador de verdade ou o mestre em "Visão do jogador".
+  const olharJogador = pv || !gm
+  const escondido = (t: Token) => olharJogador && t.type === 'enemy' && nevoa.some(f => f.on && cel(t.x) >= f.x && cel(t.x) < f.x + f.w && cel(t.y) >= f.y && cel(t.y) < f.y + f.h)
   const segundos = d.sessao && agora ? Math.max(0, Math.floor(((ended ?? (ativa ? agora : new Date(d.sessao.inicio).getTime())) - new Date(d.sessao.inicio).getTime()) / 1000)) : 0
   const timer = `${p2(Math.floor(segundos / 3600))}:${p2(Math.floor(segundos / 60) % 60)}:${p2(segundos % 60)}`
   const ms = measure
@@ -739,8 +756,7 @@ export function useMesaVals(d: MesaDados) {
     mLiveOn: ativa, mIdle: !ativa && !(gm && prep), mGMIdle: gm && !ativa, mPrepOn: gm && !ativa && prep,
     mIdleBg: !gm ? 'rgb(12 8 5/.72)' : 'rgb(12 8 5/.55)', mIdleIcon: !gm ? Lock : Flame,
     mIdleTitle: !gm ? 'A mesa está fechada' : 'Nenhuma sessão ao vivo',
-    // TODO(api): "Próxima: <data>" quando houver agendamento de sessões.
-    mIdleLead: !gm ? 'O Mestre ainda não começou a sessão. Esta tela abre sozinha quando ele iniciar.' : 'Inicie a sessão para abrir a mesa para a companhia, ou prepare o mapa e os tokens antes, sem que ninguém veja.',
+    mIdleLead: !gm ? `O Mestre ainda não começou a sessão. Esta tela abre sozinha quando a sessão começar.${d.proxima ? ` Próxima: ${d.proxima}.` : ''}` : 'Inicie a sessão para abrir a mesa para a companhia, ou prepare o mapa e os tokens antes, sem que ninguém veja.',
     mStart: () => { void iniciar() },
     mPrep: () => { setPrep(true); if (!d.sessao) avisar('Inicie a primeira sessão para guardar o mapa; até lá o preparo fica só nesta tela') },
     tourOn: tourStep >= 0 && !!tourRect, tourOpen: () => setTourStep(0), tourClose: () => setTourStep(-1), tourTalk: tourStep >= 0,
@@ -791,8 +807,8 @@ export function useMesaVals(d: MesaDados) {
     slotZ: mapEdit ? 60 : 1, slotOutline: mapEdit ? '3px dashed #f0d060' : 'none',
     fog: [...nevoa.map(f => ({
       x: f.x * CELL, y: f.y * CELL, w: f.w * CELL, h: f.h * CELL, label: f.on ? f.label : `${f.label} · revelada`, op: f.on ? 1 : (tool === 'fog' ? .35 : 0),
-      bg: f.on ? (pv ? '#120c08' : 'rgb(18 12 8/.62)') : 'rgb(18 12 8/.15)', blur: f.on ? 'blur(2px)' : 'none', pe: (tool === 'fog' ? 'auto' : 'none') as 'auto' | 'none',
-      outline: tool === 'fog' ? '2px dashed rgb(240 208 96/.7)' : 'none', lblOp: tool === 'fog' || !pv ? 1 : 0,
+      bg: f.on ? (olharJogador ? '#120c08' : 'rgb(18 12 8/.62)') : 'rgb(18 12 8/.15)', blur: f.on ? 'blur(2px)' : 'none', pe: (tool === 'fog' ? 'auto' : 'none') as 'auto' | 'none',
+      outline: tool === 'fog' ? '2px dashed rgb(240 208 96/.7)' : 'none', lblOp: gm && (tool === 'fog' || !pv) ? 1 : 0,
       go: () => setNevoa(prev => prev.map(x => x.id === f.id ? { ...x, on: !x.on } : x)),
       remove: (e: { preventDefault: () => void }) => { e.preventDefault(); setNevoa(prev => prev.filter(x => x.id !== f.id)) },
     })), ...(fogDraw ? [{

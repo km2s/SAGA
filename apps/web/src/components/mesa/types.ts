@@ -41,7 +41,7 @@ export interface NpcData { id: string; name: string; type: string; race: string 
 export interface Campaign { id: string; name: string }
 export interface AddTokenState { screenX: number; screenY: number; worldX: number; worldY: number }
 export interface SessionState { tokensJson: string | null; musicYoutubeId: string | null; musicVolume: number; mapImageUrl: string | null; liveMembersJson: string | null; markersJson?: string | null
-  mapa?: { id: string; nome: string; colunas: number; linhas: number; escala: number; arte: number; imagemUrl: string | null } | null }
+  mapa?: { id: string; nome: string; colunas: number; linhas: number; escala: number; arte: number; imagemUrl: string | null; nevoaJson?: string | null } | null }
 export interface ActiveSession { id: string; name: string | null; isActive: boolean; tokensJson?: string | null; musicYoutubeId?: string | null; musicVolume?: number; mapImageUrl?: string | null; liveMembersJson?: string | null }
 
 export const GRID = 40

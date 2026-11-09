@@ -35,3 +35,13 @@ export function prenderTokens(tokensJson: string | null, colunas: number, linhas
     return JSON.stringify(ts.map(t => ({ ...t, x: Math.min(mx, Math.max(CASA / 2, t.x)), y: Math.min(my, Math.max(CASA / 2, t.y)) })))
   } catch { return tokensJson }
 }
+
+/** Névoa que o jogador recebe: só as áreas cobertas, sem o nome que o mestre deu (pode entregar o segredo). */
+export function nevoaPublica(raw: string | null): string | null {
+  if (!raw) return null
+  try {
+    const xs = JSON.parse(raw) as { id?: string; x?: number; y?: number; w?: number; h?: number; on?: boolean }[]
+    if (!Array.isArray(xs)) return null
+    return JSON.stringify(xs.filter(f => f.on).map((f, i) => ({ id: f.id ?? `n${i}`, label: '', x: f.x, y: f.y, w: f.w, h: f.h, on: true })))
+  } catch { return null }
+}

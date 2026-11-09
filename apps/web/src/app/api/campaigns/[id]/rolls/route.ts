@@ -5,6 +5,7 @@ import { leitor, mestreDa, ondeVisivel, serializar, serializarTodas } from '@/li
 import { NextResponse } from 'next/server'
 import { applyRateLimit, RATE_LIMITS } from '@/lib/rate-limit'
 import { withNoCache } from '@/lib/no-cache'
+import { nevoaPublica } from '@/lib/mapas'
 import { logSecurity } from '@/lib/security-log'
 
 const DICE_RE    = /^(\d*)d(\d+)([+-]\d+)?$/i
@@ -90,7 +91,9 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
       mapa: await (async () => {
         const c = await prisma.campaign.findUnique({ where: { id: params.id }, select: { mapaNaMesaId: true } }).catch(() => null)
         if (!c?.mapaNaMesaId) return null
-        return prisma.mapa.findUnique({ where: { id: c.mapaNaMesaId }, select: { id: true, nome: true, colunas: true, linhas: true, escala: true, arte: true, imagemUrl: true } }).catch(() => null)
+        const m = await prisma.mapa.findUnique({ where: { id: c.mapaNaMesaId }, select: { id: true, nome: true, colunas: true, linhas: true, escala: true, arte: true, imagemUrl: true, nevoaJson: true } }).catch(() => null)
+        // Névoa: o jogador recebe só as áreas cobertas (lib/mapas.ts); o mestre já tem a dele.
+        return m ? { ...m, nevoaJson: member.role === 'GM' ? null : nevoaPublica(m.nevoaJson) } : null
       })(),
     },
   }))
