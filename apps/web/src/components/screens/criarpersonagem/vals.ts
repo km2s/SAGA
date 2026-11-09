@@ -109,11 +109,12 @@ export function useCriarPersonagemVals(d: CriarPersonagemDados) {
       if (ch?.id) {
         href = `/personagens/${ch.id}`
         // História, antecedente e alinhamento como campos de texto da ficha.
-        // TODO(api): o segredo (só o mestre vê) precisa de um campo que a ficha pública não mostre.
+        // O segredo vai num campo de texto: só o dono e o mestre leem (a ficha pública não carrega campos de texto).
         await Promise.all([
           json(`/api/characters/${ch.id}/text-fields`, { key: 'antecedente', label: 'Antecedente', value: bg, order: 0 }),
           json(`/api/characters/${ch.id}/text-fields`, { key: 'alinhamento', label: 'Alinhamento', value: ALIGN.find(a => a[0] === align)?.[1] ?? align, order: 1 }),
           story.trim() ? json(`/api/characters/${ch.id}/text-fields`, { key: 'historia', label: 'História', value: story.trim(), order: 2 }) : null,
+          secret.trim() ? json(`/api/characters/${ch.id}/text-fields`, { key: 'segredos', label: 'Segredos (só o mestre vê)', value: secret.trim(), order: 3 }) : null,
         ])
       } else if (r?.status === 409) {
         await espera; setSealing(false); return fail('Você já tem um personagem nesta campanha.')

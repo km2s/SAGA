@@ -58,7 +58,6 @@ Já funcionam com a API atual: iniciar sessão (`sessions/start`, 409), barras d
 | Recurso | Uso no front |
 |---|---|
 | Ficha sem campanha | Opção "Sem campanha" do design (hoje `CharacterSheet.memberId` é obrigatório). |
-| Segredo do personagem (só dono e mestre) | Campo "Segredos — só o mestre vê"; não pode aparecer na ficha pública. |
 | Retrato no momento da criação | Moldura da prévia. |
 
 ## Ficha de D&D 5e (`components/screens/ficha/vals.ts`)
