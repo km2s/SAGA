@@ -20,7 +20,11 @@ export async function PATCH(req: Request) {
   if (typeof b.titulo === 'string') data.titulo = b.titulo.trim().slice(0, 80) || null
   if (typeof b.moldura === 'string' && MOLDURAS.includes(b.moldura)) data.moldura = b.moldura
   if (b.discord && typeof b.discord === 'object') {
-    data.prefsJson = JSON.stringify(Object.fromEntries(PREFS.map(k => [k, b.discord![k] ? 1 : 0])))
+    // Junta com o resto de prefsJson (o progresso do tour mora lá também).
+    const atual = await prisma.user.findUnique({ where: { discordId: session.user.discordId }, select: { prefsJson: true } }).catch(() => null)
+    let base: Record<string, unknown> = {}
+    try { base = JSON.parse(atual?.prefsJson ?? '{}') as Record<string, unknown> } catch { /* vazio */ }
+    data.prefsJson = JSON.stringify({ ...base, ...Object.fromEntries(PREFS.map(k => [k, b.discord![k] ? 1 : 0])) })
   }
   if (!Object.keys(data).length) return NextResponse.json({ error: 'Nenhum campo para atualizar' }, { status: 400 })
   const u = await prisma.user.update({

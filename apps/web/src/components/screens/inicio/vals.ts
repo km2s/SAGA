@@ -18,7 +18,9 @@ export type InicioDados = {
     startedAt: string
     grupo: { n: string; hp: number; mx: number }[]
   } | null
-  campanhas: { id: string; nome: string; sistema: string | null; sessoes: number; mestre: boolean; membros: string[]; aoVivo: boolean }[]
+  campanhas: { id: string; nome: string; sistema: string | null; sessoes: number; mestre: boolean; membros: string[]; aoVivo: boolean; proxima: string | null; capa: string | null }[]
+  /** Sessões agendadas das suas campanhas (AAAA-MM-DD, HH:MM em Brasília). */
+  agenda: { campanha: string; titulo: string; data: string; horario: string }[]
   inscricoes: { id: string; campaignId: string; who: string; camp: string; desc: string }[]
   personagens: { id: string; nome: string; campanha: string }[]
 }
@@ -128,9 +130,12 @@ export function useInicioVals(d: InicioDados) {
   const seg = new Date(hoje); seg.setHours(0, 0, 0, 0); seg.setDate(seg.getDate() - ((seg.getDay() + 6) % 7))
   const dias = Array.from({ length: 7 }, (_, i) => { const x = new Date(seg); x.setDate(seg.getDate() + i); return x })
   const hojeN = hoje.getDate()
-  // TODO(api): sessões agendadas na agenda e nos pontos da semana. Hoje só a sessão ao vivo.
-  const AG = d.aoVivo ? [{ d: hojeN, t: d.aoVivo.campanha, s: `${d.aoVivo.sessao} · ao vivo`, h: 'agora', c: 'var(--accent)' }] : []
-  const sess: Record<number, string> = d.aoVivo ? { [hojeN]: 'var(--accent)' } : {}
+  // Agenda da semana: a sessão ao vivo e as agendadas no Painel do Mestre.
+  const ymd = (x: Date) => `${x.getFullYear()}-${p2(x.getMonth() + 1)}-${p2(x.getDate())}`
+  const semana = new Set(dias.map(ymd))
+  const agendadas = d.agenda.filter(a => semana.has(a.data)).map(a => ({ d: +a.data.slice(8), t: a.campanha, s: a.titulo, h: a.horario.replace(':00', 'h').replace(':', 'h'), c: 'var(--gold)' }))
+  const AG = [...(d.aoVivo ? [{ d: hojeN, t: d.aoVivo.campanha, s: `${d.aoVivo.sessao} · ao vivo`, h: 'agora', c: 'var(--accent)' }] : []), ...agendadas]
+  const sess: Record<number, string> = Object.fromEntries([...agendadas.map(a => [a.d, a.c]), ...(d.aoVivo ? [[hojeN, 'var(--accent)']] : [])])
 
   const t = d.aoVivo && now ? Math.max(0, Math.floor((now.getTime() - new Date(d.aoVivo.startedAt).getTime()) / 1000)) : 0
   const hora = hoje.getHours()
@@ -142,8 +147,8 @@ export function useInicioVals(d: InicioDados) {
   const r = res
   return {
     $href: (link: string) => dcHref(link, { campaignId: d.aoVivo?.campaignId }),
-    // TODO(api): Campaign.coverUrl — sem capa fica o gradiente do design.
-    $img: (_id: string): string | null => null,
+    // Sem capa fica o gradiente do design.
+    $img: (id: string): string | null => d.campanhas.find(c => `inicio-capa-${c.id}` === id)?.capa ?? null,
     toggleTema,
     dataLonga, saudacaoCap: saudacao.charAt(0), saudacaoResto: saudacao.slice(1),
     aoVivo: d.aoVivo ? { titulo: d.aoVivo.sessao, sub: d.aoVivo.campanha, mesa: `/campaign/${d.aoVivo.campaignId}/mesa` } : null,
@@ -159,7 +164,7 @@ export function useInicioVals(d: InicioDados) {
     camps: d.campanhas.filter(c => filtro === 'Todas' || (filtro === 'Mestre') === c.mestre).map((c, i) => ({
       n: c.nome, sysProg: [c.sistema, c.sessoes ? `Sessão ${roman(c.sessoes)}` : null].filter(Boolean).join(' · '),
       role: c.mestre ? 'Mestre' : 'Jogador', href: `/campaign/${c.id}`,
-      next: c.aoVivo ? 'Agora · ao vivo' : '—', slot: `inicio-capa-${i}`, cover: COVERS[i % COVERS.length], delay: (0.2 + i * 0.06).toFixed(2),
+      next: c.aoVivo ? 'Agora · ao vivo' : c.proxima ?? '—', slot: `inicio-capa-${c.id}`, cover: COVERS[i % COVERS.length], delay: (0.2 + i * 0.06).toFixed(2),
       roleBg: c.mestre ? 'var(--gold-t)' : 'var(--surface2)', roleColor: c.mestre ? 'color-mix(in oklab, var(--gold) 65%, var(--ink))' : 'var(--muted)',
       avs: c.membros.slice(0, 3).map((m, j) => ({ i: m.charAt(0).toUpperCase(), bg: AV[(i + j) % AV.length] })),
       more: c.membros.length > 3 ? `+${c.membros.length - 3}` : '',

@@ -26,7 +26,7 @@ Copy que não está no design e precisa de confirmação:
 | Campo/recurso | Uso no front |
 |---|---|
 | Upload da capa | `Campaign.coverUrl` já existe e aparece no header, Campanhas, Painel, Convite e visão do jogador; falta enviar a imagem (hoje só por `PATCH` com link). |
-| Agenda no Início | A agenda e os pontos da semana do Início ainda mostram só a sessão ao vivo. |
+
 
 ## Nova Campanha (`components/screens/novacampanha/vals.ts`)
 
@@ -106,12 +106,6 @@ Hoje o canal da campanha é o chat da sessão ativa (`RollLog` com `expression =
 | Chamada | Contrato | Observações |
 |---|---|---|
 | Códigos recebidos no Discord | lista `{ codigo, de }` | Linha "Recebidos no Discord"; sem fonte, fica escondida. |
-
-## Primeiros Passos
-
-| Campo/recurso | Uso no front |
-|---|---|
-| Progresso do tour no usuário (`phase`, ritos feitos, rito atual) | Hoje em `localStorage` (`lib/tour-store.ts`); no usuário, vale em qualquer dispositivo. |
 
 ## Mesa (`components/screens/mesa/vals.ts`)
 
