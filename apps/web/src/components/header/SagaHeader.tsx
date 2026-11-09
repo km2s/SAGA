@@ -33,7 +33,7 @@ export function ativoFromPath(pathname: string): HeaderAtivo {
   return 'inicio'
 }
 
-// TODO(api): não há endpoint de mensagens ainda; o selo some com 0 não lidas.
+// O selo de não lidas vem do AppHeader (GET /api/mensagens/lido); some com 0.
 export function SagaHeader({ ativo, campanhas, inviteUrl, unread = 0 }: { ativo: HeaderAtivo; campanhas: HeaderCampanha[]; inviteUrl: string | null; unread?: number }) {
   const { data: session } = useSession()
   const username = session?.user?.username ?? ''

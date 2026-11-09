@@ -29,6 +29,9 @@ model User {
   notes        Note[]
   systems      RPGSystem[]
   applications CampaignApplication[]
+  mensagensEnviadas  Mensagem[] @relation("MensagemDe")
+  mensagensRecebidas Mensagem[] @relation("MensagemPara")
+  leituras     Leitura[]
 }
 
 // ─── Campanha ──────────────────────────────────────────────
@@ -73,6 +76,7 @@ model Campaign {
   mapas        Mapa[]
   fios         Fio[]
   agendadas    SessaoAgendada[]
+  mensagens    Mensagem[]
 }
 
 /// Fios soltos da crônica (Painel do Mestre › Visão geral).
@@ -527,4 +531,35 @@ model Mapa {
   campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
 
   @@index([campaignId])
+}
+/// SAGA Mensagens: canal da campanha (campaignId) ou conversa direta (paraId, sem campanha).
+/// O chat da sessão ao vivo continua no RollLog (expression = "chat").
+model Mensagem {
+  id         String   @id @default(cuid())
+  campaignId String?
+  deId       String
+  paraId     String?
+  texto      String   @db.Text
+  personagem String?  // "Em personagem": nome do personagem que fala
+  createdAt  DateTime @default(now())
+
+  campaign Campaign? @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  de       User      @relation("MensagemDe", fields: [deId], references: [id], onDelete: Cascade)
+  para     User?     @relation("MensagemPara", fields: [paraId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId, createdAt])
+  @@index([deId, paraId, createdAt])
+  @@index([paraId, createdAt])
+}
+
+/// Até quando cada usuário leu cada conversa ("<campaignId>" ou "dm:<userId>").
+model Leitura {
+  id       String   @id @default(cuid())
+  userId   String
+  conversa String
+  lidoEm   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, conversa])
 }

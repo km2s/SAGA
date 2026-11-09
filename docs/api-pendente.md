@@ -78,16 +78,12 @@ Já funcionam com a API atual: iniciar sessão (`sessions/start`, 409), barras d
 
 ## Mensagens (`components/screens/mensagens/vals.ts`)
 
-Hoje o canal da campanha é o chat da sessão ativa (`RollLog` com `expression = 'chat'`), lido pelo `GET rolls?since=` a cada 4 s. Falta:
+Feito (2026-11-09): tabela `Mensagem` (canal da campanha fora da sessão, diretas entre quem divide campanha, em personagem) e `Leitura` (não lidas, selo do header); `GET/POST /api/mensagens`, `GET/POST /api/mensagens/lido`. Com a sessão ao vivo, a mensagem fora de personagem continua indo para o chat da Mesa (`RollLog`). Falta:
 
 | Recurso | Uso no front |
 |---|---|
-| Mensagens diretas entre usuários | Grupo "Diretas" (hoje vazio) |
-| Canal da campanha fora da sessão | Hoje só dá para escrever com sessão ativa |
-| Mensagem em personagem (flag + nome do personagem) | Modo "Em personagem" |
 | Sussurro do mestre (selado, só um destinatário) | Bolha selada que rompe ao clicar |
-| Recado fixado e próxima sessão no painel lateral | "Fixado" e agenda |
-| Não lidas | Selo do header e contadores da lista |
+| Recado fixado no painel lateral | "Fixado" (a próxima sessão já aparece) |
 | Indicador "escrevendo…" | Linha de digitação (hoje usada para avisos de erro) |
 
 ## Perfil (`components/screens/perfil/vals.ts`)
