@@ -2,6 +2,7 @@ import type { Client } from 'discord.js'
 import { prisma } from 'database'
 
 const MIN = 60_000
+const dmDesligada = (raw: string | null) => { try { return (JSON.parse(raw ?? '{}') as { dm?: number }).dm === 0 } catch { return false } }
 
 /**
  * Lembrete das sessões agendadas no Painel do Mestre: 1 hora antes, cada membro
@@ -17,7 +18,7 @@ async function enviarDevidos(client: Client) {
     },
     select: {
       id: true, titulo: true, horario: true,
-      campaign: { select: { name: true, members: { select: { user: { select: { discordId: true } } } } } },
+      campaign: { select: { name: true, members: { select: { user: { select: { discordId: true, prefsJson: true } } } } } },
     },
   }).catch(() => [])
 
@@ -26,6 +27,8 @@ async function enviarDevidos(client: Client) {
     if (!marcada.count) continue
     const texto = `⏳ **${ag.titulo}** de *${ag.campaign.name}* começa às ${ag.horario} (horário de Brasília). Até já na mesa!`
     for (const m of ag.campaign.members) {
+      // Perfil › Conexões: "Lembretes de sessão por DM" desligado.
+      if (dmDesligada(m.user.prefsJson)) continue
       try {
         const u = await client.users.fetch(m.user.discordId)
         await u.send(texto)

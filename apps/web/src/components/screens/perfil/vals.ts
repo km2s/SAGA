@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { Link as LinkIcon, Mail, RefreshCw, Shield, SlidersHorizontal, Trash2, Upload, UserRound, type LucideIcon } from 'lucide-react'
 import { GoogleIcon } from '@/components/ui/saga'
 import { toggleTema } from '@/lib/tema'
+import { useRouter } from 'next/navigation'
 
 /** Dados reais de /perfil (app/(app)/perfil/page.tsx). */
 export type PerfilDados = {
@@ -14,6 +15,8 @@ export type PerfilDados = {
   ultimaSync: string
   inviteUrl: string | null
   aba: string
+  bio: string; titulo: string | null; moldura: string | null
+  discord: { avatar: number; nome: number; dm: number; rolls: number }
 }
 
 const FR: Record<string, string> = { Ouro: 'conic-gradient(from 30deg,#8a6320,#f3dc94,#c9a22a,#8a6320,#f3dc94,#8a6320)', Cera: 'radial-gradient(circle at 35% 30%, #c95a3a, #a8262f 50%, #5a1015)', Ferro: 'conic-gradient(from 0deg,#4a4a4a,#b8b8b0,#6a6a66,#2e2e2e,#9a9a94,#4a4a4a)', Sangue: 'conic-gradient(from 90deg,#3a0a0e,#c8424c,#5a1015,#8a1c24,#3a0a0e)' }
@@ -27,20 +30,21 @@ export function usePerfilVals(d: PerfilDados) {
   const [tab, setTab] = useState(d.aba)
   const [menu, setMenu] = useState(false)
   const [av, setAv] = useState<'discord' | 'custom'>('discord')
-  const [frame, setFrame] = useState('Ouro')
+  const [frame, setFrame] = useState(d.moldura && FR[d.moldura] ? d.moldura : 'Ouro')
   const [name, setName] = useState(d.nome)
   const [user, setUser] = useState(d.user)
-  const [bio, setBio] = useState('')
-  const [title, setTitle] = useState(d.titulos[0] ?? '')
+  const [bio, setBio] = useState(d.bio)
+  const [title, setTitle] = useState(d.titulo && d.titulos.includes(d.titulo) ? d.titulo : d.titulos[0] ?? '')
   const [dirty, setDirty] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [dcOpt, setDcOpt] = useState({ avatar: 1, nome: 1, dm: 1, rolls: 0 })
+  const [dcOpt, setDcOpt] = useState(d.discord)
   const [syncing, setSyncing] = useState(false)
   const [synced, setSynced] = useState(false)
   const [pref, setPref] = useState<Prefs>({ anim: 1, sons: 0, email: 1, resumo: 1 })
   const [themePref, setThemePref] = useState<string | null>(null)
   const [escuro, setEscuro] = useState(false)
   const t1 = useRef<ReturnType<typeof setTimeout>>()
+  const router = useRouter()
 
   useEffect(() => {
     setEscuro(document.documentElement.getAttribute('data-tema') === 'escuro')
@@ -55,9 +59,9 @@ export function usePerfilVals(d: PerfilDados) {
 
   const save = async () => {
     if (!dirty) return
-    // TODO(api): PATCH /api/perfil { nome, usuario, bio, titulo, moldura, avatar }.
-    const r = await fetch('/api/perfil', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nome: name, usuario: user, bio, titulo: title, moldura: frame, avatar: av }) }).catch(() => null)
-    if (r?.ok) { setDirty(false); setSaved(true) }
+    // O @ é o do Discord (volta a cada login): só nome, bio, título e moldura são gravados.
+    const r = await fetch('/api/perfil', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nome: name, bio, titulo: title, moldura: frame }) }).catch(() => null)
+    if (r?.ok) { setDirty(false); setSaved(true); setUser(d.user) }
   }
 
   return {
@@ -91,9 +95,14 @@ export function usePerfilVals(d: PerfilDados) {
       setSyncing(true)
       const [r] = await Promise.all([fetch('/api/perfil/sincronizar', { method: 'POST' }).catch(() => null), new Promise(res => { t1.current = setTimeout(res, 1600) })]) // TODO(api)
       setSyncing(false); setSynced(!!r?.ok)
+      if (r?.ok) router.refresh()
     },
     dcOpts: ([['avatar', 'Sincronizar foto de perfil', 'Usa o avatar do Discord quando você não envia uma imagem.'], ['nome', 'Sincronizar nome de exibição', 'Mantém seu nome igual ao do Discord.'], ['dm', 'Lembretes de sessão por DM', 'O bot avisa 1 h antes de cada sessão marcada.'], ['rolls', 'Publicar rolagens no servidor', 'Rolagens da mesa aparecem no canal da campanha.']] as const)
-      .map(([k, t, dd]) => ({ t, d: dd, ...sw(dcOpt[k]), go: () => setDcOpt(o => ({ ...o, [k]: o[k] ? 0 : 1 })) })), // TODO(api): preferências do Discord
+      .map(([k, t, dd]) => ({ t, d: dd, ...sw(dcOpt[k]), go: () => {
+        const next = { ...dcOpt, [k]: dcOpt[k] ? 0 : 1 }
+        setDcOpt(next)
+        void fetch('/api/perfil', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ discord: next }) }).catch(() => null)
+      } })),
     servers: [] as { n: string; c: string; i: string; bg: string; s: string; sColor: string }[], // TODO(api): servidores com o bot
     inviteUrl: d.inviteUrl ?? '#',
     others: [

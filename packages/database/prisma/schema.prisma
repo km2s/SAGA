@@ -16,6 +16,12 @@ model User {
   discordId String   @unique
   username  String
   avatar    String?
+  // Perfil (SAGA Perfil): nome exibido, bio, título, moldura e preferências do Discord (JSON).
+  nomeExibido String?
+  bio         String?
+  titulo      String?
+  moldura     String?
+  prefsJson   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

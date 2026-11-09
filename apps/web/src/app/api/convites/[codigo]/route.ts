@@ -6,6 +6,7 @@ import { applyRateLimit, RATE_LIMITS } from '@/lib/rate-limit'
 import { codigoValido, normalizar, proximasDe, rotuloAgenda, rotuloData } from '@/lib/convite'
 import { freqLabel } from '@/lib/campanha-labels'
 import { safeImageUrl } from '@/lib/safe-url'
+import { mandarDm } from '@/lib/discord-notify'
 
 const TOM: Record<string, string> = { epic: 'Épico', dark: 'Sombrio', horror: 'Terror', political: 'Político', adventure: 'Aventura', lighthearted: 'Leve' }
 
@@ -17,7 +18,7 @@ async function campanhaDo(codigo: string) {
     select: {
       id: true, name: true, description: true, coverUrl: true, campaignType: true, sessionFrequency: true, contentTone: true, maxSlots: true, systemId: true,
       system: { select: { name: true } },
-      members: { orderBy: { joinedAt: 'asc' }, select: { role: true, userId: true, user: { select: { username: true } }, character: { select: { name: true, class: true } } } },
+      members: { orderBy: { joinedAt: 'asc' }, select: { role: true, userId: true, user: { select: { username: true, discordId: true } }, character: { select: { name: true, class: true } } } },
     },
   }).catch(() => null)
 }
@@ -95,5 +96,8 @@ export async function POST(req: Request, { params }: { params: { codigo: string 
       },
     }).catch(() => null)
   }
+  // Avisa o mestre por DM (se o bot puder falar com ele).
+  const gm = c.members.find(m => m.role === 'GM')
+  if (gm) void mandarDm(gm.user.discordId, `🎲 ${session.user.username} entrou em **${c.name}** pelo código de convite${origem ? ` com ${origem.name}` : ''}.`)
   return NextResponse.json({ campaignId: c.id }, { status: 201 })
 }

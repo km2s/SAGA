@@ -92,3 +92,22 @@ export async function notifyGMApplicationReceived(
     }),
   })
 }
+
+/** DM simples pelo bot (sem embed). Falha em silêncio: DM fechada ou bot sem token. */
+export async function mandarDm(discordId: string, texto: string) {
+  const dmRes = await discordFetch('/users/@me/channels', { method: 'POST', body: JSON.stringify({ recipient_id: discordId }) })
+  if (!dmRes?.ok) return false
+  const dm = await dmRes.json().catch(() => null) as { id?: string } | null
+  if (!dm?.id) return false
+  const r = await discordFetch(`/channels/${dm.id}/messages`, { method: 'POST', body: JSON.stringify({ content: texto }) })
+  return !!r?.ok
+}
+
+/** Perfil público do usuário no Discord (nome de exibição e avatar), pelo token do bot. */
+export async function perfilDiscord(discordId: string): Promise<{ username: string; nome: string | null; avatar: string | null } | null> {
+  const r = await discordFetch(`/users/${discordId}`)
+  if (!r?.ok) return null
+  const u = await r.json().catch(() => null) as { username?: string; global_name?: string | null; avatar?: string | null } | null
+  if (!u?.username) return null
+  return { username: u.username, nome: u.global_name ?? null, avatar: u.avatar ? `https://cdn.discordapp.com/avatars/${discordId}/${u.avatar}.png` : null }
+}

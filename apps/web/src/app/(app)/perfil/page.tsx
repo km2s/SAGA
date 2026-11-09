@@ -13,7 +13,7 @@ export default async function PerfilPage({ searchParams }: { searchParams: { aba
   const u = await prisma.user.findUnique({
     where: { discordId: session.user.discordId },
     select: {
-      username: true, avatar: true, updatedAt: true,
+      username: true, avatar: true, updatedAt: true, nomeExibido: true, bio: true, titulo: true, moldura: true, prefsJson: true,
       memberships: { select: { role: true, campaign: { select: { name: true, system: { select: { name: true } }, sessions: { select: { startedAt: true, endedAt: true, isActive: true } } } } } },
     },
   }).catch(() => null)
@@ -35,7 +35,9 @@ export default async function PerfilPage({ searchParams }: { searchParams: { aba
   const clientId = process.env.DISCORD_CLIENT_ID
 
   const dados: PerfilDados = {
-    nome: session.user.displayName || u.username, user: u.username, avatar: u.avatar,
+    nome: u.nomeExibido || session.user.displayName || u.username, user: u.username, avatar: u.avatar,
+    bio: u.bio ?? '', titulo: u.titulo, moldura: u.moldura,
+    discord: (() => { let p: Record<string, number> = {}; try { p = JSON.parse(u.prefsJson ?? '{}') as Record<string, number> } catch { /* padrão */ } return { avatar: p.avatar ?? 1, nome: p.nome ?? 1, dm: p.dm ?? 1, rolls: p.rolls ?? 0 } })(),
     stats: { sessoes: sessoes.length, horas: Math.round(ms / 3600000), rolagens, vintes },
     // TODO(api): títulos conquistados. Hoje: um por campanha que você mestra, mais o título inicial.
     titulos: ['Cronista Iniciante', ...u.memberships.filter(m => m.role === 'GM').map(m => `Mestre de ${m.campaign.name}`)],

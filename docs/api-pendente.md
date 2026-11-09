@@ -94,9 +94,8 @@ Hoje o canal da campanha é o chat da sessão ativa (`RollLog` com `expression =
 
 | Chamada | Contrato |
 |---|---|
-| `PATCH /api/perfil` | `{ nome, usuario, bio, titulo, moldura, avatar: 'discord' \| 'custom' }` + upload do retrato |
-| `POST /api/perfil/sincronizar` | Atualiza nome e avatar a partir do Discord |
-| Preferências do Discord | foto, nome, lembretes por DM, publicar rolagens no servidor |
+| Upload do retrato | `PATCH /api/perfil` já grava nome exibido, bio, título, moldura e as preferências do Discord (`User.prefsJson`); falta enviar imagem. O @ é o do Discord e não muda. |
+| Publicar rolagens no servidor | A preferência é gravada, mas o bot ainda não publica as rolagens do site no Discord. |
 | Servidores com o bot | `[{ nome, canal, status }]` |
 | Vincular Google / e-mail e senha / 2FA / dispositivos (sessões ativas, encerrar) / excluir conta | Aba Conta e Conexões |
 | Títulos conquistados | "Título exibido" |
@@ -106,7 +105,6 @@ Hoje o canal da campanha é o chat da sessão ativa (`RollLog` com `expression =
 
 | Chamada | Contrato | Observações |
 |---|---|---|
-| Avisar o mestre (Discord) quando alguém entra pelo código | | Hoje a entrada não manda aviso. |
 | Códigos recebidos no Discord | lista `{ codigo, de }` | Linha "Recebidos no Discord"; sem fonte, fica escondida. |
 
 ## Primeiros Passos
