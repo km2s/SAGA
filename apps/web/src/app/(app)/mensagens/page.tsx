@@ -4,7 +4,7 @@ import { prisma, modoRolagem } from 'database'
 import { redirect } from 'next/navigation'
 import { Mensagens } from '@/components/screens/mensagens/Mensagens'
 import type { MensagensDados, Registro } from '@/components/screens/mensagens/vals'
-import { naoLidas, registro } from '@/lib/mensagens'
+import { SEL_MSG, naoLidas, registro } from '@/lib/mensagens'
 import { proximasDe, rotuloData } from '@/lib/convite'
 
 export default async function MensagensPage({ searchParams }: { searchParams: { campanha?: string; com?: string } }) {
@@ -21,7 +21,7 @@ export default async function MensagensPage({ searchParams }: { searchParams: { 
       character: { select: { name: true } },
       campaign: {
         select: {
-          id: true, name: true, system: { select: { name: true } },
+          id: true, name: true, recado: true, recadoEm: true, system: { select: { name: true } },
           members: { select: { role: true, userId: true, user: { select: { username: true, avatar: true } } } },
           // Canal = mensagens da campanha + registro da sessão ativa (ou da última, só leitura).
           sessions: { orderBy: { startedAt: 'desc' }, take: 1, select: { id: true, name: true, isActive: true } },
@@ -33,10 +33,11 @@ export default async function MensagensPage({ searchParams }: { searchParams: { 
 
   const campIds = memberships.map(m => m.campaign.id)
   const sessionIds = memberships.map(m => m.campaign.sessions[0]?.id).filter((x): x is string => !!x)
-  const sel = { id: true, texto: true, personagem: true, createdAt: true, campaignId: true, deId: true, paraId: true, de: { select: { username: true } } } as const
+  const sel = { ...SEL_MSG, deId: true, paraId: true } as const
   const [logs, msgsCamp, msgsDm, nao, prox] = await Promise.all([
     sessionIds.length ? prisma.rollLog.findMany({ where: { sessionId: { in: sessionIds } }, orderBy: { rolledAt: 'desc' }, take: 40 * sessionIds.length }).catch(() => []) : [],
-    campIds.length ? prisma.mensagem.findMany({ where: { campaignId: { in: campIds } }, orderBy: { createdAt: 'desc' }, take: 40 * campIds.length, select: sel }).catch(() => []) : [],
+    // Sussurros só para quem mandou e quem recebe.
+    campIds.length ? prisma.mensagem.findMany({ where: { campaignId: { in: campIds }, OR: [{ paraId: null }, { deId: me.id }, { paraId: me.id }] }, orderBy: { createdAt: 'desc' }, take: 40 * campIds.length, select: sel }).catch(() => []) : [],
     prisma.mensagem.findMany({ where: { campaignId: null, OR: [{ deId: me.id }, { paraId: me.id }] }, orderBy: { createdAt: 'desc' }, take: 400, select: sel }).catch(() => []),
     naoLidas(me.id),
     proximasDe(campIds),
@@ -55,7 +56,7 @@ export default async function MensagensPage({ searchParams }: { searchParams: { 
       .sort((a, b) => (ultimaDm.get(b[0]) ?? 0) - (ultimaDm.get(a[0]) ?? 0) || a[1].n.localeCompare(b[1].n))
       .slice(0, 30)
       .map(([uid, p]) => ({
-        id: `dm:${uid}`, tipo: 'dm' as const, n: p.n, sys: 'Mensagem direta', mestre: '', souMestre: false, membros: 2, personagem: null,
+        id: `dm:${uid}`, tipo: 'dm' as const, n: p.n, sys: 'Mensagem direta', mestre: '', souMestre: false, membros: 2, personagem: null, recado: null, jogadores: [],
         aoVivo: null, proxima: null, handouts: [], avatar: p.avatar,
         registros: msgsDm.filter(m => outroDe(m) === uid).slice(0, 60).reverse().map(m => ({ ...registro(m), fonte: 'msg' as const })),
       })),
@@ -73,6 +74,9 @@ export default async function MensagensPage({ searchParams }: { searchParams: { 
         membros: m.campaign.members.length, personagem: m.character?.name ?? null,
         aoVivo: s?.isActive ? s.name ?? 'sessão em andamento' : null,
         proxima: p ? `${p.titulo} · ${rotuloData(p)}` : null, avatar: null,
+        recado: m.campaign.recado ? { texto: m.campaign.recado, em: m.campaign.recadoEm?.toISOString() ?? null } : null,
+        // Para quem o mestre pode sussurrar (todos menos ele).
+        jogadores: m.role === 'GM' ? m.campaign.members.filter(x => x.userId !== me.id).map(x => ({ id: x.userId, u: x.user.username })) : [],
         registros: [...daSessao, ...doCanal].sort((a, b) => a.rolledAt.localeCompare(b.rolledAt)).slice(-60),
         handouts: m.campaign.handouts.map(h => h.imageUrl!).filter(Boolean),
       }

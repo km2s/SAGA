@@ -4,7 +4,9 @@ import { prisma } from 'database'
 export type Conversa = { tipo: 'camp'; campaignId: string } | { tipo: 'dm'; outroId: string }
 
 /** Registro no formato do canal da tela Mensagens (igual ao chat do RollLog). */
-export type RegistroMsg = { id: string; rolledBy: string; expression: 'chat'; attribute: string; total: 0; rolls: never[]; rolledAt: string; personagem: string | null }
+export type RegistroMsg = { id: string; rolledBy: string; expression: 'chat'; attribute: string; total: 0; rolls: never[]; rolledAt: string; personagem: string | null
+  /** Sussurro selado (campanha): para quem, e quando o selo foi rompido. */
+  para: string | null; aberto: boolean }
 
 /**
  * Confere se o usuário pode falar nesta conversa: membro da campanha, ou
@@ -23,20 +25,23 @@ export async function conversaDe(meuId: string, conversa: string): Promise<Conve
   return m ? { tipo: 'camp', campaignId: conversa } : null
 }
 
+// Sussurro (campanha com paraId): só quem mandou e quem recebe. Os outros nem sabem que existe.
 export const ondeConversa = (meuId: string, c: Conversa) => c.tipo === 'camp'
-  ? { campaignId: c.campaignId }
+  ? { campaignId: c.campaignId, OR: [{ paraId: null }, { deId: meuId }, { paraId: meuId }] }
   : { campaignId: null, OR: [{ deId: meuId, paraId: c.outroId }, { deId: c.outroId, paraId: meuId }] }
 
-type Linha = { id: string; texto: string; personagem: string | null; createdAt: Date; de: { username: string } }
+type Linha = { id: string; texto: string; personagem: string | null; createdAt: Date; de: { username: string }; campaignId?: string | null; abertoEm?: Date | null; para?: { username: string } | null }
 export const registro = (m: Linha): RegistroMsg => ({
   id: m.id, rolledBy: m.de.username, expression: 'chat', attribute: m.texto, total: 0, rolls: [], rolledAt: m.createdAt.toISOString(), personagem: m.personagem,
+  para: m.campaignId && m.para ? m.para.username : null, aberto: !!m.abertoEm,
 })
+export const SEL_MSG = { id: true, texto: true, personagem: true, createdAt: true, campaignId: true, abertoEm: true, de: { select: { username: true } }, para: { select: { username: true } } } as const
 
 export async function lerMensagens(meuId: string, c: Conversa, since?: Date, take = 60) {
   const xs = await prisma.mensagem.findMany({
     where: { ...ondeConversa(meuId, c), ...(since ? { createdAt: { gt: since } } : {}) },
     orderBy: { createdAt: 'desc' }, take,
-    select: { id: true, texto: true, personagem: true, createdAt: true, de: { select: { username: true } } },
+    select: SEL_MSG,
   }).catch(() => [])
   return xs.reverse().map(registro)
 }
@@ -54,7 +59,7 @@ export async function naoLidas(meuId: string): Promise<Record<string, number>> {
   const recentes = await prisma.mensagem.findMany({
     where: {
       deId: { not: meuId }, createdAt: { gt: new Date(Date.now() - 60 * 86400_000) },
-      OR: [{ campaignId: { in: camps.map(c => c.campaignId) } }, { campaignId: null, paraId: meuId }],
+      OR: [{ campaignId: { in: camps.map(c => c.campaignId) }, OR: [{ paraId: null }, { paraId: meuId }] }, { campaignId: null, paraId: meuId }],
     },
     select: { campaignId: true, deId: true, createdAt: true }, take: 2000,
   }).catch(() => [])
@@ -63,6 +68,14 @@ export async function naoLidas(meuId: string): Promise<Record<string, number>> {
     if (m.createdAt > desde(k)) out[k] = (out[k] ?? 0) + 1
   }
   return out
+}
+
+/** "X está escrevendo…": quem digitou na conversa nos últimos 6 s (menos você). */
+export async function digitando(meuId: string, conversa: string): Promise<string[]> {
+  const xs = await prisma.digitando.findMany({ where: { conversa, userId: { not: meuId }, em: { gt: new Date(Date.now() - 6000) } }, select: { userId: true } }).catch(() => [])
+  if (!xs.length) return []
+  const us = await prisma.user.findMany({ where: { id: { in: xs.map(x => x.userId) } }, select: { username: true, nomeExibido: true } }).catch(() => [])
+  return us.map(u => u.nomeExibido || u.username)
 }
 
 export async function marcarLida(meuId: string, conversa: string) {
