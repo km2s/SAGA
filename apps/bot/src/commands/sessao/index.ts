@@ -2,7 +2,7 @@ import { SlashCommandBuilder } from 'discord.js'
 import type { Command } from '../../types.js'
 import { getCampaignByGuild, getMember, getActiveSession, formatDuration } from '../../lib/permissions.js'
 import { sessionStartEmbed, sessionEndEmbed, errorEmbed, infoEmbed } from '../../lib/embeds.js'
-import { prisma } from 'database'
+import { prisma, contarRolagens, resumoContagem } from 'database'
 
 const command: Command = {
   data: new SlashCommandBuilder()
@@ -52,7 +52,8 @@ const command: Command = {
       const session = await getActiveSession(campaign.id)
       if (!session) return void await interaction.editReply({ embeds: [errorEmbed('Não há sessão ativa para encerrar.')]})
 
-      const rollCount = await prisma.rollLog.count({ where: { sessionId: session.id } })
+      const contagem = await contagemSessao(session.id, member)
+      const rollCount = contagem.publicas
       const duration = formatDuration(session.startedAt)
 
       await prisma.session.update({
@@ -66,16 +67,31 @@ const command: Command = {
       })
 
       await interaction.editReply({ embeds: [sessionEndEmbed(campaign.name, duration, rollCount)] })
+      await mestreVeTudo(interaction, contagem.mestre)
     }
 
     if (sub === 'status') {
       const session = await getActiveSession(campaign.id)
       if (!session) return void await interaction.editReply({ embeds: [infoEmbed('Nenhuma sessão ativa no momento.')] })
       const duration = formatDuration(session.startedAt)
-      const rollCount = await prisma.rollLog.count({ where: { sessionId: session.id } })
+      const contagem = await contagemSessao(session.id, member)
+      const rollCount = contagem.publicas
       await interaction.editReply({ embeds: [infoEmbed(`**${session.name ?? 'Sessão em andamento'}** · ${campaign.name}\n⏱ Duração: ${duration} · 🎲 Rolagens: ${rollCount}`)] })
+      await mestreVeTudo(interaction, contagem.mestre)
     }
   },
+}
+
+// Rolagens privadas (combinado de 2026-11-07): no canal, só as públicas; o mestre recebe, só para ele,
+// o total com os contadores ("30 rolagens · 10 secretas · 10 às cegas").
+async function contagemSessao(sessionId: string, member: { id: string; role: string; user?: { username?: string } | null }) {
+  const logs = await prisma.rollLog.findMany({ where: { sessionId, NOT: { expression: 'chat' } }, select: { visibility: true, revealedAt: true, memberId: true, rolledBy: true } })
+  const publicas = logs.filter(l => l.visibility === 'PUBLIC' || l.revealedAt).length
+  const mestre = member.role === 'GM' ? resumoContagem(contarRolagens(logs, { memberId: member.id, username: member.user?.username ?? '', gm: true })) : null
+  return { publicas, mestre }
+}
+async function mestreVeTudo(interaction: { followUp: (o: { embeds: ReturnType<typeof infoEmbed>[]; ephemeral: boolean }) => Promise<unknown> }, resumo: string | null) {
+  if (resumo) await interaction.followUp({ embeds: [infoEmbed(`🎲 Só você vê: ${resumo}`)], ephemeral: true })
 }
 
 function generateSummary(name: string | null, duration: string, rolls: number): string {

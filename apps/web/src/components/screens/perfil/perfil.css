@@ -1,0 +1,15 @@
+/* Gerado por scripts/dc-to-jsx.ps1 a partir de SAGA Perfil.dc.html. */
+@keyframes perfil-up {from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes perfil-spinR {to{transform:rotate(360deg)}}
+@keyframes perfil-pop {from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
+@keyframes perfil-menuIn {from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.perfil-s1:hover { background:var(--surface2) !important }
+.perfil-s2:hover { color:var(--ink) !important }
+.perfil-s3:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.perfil-s4:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.perfil-s5:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.perfil-s6:hover { background:#4752c4 !important }
+.perfil-s7:hover { color:var(--accent) !important; border-color:var(--accent) !important }
+.perfil-s8:hover { background:var(--surface2) !important }
+.perfil-s9:hover { background:var(--surface2) !important }
+.perfil-s10:hover { background:var(--accent) !important; color:#fff !important }

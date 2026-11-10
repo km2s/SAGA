@@ -1,0 +1,37 @@
+/* Gerado por scripts/dc-to-jsx.ps1 a partir de SAGA Nova Campanha.dc.html. */
+@keyframes novacampanha-up {from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes novacampanha-fadeIn {from{opacity:0}to{opacity:1}}
+@keyframes novacampanha-popIn {from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes novacampanha-popA {0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1)}}
+@keyframes novacampanha-popB {0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1)}}
+@keyframes novacampanha-stamp {0%{transform:scale(2.3) rotate(-22deg);opacity:0}60%{transform:scale(.92) rotate(3deg);opacity:1}100%{transform:scale(1) rotate(-8deg)}}
+@keyframes novacampanha-spin {0%{transform:rotate(0) scale(.8)}70%{transform:rotate(620deg) scale(1.06)}100%{transform:rotate(720deg) scale(1)}}
+@keyframes novacampanha-spinR {to{transform:rotate(360deg)}}
+@keyframes novacampanha-pulse {0%,100%{box-shadow:0 0 0 0 rgb(224 106 67/.5)}50%{box-shadow:0 0 0 5px rgb(224 106 67/0)}}
+@keyframes novacampanha-ringPulse {0%,100%{box-shadow:inset 0 0 0 2px var(--accent),0 0 0 0 rgb(224 106 67/.4)}50%{box-shadow:inset 0 0 0 2px var(--accent),0 0 0 6px rgb(224 106 67/0)}}
+@keyframes novacampanha-shakeA {0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
+@keyframes novacampanha-shakeB {0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
+@keyframes novacampanha-slideIn {from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+@keyframes novacampanha-unfold {from{opacity:0;clip-path:inset(0 0 100% 0)}to{opacity:1;clip-path:inset(0 0 0 0)}}
+@keyframes novacampanha-toastIn {from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes novacampanha-rerollA {0%{transform:translateY(-60%);opacity:0}100%{transform:none;opacity:1}}
+@keyframes novacampanha-rerollB {0%{transform:translateY(-60%);opacity:0}100%{transform:none;opacity:1}}
+@keyframes novacampanha-seatIn {from{transform:translateY(-8px) scale(.6);opacity:0}to{transform:none;opacity:1}}
+.novacampanha-s1:hover { color:var(--ink) !important }
+.novacampanha-s2:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.novacampanha-s3:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.novacampanha-s4:hover { transform:translateY(-4px) rotate(-1deg) !important }
+.novacampanha-s5:hover { color:var(--accent) !important }
+.novacampanha-s6:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.novacampanha-s7:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.novacampanha-s8:hover { color:var(--ink) !important; background:var(--surface2) !important }
+.novacampanha-s9:hover { color:var(--ink) !important; background:var(--surface2) !important }
+.novacampanha-s10:hover { background:var(--surface2) !important }
+.novacampanha-s11:hover { background:var(--surface2) !important }
+.novacampanha-s12:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.novacampanha-s13:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.novacampanha-s14:hover { color:var(--ink) !important; background:var(--surface2) !important }
+.novacampanha-s15:hover { background:var(--accent-d) !important }
+.novacampanha-s16:hover { filter:brightness(1.12) !important }
+.novacampanha-s17:hover { filter:brightness(1.12) !important; color:#f6ecd6 !important }
+.novacampanha-s18:hover { background:#fffaf0 !important; color:#241c14 !important }

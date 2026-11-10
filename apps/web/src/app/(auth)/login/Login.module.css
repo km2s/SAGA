@@ -1,0 +1,141 @@
+/* Saga NOVO/SAGA Login.dc.html */
+.root {
+  --sky1: #f7f0e3; --sky2: #efdcbc; --sun: #e9a55a; --glow: rgb(233 165 90/.35); --far: #e4d3b3; --mid: #cfb68d;
+  --castle: #b39466; --near: #6f5437; --ground: #3e2e1f; --lit: #f2b04a; --bird: #8a6f4a; --cloud: rgb(255 252 244/.75);
+  min-height: 100vh; display: flex; flex-wrap: wrap; background: var(--bg);
+  font: 400 14px/1.45 'Geist', system-ui, sans-serif; color: var(--ink);
+}
+:global(html[data-tema="escuro"]) .root {
+  --sky1: #0f0b0a; --sky2: #3a2218; --sun: #f3dcae; --glow: rgb(243 220 174/.18); --far: #2c1e17; --mid: #231710;
+  --castle: #1d130d; --near: #130c08; --ground: #0b0705; --lit: #f7b04a; --bird: #5a4636; --cloud: rgb(80 60 50/.35);
+}
+
+/* ── Cena ── */
+.scene { position: relative; flex: 1.15 1 360px; min-height: 300px; overflow: hidden; background: linear-gradient(180deg, var(--sky1), var(--sky2)); transition: background .6s; }
+.sceneSvg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.sun { transition: transform 1.6s cubic-bezier(.4,.1,.2,1); }
+.sunGlow { animation: sunGlow 6s ease-in-out infinite; }
+.cloud1 { animation: drift 70s linear infinite; }
+.cloud2 { animation: drift 95s -40s linear infinite; }
+.birds { animation: birds 22s linear infinite; }
+.bird { transform-box: fill-box; transform-origin: center; }
+.layer { transition: transform .4s ease-out; }
+.fillT { transition: fill .6s; }
+.farTowers { filter: brightness(.94); }
+.flagG { transition: transform 1.2s cubic-bezier(.3,1.3,.5,1); }
+.flag { transform-origin: 537px 352px; animation: flag 2.6s ease-in-out infinite; }
+.lit { transition: opacity 1.2s; }
+.flap1 { animation: flap .5s ease-in-out infinite; }
+.flap2 { animation: flap .45s .1s ease-in-out infinite; }
+.flap3 { animation: flap .4s .2s ease-in-out infinite; }
+.fl1 { animation: flicker 2.6s infinite; }
+.fl2 { animation: flicker 3.2s .5s infinite; }
+.fl3 { animation: flicker 2.9s 1s infinite; }
+.fl4 { animation: flicker 3.5s .2s infinite; }
+.fl5 { animation: flicker 2.4s 1.3s infinite; }
+
+.sceneLogo { position: absolute; left: 32px; top: 28px; display: flex; align-items: center; gap: 10px; color: var(--ink); }
+.sceneLogo:hover { color: var(--ink); }
+.caption { position: absolute; left: 32px; right: 32px; bottom: 34px; max-width: 480px; color: #f6ecd6; }
+.captionKick { margin: 0; font: 400 15px/1 'IM Fell English SC', serif; letter-spacing: .04em; color: #e8c46a; }
+.captionLine { margin: 10px 0 0; font: 400 34px/1.12 'IM Fell English', serif; text-wrap: balance; animation: up .6s both; }
+
+/* ── Formulário ── */
+.side { position: relative; flex: 0 1 460px; min-height: 100vh; display: flex; flex-direction: column; padding: 28px clamp(24px, 5vw, 72px); }
+.topRow { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.back { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; color: var(--muted); }
+.back:hover { color: var(--ink); }
+.iconBtn { all: unset; cursor: pointer; width: 36px; height: 36px; display: grid; place-items: center; border-radius: 4px; border: 1px solid var(--line); color: var(--muted); box-sizing: border-box; }
+.iconBtn:hover { color: var(--ink); background: var(--surface2); }
+
+.center { flex: 1; display: flex; align-items: center; justify-content: center; padding: 32px 0; }
+.box { position: relative; width: 100%; max-width: 420px; }
+.shakeA { animation: shakeA .4s ease-in-out; }
+.shakeB { animation: shakeB .4s ease-in-out; }
+
+.tabs { position: relative; display: grid; grid-template-columns: 1fr 1fr; padding: 4px; border-radius: 5px; background: var(--surface2); }
+.thumb { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px); border-radius: 3px; background: var(--surface); box-shadow: 0 1px 3px rgb(60 30 10/.12); transition: transform .35s cubic-bezier(.4,1.3,.5,1); }
+.tab { all: unset; cursor: pointer; position: relative; padding: 10px 0; text-align: center; font: 500 14px/1 'Geist', sans-serif; color: var(--muted); transition: color .2s; }
+.tabOn { color: var(--ink); }
+
+.panel { margin-top: 30px; animation: swapIn .35s both; }
+.h1 { margin: 0; font: 400 38px/1.05 'IM Fell English', serif; }
+.sub { margin: 8px 0 0; color: var(--muted); }
+.pretty { text-wrap: pretty; }
+
+.oauthCol { display: flex; flex-direction: column; gap: 8px; margin-top: 24px; }
+.oauthGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 24px; }
+.oauth { all: unset; cursor: pointer; box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 10px; height: 46px; border-radius: 4px; font: 500 14px/1 'Geist', sans-serif; }
+.oauthGrid .oauth { gap: 9px; }
+.discord { background: #5865f2; color: #fff; }
+.discord:hover { background: #4752c4; }
+.discordShadow { box-shadow: 0 6px 14px -8px #3a44b8; }
+.google { border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+.google:hover { background: var(--surface2); }
+
+.divider { display: flex; align-items: center; gap: 12px; margin: 22px 0 18px; font: italic 400 15px/1 'IM Fell English', serif; color: var(--muted); }
+.divider > span { flex: 1; height: 1px; background: var(--line); }
+
+.label { display: block; }
+.mt14 { margin-top: 14px; }
+.mt22 { margin-top: 22px; }
+.labelText { font: 500 13px/1 'Geist', sans-serif; color: var(--muted); }
+.labelRow { display: flex; justify-content: space-between; font: 500 13px/1 'Geist', sans-serif; color: var(--muted); }
+.linkBtn { all: unset; cursor: pointer; font-weight: 500; color: var(--accent); }
+.linkBtn:hover { color: var(--accent-d); }
+
+.input { display: block; width: 100%; height: 44px; padding: 0 12px; border-radius: 4px; border: 1px solid var(--line); background: var(--surface); font: 400 14px/1 'Geist', sans-serif; color: var(--ink); outline: none; }
+.input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-t); }
+.inputGap { margin-top: 7px; }
+.inputPass { padding: 0 44px 0 12px; }
+.inputUser { padding: 0 12px 0 28px; }
+.fieldWrap { position: relative; display: block; margin-top: 7px; }
+.at { position: absolute; left: 12px; top: 0; line-height: 44px; color: var(--muted); }
+.eye { all: unset; cursor: pointer; position: absolute; right: 7px; top: 7px; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 3px; color: var(--muted); }
+.eye:hover { color: var(--ink); background: var(--surface2); }
+
+.check { display: flex; align-items: center; gap: 8px; margin-top: 14px; cursor: pointer; font-size: 13px; color: var(--muted); }
+.checkTop { align-items: flex-start; margin-top: 16px; }
+/* Margem padrão do navegador que o design usa (o preflight do Tailwind zera). */
+.check input { accent-color: var(--accent); width: 15px; height: 15px; margin: 3px 3px 3px 4px; }
+.checkTop input { margin-top: 1px; }
+
+.strengthRow { display: flex; align-items: center; gap: 10px; margin-top: 9px; }
+.bars { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.bars > span { height: 4px; border-radius: 2px; transition: background .3s; }
+.strLabel { min-width: 64px; text-align: right; font-size: 12px; font-weight: 500; }
+
+.err { margin: 14px 0 0; font: italic 400 16px/1.3 'IM Fell English', serif; color: var(--accent); animation: up .3s both; }
+
+.submit { all: unset; cursor: pointer; box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 48px; margin-top: 20px; border-radius: 4px; background: var(--accent); color: #fff8f0; font: 500 15px/1 'Geist', sans-serif; box-shadow: inset 0 0 0 1px rgb(255 220 160/.4), 0 10px 22px -12px var(--accent); }
+.submit:hover { background: var(--accent-d); }
+.submitFlat { box-shadow: inset 0 0 0 1px rgb(255 220 160/.4); }
+.spinner { width: 14px; height: 14px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spinR .7s linear infinite; }
+
+.sent { display: flex; gap: 14px; margin-top: 22px; padding: 16px; border-radius: 5px; background: var(--gold-t); animation: up .4s both; }
+.raven { width: 44px; height: 44px; flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--ink); color: var(--bg); animation: ravenFly 2.4s ease-in-out infinite; }
+.sentText { margin: 0; color: var(--ink); text-wrap: pretty; }
+.resend { all: unset; cursor: pointer; display: block; margin-top: 14px; font: 500 13px/1 'Geist', sans-serif; color: var(--muted); }
+.resend:hover { color: var(--ink); }
+.backLogin { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; margin-top: 26px; font: 500 13px/1 'Geist', sans-serif; color: var(--accent); }
+.backLogin:hover { color: var(--accent-d); }
+
+.sealed { position: absolute; inset: -12px; z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background: var(--bg); animation: fadeIn .3s both; }
+.sealTitle { margin: 6px 0 0; font: 400 28px/1.1 'IM Fell English', serif; animation: up .4s .35s both; }
+.sealSub { margin: 0; color: var(--muted); animation: up .4s .5s both; }
+
+.foot { margin: 0; font-size: 12px; color: var(--muted); text-align: center; }
+
+@keyframes up { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: none } }
+@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+@keyframes flag { 0%, 100% { transform: skewY(0) scaleX(1) } 50% { transform: skewY(-7deg) scaleX(.92) } }
+@keyframes flicker { 0%, 100% { opacity: 1 } 30% { opacity: .7 } 55% { opacity: .95 } 75% { opacity: .6 } }
+@keyframes drift { from { transform: translateX(-160px) } to { transform: translateX(960px) } }
+@keyframes birds { 0% { transform: translate(-80px, 40px) } 100% { transform: translate(880px, -60px) } }
+@keyframes flap { 0%, 100% { transform: scaleY(1) } 50% { transform: scaleY(.35) } }
+@keyframes sunGlow { 0%, 100% { opacity: .75 } 50% { opacity: 1 } }
+@keyframes shakeA { 0%, 100% { transform: translateX(0) } 20% { transform: translateX(-7px) } 40% { transform: translateX(6px) } 60% { transform: translateX(-4px) } 80% { transform: translateX(2px) } }
+@keyframes shakeB { 0%, 100% { transform: translateX(0) } 20% { transform: translateX(-7px) } 40% { transform: translateX(6px) } 60% { transform: translateX(-4px) } 80% { transform: translateX(2px) } }
+@keyframes swapIn { from { opacity: 0; transform: translateX(14px) } to { opacity: 1; transform: none } }
+@keyframes spinR { to { transform: rotate(360deg) } }
+@keyframes ravenFly { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-5px) } }

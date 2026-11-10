@@ -18,14 +18,14 @@ export function DeleteCharacterButton({ characterId, characterName }: {
     await fetch(`/api/characters/${characterId}`, { method: 'DELETE' }).catch(() => null)
     setLoading(false)
     setOpen(false)
-    router.push('/characters')
+    router.push('/personagens')
   }
 
   return (
     <>
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded text-sm text-saga-danger border border-saga-danger/30 hover:bg-saga-danger/10 transition-colors"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded text-sm text-red-700 border border-saga-danger/30 hover:bg-saga-danger/10 transition-colors"
       >
         <Trash2 size={13} />
         Deletar Ficha

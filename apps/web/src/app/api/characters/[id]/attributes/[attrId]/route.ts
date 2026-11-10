@@ -10,19 +10,6 @@ export async function PATCH(
   const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  // Verify ownership
-  const charAttr = await prisma.characterAttribute.findUnique({
-    where: { id: params.attrId },
-    include: { sheet: { include: { member: { include: { user: true } } } } },
-  }).catch(() => null)
-  if (!charAttr) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-
-  const isMine = charAttr.sheet.member.user.discordId === session.user.discordId
-  const isGM = await prisma.campaignMember.findFirst({
-    where: { campaignId: charAttr.sheet.member.campaignId, user: { discordId: session.user.discordId }, role: 'GM' },
-  })
-  if (!isMine && !isGM) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-
   const body = await req.json().catch(() => ({})) as { value?: number; customDie?: string }
 
   const data: Record<string, unknown> = {}
@@ -35,12 +22,45 @@ export async function PATCH(
   if (body.customDie !== undefined) {
     data.customDie = body.customDie === null ? null : String(body.customDie).slice(0, 20) || null
   }
-
   if (Object.keys(data).length === 0) {
     return NextResponse.json({ error: 'Nenhum campo para atualizar' }, { status: 400 })
   }
 
-  const updated = await prisma.characterAttribute.update({
+  // Try CharacterAttribute first
+  const charAttr = await prisma.characterAttribute.findUnique({
+    where: { id: params.attrId },
+    include: { sheet: { include: { member: { include: { user: true } } } } },
+  }).catch(() => null)
+
+  if (charAttr) {
+    const isMine = charAttr.sheet.member.user.discordId === session.user.discordId
+    const isGM = await prisma.campaignMember.findFirst({
+      where: { campaignId: charAttr.sheet.member.campaignId, user: { discordId: session.user.discordId }, role: 'GM' },
+    })
+    if (!isMine && !isGM) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+    const updated = await prisma.characterAttribute.update({
+      where: { id: params.attrId },
+      data,
+      include: { attribute: true },
+    })
+    return NextResponse.json(updated)
+  }
+
+  // Fallback: NPCAttribute — only GMs can edit
+  const npcAttr = await prisma.nPCAttribute.findUnique({
+    where: { id: params.attrId },
+    include: { npc: true },
+  }).catch(() => null)
+
+  if (!npcAttr) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  const isGM = await prisma.campaignMember.findFirst({
+    where: { campaignId: npcAttr.npc.campaignId, user: { discordId: session.user.discordId }, role: 'GM' },
+  })
+  if (!isGM) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+  const updated = await prisma.nPCAttribute.update({
     where: { id: params.attrId },
     data,
     include: { attribute: true },

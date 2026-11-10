@@ -7,8 +7,12 @@ import ficha from './commands/ficha/index.js'
 import nota from './commands/nota/index.js'
 import npc from './commands/npc/index.js'
 import campanha from './commands/campanha/index.js'
+import hp from './commands/hp/index.js'
+import iniciativa from './commands/iniciativa/index.js'
+import resumo from './commands/resumo/index.js'
+import handout from './commands/handout/index.js'
 
-const commands = [rolar, sessao, ficha, nota, npc, campanha].map(c => c.data.toJSON())
+const commands = [rolar, sessao, ficha, nota, npc, campanha, hp, iniciativa, resumo, handout].map(c => c.data.toJSON())
 
 const rest = new REST().setToken(process.env.DISCORD_TOKEN!)
 

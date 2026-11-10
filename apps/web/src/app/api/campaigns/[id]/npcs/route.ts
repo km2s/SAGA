@@ -2,6 +2,17 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from 'database'
 import { NextResponse } from 'next/server'
+import { mergedAttributesFrom, sanitizeSystemIds } from '@/lib/system-clone'
+
+function attrDefault(description: string | null): number {
+  const d = description?.trim() ?? ''
+  if (
+    d.startsWith('Talento') || d.startsWith('Perícia') || d.startsWith('Conhecimento') ||
+    d.startsWith('Habilidade') || d.startsWith('Disciplina') || d.startsWith('Antecedente')
+  ) return 0
+  if (d.startsWith('Virtude')) return 1
+  return 1
+}
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
@@ -15,7 +26,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   const body = await req.json() as {
     name?: string; description?: string; imageUrl?: string; type?: string
     race?: string; class?: string; level?: number; hp?: number; maxHp?: number
-    isPublic?: boolean; linkedMemberId?: string
+    isPublic?: boolean; linkedMemberId?: string; templateSystemIds?: string[]
   }
 
   if (!body.name?.trim()) return NextResponse.json({ error: 'Nome obrigatório' }, { status: 400 })
@@ -34,6 +45,15 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     linkedMemberId = linked.id
   }
 
+  // Template da ficha: por padrão o NPC herda os atributos do sistema da
+  // campanha; o GM pode escolher outro(s) sistema(s) como modelo (ex.: NPC só
+  // de Vampiro V20, só de Lobisomem, ou a mistura, numa campanha homebrew).
+  // Com exatamente 1 sistema-modelo, ele fica registrado em sheetSystemId — a
+  // ficha do NPC passa a renderizar (e re-semear) como aquele sistema.
+  const templateIds = sanitizeSystemIds(body.templateSystemIds)
+  const templateAttrs = templateIds.length > 0 ? await mergedAttributesFrom(templateIds) : []
+  const sheetSystemId = templateIds.length === 1 && templateAttrs.length > 0 ? templateIds[0]! : null
+
   const npc = await prisma.nPC.create({
     data: {
       name: body.name.trim().slice(0, 100),
@@ -48,9 +68,39 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       isPublic: body.isPublic ?? false,
       campaignId: params.id,
       linkedMemberId,
+      sheetSystemId,
     },
     include: { linkedMember: { include: { user: true } }, visibilities: true },
   })
+
+  if (templateAttrs.length > 0) {
+    await prisma.nPCAttribute.createMany({
+      data: templateAttrs.map(a => ({
+        npcId: npc.id,
+        attributeId: a.id,
+        value: attrDefault(a.description ?? null),
+      })),
+      skipDuplicates: true,
+    }).catch(() => null)
+    return NextResponse.json(npc, { status: 201 })
+  }
+
+  // Seed system attributes, exactly like character creation does
+  const campaign = await prisma.campaign.findUnique({
+    where: { id: params.id },
+    include: { system: { include: { attributes: true } } },
+  }).catch(() => null)
+
+  if (campaign?.system?.attributes && campaign.system.attributes.length > 0) {
+    await prisma.nPCAttribute.createMany({
+      data: campaign.system.attributes.map(a => ({
+        npcId: npc.id,
+        attributeId: a.id,
+        value: attrDefault(a.description ?? null),
+      })),
+      skipDuplicates: true,
+    }).catch(() => null)
+  }
 
   return NextResponse.json(npc, { status: 201 })
 }

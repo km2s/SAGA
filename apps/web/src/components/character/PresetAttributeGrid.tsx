@@ -52,13 +52,13 @@ function EditableValue({ attrId, value, characterId, onSaved }: {
     return (
       <input autoFocus type="number" value={val} onChange={e => setVal(e.target.value)}
         onBlur={save} onKeyDown={e => { if (e.key === 'Enter') void save(); if (e.key === 'Escape') setEditing(false) }}
-        className="w-12 text-center bg-surface-2 border border-gold/40 rounded text-lg font-bold focus:outline-none text-saga-text"
+        className="w-12 text-center bg-parchment/60 border border-gold/40 rounded text-lg font-bold focus:outline-none text-ink"
         style={{ MozAppearance: 'textfield' }}
       />
     )
   }
   return (
-    <span className="text-xs text-saga-muted cursor-pointer hover:text-gold transition-colors" onClick={() => { setEditing(true); setVal(String(value)) }}>
+    <span className="text-xs text-ink-soft cursor-pointer hover:text-gold transition-colors" onClick={() => { setEditing(true); setVal(String(value)) }}>
       {saving ? '...' : value}
     </span>
   )
@@ -93,11 +93,11 @@ export function PresetAttributeGrid({ characterId, attributes, canEdit }: {
     <div className="space-y-4">
       {/* Core 6-attribute hexagonal grid */}
       {core.length > 0 && (
-        <div className="bg-surface border border-border rounded-lg overflow-hidden">
-          <div className="px-5 py-3 border-b border-border flex items-center justify-between">
+        <div className="bg-card border border-ink/20 rounded-lg overflow-hidden">
+          <div className="px-5 py-3 border-b border-ink/20 flex items-center justify-between">
             <h3 className="font-cinzel text-sm font-semibold">Atributos Principais</h3>
             {canEdit && (
-              <button onClick={() => setAddOpen(true)} className="text-[10px] text-saga-muted hover:text-gold transition-colors">
+              <button onClick={() => setAddOpen(true)} className="text-[10px] text-ink-soft hover:text-gold transition-colors">
                 + Adicionar
               </button>
             )}
@@ -109,9 +109,9 @@ export function PresetAttributeGrid({ characterId, attributes, canEdit }: {
               const abbrev = ATTR_ABBREV[attr.attribute.name] ?? attr.attribute.name.slice(0, 3).toUpperCase()
               return (
                 <div key={attr.id}
-                  className="flex flex-col items-center gap-1 p-3 rounded-lg border border-border bg-surface-2 hover:border-border-bright transition-all group">
+                  className="flex flex-col items-center gap-1 p-3 rounded-lg border border-ink/20 bg-parchment/60 hover:border-wax transition-all group">
                   {/* Modifier — large */}
-                  <p className={`font-cinzel text-2xl font-bold leading-none ${isPos ? 'text-gold' : 'text-saga-danger'}`}>
+                  <p className={`font-cinzel text-2xl font-bold leading-none ${isPos ? 'text-gold' : 'text-red-700'}`}>
                     {mod}
                   </p>
                   {/* Divider */}
@@ -121,15 +121,15 @@ export function PresetAttributeGrid({ characterId, attributes, canEdit }: {
                     {canEdit ? (
                       <EditableValue attrId={attr.id} value={attr.value} characterId={characterId} onSaved={() => router.refresh()} />
                     ) : (
-                      <span className="text-xs text-saga-muted">{attr.value}</span>
+                      <span className="text-xs text-ink-soft">{attr.value}</span>
                     )}
                   </div>
                   {/* Abbreviation */}
-                  <p className="text-[9px] font-bold text-saga-dim uppercase tracking-widest">{abbrev}</p>
+                  <p className="text-[9px] font-bold text-ink-soft uppercase tracking-widest">{abbrev}</p>
                   {/* Full name tooltip on hover */}
                   {canEdit && (
                     <button onClick={() => setDeleteTarget(attr.id)}
-                      className="hidden group-hover:block text-[9px] text-saga-danger/60 hover:text-saga-danger transition-colors mt-0.5">
+                      className="hidden group-hover:block text-[9px] text-red-700/60 hover:text-red-700 transition-colors mt-0.5">
                       remover
                     </button>
                   )}
@@ -142,20 +142,20 @@ export function PresetAttributeGrid({ characterId, attributes, canEdit }: {
 
       {/* Extra attributes (non-core) */}
       {(extras.length > 0 || (core.length === 0)) && (
-        <div className="bg-surface border border-border rounded-lg overflow-hidden">
-          <div className="px-5 py-3 border-b border-border flex items-center justify-between">
+        <div className="bg-card border border-ink/20 rounded-lg overflow-hidden">
+          <div className="px-5 py-3 border-b border-ink/20 flex items-center justify-between">
             <h3 className="font-cinzel text-sm font-semibold">
               {core.length > 0 ? 'Atributos Extras' : 'Atributos'}
             </h3>
             {canEdit && (
               <button onClick={() => setAddOpen(true)}
-                className="px-2.5 py-1 rounded text-[10px] font-medium bg-gold-dim border border-gold/30 text-gold hover:bg-gold/20 transition-colors">
+                className="px-2.5 py-1 rounded text-[10px] font-medium bg-gold/15 border border-gold/30 text-gold hover:bg-gold/20 transition-colors">
                 + Adicionar
               </button>
             )}
           </div>
           {extras.length === 0 && core.length === 0 ? (
-            <div className="px-5 py-10 text-center text-sm text-saga-muted">
+            <div className="px-5 py-10 text-center text-sm text-ink-soft">
               {canEdit ? 'Nenhum atributo. Clique em "+ Adicionar".' : 'Nenhum atributo.'}
             </div>
           ) : extras.length === 0 ? null : (
@@ -164,24 +164,24 @@ export function PresetAttributeGrid({ characterId, attributes, canEdit }: {
                 const mod = getModifier(attr.value)
                 const isPos = !mod.startsWith('-')
                 return (
-                  <div key={attr.id} className="flex items-center gap-4 px-5 py-3 hover:bg-surface-2 transition-all group">
+                  <div key={attr.id} className="flex items-center gap-4 px-5 py-3 hover:bg-parchment/60 transition-all group">
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium">{attr.attribute.name}</p>
                       {attr.attribute.description && (
-                        <p className="text-[10px] text-saga-dim truncate">{attr.attribute.description}</p>
+                        <p className="text-[10px] text-ink-soft truncate">{attr.attribute.description}</p>
                       )}
                     </div>
                     {canEdit ? (
                       <EditableValue attrId={attr.id} value={attr.value} characterId={characterId} onSaved={() => router.refresh()} />
                     ) : (
-                      <span className="text-xs text-saga-muted">{attr.value}</span>
+                      <span className="text-xs text-ink-soft">{attr.value}</span>
                     )}
-                    <p className={`font-cinzel text-xl font-bold w-10 text-right ${isPos ? 'text-gold' : 'text-saga-danger'}`}>
+                    <p className={`font-cinzel text-xl font-bold w-10 text-right ${isPos ? 'text-gold' : 'text-red-700'}`}>
                       {mod}
                     </p>
                     {canEdit && (
                       <button onClick={() => setDeleteTarget(attr.id)}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity px-1.5 py-1 rounded text-saga-danger border border-saga-danger/30 hover:bg-saga-danger/10">
+                        className="opacity-0 group-hover:opacity-100 transition-opacity px-1.5 py-1 rounded text-red-700 border border-saga-danger/30 hover:bg-saga-danger/10">
                         <X size={10} />
                       </button>
                     )}

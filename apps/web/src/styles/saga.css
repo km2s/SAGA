@@ -1,0 +1,43 @@
+/* Tokens do redesign (Saga NOVO/*.dc.html). Valores copiados literalmente.
+   O tema vem de data-tema no <html> (aplicado antes da pintura pelo
+   RootLayout) ou direto no elemento [data-s]. */
+[data-s] {
+  --bg: #f6f1e7; --surface: #fffcf6; --surface2: #f1ebdf; --line: #e6dccb;
+  --ink: #241c14; --muted: #76695a; --accent: #b8492a; --accent-d: #963a20;
+  --accent-t: #f6e2d6; --gold: #b98a2a; --gold-t: #f4e9cf; --ok: #4f7a3a;
+  --blood: #8a1c24; --grain: .5;
+}
+html[data-tema="escuro"] [data-s],
+[data-s][data-tema="escuro"] {
+  --bg: #16130f; --surface: #1f1a15; --surface2: #29221b; --line: #352c23;
+  --ink: #efe6d6; --muted: #a3957f; --accent: #e06a43; --accent-d: #f08460;
+  --accent-t: #3a2219; --gold: #d8ab4a; --gold-t: #352a17; --ok: #8fbf6a;
+  --blood: #c8424c; --grain: .25;
+}
+
+/* Mesma especificidade do `a { color: inherit }` do preflight (0,0,1); vence
+   por vir depois. Qualquer classe ou estilo inline vence esta regra, como no
+   design, onde os <a> com estilo próprio ignoram o `a{}` global. */
+:where([data-s]) a { color: var(--accent); text-decoration: none; }
+:where([data-s]) a:where(:hover) { color: var(--accent-d); }
+
+/* Regra do <helmet> de Convite e Nova Campanha. */
+[data-s] input[type=range] { accent-color: var(--accent); }
+
+/* Fundo de toda tela interna: --bg + vinheta + ruído SVG. */
+.saga-page {
+  background-color: var(--bg);
+  background-image: radial-gradient(ellipse 120% 90% at 50% 20%, transparent 55%, rgb(110 70 25/.14)), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .25 0 0 0 0 .12 0 0 0 .06 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  font: 400 14px/1.45 'Geist', system-ui, sans-serif;
+  color: var(--ink);
+}
+
+/* Ícones claro/escuro do botão de tema: troca por CSS, sem mismatch de hidratação. */
+[data-tema-icon="escuro"] { display: none !important; }
+html[data-tema="escuro"] [data-tema-icon="claro"] { display: none !important; }
+html[data-tema="escuro"] [data-tema-icon="escuro"] { display: block !important; }
+
+/* Única adição permitida pelo handoff: sem loops infinitos com movimento reduzido. */
+@media (prefers-reduced-motion: reduce) {
+  [data-s] *, [data-s] *::before, [data-s] *::after { animation-iteration-count: 1 !important; }
+}

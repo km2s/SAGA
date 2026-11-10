@@ -1,0 +1,32 @@
+/* Gerado por scripts/dc-to-jsx.ps1 a partir de SAGA Primeiros Passos.dc.html. */
+@keyframes tour-up {from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes tour-pulse {0%,100%{box-shadow:0 0 0 0 rgb(224 106 67/.5)}50%{box-shadow:0 0 0 5px rgb(224 106 67/0)}}
+@keyframes tour-spin {0%{transform:rotate(0) scale(.85)}70%{transform:rotate(620deg) scale(1.05)}100%{transform:rotate(720deg) scale(1)}}
+@keyframes tour-pop {from{opacity:0;transform:scale(1.4)}to{opacity:1;transform:none}}
+@keyframes tour-bar {from{width:0}}
+@keyframes tour-draw {from{stroke-dashoffset:600}to{stroke-dashoffset:0}}
+@keyframes tour-stamp {0%{transform:scale(2.2) rotate(-20deg);opacity:0}60%{transform:scale(.92) rotate(3deg);opacity:1}100%{transform:scale(1) rotate(-8deg)}}
+@keyframes tour-popIn {from{opacity:0;transform:translateY(16px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes tour-float {0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes tour-spotPulse {0%,100%{box-shadow:0 0 0 0 rgb(201 162 42/.65)}50%{box-shadow:0 0 0 9px rgb(201 162 42/0)}}
+@keyframes tour-ringPulse {0%,100%{box-shadow:0 0 0 0 rgb(232 196 106/.5)}50%{box-shadow:0 0 0 5px rgb(232 196 106/0)}}
+@keyframes tour-mist {0%,100%{transform:translateX(-6%)}50%{transform:translateX(6%)}}
+@keyframes tour-emerge {from{opacity:0;filter:brightness(0) blur(6px);transform:scale(.96)}to{opacity:1;filter:none;transform:none}}
+@keyframes tour-caret {0%,100%{opacity:1}50%{opacity:0}}
+@keyframes tour-flame {0%,100%{transform:scale(1,1) rotate(-1deg)}25%{transform:scale(.94,1.08) rotate(2deg)}50%{transform:scale(1.04,.95) rotate(-2deg)}75%{transform:scale(.97,1.05) rotate(1deg)}}
+@keyframes tour-glow {0%,100%{opacity:1}45%{opacity:.7}55%{opacity:.9}}
+@keyframes tour-rowFlash {from{background:var(--gold-t)}to{background:transparent}}
+@keyframes tour-toastIn {from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+@keyframes tour-fadeIn {from{opacity:0}to{opacity:1}}
+@keyframes tour-inkWrite {from{clip-path:inset(-15% 100% -15% 0)}to{clip-path:inset(-15% -5% -15% 0)}}
+.tour-s1:hover { background:rgb(241 227 194/.08) !important; color:#f1e3c2 !important }
+.tour-s2:hover { background:rgb(241 227 194/.08) !important; color:#f1e3c2 !important }
+.tour-s3:hover { filter:brightness(1.12) !important }
+.tour-s4:hover { color:#2a1a12 !important }
+.tour-s5:hover { background:rgb(241 227 194/.07) !important }
+.tour-s6:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.tour-s7:hover { filter:brightness(.97) !important }
+.tour-s8:hover { background:var(--surface2) !important }
+.tour-s9:hover { background:var(--accent-d) !important }
+.tour-s10:hover { filter:brightness(1.12) !important }
+.tour-s11:hover { color:#f1e3c2 !important }

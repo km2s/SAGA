@@ -20,19 +20,34 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const system = await authorizeOwner(params.id, session.user.discordId)
   if (!system) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const body = await req.json() as { name?: string; defaultDie?: string; description?: string }
+  const body = await req.json() as { name?: string; defaultDie?: string; description?: string; sigla?: string; minimo?: number; maximo?: number; tipo?: string; base?: string; order?: number }
   if (!body.name?.trim()) return NextResponse.json({ error: 'Nome obrigatório' }, { status: 400 })
 
-  const attr = await prisma.systemAttribute.create({
-    data: {
-      name: body.name.trim().slice(0, 80),
-      defaultDie: body.defaultDie?.trim() || 'd20',
-      description: body.description?.trim().slice(0, 200) || null,
-      systemId: params.id,
-    },
-  })
+  // Sigla (até 4), faixa e tipo (Criar Sistema). Mesmo nome no sistema atualiza (os copiados de outros sistemas).
+  const int = (v: unknown) => (typeof v === 'number' && isFinite(v) ? Math.max(-999, Math.min(9999, Math.round(v))) : undefined)
+  const name = body.name.trim().slice(0, 80)
+  const extras = {
+    ...(typeof body.sigla === 'string' && body.sigla.trim() ? { sigla: body.sigla.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || null } : {}),
+    ...(int(body.minimo) !== undefined ? { minimo: int(body.minimo) } : {}),
+    ...(int(body.maximo) !== undefined ? { maximo: int(body.maximo) } : {}),
+    ...(body.tipo === 'atributo' || body.tipo === 'pericia' ? { tipo: body.tipo } : {}),
+    ...(typeof body.base === 'string' ? { base: body.base.trim().toUpperCase().slice(0, 4) || null } : {}),
+    ...(int(body.order) !== undefined ? { order: int(body.order) } : {}),
+  }
+  const existente = await prisma.systemAttribute.findFirst({ where: { systemId: params.id, name } }).catch(() => null)
+  const attr = existente
+    ? await prisma.systemAttribute.update({ where: { id: existente.id }, data: { defaultDie: body.defaultDie?.trim() || existente.defaultDie, ...extras } })
+    : await prisma.systemAttribute.create({
+        data: {
+          name,
+          defaultDie: body.defaultDie?.trim() || 'd20',
+          description: body.description?.trim().slice(0, 200) || null,
+          systemId: params.id,
+          ...extras,
+        },
+      })
 
-  return NextResponse.json(attr, { status: 201 })
+  return NextResponse.json(attr, { status: existente ? 200 : 201 })
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
@@ -45,6 +60,49 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   const { attributeId } = await req.json() as { attributeId?: string }
   if (!attributeId) return NextResponse.json({ error: 'attributeId obrigatório' }, { status: 400 })
 
-  await prisma.systemAttribute.delete({ where: { id: attributeId } }).catch(() => null)
+  // Atributo usado por fichas não sai: apagar levaria os valores dos jogadores junto.
+  const uso = await prisma.systemAttribute.findFirst({ where: { id: attributeId, systemId: params.id }, select: { name: true, _count: { select: { characterAttributes: true, npcAttributes: true } } } }).catch(() => null)
+  if (!uso) return NextResponse.json({ error: 'Atributo não encontrado' }, { status: 404 })
+  const n = uso._count.characterAttributes + uso._count.npcAttributes
+  if (n > 0) return NextResponse.json({ error: `"${uso.name}" está em ${n} ficha${n === 1 ? '' : 's'} e não pode ser apagado.` }, { status: 409 })
+  await prisma.systemAttribute.delete({ where: { id: attributeId } })
   return NextResponse.json({ success: true })
+}
+
+/**
+ * Editar Sistema › "Salvar": a lista inteira, na ordem da ficha.
+ * `{ attributes: [{ id?, name, defaultDie }] }`: com id atualiza (nome, dado, ordem), sem id cria,
+ * e os que sumiram da lista são apagados. Nada muda se algum nome estiver vazio ou repetido,
+ * ou se um atributo a apagar estiver em uso por fichas (409).
+ */
+export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+  const session = await getServerSession(authOptions)
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const system = await authorizeOwner(params.id, session.user.discordId)
+  if (!system) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+  const body = await req.json().catch(() => ({})) as { attributes?: { id?: string; name?: string; defaultDie?: string }[] }
+  if (!Array.isArray(body.attributes) || body.attributes.length > 200) return NextResponse.json({ error: 'Lista de atributos inválida' }, { status: 400 })
+  const lista = body.attributes.map((a, i) => ({ id: typeof a.id === 'string' ? a.id : null, name: (a.name ?? '').trim().slice(0, 80), defaultDie: /^\d*d\d+$/.test(a.defaultDie ?? '') ? a.defaultDie! : 'd20', order: i }))
+  if (lista.some(a => !a.name)) return NextResponse.json({ error: 'Todo atributo precisa de nome.' }, { status: 400 })
+  const nomes = lista.map(a => a.name.toLowerCase())
+  if (new Set(nomes).size !== nomes.length) return NextResponse.json({ error: 'Há atributos com o mesmo nome.' }, { status: 400 })
+
+  const atuais = await prisma.systemAttribute.findMany({ where: { systemId: params.id }, select: { id: true, name: true, _count: { select: { characterAttributes: true, npcAttributes: true } } } })
+  const ficam = new Set(lista.map(a => a.id).filter(Boolean))
+  const saem = atuais.filter(a => !ficam.has(a.id))
+  const emUso = saem.filter(a => a._count.characterAttributes + a._count.npcAttributes > 0)
+  if (emUso.length) return NextResponse.json({ error: `Em uso por fichas, não podem sair: ${emUso.map(a => a.name).join(', ')}.` }, { status: 409 })
+  const ids = new Set(atuais.map(a => a.id))
+  if (lista.some(a => a.id && !ids.has(a.id))) return NextResponse.json({ error: 'Atributo de outro sistema' }, { status: 400 })
+
+  await prisma.$transaction([
+    prisma.systemAttribute.deleteMany({ where: { id: { in: saem.map(a => a.id) } } }),
+    ...lista.map(a => a.id
+      ? prisma.systemAttribute.update({ where: { id: a.id }, data: { name: a.name, defaultDie: a.defaultDie, order: a.order } })
+      : prisma.systemAttribute.create({ data: { name: a.name, defaultDie: a.defaultDie, order: a.order, systemId: params.id } })),
+  ])
+  const attributes = await prisma.systemAttribute.findMany({ where: { systemId: params.id }, orderBy: [{ order: 'asc' }, { name: 'asc' }] })
+  return NextResponse.json({ attributes })
 }

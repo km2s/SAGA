@@ -42,7 +42,7 @@ interface Props {
 function SectionDivider({ title, action }: { title: string; action?: React.ReactNode }) {
   return (
     <div className="flex items-center gap-3 mb-4">
-      <p className="font-almendra text-[9px] font-bold text-saga-dim uppercase tracking-[0.2em] whitespace-nowrap">{title}</p>
+      <p className="font-almendra text-[9px] font-bold text-ink-soft uppercase tracking-[0.2em] whitespace-nowrap">{title}</p>
       <div className="flex-1 h-px" style={{ background: 'rgba(201,162,42,0.2)' }} />
       {action}
     </div>
@@ -101,7 +101,7 @@ function Dots({ value, max = 5, editable = false, attrId, characterId, onSaved, 
           style={{
             width: 11, height: 11,
             background: i < value ? color : 'transparent',
-            borderColor: i < value ? color : 'rgba(255,255,255,0.15)',
+            borderColor: i < value ? color : 'rgb(var(--ink) / 0.15)',
             cursor: editable ? 'pointer' : 'default',
           }} />
       ))}
@@ -117,15 +117,15 @@ function DotRow({ attr, characterId, canEdit, onSaved, onDelete, max = 5, color 
 }) {
   return (
     <div className="flex items-center justify-between py-2 border-b last:border-0 group"
-      style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
+      style={{ borderColor: 'rgb(var(--ink) / 0.04)' }}>
       <div className="flex items-center gap-1.5 min-w-0">
         {canEdit && onDelete && (
           <button onClick={() => onDelete(attr.id)}
-            className="opacity-0 group-hover:opacity-100 transition-opacity text-saga-danger/60 hover:text-saga-danger flex-shrink-0">
+            className="opacity-0 group-hover:opacity-100 transition-opacity text-red-700/60 hover:text-red-700 flex-shrink-0">
             <X size={9} />
           </button>
         )}
-        <span className="font-almendra text-[11px] text-saga-text truncate">{attr.attribute.name}</span>
+        <span className="font-almendra text-[11px] text-ink truncate">{attr.attribute.name}</span>
       </div>
       <Dots value={attr.value} max={max} editable={canEdit} attrId={attr.id} characterId={characterId} onSaved={onSaved} color={color} />
     </div>
@@ -140,12 +140,12 @@ function AttrCol({ items, label, characterId, canEdit, onSaved, onDelete }: {
 }) {
   return (
     <div>
-      <p className="font-almendra text-[9px] font-bold text-saga-dim uppercase tracking-[0.15em] text-center mb-3 pb-2 border-b"
+      <p className="font-almendra text-[9px] font-bold text-ink-soft uppercase tracking-[0.15em] text-center mb-3 pb-2 border-b"
         style={{ borderColor: 'rgba(201,162,42,0.2)' }}>{label}</p>
       <div className="rounded px-3 py-1 min-h-[40px]"
-        style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+        style={{ background: 'rgb(var(--ink) / 0.02)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
         {items.length === 0
-          ? <p className="text-[10px] text-saga-dim py-4 text-center italic">—</p>
+          ? <p className="text-[10px] text-ink-soft py-4 text-center italic">—</p>
           : items.map(a => <DotRow key={a.id} attr={a} characterId={characterId} canEdit={canEdit} onSaved={onSaved} onDelete={onDelete} />)
         }
       </div>
@@ -186,9 +186,9 @@ function HealthTrack({ tfKey, label, total, textFields, characterId, canEdit, on
   const aggravated  = boxes.filter(b => b === 2).length
 
   return (
-    <div className="rounded p-3" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+    <div className="rounded p-3" style={{ background: 'rgb(var(--ink) / 0.02)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
       <div className="flex items-center justify-between mb-3">
-        <p className="font-almendra text-[9px] uppercase tracking-widest text-saga-dim">{label}</p>
+        <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft">{label}</p>
         <div className="flex items-center gap-3 text-[10px]">
           <span className="text-amber-400">/ {superficial}</span>
           <span className="text-red-500">✗ {aggravated}</span>
@@ -202,7 +202,7 @@ function HealthTrack({ tfKey, label, total, textFields, characterId, canEdit, on
             style={{
               width: 20, height: 20,
               background: dmg === 2 ? 'rgba(239,68,68,0.15)' : dmg === 1 ? 'rgba(251,191,36,0.08)' : 'transparent',
-              borderColor: dmg === 2 ? '#ef4444' : dmg === 1 ? '#f59e0b' : 'rgba(255,255,255,0.2)',
+              borderColor: dmg === 2 ? '#ef4444' : dmg === 1 ? '#f59e0b' : 'rgb(var(--ink) / 0.2)',
               cursor: canEdit ? 'pointer' : 'default',
               fontSize: 10,
             }}>
@@ -210,7 +210,7 @@ function HealthTrack({ tfKey, label, total, textFields, characterId, canEdit, on
           </button>
         ))}
       </div>
-      {canEdit && <p className="text-[9px] text-saga-dim/50 mt-2">Clique: vazio → superficial (/) → agravado (✗) → vazio</p>}
+      {canEdit && <p className="text-[9px] text-ink-soft/50 mt-2">Clique: vazio → superficial (/) → agravado (✗) → vazio</p>}
     </div>
   )
 }
@@ -263,9 +263,9 @@ function WillpowerTrack({ attrs, textFields, characterId, canEdit, onSaved, onRe
   }
 
   return (
-    <div className="rounded p-3" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)' }}>
+    <div className="rounded p-3" style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
       <div className="flex items-center justify-between mb-3">
-        <p className="font-almendra text-[9px] uppercase tracking-widest text-saga-dim">Força de Vontade</p>
+        <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft">Força de Vontade</p>
         <span className="font-cinzel font-bold text-gold">{totalWP - used} / {totalWP}</span>
       </div>
       <div className="flex gap-1 flex-wrap">
@@ -281,7 +281,7 @@ function WillpowerTrack({ attrs, textFields, characterId, canEdit, onSaved, onRe
         ))}
       </div>
       {totalWP === 0 && (
-        <p className="text-[9px] text-saga-dim italic mt-1">Adicione Compostura e Determinação para calcular.</p>
+        <p className="text-[9px] text-ink-soft italic mt-1">Adicione Compostura e Determinação para calcular.</p>
       )}
     </div>
   )
@@ -308,21 +308,21 @@ function ETF({ tfKey, label, textFields, characterId, canEdit, multiline = false
   }
 
   return (
-    <div className="rounded p-3" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
-      <p className="font-almendra text-[9px] uppercase tracking-widest text-saga-dim mb-2">{label}</p>
+    <div className="rounded p-3" style={{ background: 'rgb(var(--ink) / 0.02)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
+      <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft mb-2">{label}</p>
       {editing && canEdit ? (
         multiline
           ? <textarea autoFocus rows={3} value={val} onChange={e => setVal(e.target.value)} onBlur={() => void save()}
-              className="w-full bg-surface-2 border border-gold/40 rounded px-2 py-1.5 text-sm focus:outline-none resize-none" />
+              className="w-full bg-parchment/60 border border-gold/40 rounded px-2 py-1.5 text-sm focus:outline-none resize-none" />
           : <input autoFocus type="text" value={val} onChange={e => setVal(e.target.value)}
               onBlur={() => void save()} onKeyDown={e => { if (e.key === 'Enter') void save() }}
-              className="w-full bg-surface-2 border border-gold/40 rounded px-2 py-1.5 text-sm focus:outline-none" />
+              className="w-full bg-parchment/60 border border-gold/40 rounded px-2 py-1.5 text-sm focus:outline-none" />
       ) : (
         <div onClick={() => canEdit && setEditing(true)}
-          className={`${canEdit ? 'cursor-pointer hover:bg-white/[0.03]' : ''} rounded px-2 py-1 min-h-[28px] transition-colors`}>
+          className={`${canEdit ? 'cursor-pointer hover:bg-ink/[0.03]' : ''} rounded px-2 py-1 min-h-[28px] transition-colors`}>
           {field?.value
-            ? <p className="text-sm text-saga-text whitespace-pre-wrap">{field.value}</p>
-            : <p className="text-xs text-saga-dim italic">{canEdit ? 'Clique para editar…' : '—'}</p>
+            ? <p className="text-sm text-ink whitespace-pre-wrap">{field.value}</p>
+            : <p className="text-xs text-ink-soft italic">{canEdit ? 'Clique para editar…' : '—'}</p>
           }
         </div>
       )}
@@ -330,42 +330,24 @@ function ETF({ tfKey, label, textFields, characterId, canEdit, multiline = false
   )
 }
 
-// ── Numeric text field ────────────────────────────────────────────────────────
-
 function NumericTextField({ tfKey, label, textFields, characterId, canEdit, onRefresh }: {
   tfKey: string; label: string; textFields: TextField[]; characterId: string; canEdit: boolean; onRefresh: () => void
 }) {
   const field = textFields.find(f => f.key === tfKey)
-  const [editing, setEditing] = useState(false)
   const [val, setVal] = useState(field?.value ?? '')
-
-  async function save() {
+  async function save(v: string) {
     await fetch(`/api/characters/${characterId}/text-fields`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key: tfKey, label, value: val }),
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: tfKey, label, value: v }),
     }).catch(() => null)
-    setEditing(false)
     onRefresh()
   }
-
   return (
-    <div className="rounded p-3" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
-      <p className="font-almendra text-[9px] uppercase tracking-widest text-saga-dim mb-2">{label}</p>
-      {editing && canEdit ? (
-        <input autoFocus type="number" value={val} onChange={e => setVal(e.target.value)}
-          onBlur={() => void save()} onKeyDown={e => { if (e.key === 'Enter') void save() }}
-          className="w-full bg-surface-2 border border-gold/40 rounded px-2 py-1.5 text-sm focus:outline-none" />
-      ) : (
-        <div onClick={() => canEdit && setEditing(true)}
-          className={`${canEdit ? 'cursor-pointer hover:bg-white/[0.03]' : ''} rounded px-2 py-1 min-h-[28px] transition-colors`}>
-          {field?.value
-            ? <p className="text-sm text-saga-text font-cinzel">{field.value}</p>
-            : <p className="text-xs text-saga-dim italic">{canEdit ? 'Clique para editar…' : '—'}</p>
-          }
-        </div>
-      )}
-    </div>
+    <input type="number" min={0} max={5} value={val}
+      onChange={e => setVal(e.target.value)}
+      onBlur={e => void save(e.target.value)}
+      disabled={!canEdit}
+      className="w-20 bg-parchment/60 border border-gold/40 rounded px-2 py-1 text-sm focus:outline-none text-center" />
   )
 }
 
@@ -407,16 +389,16 @@ export function VtMV5Sheet({ characterId, attributes, textFields, weapons, canEd
 
   return (
     <div className="rounded-lg overflow-hidden"
-      style={{ background: 'rgba(17,17,30,0.6)', border: '1px solid rgba(255,255,255,0.07)' }}>
+      style={{ background: 'rgb(var(--card) / 0.92)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
 
       {/* Tab bar */}
-      <div className="flex flex-wrap border-b" style={{ borderColor: 'rgba(255,255,255,0.07)', background: 'rgba(0,0,0,0.18)' }}>
+      <div className="flex flex-wrap border-b" style={{ borderColor: 'rgb(var(--ink) / 0.14)', background: 'rgb(var(--ink) / 0.05)' }}>
         {TABS.map(tab => {
           const isActive = tab.id === activeTab
           return (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
               className="relative px-4 py-3.5 font-almendra text-[10px] uppercase tracking-[0.15em] transition-colors"
-              style={{ color: isActive ? '#9d5af5' : '#7878a0', background: isActive ? 'rgba(157,90,245,0.05)' : 'transparent' }}>
+              style={{ color: isActive ? '#9d5af5' : 'rgb(var(--ink-soft))', background: isActive ? 'rgba(157,90,245,0.05)' : 'transparent' }}>
               {tab.label}
               {isActive && <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-t" style={{ background: 'linear-gradient(90deg, transparent, #9d5af5, transparent)' }} />}
             </button>
@@ -460,7 +442,7 @@ export function VtMV5Sheet({ characterId, attributes, textFields, weapons, canEd
               <div className="rounded px-3 py-1 min-h-[60px]"
                 style={{ background: 'rgba(157,90,245,0.04)', border: '1px solid rgba(157,90,245,0.2)' }}>
                 {g.disciplines.length === 0
-                  ? <p className="text-[10px] text-saga-dim py-4 text-center italic">Nenhuma disciplina adicionada.</p>
+                  ? <p className="text-[10px] text-ink-soft py-4 text-center italic">Nenhuma disciplina adicionada.</p>
                   : g.disciplines.map(a => <DotRow key={a.id} attr={a} characterId={characterId} canEdit={canEdit} onSaved={refresh} color="#9d5af5" />)
                 }
               </div>
@@ -468,9 +450,9 @@ export function VtMV5Sheet({ characterId, attributes, textFields, weapons, canEd
             <div>
               <SectionDivider title="Antecedentes" />
               <div className="rounded px-3 py-1 min-h-[60px]"
-                style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                style={{ background: 'rgb(var(--ink) / 0.02)', border: '1px solid rgb(var(--ink) / 0.05)' }}>
                 {g.backgrounds.length === 0
-                  ? <p className="text-[10px] text-saga-dim py-4 text-center italic">Nenhum antecedente.</p>
+                  ? <p className="text-[10px] text-ink-soft py-4 text-center italic">Nenhum antecedente.</p>
                   : g.backgrounds.map(a => <DotRow key={a.id} attr={a} characterId={characterId} canEdit={canEdit} onSaved={refresh} />)
                 }
               </div>
@@ -489,9 +471,9 @@ export function VtMV5Sheet({ characterId, attributes, textFields, weapons, canEd
               const humanity = attributes.find(a => a.attribute.name === 'Humanidade' || a.attribute.name === 'Humanity')
               if (!humanity) return null
               return (
-                <div className="rounded p-3" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                <div className="rounded p-3" style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
                   <div className="flex items-center justify-between mb-3">
-                    <p className="font-almendra text-[9px] uppercase tracking-widest text-saga-dim">Humanidade</p>
+                    <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft">Humanidade</p>
                     <span className="font-cinzel font-bold text-gold">{humanity.value} / 10</span>
                   </div>
                   <Dots value={humanity.value} max={10} editable={canEdit} attrId={humanity.id} characterId={characterId} onSaved={refresh} />
@@ -499,23 +481,49 @@ export function VtMV5Sheet({ characterId, attributes, textFields, weapons, canEd
               )
             })()}
 
-            {/* Blood Potency */}
+            {/* Blood Potency — tabela completa */}
             {(() => {
               const bp = attributes.find(a => a.attribute.name.toLowerCase().includes('blood potency') || a.attribute.name.toLowerCase().includes('potência de sangue'))
               if (!bp) return null
-              const ROUSE = ['-', 'Nenhum', 'Em 10', 'Em 10', 'Em 10', 'Em 10', 'Em 10', 'Em 10', 'Em 10', 'Em 10', 'Em 10']
-              const SURGE = ['+1', '+1', '+1', '+2', '+2', '+2', '+3', '+3', '+3', '+3']
+              // Indexed by BP value (0-10)
+              const TABLE: Array<{ surge: string; mend: string; power: string; feeding: string; bane: number; rouse: string }> = [
+                { surge: '+1 dado',  mend: '1 Sup',  power: '—',  feeding: 'Nenhuma',           bane: 1, rouse: 'Nunca'       },
+                { surge: '+1 dado',  mend: '1 Sup',  power: '—',  feeding: 'Sangue-ralo',        bane: 1, rouse: 'Nunca'       },
+                { surge: '+1 dado',  mend: '1 Sup',  power: '+1', feeding: 'Animais',             bane: 2, rouse: 'Nenhum'      },
+                { surge: '+1 dado',  mend: '2 Sup',  power: '+1', feeding: 'Animal somente',      bane: 3, rouse: 'Nenhum'      },
+                { surge: '+2 dados', mend: '2 Sup',  power: '+2', feeding: 'Animal somente',      bane: 3, rouse: 'Fome 1'      },
+                { surge: '+2 dados', mend: '2 Sup',  power: '+2', feeding: 'Mortal somente',      bane: 4, rouse: 'Fome 1'      },
+                { surge: '+3 dados', mend: '3 Sup',  power: '+3', feeding: 'Mortal somente',      bane: 4, rouse: 'Fome 1-2'    },
+                { surge: '+3 dados', mend: '3 Sup',  power: '+3', feeding: 'Sangue ensacado',     bane: 5, rouse: 'Fome 1-2'    },
+                { surge: '+3 dados', mend: '3 Sup',  power: '+4', feeding: 'Sangue ensacado',     bane: 5, rouse: 'Fome 1-3'    },
+                { surge: '+4 dados', mend: '3 Sup',  power: '+4', feeding: 'Sangue ensacado',     bane: 6, rouse: 'Fome 1-3'    },
+                { surge: '+4 dados', mend: '3 Sup',  power: '+5', feeding: 'Sangue de vampiro',   bane: 6, rouse: 'Fome 1-5'    },
+              ]
+              const row = TABLE[bp.value] ?? TABLE[10]!
               return (
-                <div className="rounded p-3" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                <div className="rounded p-3" style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
                   <div className="flex items-center justify-between mb-3">
-                    <p className="font-almendra text-[9px] uppercase tracking-widest text-saga-dim">Blood Potency</p>
+                    <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft">Blood Potency</p>
                     <span className="font-cinzel font-bold text-red-400">{bp.value}</span>
                   </div>
                   <Dots value={bp.value} max={10} editable={canEdit} attrId={bp.id} characterId={characterId} onSaved={refresh} color="#ef4444" />
                   {bp.value > 0 && (
-                    <div className="mt-3 grid grid-cols-2 gap-2 text-[10px] text-saga-dim">
-                      <span>Blood Surge: {SURGE[bp.value - 1] ?? '+3'} dados</span>
-                      <span>Rouse Re-roll: {ROUSE[bp.value] ?? 'Sim'}</span>
+                    <div className="mt-3 space-y-1.5">
+                      <div className="grid grid-cols-3 gap-x-3 gap-y-1.5">
+                        {[
+                          ['Blood Surge', row.surge],
+                          ['Curar (Rouse)', row.mend],
+                          ['Bônus de Poder', row.power],
+                          ['Penalidade Alim.', row.feeding],
+                          ['Severidade Bane', String(row.bane)],
+                          ['Rouse Re-roll', row.rouse],
+                        ].map(([label, val]) => (
+                          <div key={label} className="rounded px-2 py-1.5" style={{ background: 'rgb(var(--ink) / 0.08)' }}>
+                            <div className="text-[8px] text-ink-soft uppercase tracking-wider">{label}</div>
+                            <div className="text-[11px] font-bold text-red-300 mt-0.5">{val}</div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -526,6 +534,55 @@ export function VtMV5Sheet({ characterId, attributes, textFields, weapons, canEd
             <ETF tfKey="convictions" label="Convicções" textFields={textFields} characterId={characterId} canEdit={canEdit} multiline onRefresh={refresh} />
             <ETF tfKey="touchstones" label="Tocadores"  textFields={textFields} characterId={characterId} canEdit={canEdit} multiline onRefresh={refresh} />
             <ETF tfKey="tenets"      label="Preceitos da Crônica" textFields={textFields} characterId={characterId} canEdit={canEdit} multiline onRefresh={refresh} />
+
+            {/* Ressonância / Hunting */}
+            {(() => {
+              const resonanceAttr = attributes.find(a =>
+                a.attribute.name.toLowerCase().includes('ressonância') ||
+                a.attribute.name.toLowerCase().includes('resonância') ||
+                a.attribute.name.toLowerCase().includes('resonance')
+              )
+              const RESONANCE_TYPES = ['Sanguíneo', 'Colérico', 'Melancólico', 'Fleumático', 'Nervoso', 'Sem Ressonância']
+              return (
+                <div className="rounded p-3 space-y-3" style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
+                  <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft">Ressonância & Caça</p>
+                  {resonanceAttr && (
+                    <div>
+                      <p className="text-[9px] text-ink-soft mb-2">Intensidade (1–5)</p>
+                      <Dots value={resonanceAttr.value} max={5} editable={canEdit} attrId={resonanceAttr.id} characterId={characterId} onSaved={refresh} color="#dc2626" />
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-[9px] text-ink-soft mb-1.5">Tipo Emocional</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {RESONANCE_TYPES.map(type => {
+                        const tf = textFields.find(f => f.key === 'resonance_type')
+                        const active = tf?.value === type
+                        return (
+                          <button key={type} type="button" disabled={!canEdit}
+                            onClick={async () => {
+                              await fetch(`/api/characters/${characterId}/text-fields`, {
+                                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ key: 'resonance_type', label: 'Tipo de Ressonância', value: type }),
+                              }).catch(() => null)
+                              refresh()
+                            }}
+                            className="px-2 py-0.5 rounded text-[10px] font-bold transition-all"
+                            style={{
+                              background: active ? 'rgba(220,38,38,0.2)' : 'rgb(var(--ink) / 0.04)',
+                              border: `1px solid ${active ? 'rgba(220,38,38,0.5)' : 'rgb(var(--ink) / 0.08)'}`,
+                              color: active ? '#fca5a5' : 'rgb(var(--ink-soft))',
+                            }}>
+                            {type}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                  <ETF tfKey="hunting_notes" label="Notas de Caça" textFields={textFields} characterId={characterId} canEdit={canEdit} multiline onRefresh={refresh} />
+                </div>
+              )
+            })()}
           </div>
         )}
 
@@ -538,18 +595,18 @@ export function VtMV5Sheet({ characterId, attributes, textFields, weapons, canEd
             {/* Weapons */}
             <SectionDivider title="Ataques" />
             {weapons.length === 0 && (
-              <p className="text-xs text-saga-dim text-center py-3 italic">
+              <p className="text-xs text-ink-soft text-center py-3 italic">
                 {canEdit ? 'Nenhum ataque. Use o botão abaixo.' : 'Nenhum ataque cadastrado.'}
               </p>
             )}
             {weapons.map(w => (
-              <div key={w.id} className="flex items-center gap-3 py-2 px-3 rounded group hover:bg-white/[0.015] transition-all">
+              <div key={w.id} className="flex items-center gap-3 py-2 px-3 rounded group hover:bg-ink/[0.03] transition-all">
                 <span className="flex-1 text-sm font-medium">{w.name}</span>
                 <span className="text-sm font-cinzel text-gold">{w.attackBonus ?? '—'}</span>
                 <span className="text-sm font-mono">{w.damage ?? '—'}</span>
                 {canEdit && (
                   <button onClick={() => void deleteWeapon(w.id)}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity text-saga-danger/60 hover:text-saga-danger">
+                    className="opacity-0 group-hover:opacity-100 transition-opacity text-red-700/60 hover:text-red-700">
                     <X size={10} />
                   </button>
                 )}
@@ -569,12 +626,20 @@ export function VtMV5Sheet({ characterId, attributes, textFields, weapons, canEd
             </div>
             <ETF tfKey="ambition"  label="Ambição"   textFields={textFields} characterId={characterId} canEdit={canEdit} onRefresh={refresh} />
             <ETF tfKey="desire"    label="Desejo"    textFields={textFields} characterId={characterId} canEdit={canEdit} onRefresh={refresh} />
-            <ETF tfKey="backstory" label="História"  textFields={textFields} characterId={characterId} canEdit={canEdit} multiline onRefresh={refresh} />
-            <ETF tfKey="resonance" label="Ressonância / Hunting" textFields={textFields} characterId={characterId} canEdit={canEdit} multiline onRefresh={refresh} />
-            <div className="grid grid-cols-2 gap-3">
-              <NumericTextField tfKey="xp_current" label="XP Atual" textFields={textFields} characterId={characterId} canEdit={canEdit} onRefresh={refresh} />
-              <NumericTextField tfKey="xp_total"   label="XP Total Gasto" textFields={textFields} characterId={characterId} canEdit={canEdit} onRefresh={refresh} />
+            {/* Haven */}
+            <div className="rounded-lg p-3 space-y-2" style={{ background: 'rgb(var(--ink) / 0.025)', border: '1px solid rgb(var(--ink) / 0.14)' }}>
+              <p className="font-almendra text-[9px] uppercase tracking-widest text-ink-soft">Haven</p>
+              <ETF tfKey="haven_location" label="Localização" textFields={textFields} characterId={characterId} canEdit={canEdit} onRefresh={refresh} />
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-ink-soft uppercase tracking-wider">Rating (1-5)</label>
+                {(() => {
+                  const havenAttr = attributes.find(a => a.attribute.name.toLowerCase().includes('haven'))
+                  if (havenAttr) return <Dots value={havenAttr.value} max={5} editable={canEdit} attrId={havenAttr.id} characterId={characterId} onSaved={refresh} />
+                  return <NumericTextField tfKey="haven_rating" label="Haven Rating" textFields={textFields} characterId={characterId} canEdit={canEdit} onRefresh={refresh} />
+                })()}
+              </div>
             </div>
+            <ETF tfKey="backstory" label="História"  textFields={textFields} characterId={characterId} canEdit={canEdit} multiline onRefresh={refresh} />
             <ETF tfKey="notes"     label="Notas"     textFields={textFields} characterId={characterId} canEdit={canEdit} multiline onRefresh={refresh} />
           </div>
         )}

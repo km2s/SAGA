@@ -2,17 +2,11 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from 'database'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import { Badge } from '@/components/ui/Badge'
-import { DashboardActions } from '@/components/campaign/DashboardActions'
-import { Swords } from 'lucide-react'
-
-const COVER_GRADIENTS = [
-  'from-[#1a0533] via-[#4a1080] to-[#7c3aed]',
-  'from-[#1a0a00] via-[#5c2800] to-[#c9622a]',
-  'from-[#001a1a] via-[#004040] to-[#0a9090]',
-  'from-[#0a1a00] via-[#2a4800] to-[#5a8800]',
-]
+import { Inicio } from '@/components/screens/inicio/Inicio'
+import type { InicioDados } from '@/components/screens/inicio/vals'
+import { roman } from '@/lib/roman'
+import { rotuloData } from '@/lib/convite'
+import { safeImageUrl } from '@/lib/safe-url'
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions)
@@ -21,89 +15,59 @@ export default async function DashboardPage() {
   const memberships = await prisma.campaignMember.findMany({
     where: { user: { discordId: session.user.discordId } },
     include: {
+      character: { select: { id: true, name: true } },
       campaign: {
         include: {
-          system: true,
-          _count: { select: { members: true } },
-          sessions: { where: { isActive: true }, take: 1 },
+          system: { select: { name: true } },
+          _count: { select: { sessions: true } },
+          sessions: { where: { isActive: true }, orderBy: { startedAt: 'desc' }, take: 1, select: { id: true, name: true, startedAt: true } },
+          members: {
+            orderBy: { joinedAt: 'asc' },
+            select: { role: true, user: { select: { username: true } }, character: { select: { name: true, hp: true, maxHp: true } } },
+          },
+          applications: { where: { status: 'pending' }, orderBy: { createdAt: 'asc' }, select: { id: true, characterDesc: true, user: { select: { username: true } } } },
         },
       },
     },
     orderBy: { campaign: { updatedAt: 'desc' } },
   }).catch(() => [])
 
-  const activeSessionCount = memberships.filter(m => m.campaign.sessions.length > 0).length
+  const agenda = await prisma.sessaoAgendada.findMany({
+    where: { campaignId: { in: memberships.map(m => m.campaign.id) }, quando: { gt: new Date(Date.now() - 3 * 3600_000), lt: new Date(Date.now() + 21 * 86400_000) } },
+    orderBy: { quando: 'asc' }, select: { campaignId: true, titulo: true, data: true, horario: true, campaign: { select: { name: true } } },
+  }).catch(() => [])
+  const live = memberships.find(m => m.campaign.sessions.length > 0)
+  const liveSession = live?.campaign.sessions[0]
 
-  return (
-    <div className="p-4 sm:p-8">
-      {/* Header */}
-      <div className="flex items-start justify-between mb-8">
-        <div>
-          <h1 className="font-cinzel text-2xl font-semibold text-saga-text">
-            Bem-vindo, {session.user.username}
-          </h1>
-          <p className="text-sm text-saga-muted mt-1">
-            {memberships.length} campanha{memberships.length !== 1 ? 's' : ''}
-            {activeSessionCount > 0 && ` · ${activeSessionCount} sessão ativa`}
-          </p>
-        </div>
-        <DashboardActions />
-      </div>
+  const dados: InicioDados = {
+    nome: session.user.displayName || session.user.username,
+    aoVivo: live && liveSession ? {
+      campaignId: live.campaign.id,
+      campanha: live.campaign.name,
+      sessao: liveSession.name || `Sessão ${roman(live.campaign._count.sessions)}`,
+      startedAt: liveSession.startedAt.toISOString(),
+      grupo: live.campaign.members
+        .filter(m => m.role === 'PLAYER' && m.character)
+        .map(m => ({ n: m.character!.name, hp: m.character!.hp, mx: m.character!.maxHp })),
+    } : null,
+    campanhas: memberships.map(m => ({
+      id: m.campaign.id,
+      nome: m.campaign.name,
+      sistema: m.campaign.system?.name ?? null,
+      sessoes: m.campaign._count.sessions,
+      mestre: m.role === 'GM',
+      membros: m.campaign.members.map(x => x.user.username),
+      aoVivo: m.campaign.sessions.length > 0,
+      proxima: (() => { const a = agenda.find(x => x.campaignId === m.campaign.id); return a ? rotuloData(a) : null })(),
+      capa: safeImageUrl(m.campaign.coverUrl),
+    })),
+    agenda: agenda.map(a => ({ campanha: a.campaign.name, titulo: a.titulo, data: a.data, horario: a.horario })),
+    // Inscrições pendentes só nas campanhas em que você é o mestre.
+    inscricoes: memberships.filter(m => m.role === 'GM').flatMap(m => m.campaign.applications.map(a => ({
+      id: a.id, campaignId: m.campaign.id, who: a.user.username, camp: m.campaign.name, desc: a.characterDesc,
+    }))),
+    personagens: memberships.filter(m => m.character).map(m => ({ id: m.character!.id, nome: m.character!.name, campanha: m.campaign.name })),
+  }
 
-      {/* Grid */}
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(230px,1fr))] gap-4">
-        {memberships.map((m, i) => {
-          const hasSession = m.campaign.sessions.length > 0
-          const gradient = COVER_GRADIENTS[i % COVER_GRADIENTS.length]
-
-          return (
-            <Link key={m.campaign.id} href={`/campaign/${m.campaign.id}`}>
-              <div className="bg-surface border border-border rounded-lg overflow-hidden cursor-pointer card-hover">
-                {/* Cover */}
-                <div className={`h-28 bg-gradient-to-br ${gradient} relative`}>
-                  {hasSession && (
-                    <div className="absolute bottom-2 right-2">
-                      <Badge variant="success">● Sessão ativa</Badge>
-                    </div>
-                  )}
-                </div>
-                {/* Info */}
-                <div className="p-4">
-                  <p className="font-cinzel text-sm font-semibold text-saga-text mb-2 truncate">
-                    {m.campaign.name}
-                  </p>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Badge variant={m.role === 'GM' ? 'gold' : 'purple'}>
-                      {m.role === 'GM' ? 'Mestre' : 'Jogador'}
-                    </Badge>
-                    <span className="text-[11px] text-saga-muted">
-                      {m.campaign._count.members} jogadores
-                    </span>
-                    {m.campaign.system && (
-                      <>
-                        <span className="w-1 h-1 rounded-full bg-saga-dim" />
-                        <span className="text-[11px] text-saga-muted">{m.campaign.system.name}</span>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </Link>
-          )
-        })}
-
-        {/* New campaign placeholder card */}
-        {memberships.length === 0 && (
-          <div className="col-span-full flex flex-col items-center justify-center py-20 text-center">
-            <Swords size={48} className="text-saga-muted/30 mb-4" />
-            <p className="font-cinzel text-lg text-saga-muted">Nenhuma campanha ainda</p>
-            <p className="text-sm text-saga-muted mt-1 max-w-sm">
-              Crie sua primeira campanha ou peça ao Mestre para te adicionar via{' '}
-              <code className="font-mono text-gold">/campanha entrar</code> no Discord.
-            </p>
-          </div>
-        )}
-      </div>
-    </div>
-  )
+  return <Inicio dados={dados} />
 }

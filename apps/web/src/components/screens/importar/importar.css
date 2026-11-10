@@ -1,0 +1,28 @@
+/* Gerado por scripts/dc-to-jsx.ps1 a partir de SAGA Importar Ficha.dc.html. */
+@keyframes importar-up {from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes importar-fadeIn {from{opacity:0}to{opacity:1}}
+@keyframes importar-popIn {from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes importar-slideIn {from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+@keyframes importar-stamp {0%{transform:scale(2.3) rotate(-22deg);opacity:0}60%{transform:scale(.92) rotate(3deg);opacity:1}100%{transform:scale(1) rotate(-8deg)}}
+@keyframes importar-spin {0%{transform:rotate(0) scale(.8)}70%{transform:rotate(620deg) scale(1.06)}100%{transform:rotate(720deg) scale(1)}}
+@keyframes importar-spinR {to{transform:rotate(360deg)}}
+@keyframes importar-pulse {0%,100%{box-shadow:0 0 0 0 rgb(79 122 58/.55)}50%{box-shadow:0 0 0 5px rgb(79 122 58/0)}}
+@keyframes importar-shakeA {0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
+@keyframes importar-shakeB {0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
+@keyframes importar-toastIn {from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes importar-unfold {from{opacity:0;clip-path:inset(0 0 100% 0)}to{opacity:1;clip-path:inset(0 0 0 0)}}
+.importar-s1:hover { background:var(--surface2) !important; color:var(--ink) !important }
+.importar-s2:hover { border-color:var(--accent) !important; background:color-mix(in oklab, var(--accent-t) 50%, transparent) !important }
+.importar-s3:hover { background:var(--surface2) !important; color:var(--ink) !important }
+.importar-s4:hover { background:var(--surface2) !important; color:var(--ink) !important }
+.importar-s5:hover { background:var(--accent-d) !important; color:#fff8f0 !important }
+.importar-s6:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.importar-s7:hover { border-color:var(--line) !important }
+.importar-s7:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.importar-s8:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.importar-s9:hover { color:var(--blood) !important; background:var(--surface2) !important }
+.importar-s10:hover { background:var(--surface2) !important; color:var(--ink) !important }
+.importar-s11:hover { background:var(--surface2) !important; color:var(--ink) !important }
+.importar-s12:hover { background:var(--accent-d) !important; color:#fff8f0 !important }
+.importar-s13:hover { background:var(--surface2) !important; color:var(--ink) !important }
+.importar-s14:hover { background:var(--accent-d) !important; color:#fff8f0 !important }

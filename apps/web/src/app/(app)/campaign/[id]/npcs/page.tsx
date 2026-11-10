@@ -2,113 +2,60 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from 'database'
 import { notFound, redirect } from 'next/navigation'
-import Link from 'next/link'
-import { Badge } from '@/components/ui/Badge'
-import { GMActions } from '@/components/gm/GMActions'
-import { ShieldAlert, UserCheck, Heart, Wind, User } from 'lucide-react'
-import { safeImageUrl } from '@/lib/safe-url'
+import { Npcs } from '@/components/screens/npcs/Npcs'
+import type { NpcsDados } from '@/components/screens/npcs/vals'
+import { MarkTutorialVisited } from '@/components/tutorial/MarkTutorialVisited'
 
-const NPC_TYPE_LABELS: Record<string, string> = {
-  VILLAIN: 'Vilão',
-  ALLY: 'Aliado',
-  MERCHANT: 'Mercador',
-  FAMILIAR: 'Familiar',
-  MOUNT: 'Montaria',
-  SERVANT: 'Servo',
-  NEUTRAL: 'Neutro',
-  OTHER: 'Outro',
-}
+const ORDEM = ['Força', 'Destreza', 'Constituição', 'Inteligência', 'Sabedoria', 'Carisma']
+const sigla = (nome: string) => nome.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z]/g, '').slice(0, 3).toUpperCase()
 
-export default async function CampaignNpcsPage({ params }: { params: { id: string } }) {
+export default async function NpcsPage({ params, searchParams }: { params: { id: string }; searchParams: { npc?: string } }) {
   const session = await getServerSession(authOptions)
   if (!session) redirect('/login')
 
-  const campaign = await prisma.campaign.findUnique({
+  const c = await prisma.campaign.findUnique({
     where: { id: params.id },
-    include: { members: { include: { user: true } } },
-  }).catch(() => null)
-
-  if (!campaign) notFound()
-
-  const myMembership = campaign.members.find(m => m.user.discordId === session.user.discordId)
-  if (!myMembership) notFound()
-
-  const isGM = myMembership.role === 'GM'
-  const players = campaign.members.filter(m => m.role !== 'GM')
-
-  // GMs see all NPCs; players see only public or explicitly visible ones
-  const npcs = isGM
-    ? await prisma.nPC.findMany({
-        where: { campaignId: params.id },
-        include: { linkedMember: { include: { user: true } } },
+    select: {
+      id: true, name: true, system: { select: { category: true } },
+      members: { orderBy: { joinedAt: 'asc' }, select: { id: true, role: true, user: { select: { username: true, discordId: true } } } },
+      npcFolders: { orderBy: [{ order: 'asc' }, { createdAt: 'asc' }], select: { id: true, name: true } },
+      npcs: {
         orderBy: { name: 'asc' },
-      }).catch(() => [])
-    : await prisma.nPC.findMany({
-        where: {
-          campaignId: params.id,
-          OR: [
-            { isPublic: true },
-            { visibilities: { some: { memberId: myMembership.id, canView: true } } },
-          ],
+        select: {
+          id: true, name: true, type: true, folderId: true, level: true, hp: true, maxHp: true, isPublic: true, description: true, imageUrl: true,
+          visibilities: { where: { canView: true }, select: { memberId: true } },
+          attributes: { select: { value: true, attribute: { select: { id: true, name: true } } } },
         },
-        include: { linkedMember: { include: { user: true } } },
-        orderBy: { name: 'asc' },
-      }).catch(() => [])
+      },
+    },
+  }).catch(() => null)
+  if (!c) notFound()
+  const me = c.members.find(m => m.user.discordId === session.user.discordId)
+  if (!me) notFound()
+  const gm = me.role === 'GM'
+  const fantasia = c.system?.category === 'fantasy'
 
+  const dados: NpcsDados = {
+    campaignId: c.id, campanha: c.name, souMestre: gm, selInicial: searchParams.npc ?? null,
+    pastas: gm ? c.npcFolders.map(f => ({ id: f.id, n: f.name })) : [],
+    jogadores: gm ? c.members.filter(m => m.role === 'PLAYER').map(m => ({ memberId: m.id, u: m.user.username })) : [],
+    // Jogador só recebe os NPCs revelados para ele.
+    npcs: c.npcs.filter(n => gm || n.isPublic || n.visibilities.some(v => v.memberId === me.id)).map(n => {
+      const attrs = [...n.attributes].sort((a, b) => {
+        const ia = ORDEM.indexOf(a.attribute.name), ib = ORDEM.indexOf(b.attribute.name)
+        return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.attribute.id.localeCompare(b.attribute.id)
+      }).slice(0, 6)
+      return {
+        id: n.id, n: n.name, type: n.type, folderId: gm ? n.folderId : null, lv: n.level, hp: n.hp, max: n.maxHp, publico: n.isPublic,
+        d: n.description ?? '', img: n.imageUrl, vis: gm ? n.visibilities.map(v => v.memberId) : [],
+        attrs: attrs.map(a => { const m = Math.floor((a.value - 10) / 2); return { k: sigla(a.attribute.name), m: fantasia ? (m >= 0 ? `+${m}` : `${m}`) : String(a.value) } }),
+      }
+    }),
+  }
   return (
-    <div className="p-4 sm:p-8 sm:pt-5">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="font-cinzel text-lg font-semibold">NPCs</h2>
-        {isGM && <GMActions campaignId={params.id} players={players} />}
-      </div>
-
-      {npcs.length === 0 ? (
-        <div className="text-sm text-saga-muted bg-surface border border-border rounded-lg px-4 py-10 text-center">
-          {isGM
-            ? 'Nenhum NPC criado ainda. Clique em "+ Criar NPC" para adicionar o primeiro.'
-            : 'Nenhum NPC visível para você no momento.'}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {npcs.map(npc => (
-            <Link key={npc.id} href={`/campaign/${params.id}/npcs/${npc.id}`}>
-            <div className="bg-surface border border-border rounded-lg overflow-hidden hover:border-border-bright transition-all card-hover">
-              {safeImageUrl(npc.imageUrl) ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={safeImageUrl(npc.imageUrl)!} alt={npc.name} className="w-full h-36 object-cover" />
-              ) : (
-                <div className="w-full h-36 bg-surface-2 flex items-center justify-center text-saga-muted/40">
-                  {npc.type === 'VILLAIN' ? <ShieldAlert size={40} /> :
-                   npc.type === 'ALLY'    ? <UserCheck size={40} /> :
-                   npc.type === 'FAMILIAR'? <Heart size={40} /> :
-                   npc.type === 'MOUNT'   ? <Wind size={40} /> :
-                   <User size={40} />}
-                </div>
-              )}
-              <div className="p-4">
-                <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-cinzel font-semibold">{npc.name}</h3>
-                  <div className="flex flex-col items-end gap-1 shrink-0">
-                    <Badge variant={npc.isPublic ? 'success' : 'muted'}>
-                      {npc.isPublic ? 'Visível' : 'Restrito'}
-                    </Badge>
-                    <Badge variant="purple">{NPC_TYPE_LABELS[npc.type] ?? npc.type}</Badge>
-                  </div>
-                </div>
-                {npc.description && (
-                  <p className="text-[12px] text-saga-muted mt-2 line-clamp-3">{npc.description}</p>
-                )}
-                {npc.linkedMember && (
-                  <p className="text-[11px] text-saga-muted mt-2 border-t border-border pt-2">
-                    Ligado a: <span className="text-saga-text">{npc.linkedMember.user.username}</span>
-                  </p>
-                )}
-              </div>
-            </div>
-            </Link>
-          ))}
-        </div>
-      )}
-    </div>
+    <>
+      {gm && <MarkTutorialVisited tutorialKey="saga_visited_npc" />}
+      <Npcs dados={dados} />
+    </>
   )
 }

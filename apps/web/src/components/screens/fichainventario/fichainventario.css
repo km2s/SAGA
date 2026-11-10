@@ -1,0 +1,28 @@
+/* Gerado por scripts/dc-to-jsx.ps1 a partir de SAGA Ficha Inventario.dc.html. */
+@keyframes fichainventario-up {from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes fichainventario-fadeIn {from{opacity:0}to{opacity:1}}
+@keyframes fichainventario-popIn {from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes fichainventario-slideIn {from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+@keyframes fichainventario-stamp {0%{transform:scale(2.3) rotate(-22deg);opacity:0}60%{transform:scale(.92) rotate(3deg);opacity:1}100%{transform:scale(1) rotate(-8deg)}}
+@keyframes fichainventario-spin {0%{transform:rotate(0) scale(.8)}70%{transform:rotate(620deg) scale(1.06)}100%{transform:rotate(720deg) scale(1)}}
+@keyframes fichainventario-spinR {to{transform:rotate(360deg)}}
+@keyframes fichainventario-pulse {0%,100%{box-shadow:0 0 0 0 rgb(79 122 58/.55)}50%{box-shadow:0 0 0 5px rgb(79 122 58/0)}}
+@keyframes fichainventario-shakeA {0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
+@keyframes fichainventario-shakeB {0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
+@keyframes fichainventario-toastIn {from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes fichainventario-unfold {from{opacity:0;clip-path:inset(0 0 100% 0)}to{opacity:1;clip-path:inset(0 0 0 0)}}
+.fichainventario-s1:hover { color:var(--ink) !important }
+.fichainventario-s2:hover { background:var(--surface2) !important; color:var(--ink) !important }
+.fichainventario-s3:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.fichainventario-s4:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.fichainventario-s5:hover { background:var(--accent-d) !important; color:#fff8f0 !important }
+.fichainventario-s6:hover { background:var(--accent-d) !important; color:#fff8f0 !important }
+.fichainventario-s7:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.fichainventario-s8:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.fichainventario-s9:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.fichainventario-s10:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.fichainventario-s11:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.fichainventario-s12:hover { background:color-mix(in oklab, var(--blood) 10%, transparent) !important }
+.fichainventario-s13:hover { background:var(--surface2) !important; color:var(--ink) !important }
+.fichainventario-s14:hover { background:var(--accent-d) !important; color:#fff8f0 !important }
+.fichainventario-s15:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }

@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { X, Trash2, Image as ImageIcon, FileText, Send, BookOpen, Eye } from 'lucide-react'
+import { X, Trash2, Image as ImageIcon, FileText, Send, BookOpen, Eye, ChevronDown } from 'lucide-react'
 import { safeImageUrl } from '@/lib/safe-url'
+import { Fleuron } from '@/components/landing/Ornament'
 
 interface HandoutEntry {
   id: string
@@ -18,9 +19,10 @@ interface HandoutsPanelProps {
   campaignId: string
   isGM: boolean
   onClose: () => void
+  activeSessionId?: string | null
 }
 
-export function HandoutsPanel({ campaignId, isGM, onClose }: HandoutsPanelProps) {
+export function HandoutsPanel({ campaignId, isGM, onClose, activeSessionId }: HandoutsPanelProps) {
   const [handouts, setHandouts] = useState<HandoutEntry[]>([])
   const [form, setForm] = useState({ title: '', content: '', imageUrl: '' })
   const [posting, setPosting] = useState(false)
@@ -36,9 +38,10 @@ export function HandoutsPanel({ campaignId, isGM, onClose }: HandoutsPanelProps)
 
   useEffect(() => {
     load()
+    if (!activeSessionId) return
     const iv = setInterval(load, 5000)
     return () => clearInterval(iv)
-  }, [load])
+  }, [load, activeSessionId])
 
   async function shareHandout() {
     if (posting) return
@@ -80,10 +83,10 @@ export function HandoutsPanel({ campaignId, isGM, onClose }: HandoutsPanelProps)
 
   return (
     <div
-      className="absolute top-3 right-3 z-40 w-80 rounded-xl overflow-hidden shadow-2xl flex flex-col"
+      className="absolute top-3 right-3 z-40 w-80 max-w-[calc(100%-1.5rem)] rounded-xl overflow-hidden shadow-2xl flex flex-col"
       style={{
         maxHeight: 'calc(100vh - 80px)',
-        background: 'rgba(10,10,22,0.97)',
+        background: 'rgb(var(--mesa-surface) / 0.97)',
         border: '1px solid rgba(201,162,42,0.25)',
         backdropFilter: 'blur(12px)',
       }}
@@ -96,6 +99,7 @@ export function HandoutsPanel({ campaignId, isGM, onClose }: HandoutsPanelProps)
         <div className="flex items-center gap-2">
           <BookOpen size={12} className="text-gold" />
           <span className="font-cinzel text-[11px] font-bold text-gold uppercase tracking-widest">Handouts</span>
+          <Fleuron className="h-2 w-auto text-gold/50" />
           {unread > 0 && (
             <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold text-bg"
               style={{ background: '#c9a22a' }}>
@@ -134,13 +138,13 @@ export function HandoutsPanel({ campaignId, isGM, onClose }: HandoutsPanelProps)
 
       {/* New Handout Form (GM only) */}
       {isGM && tab === 'new' && (
-        <div className="p-3 flex flex-col gap-2.5 border-b shrink-0" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+        <div className="p-3 flex flex-col gap-2.5 border-b shrink-0" style={{ borderColor: 'rgb(var(--ink) / 0.06)' }}>
           <input
             value={form.title}
             onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
             placeholder="Título (opcional)"
             className="w-full px-3 py-2 rounded text-[12px] text-saga-text placeholder:text-saga-dim focus:outline-none"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+            style={{ background: 'rgb(var(--ink) / 0.05)', border: '1px solid rgb(var(--ink) / 0.1)' }}
           />
           <textarea
             value={form.content}
@@ -148,7 +152,7 @@ export function HandoutsPanel({ campaignId, isGM, onClose }: HandoutsPanelProps)
             placeholder="Texto / descrição..."
             rows={3}
             className="w-full px-3 py-2 rounded text-[12px] text-saga-text placeholder:text-saga-dim focus:outline-none resize-none"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+            style={{ background: 'rgb(var(--ink) / 0.05)', border: '1px solid rgb(var(--ink) / 0.1)' }}
           />
           <div className="flex items-center gap-2">
             <ImageIcon size={11} className="text-saga-dim shrink-0" />
@@ -157,14 +161,13 @@ export function HandoutsPanel({ campaignId, isGM, onClose }: HandoutsPanelProps)
               onChange={e => setForm(f => ({ ...f, imageUrl: e.target.value }))}
               placeholder="URL da imagem (https://...)"
               className="flex-1 px-2 py-1.5 rounded text-[11px] text-saga-text placeholder:text-saga-dim focus:outline-none"
-              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+              style={{ background: 'rgb(var(--ink) / 0.05)', border: '1px solid rgb(var(--ink) / 0.1)' }}
             />
           </div>
           <button
             onClick={shareHandout}
             disabled={posting || (!form.title.trim() && !form.content.trim() && !form.imageUrl.trim())}
-            className="flex items-center justify-center gap-1.5 py-1.5 rounded text-[11px] font-bold text-bg font-cinzel disabled:opacity-40 transition-opacity"
-            style={{ background: 'linear-gradient(135deg,#c9a22a,#f0d060)' }}
+            className="flex items-center justify-center gap-1.5 py-1.5 rounded text-[11px] font-bold text-bg font-cinzel disabled:opacity-40 transition-opacity bg-gradient-gold"
           >
             <Send size={10} />
             {posting ? 'Enviando...' : 'Revelar aos Jogadores'}
@@ -198,11 +201,11 @@ export function HandoutsPanel({ campaignId, isGM, onClose }: HandoutsPanelProps)
               <div
                 key={h.id}
                 className="border-b last:border-0"
-                style={{ borderColor: 'rgba(255,255,255,0.05)' }}
+                style={{ borderColor: 'rgb(var(--ink) / 0.05)' }}
               >
                 {/* Row header */}
                 <button
-                  className="w-full px-4 py-3 flex items-start gap-3 text-left hover:bg-white/3 transition-colors"
+                  className="w-full px-4 py-3 flex items-start gap-3 text-left hover:bg-ink/3 transition-colors"
                   onClick={() => handleExpand(h)}
                 >
                   {/* Icon */}
@@ -229,7 +232,7 @@ export function HandoutsPanel({ campaignId, isGM, onClose }: HandoutsPanelProps)
                     </div>
                   </div>
                   {/* Chevron */}
-                  <span className={`text-saga-dim text-[10px] shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`}>▾</span>
+                  <ChevronDown className={`text-saga-dim shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} size={13} />
                 </button>
 
                 {/* Expanded content */}
@@ -240,7 +243,7 @@ export function HandoutsPanel({ campaignId, isGM, onClose }: HandoutsPanelProps)
                       <img
                         src={safeImg} alt={h.title ?? 'handout'}
                         className="w-full rounded-lg object-cover max-h-48"
-                        style={{ border: '1px solid rgba(255,255,255,0.08)' }}
+                        style={{ border: '1px solid rgb(var(--ink) / 0.08)' }}
                       />
                     )}
                     {h.content && (

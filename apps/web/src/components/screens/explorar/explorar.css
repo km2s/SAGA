@@ -1,0 +1,15 @@
+/* Gerado por scripts/dc-to-jsx.ps1 a partir de SAGA Explorar.dc.html. */
+@keyframes explorar-up {from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes explorar-popIn {from{opacity:0;transform:translateY(16px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes explorar-fadeIn {from{opacity:0}to{opacity:1}}
+@keyframes explorar-stamp {0%{transform:scale(2.2) rotate(-20deg);opacity:0}60%{transform:scale(.92) rotate(3deg);opacity:1}100%{transform:scale(1) rotate(-8deg)}}
+@keyframes explorar-shakeA {0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
+@keyframes explorar-shakeB {0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
+.explorar-s1:hover { background:var(--surface2) !important; color:var(--ink) !important }
+.explorar-s2:hover { filter:brightness(1.12) !important }
+.explorar-s3:hover { background:var(--accent-d) !important }
+.explorar-s4:hover { background:var(--surface2) !important; color:var(--ink) !important }
+.explorar-s5:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.explorar-s6:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px var(--accent-t) !important }
+.explorar-s7:hover { background:var(--surface2) !important }
+.explorar-s8:hover { filter:brightness(1.12) !important }
