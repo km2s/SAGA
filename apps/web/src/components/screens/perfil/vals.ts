@@ -6,6 +6,8 @@ import { GoogleIcon } from '@/components/ui/saga'
 import { toggleTema } from '@/lib/tema'
 import { useRouter } from 'next/navigation'
 import { enviarImagem, escolherImagem } from '@/lib/enviar-imagem'
+import { dcHref } from '@/lib/dc-routes'
+import { Monitor, Smartphone } from 'lucide-react'
 
 /** Dados reais de /perfil (app/(app)/perfil/page.tsx). */
 export type PerfilDados = {
@@ -17,6 +19,9 @@ export type PerfilDados = {
   inviteUrl: string | null
   aba: string
   bio: string; titulo: string | null; moldura: string | null
+  /** Segurança: verificação em duas etapas e as sessões abertas (a lista completa fica em /perfil/seguranca). */
+  doisFatores: boolean
+  dispositivos: { id: string; nome: string; local: string | null; quando: string; atual: boolean }[]
   discord: { avatar: number; nome: number; dm: number; rolls: number }
 }
 
@@ -137,8 +142,10 @@ export function usePerfilVals(d: PerfilDados) {
       { n: 'E-mail e senha', icon: Mail, bg: 'var(--surface)', fg: 'var(--ink)', sub: 'Ainda sem e-mail e senha', busy: false, btn: 'Gerenciar', btnBg: 'transparent', btnColor: 'var(--ink)', btnRing: 'var(--line)', go: () => setTab('conta') },
     ],
     email: '—', senhaQuando: '—', // TODO(api): login por e-mail
-    toggle2fa: () => { /* TODO(api): verificação em duas etapas */ }, tfaTrack: 'var(--line)', tfaKnob: '3px',
-    devices: [] as { n: string; s: string; icon: LucideIcon; cur: boolean; other: boolean; out: () => void }[], // TODO(api): sessões ativas
+    $href: (link: string) => dcHref(link),
+    // Ativar e desativar acontecem na Segurança (passo a passo com o app e os códigos).
+    toggle2fa: () => router.push('/perfil/seguranca'), tfaTrack: d.doisFatores ? 'var(--accent)' : 'var(--line)', tfaKnob: d.doisFatores ? '21px' : '3px',
+    devices: d.dispositivos.map(x => ({ n: x.nome, s: `${x.local ?? 'Local desconhecido'} · ${x.atual ? 'este dispositivo' : x.quando}`, icon: (/iPhone|Android|iPad/.test(x.nome) ? Smartphone : Monitor) as LucideIcon, cur: x.atual, other: !x.atual, out: () => router.push('/perfil/seguranca') })),
     themes: [['Claro', 'linear-gradient(135deg,#f6f1e7 50%,#fffcf6 50%)'], ['Escuro', 'linear-gradient(135deg,#16130f 50%,#1f1a15 50%)'], ['Sistema', 'linear-gradient(135deg,#f6f1e7 50%,#16130f 50%)']].map(([l, prev]) => ({
       l, prev, rw: themeCur === l ? '2px' : '1px', ring: themeCur === l ? 'var(--accent)' : 'var(--line)', dotW: themeCur === l ? '4px' : '1.5px',
       go: () => { setThemePref(l); temaPara(l === 'Escuro' ? true : l === 'Claro' ? false : matchMedia('(prefers-color-scheme: dark)').matches) },

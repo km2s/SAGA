@@ -33,6 +33,7 @@ export function dcHref(link: string, ctx: DcCtx = {}): string {
     case 'SAGA Sistemas': return `/sistemas${q}`
     case 'SAGA Criar Sistema': return `/sistemas/novo${q}`
     case 'SAGA Perfil': return `/perfil${q}`
+    case 'SAGA Seguranca': return '/perfil/seguranca'
     case 'SAGA Mensagens': return `/mensagens${q}`
     default: return '/'
   }

@@ -1,0 +1,14 @@
+'use client'
+
+/* Recortado de screens/seguranca/Template.tsx (passo "Digite o código") por scripts/dc-gerar.ps1.
+   Usado na Segurança e na verificação do login (/verificar). */
+
+import { ArrowLeft, ArrowRight, Check, Download, KeyRound, LogOut, ShieldCheck } from 'lucide-react'
+import type { Vals } from './vals'
+import './seguranca.css'
+
+export type CodigoVals = Pick<Vals, 'codeShake' | 'codeHint' | 'boxes' | 'code' | 'onCode' | 'codeKey' | 'codeErr' | 'back1' | 'verify'>
+
+export function Codigo({ v }: { v: CodigoVals }) {
+  return (<div style={{ animation: v.codeShake }}><p style={{ margin: '0', fontWeight: '500' }}>Digite o código de 6 dígitos que aparece no app</p><p style={{ margin: '4px 0 10px', fontSize: '12px', color: 'var(--muted)' }}>{v.codeHint}</p><div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>{v.boxes.map((b, bIdx) => (<span key={bIdx} style={{ width: '42px', height: '50px', display: 'grid', placeItems: 'center', borderRadius: '4px', border: `1px solid ${b.ring}`, background: 'var(--surface)', font: '600 22px/1 \'Geist Mono\',monospace' }}>{b.v}</span>))}<input value={v.code} onChange={v.onCode} onKeyDown={v.codeKey} inputMode={'numeric'} autoComplete={'one-time-code'} aria-label={'Código de 6 dígitos'} className="seguranca-s7" style={{ width: '120px', height: '40px', marginLeft: '10px', padding: '0 10px', borderRadius: '4px', border: '1px solid var(--line)', background: 'var(--surface)', font: '600 16px/1 \'Geist Mono\',monospace', letterSpacing: '.2em', color: 'var(--ink)', outline: 'none' }} /></div>{v.codeErr && (<p style={{ margin: '8px 0 0', font: 'italic 400 15px/1.3 \'IM Fell English\',serif', color: 'var(--blood)' }}>{v.codeErr}</p>)}<div style={{ display: 'flex', gap: '6px', marginTop: '12px' }}><button onClick={v.back1} className="seguranca-s8" style={{ all: 'unset', cursor: 'pointer', boxSizing: 'border-box', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '7px', height: '38px', padding: '0 14px', borderRadius: '4px', font: '500 14px/1 \'Geist\',sans-serif', whiteSpace: 'nowrap', color: 'var(--muted)' }}>Voltar</button><button onClick={v.verify} className="seguranca-s9" style={{ all: 'unset', cursor: 'pointer', boxSizing: 'border-box', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '7px', height: '38px', padding: '0 14px', borderRadius: '4px', font: '500 14px/1 \'Geist\',sans-serif', whiteSpace: 'nowrap', background: 'var(--accent)', color: '#fff8f0', boxShadow: 'inset 0 0 0 1px rgb(255 220 160/.4),0 6px 14px -8px var(--accent)' }}>Verificar</button></div></div>)
+}

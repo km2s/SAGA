@@ -64,12 +64,7 @@ Já funcionam com a API atual: iniciar sessão (`sessions/start`, 409), barras d
 
 | Recurso | Uso no front |
 |---|---|
-| Magias (nome, círculo, concentração, tempo/alcance, descrição) e preparadas | Aba Magias (hoje vazia) |
-| Inventário (ícone, nome, descrição, quantidade, peso, equipado/consumível/missão) e moedas | Aba Inventário, carga e CA por armadura/escudo |
-| XP | Barra de XP do cabeçalho (hoje escondida) |
 | Traços (origem, nome, descrição) e recursos de classe com usos | Aba Traços e recursos (Canalizar Divindade, Sentido Divino…) |
-| PV temporários, testes contra a morte, inspiração, dados de vida gastos, reserva de Cura pelas Mãos | Hoje só na tela |
-| Atributo de conjuração | Ataque mágico e CD de magia |
 
 ## Criar Sistema (`components/screens/criarsistema/vals.ts`)
 
@@ -81,9 +76,6 @@ Feito (2026-11-09): tabela `Mensagem` (canal da campanha fora da sessão, direta
 
 | Recurso | Uso no front |
 |---|---|
-| Sussurro do mestre (selado, só um destinatário) | Bolha selada que rompe ao clicar |
-| Recado fixado no painel lateral | "Fixado" (a próxima sessão já aparece) |
-| Indicador "escrevendo…" | Linha de digitação (hoje usada para avisos de erro) |
 
 ## Perfil (`components/screens/perfil/vals.ts`)
 
@@ -92,7 +84,7 @@ Feito (2026-11-09): tabela `Mensagem` (canal da campanha fora da sessão, direta
 | Foto do perfil | Feito: enviar imagem, usar a do Discord ou remover (`POST /api/uploads` + `PATCH /api/perfil { avatar }`). O @ é o do Discord e não muda. |
 | Publicar rolagens no servidor | A preferência é gravada, mas o bot ainda não publica as rolagens do site no Discord. |
 | Servidores com o bot | `[{ nome, canal, status }]` |
-| Vincular Google / e-mail e senha / 2FA / dispositivos (sessões ativas, encerrar) / excluir conta | Aba Conta e Conexões |
+| Vincular Google / e-mail e senha / excluir conta | Aba Conta e Conexões (2FA e dispositivos já funcionam em /perfil/seguranca) |
 | Títulos conquistados | "Título exibido" |
 | Preferências de e-mail e resumo semanal | hoje no navegador |
 
@@ -133,3 +125,11 @@ Feito (2026-11-09): tabela `Mensagem` (canal da campanha fora da sessão, direta
 ## Uploads (bucket `saga-uploads`) — 2026-11-09
 
 `POST /api/uploads` (multipart `file`, `para`: mapa · capa · handout · retrato · avatar) confere a permissão, os bytes (PNG/JPG/WEBP/GIF) e o limite de 4 MB, e devolve `{ url }` pública. Precisa de `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` na Vercel. Trocar ou apagar a imagem de um mapa, da capa ou da foto apaga o arquivo antigo do bucket. Falta botão de envio no design para: capa da campanha (Painel / Nova Campanha), retrato (Criar Personagem / fichas) e imagem do handout.
+
+## Telas que esperavam API — feito (2026-11-10)
+
+- **Ficha Personalizada** (sistemas de usuário, no lugar da FichaAntiga): `lib/sistema-proprio.ts` monta atributos (sigla, faixa, perícias) e recursos por fórmula; rolagem pela mecânica do sistema. Sistemas antigos sem os campos novos são lidos pela descrição (`FOR · 3–18`, `Perícia`).
+- **Inventário, moedas e XP** (Ficha de D&D e Personalizada): `CharacterSheet.inventarioJson`, `moedasJson`, `xp`, `xpHistoricoJson`; `PATCH /api/characters/[id]` com `inventario`, `moedas`, `xpGanho`. Peças em `components/inventario` (recortadas por `scripts/recortar-inventario.js`).
+- **Criar Sistema**: capa por URL, `copyFromSystemIds`, `RPGSystem.mecanica/dadoBase/recursosJson/configJson`, `SystemAttribute.sigla/minimo/maximo/tipo/base`.
+- **Mensagens Mestre**: sussurro selado (`Mensagem.paraId` em mensagem de campanha + `abertoEm`), recado fixado (`Campaign.recado`, `PUT /api/campaigns/[id]/recado`), "escrevendo…" (tabela `Digitando`).
+- **Segurança** (`/perfil/seguranca`): TOTP com segredo cifrado e 10 códigos de recuperação; o login do Discord de quem tem 2FA passa por `/verificar` antes de criar a sessão. Dispositivos: tabela `Dispositivo`, o JWT leva `dispId`; encerrar derruba a sessão em até 1 minuto. O passo de código no login reaproveita o "Digite o código" da Segurança (não há tela própria no design).

@@ -217,6 +217,39 @@ if (& $want 'criarsistema') {
     Rep $c "import './criarsistema.css'" "import './criarsistema.css'`nimport '../csextra/csextra.css'"
   } 'capa por URL e "Começar a partir de outros sistemas" (SAGA Criar Sistema Extras) no passo de identidade.'
 }
+if (& $want 'seguranca') {
+  $p = Gen 'SAGA Seguranca' 'seguranca' @('header')
+  Edit $p {
+    param($c)
+    $c = Rep $c "v.`$href('SAGA Perfil.dc.html')" "'/perfil?aba=conta'"
+    $c = Rep $c "gridTemplateColumns: 'repeat(21,1fr)'" 'gridTemplateColumns: `repeat(${v.qrN},1fr)`'
+    $c = Rep $c '>KJ7Q 2MXA 9FDP 4TRW<' '>{v.chave}<'
+    $c = Rep $c '>No protótipo, o código certo é 123456.<' '>{v.codeHint}<'
+    $c = AddAttr $c '>Baixar .txt</button>' 'button' 'onClick={v.baixar}'
+    $c
+  } 'chave e QR reais do TOTP, códigos de recuperação para baixar e o link de volta ao Perfil.'
+  # O passo "Digite o código" também é a verificação no login (/verificar).
+  $c = [IO.File]::ReadAllText($p)
+  $passo = Enclosing $c '>Digite o código de 6 dígitos que aparece no app<' 'div'
+  $icones = ([regex]::Match($c, "import \{([^}]*)\} from 'lucide-react'")).Groups[1].Value
+  $comp = @"
+'use client'
+
+/* Recortado de screens/seguranca/Template.tsx (passo "Digite o código") por scripts/dc-gerar.ps1.
+   Usado na Segurança e na verificação do login (/verificar). */
+
+import {$icones} from 'lucide-react'
+import type { Vals } from './vals'
+import './seguranca.css'
+
+export type CodigoVals = Pick<Vals, 'codeShake' | 'codeHint' | 'boxes' | 'code' | 'onCode' | 'codeKey' | 'codeErr' | 'back1' | 'verify'>
+
+export function Codigo({ v }: { v: CodigoVals }) {
+  return ($passo)
+}
+"@
+  [IO.File]::WriteAllText((Join-Path $screens 'seguranca\Codigo.tsx'), $comp)
+}
 if (& $want 'explorar') {
   $p = Gen 'SAGA Explorar' 'explorar'
   Edit $p { param($c) WrapEnclosing $c 'Em destaque esta semana' 'section' 'v.temFeat' } 'destaque só com alguma mesa aberta.'
