@@ -4,6 +4,7 @@ import { prisma } from 'database'
 import { NextResponse } from 'next/server'
 import { sanitizeTracks } from '@/lib/resource-tracks'
 import { validateImageUrlOrError } from '@/lib/validate-url'
+import { apagarSeNosso } from '@/lib/storage'
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
@@ -58,12 +59,14 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     return NextResponse.json({ error: 'Nenhum campo para atualizar' }, { status: 400 })
   }
 
+  const antes = 'coverUrl' in data ? await prisma.campaign.findUnique({ where: { id: params.id }, select: { coverUrl: true } }).catch(() => null) : null
   const updated = await prisma.campaign.update({
     where: { id: params.id },
     data,
     select: { id: true, name: true, coverUrl: true, rollVisibility: true, botEnabled: true, isOpen: true, maxSlots: true, campaignType: true, contentTone: true, playStyle: true, sessionFrequency: true, minExperience: true, resourceTracksJson: true },
   }).catch(() => null)
   if (!updated) return NextResponse.json({ error: 'Erro ao atualizar campanha' }, { status: 500 })
+  if (antes?.coverUrl && antes.coverUrl !== updated.coverUrl) void apagarSeNosso(antes.coverUrl)
 
   return NextResponse.json(updated)
 }

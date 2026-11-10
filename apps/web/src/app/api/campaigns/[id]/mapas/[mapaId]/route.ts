@@ -4,6 +4,7 @@ import { prisma } from 'database'
 import { NextResponse } from 'next/server'
 import { validateImageUrlOrError } from '@/lib/validate-url'
 import { LIM, mapasDa, prenderTokens, publico } from '@/lib/mapas'
+import { apagarSeNosso } from '@/lib/storage'
 
 async function doMestre(campaignId: string, mapaId: string, discordId: string) {
   const gm = await prisma.campaignMember.findFirst({ where: { campaignId, role: 'GM', user: { discordId } }, select: { id: true } }).catch(() => null)
@@ -53,6 +54,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string; ma
   const cols = colunas ?? mapa.colunas, lins = linhas ?? mapa.linhas
   if (colunas !== undefined || linhas !== undefined) data.tokensJson = prenderTokens((data.tokensJson as string | null | undefined) ?? mapa.tokensJson, cols, lins)
   const atualizado = await prisma.mapa.update({ where: { id: mapa.id }, data })
+  // Imagem trocada: a antiga sai do bucket (se for nossa).
+  if ('imagemUrl' in data && mapa.imagemUrl && mapa.imagemUrl !== data.imagemUrl) void apagarSeNosso(mapa.imagemUrl)
 
   // Mapa na mesa: a sessão é o espelho dele (imagem e tokens presos ao tamanho novo).
   const { naMesa } = await mapasDa(params.id)
@@ -73,5 +76,6 @@ export async function DELETE(_req: Request, { params }: { params: { id: string; 
   if (mapas.length <= 1) return NextResponse.json({ error: 'Precisa existir pelo menos um mapa' }, { status: 409 })
   if (naMesa === mapa.id) return NextResponse.json({ error: 'Os jogadores estão vendo este mapa' }, { status: 409 })
   await prisma.mapa.delete({ where: { id: mapa.id } })
+  void apagarSeNosso(mapa.imagemUrl)
   return NextResponse.json({ ok: true })
 }

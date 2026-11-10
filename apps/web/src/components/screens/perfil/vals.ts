@@ -5,6 +5,7 @@ import { Link as LinkIcon, Mail, RefreshCw, Shield, SlidersHorizontal, Trash2, U
 import { GoogleIcon } from '@/components/ui/saga'
 import { toggleTema } from '@/lib/tema'
 import { useRouter } from 'next/navigation'
+import { enviarImagem, escolherImagem } from '@/lib/enviar-imagem'
 
 /** Dados reais de /perfil (app/(app)/perfil/page.tsx). */
 export type PerfilDados = {
@@ -29,7 +30,10 @@ const Google = (({ width }: { width?: number | string }) => GoogleIcon({ size: N
 export function usePerfilVals(d: PerfilDados) {
   const [tab, setTab] = useState(d.aba)
   const [menu, setMenu] = useState(false)
-  const [av, setAv] = useState<'discord' | 'custom'>('discord')
+  // Foto: a do Discord, uma enviada (bucket) ou nenhuma. Muda na hora, sem "Salvar".
+  const [av, setAv] = useState<'discord' | 'custom' | 'none'>(d.discord.avatar === 0 ? (d.avatar ? 'custom' : 'none') : 'discord')
+  const [foto, setFoto] = useState(d.avatar)
+  const [fotoMsg, setFotoMsg] = useState('')
   const [frame, setFrame] = useState(d.moldura && FR[d.moldura] ? d.moldura : 'Ouro')
   const [name, setName] = useState(d.nome)
   const [user, setUser] = useState(d.user)
@@ -64,14 +68,37 @@ export function usePerfilVals(d: PerfilDados) {
     if (r?.ok) { setDirty(false); setSaved(true); setUser(d.user) }
   }
 
+  const patchFoto = async (avatar: string) => {
+    const r = await fetch('/api/perfil', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ avatar }) }).catch(() => null)
+    return r?.ok ? await r.json().catch(() => null) as { avatar?: string | null } | null : null
+  }
+  const trocarFoto = async (k: 'discord' | 'custom' | 'none') => {
+    setFotoMsg('')
+    if (k === 'custom') {
+      const file = await escolherImagem()
+      if (!file) return
+      setFotoMsg('Enviando a foto…')
+      const up = await enviarImagem(file, { para: 'avatar' })
+      if ('erro' in up) { setFotoMsg(up.erro); return }
+      const u = await patchFoto(up.url)
+      if (!u) { setFotoMsg('Não foi possível salvar a foto. Tente de novo.'); return }
+      setFoto(up.url); setAv('custom'); setFotoMsg('✓ Foto atualizada'); router.refresh()
+      return
+    }
+    const u = await patchFoto(k === 'discord' ? 'discord' : 'nenhuma')
+    if (!u) { setFotoMsg('Não foi possível concluir agora. Tente de novo.'); return }
+    setFoto(u.avatar ?? null); setAv(k); setFotoMsg(k === 'discord' ? '✓ Usando a foto do Discord' : '✓ Foto removida'); router.refresh()
+  }
+
   return {
-    $img: (_id: string) => (av === 'discord' ? d.avatar : null), // TODO(api): upload do retrato
+    $img: (_id: string) => foto,
     tabs: tabs.map(([k, l, icon]) => ({ l, icon, go: () => { setTab(k); window.history.replaceState(null, '', k === 'perfil' ? '/perfil' : `?aba=${k}`) }, color: tab === k ? 'var(--ink)' : 'var(--muted)', line: tab === k ? 'inset 0 -2px 0 var(--accent)' : 'none' })),
     isPerfil: tab === 'perfil', isCon: tab === 'conexoes', isConta: tab === 'conta', isPref: tab === 'pref',
     menu, toggleMenu: () => setMenu(!menu),
-    avCustom: av === 'custom', avDiscord: av === 'discord', frameBg: FR[frame],
+    // Com foto, a imagem; sem foto, a inicial no medalhão.
+    avCustom: !!foto, avDiscord: !foto, frameBg: FR[frame],
     avOpts: ([['Usar avatar do Discord', RefreshCw, 'discord'], ['Enviar imagem…', Upload, 'custom'], ['Remover foto', Trash2, 'none']] as const).map(([l, icon, k]) => ({
-      l, icon, color: k === 'none' ? 'var(--accent)' : 'var(--ink)', check: av === k ? '✓' : '', go: () => { setAv(k === 'none' ? 'discord' : k); setMenu(false); mark() },
+      l, icon, color: k === 'none' ? 'var(--accent)' : 'var(--ink)', check: av === k ? '✓' : '', go: () => { setMenu(false); void trocarFoto(k) },
     })),
     name, initial: (name || '?')[0].toUpperCase(), user, bio, bioCount: bio.length, title,
     onName: (e: ChangeEvent<HTMLInputElement>) => { setName(e.target.value); mark() },
@@ -84,7 +111,7 @@ export function usePerfilVals(d: PerfilDados) {
     favs: d.favs,
     save: () => void save(),
     saveBg: dirty ? 'var(--accent)' : 'var(--surface2)', saveColor: dirty ? '#fff8f0' : 'var(--muted)',
-    saveMsg: saved ? '✓ Alterações salvas' : dirty ? 'Alterações não salvas' : '', saveMsgColor: saved ? 'var(--ok)' : 'var(--muted)', saveAnim: saved ? 'perfil-pop .3s both' : 'none',
+    saveMsg: fotoMsg || (saved ? '✓ Alterações salvas' : dirty ? 'Alterações não salvas' : ''), saveMsgColor: fotoMsg ? 'var(--muted)' : saved ? 'var(--ok)' : 'var(--muted)', saveAnim: saved ? 'perfil-pop .3s both' : 'none',
     // O login é pelo Discord: a conexão não pode ser desfeita daqui.
     dcOn: true, dcOff: false, dcSub: `Conectado como ${d.user} · login, avatar e bot`,
     dcToggle: () => { /* TODO(api): desconectar o Discord exige outro meio de login */ },

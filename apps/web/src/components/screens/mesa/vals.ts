@@ -12,6 +12,7 @@ import { safeImageUrl } from '@/lib/safe-url'
 import { attributeModifier, attributePool, isD20Category, type SheetCategory } from '@/lib/system-category'
 import { PRESETS } from '@/components/mesa/MusicPlayer'
 import { miniatura, type MapaItem, type SagaMapasProps } from '@/components/screens/sagamapas/vals'
+import { enviarImagem, imagemDe } from '@/lib/enviar-imagem'
 import { PLAYER_COLORS, initTokens, type Marker, type Member, type RollLogEntry, type SessionState, type Token } from '@/components/mesa/types'
 
 type Ficha = { ca: number | null; attrs: { n: string; v: number; die: string }[]; armas: { n: string; b: number; d: string }[] | null; nota: string | null }
@@ -418,6 +419,27 @@ export function useMesaVals(d: MesaDados) {
     if (gm && aberto) void json(`${api}/mapas/${aberto}`, 'PATCH', { imagemUrl: url })
     else if (ativa || gravaPreparo) void patch(d.campaignId, { mapImageUrl: url })
   }
+  // "Trocar mapa" do design: soltar (ou colar) a imagem no mapa. Vai para o bucket e vira a imagem do mapa aberto.
+  const soltarRef = useRef<(f: File) => void>(() => {})
+  soltarRef.current = (f: File) => {
+    if (!gm) return
+    avisar('Enviando a imagem do mapa…')
+    void enviarImagem(f, { para: 'mapa', campaignId: d.campaignId }).then(r => {
+      if ('erro' in r) { avisar(r.erro); return }
+      gravarImagem(r.url); setMapDraft(''); setMapEdit(false); avisar('Mapa trocado')
+    })
+  }
+  useEffect(() => {
+    const el = vpRef.current
+    if (!el || !gm) return
+    const over = (e: DragEvent) => { if (e.dataTransfer?.types.includes('Files')) e.preventDefault() }
+    const drop = (e: DragEvent) => { const f = imagemDe(e.dataTransfer); if (f) { e.preventDefault(); soltarRef.current(f) } }
+    // Colar uma imagem só enquanto "Trocar mapa" está aberto (no resto da Mesa, colar é texto).
+    const paste = (e: ClipboardEvent) => { if (!mapEditRef.current) return; const f = imagemDe(e.clipboardData); if (f) { e.preventDefault(); soltarRef.current(f) } }
+    el.addEventListener('dragover', over); el.addEventListener('drop', drop); window.addEventListener('paste', paste)
+    return () => { el.removeEventListener('dragover', over); el.removeEventListener('drop', drop); window.removeEventListener('paste', paste) }
+  }, [gm])
+  const mapEditRef = useRef(mapEdit); mapEditRef.current = mapEdit
 
   useEffect(() => {
     const mv = (e: PointerEvent) => {
@@ -796,7 +818,7 @@ export function useMesaVals(d: MesaDados) {
     tirarMapa: () => { setMapDraft(''); gravarImagem(null) },
     tools: toolsOk.map(k => ({ l: TOOLS[k][0], icon: TOOLS[k][1], k: TOOLS[k][2], go: () => { setTool(k); setMeasure(null) }, bg: tool === k ? 'var(--accent)' : 'transparent', color: tool === k ? '#fff8f0' : 'var(--muted)', hover: tool === k ? 'var(--accent)' : 'var(--surface2)' })),
     toolIcon: mapEdit ? ImageUp : TOOLS[tool][1],
-    toolHint: aviso ?? (outro && !mapEdit ? `Preparando “${mapaAberto.nome}” · os jogadores veem “${mapas.find(m => m.id === naMesa)?.nome ?? 'o mapa da mesa'}”` : mapEdit ? 'Cole o link da imagem do mapa e clique em Concluir mapa' : !ativa ? 'Nenhuma sessão ao vivo · o Mestre inicia pelo Painel' : tool === 'token' && pend ? `Clique no mapa para posicionar ${pend.label}` : TOOLS[tool][3]),
+    toolHint: aviso ?? (outro && !mapEdit ? `Preparando “${mapaAberto.nome}” · os jogadores veem “${mapas.find(m => m.id === naMesa)?.nome ?? 'o mapa da mesa'}”` : mapEdit ? 'Cole o link, cole a imagem ou solte o arquivo no mapa · depois, Concluir mapa' : !ativa ? 'Nenhuma sessão ao vivo · o Mestre inicia pelo Painel' : tool === 'token' && pend ? `Clique no mapa para posicionar ${pend.label}` : TOOLS[tool][3]),
     zoom, zoomLabel: `${Math.round(zoom * 100)}%`,
     zoomIn: () => setZoom(z => Math.min(1.8, +(z + .1).toFixed(2))), zoomOut: () => setZoom(z => Math.max(vpZoomMin, +(z - .1).toFixed(2))),
     onWheel: (e: WheelEvent) => setZoom(z => Math.max(vpZoomMin, Math.min(1.8, +(z + (e.deltaY < 0 ? .08 : -.08)).toFixed(2)))),

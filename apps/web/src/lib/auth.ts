@@ -60,9 +60,12 @@ export const authOptions: NextAuthOptions = {
         ? `https://cdn.discordapp.com/avatars/${p.id}/${p.avatar}.png`
         : null
       try {
+        // Foto enviada no Perfil ("Sincronizar foto" desligado): o login não troca pela do Discord.
+        const atual = await prisma.user.findUnique({ where: { discordId: p.id }, select: { prefsJson: true } })
+        const fotoPropria = /"avatar":0/.test(atual?.prefsJson ?? '')
         await prisma.user.upsert({
           where: { discordId: p.id },
-          update: { username: p.username, avatar: avatarUrl },
+          update: { username: p.username, ...(fotoPropria ? {} : { avatar: avatarUrl }) },
           create: { discordId: p.id, username: p.username, avatar: avatarUrl },
         })
       } catch (e) {

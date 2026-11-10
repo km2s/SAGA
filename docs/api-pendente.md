@@ -89,7 +89,7 @@ Feito (2026-11-09): tabela `Mensagem` (canal da campanha fora da sessão, direta
 
 | Chamada | Contrato |
 |---|---|
-| Upload do retrato | `PATCH /api/perfil` já grava nome exibido, bio, título, moldura e as preferências do Discord (`User.prefsJson`); falta enviar imagem. O @ é o do Discord e não muda. |
+| Foto do perfil | Feito: enviar imagem, usar a do Discord ou remover (`POST /api/uploads` + `PATCH /api/perfil { avatar }`). O @ é o do Discord e não muda. |
 | Publicar rolagens no servidor | A preferência é gravada, mas o bot ainda não publica as rolagens do site no Discord. |
 | Servidores com o bot | `[{ nome, canal, status }]` |
 | Vincular Google / e-mail e senha / 2FA / dispositivos (sessões ativas, encerrar) / excluir conta | Aba Conta e Conexões |
@@ -107,7 +107,7 @@ Feito (2026-11-09): tabela `Mensagem` (canal da campanha fora da sessão, direta
 | O quê | Observação |
 |---|---|
 | Cenas da sessão (nome, mapa, miniatura) | O cabeçalho do design troca de cena; hoje há um só `mapImageUrl`. |
-| Upload de imagem do mapa | "Trocar mapa" do design é soltar a imagem; hoje é link. |
+| Upload de imagem do mapa | Feito: soltar ou colar a imagem no mapa (bucket `saga-uploads`). |
 | Bônus de ataque e CA do token/ficha | O popover do design mostra CA e "Rolar ataque +N". |
 | Perícias na ficha | A aba Fichas do design lista perícias roláveis. |
 
@@ -129,3 +129,7 @@ Feito (2026-11-09): tabela `Mensagem` (canal da campanha fora da sessão, direta
 - `PATCH .../rolls/[rollId]` `{ revelar: true }` (só o mestre; não vale para "só para mim" de jogador).
 - Leitores filtrados: Mesa (nova e antiga), Painel (atividade e contagem), Sessão (registro, estatísticas e destaque contam só o que o leitor vê; o mestre vê os contadores), lista de sessões, Mensagens (canal), Perfil (vinte natural ignora às cegas), visão geral do jogador.
 - Bot: `/iniciativa ver` mostra no canal só as públicas e manda a quem pode ver mais a ordem completa numa resposta só para si; `/sessao status|encerrar` conta só as públicas no canal e manda ao mestre, só para ele, "N rolagens · X secretas · Y às cegas". O bot grava `memberId` nas rolagens. Mensagens de chat deixaram de contar como rolagem no `/sessao`.
+
+## Uploads (bucket `saga-uploads`) — 2026-11-09
+
+`POST /api/uploads` (multipart `file`, `para`: mapa · capa · handout · retrato · avatar) confere a permissão, os bytes (PNG/JPG/WEBP/GIF) e o limite de 4 MB, e devolve `{ url }` pública. Precisa de `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` na Vercel. Trocar ou apagar a imagem de um mapa, da capa ou da foto apaga o arquivo antigo do bucket. Falta botão de envio no design para: capa da campanha (Painel / Nova Campanha), retrato (Criar Personagem / fichas) e imagem do handout.
