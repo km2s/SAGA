@@ -1,8 +1,8 @@
 'use client'
 
 import { Template } from './Template'
-import { useCriarSistemaVals } from './vals'
+import { useCriarSistemaVals, type Fonte } from './vals'
 
-export function CriarSistema() {
-  return <Template v={useCriarSistemaVals()} />
+export function CriarSistema({ fontes }: { fontes: Fonte[] }) {
+  return <Template v={useCriarSistemaVals(fontes)} />
 }

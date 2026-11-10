@@ -573,6 +573,9 @@ export async function POST(req: Request) {
   const body = await req.json() as {
     name?: string; description?: string; imageUrl?: string; category?: string
     copyFromSystemIds?: string[]
+    // Criar Sistema: mecânica, dado base, recursos e o resto da configuração.
+    mecanica?: string; dadoBase?: string; recursos?: unknown
+    dificuldade?: unknown; critico?: unknown; couro?: unknown; icone?: unknown; visibilidade?: unknown; permitirClonar?: unknown; permitirImportadas?: unknown
   }
   if (!body.name?.trim()) return NextResponse.json({ error: 'Nome obrigatório' }, { status: 400 })
 
@@ -594,6 +597,10 @@ export async function POST(req: Request) {
       category: body.category ?? 'custom',
       isPreset: false,
       creatorId: user.id,
+      mecanica: ['sum', 'pool', 'under', 'soma', 'parada', 'abaixo'].includes(body.mecanica ?? '') ? body.mecanica : null,
+      dadoBase: typeof body.dadoBase === 'string' ? body.dadoBase.slice(0, 10) : null,
+      recursosJson: Array.isArray(body.recursos) ? JSON.stringify(body.recursos.slice(0, 12).filter(r => r && typeof r.nome === 'string').map(r => ({ nome: String(r.nome).slice(0, 40), formula: String(r.formula ?? '').slice(0, 60), cor: typeof r.cor === 'string' ? r.cor.slice(0, 20) : '#6a9a4a' }))) : null,
+      configJson: JSON.stringify({ dificuldade: body.dificuldade, critico: body.critico, couro: body.couro, icone: body.icone, visibilidade: body.visibilidade, permitirClonar: body.permitirClonar, permitirImportadas: body.permitirImportadas }).slice(0, 2000),
     },
     include: { creator: { select: { username: true } }, attributes: true },
   })

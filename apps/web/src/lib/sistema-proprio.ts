@@ -28,7 +28,7 @@ export function montarSistema(s: SisDb): SistemaProprio {
   let recursos: RecursoSis[] = []
   try { const r = JSON.parse(s.recursosJson ?? '[]') as unknown; if (Array.isArray(r)) recursos = r.filter(x => x && typeof x.nome === 'string').map(x => ({ nome: String(x.nome).slice(0, 40), formula: String(x.formula ?? ''), cor: typeof x.cor === 'string' ? x.cor : 'var(--ok)' })) } catch { /* sem recursos */ }
   // Sem mecânica gravada: pela categoria (mundo das trevas = parada; horror = abaixo; o resto soma).
-  const mecanica = MEC[s.mecanica ?? ''] ?? (s.category === 'wod' ? 'parada' : s.category === 'horror' ? 'abaixo' : 'soma')
+  const mecanica = MEC[s.mecanica ?? ''] ?? (s.category === 'wod' || s.category === 'world-of-darkness' ? 'parada' : s.category === 'horror' ? 'abaixo' : 'soma')
   return { nome: s.name, autor: s.creator?.username ?? null, mecanica, atributos, recursos }
 }
 

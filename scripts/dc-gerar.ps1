@@ -60,6 +60,22 @@ function WrapEnclosing([string]$c, [string]$anchor, [string]$tag, [string]$cond,
   }
   return $c.Substring(0, $s) + "{$cond && (" + $c.Substring($s, $e - $s) + ')}' + $c.Substring($e)
 }
+# Texto do elemento <tag> que contém `anchor` (mesma regra de WrapEnclosing).
+function Enclosing([string]$c, [string]$anchor, [string]$tag) {
+  $marca = '@@ENC@@'
+  $w = WrapEnclosing $c $anchor $tag $marca
+  $abre = "{$marca && ("
+  $i = $w.IndexOf($abre, $O)
+  $s = $i + $abre.Length
+  # O envoltório fecha num ')}' depois do elemento; o certo é o que, tirado, devolve o texto original.
+  $fimW = $w.IndexOf(')}', $s, $O)
+  while ($fimW -ge 0) {
+    $cand = $w.Substring($s, $fimW - $s)
+    if (($w.Substring(0, $i) + $cand + $w.Substring($fimW + 2)) -eq $c) { return $cand }
+    $fimW = $w.IndexOf(')}', $fimW + 1, $O)
+  }
+  throw "elemento não achado: $anchor"
+}
 function AddAttr([string]$c, [string]$anchor, [string]$tag, [string]$attr) {
   $i = $c.IndexOf($anchor, $O); if ($i -lt 0) { throw "âncora não achada: $anchor" }
   $s = $c.LastIndexOf("<$tag", $i, $O)
@@ -183,6 +199,23 @@ if (& $want 'fichapersonalizada') {
     $c = $c.Substring(0, $i) + "{v.tInv && (<div style={{ marginTop: '18px' }}><Inventario v={v.inv} /></div>)}" + $c.Substring($fim)
     Rep $c "import type { Vals } from './vals'" "import type { Vals } from './vals'`nimport { Inventario } from '@/components/inventario/Inventario'"
   } 'ficha de um sistema feito por usuário: atributos, perícias e recursos do sistema; inventário pela peça de components/inventario.'
+}
+if (& $want 'criarsistema') {
+  # Campos extras (SAGA Criar Sistema Extras): capa por URL e "Começar a partir de outros sistemas".
+  # Gerado com prefixo próprio (as classes não colidem); só o CSS fica.
+  $x = Gen 'SAGA Criar Sistema Extras' 'csextra' @('header')
+  $ex = [IO.File]::ReadAllText($x)
+  $capa = Enclosing $ex '>Imagem da capa (URL)<' 'label'
+  $origem = Enclosing $ex '>Começar a partir de outros sistemas<' 'section'
+  Remove-Item $x
+  $p = Gen 'SAGA Criar Sistema' 'criarsistema' @('header')
+  Edit $p {
+    param($c)
+    $ident = Enclosing $c '>Nome do sistema<' 'section'
+    $novo = $ident.Substring(0, $ident.Length - '</section>'.Length) + $capa + '</section>' + $origem
+    $c = Rep $c $ident $novo
+    Rep $c "import './criarsistema.css'" "import './criarsistema.css'`nimport '../csextra/csextra.css'"
+  } 'capa por URL e "Começar a partir de outros sistemas" (SAGA Criar Sistema Extras) no passo de identidade.'
 }
 if (& $want 'explorar') {
   $p = Gen 'SAGA Explorar' 'explorar'

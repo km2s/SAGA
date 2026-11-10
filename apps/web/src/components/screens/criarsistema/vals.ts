@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent } fro
 import { useRouter } from 'next/navigation'
 import { Castle, Eye, Feather, Flame, Moon, Skull, Sparkles, Swords, type LucideIcon } from 'lucide-react'
 import { dcHref } from '@/lib/dc-routes'
+import { safeImageUrl } from '@/lib/safe-url'
 
 /**
  * Porte do renderVals() de SAGA Criar Sistema.dc.html. Começa em branco (o
@@ -22,15 +23,18 @@ const DRAFT = 'saga_sistema_rascunho'
 
 type Attr = { id: number; n: string; a: string; min: number; max: number }
 type Res = { id: number; n: string; f: string; c: number }
-type Draft = { name: string; desc: string; cat: string; leather: number; icon: number; die: string; mech: string; diff: number; crit: string; attrs: Attr[]; res: Res[]; skills: { id: number; n: string }[]; vis: string; clone: boolean; imp: boolean; nid: number }
+type Draft = { img: string; src: string[]; name: string; desc: string; cat: string; leather: number; icon: number; die: string; mech: string; diff: number; crit: string; attrs: Attr[]; res: Res[]; skills: { id: number; n: string }[]; vis: string; clone: boolean; imp: boolean; nid: number }
 const INICIAL: Draft = {
-  name: '', desc: '', cat: 'Fantasia', leather: 0, icon: 0, die: 'd20', mech: 'sum', diff: 6, crit: 'Natural máximo',
+  img: '', src: [], name: '', desc: '', cat: 'Fantasia', leather: 0, icon: 0, die: 'd20', mech: 'sum', diff: 6, crit: 'Natural máximo',
   attrs: ([['Força', 'FOR'], ['Destreza', 'DES'], ['Constituição', 'CON'], ['Inteligência', 'INT'], ['Sabedoria', 'SAB'], ['Carisma', 'CAR']] as const).map(([n, a], i) => ({ id: i, n, a, min: 1, max: 20 })),
   res: [{ id: 50, n: 'Pontos de vida', f: 'CON × 2 + 10', c: 0 }],
   skills: [], vis: 'Só minhas mesas', clone: true, imp: false, nid: 100,
 }
 
-export function useCriarSistemaVals() {
+/** Sistemas de onde copiar atributos (pré-definidos e os do usuário). */
+export type Fonte = { id: string; n: string; attrs: string[] }
+
+export function useCriarSistemaVals(fontes: Fonte[] = []) {
   const router = useRouter()
   const [s, setS] = useState<Draft>(INICIAL)
   const [skDraft, setSkDraft] = useState('')
@@ -64,15 +68,22 @@ export function useCriarSistemaVals() {
     setTestTick(n => n + 1); setTest({ label: `Teste de ${a.n || a.a}`, detail, total, color: good ? '#f3dc94' : '#f1e3c2' })
   }
 
+  // Siglas repetidas ou faixa invertida não deixam publicar (SAGA Criar Sistema Extras).
+  const sgs = s.attrs.map(a => a.a.trim()).filter(Boolean)
+  const attrErr = sgs.some((x, i) => sgs.indexOf(x) !== i) ? 'Duas siglas iguais: troque uma delas.' : s.attrs.some(a => a.min >= a.max) ? 'O mínimo precisa ser menor que o máximo.' : ''
+  const capaUrl = s.img.trim().startsWith('https://') ? safeImageUrl(s.img.trim()) : null, imgOk = !!capaUrl
+
   const publish = async () => {
     if (!s.name.trim() || sealing) return
+    if (attrErr) { setTestTick(n => n + 1); setTest({ label: 'Atributos', detail: attrErr, total: '!', color: '#e8a080' }); return }
+    if (s.img.trim() && !imgOk) { setTestTick(n => n + 1); setTest({ label: 'Capa', detail: 'Use um endereço https:// para a imagem da capa.', total: '!', color: '#e8a080' }); return }
     setSealing(true)
     const espera = new Promise(res => setTimeout(res, 900))
     const r = await fetch('/api/systems', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         name: s.name.trim(), description: s.desc.trim() || undefined, category: CAT_DB[s.cat] ?? 'custom',
-        // TODO(api): campos novos do Criar Sistema (docs/api-pendente.md); a API atual ignora.
+        imageUrl: capaUrl ?? undefined, copyFromSystemIds: s.src,
         dadoBase: s.die, mecanica: s.mech, dificuldade: s.diff, critico: s.crit, couro: s.leather, icone: s.icon,
         recursos: s.res.map(x => ({ nome: x.n, formula: x.f, cor: RES_C[x.c % RES_C.length] })), visibilidade: s.vis, permitirClonar: s.clone, permitirImportadas: s.imp,
       }),
@@ -82,8 +93,8 @@ export function useCriarSistemaVals() {
       // Atributos e perícias viram atributos da ficha (como nos pré-definidos).
       const die = s.mech === 'under' ? 'd100' : s.mech === 'pool' ? 'd10' : s.die
       await Promise.all([
-        ...s.attrs.filter(a => a.n.trim()).map(a => fetch(`/api/systems/${sys.id}/attributes`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: a.n.trim(), defaultDie: die, description: `${a.a} · ${a.min}–${a.max}` }) }).catch(() => null)),
-        ...s.skills.map(k => fetch(`/api/systems/${sys.id}/attributes`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: k.n, defaultDie: die, description: 'Perícia' }) }).catch(() => null)),
+        ...s.attrs.filter(a => a.n.trim()).map((a, i) => fetch(`/api/systems/${sys.id}/attributes`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: a.n.trim(), defaultDie: die, sigla: a.a, minimo: a.min, maximo: a.max, tipo: 'atributo', order: i }) }).catch(() => null)),
+        ...s.skills.map((k, i) => fetch(`/api/systems/${sys.id}/attributes`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: k.n, defaultDie: die, tipo: 'pericia', minimo: 0, maximo: 10, order: 100 + i }) }).catch(() => null)),
       ])
       try { localStorage.removeItem(DRAFT) } catch { /* sem localStorage */ }
     }
@@ -110,8 +121,17 @@ export function useCriarSistemaVals() {
   const fmtMod = (a: Attr, v: number) => (s.mech === 'pool' ? `${v}d10` : s.mech === 'under' ? `${v}%` : (() => { const m = Math.floor((v - (a.max <= 6 ? 3 : 10)) / 2); return (m >= 0 ? '+' : '') + m })())
   const Icone = ICONS[s.icon]
 
+  // Começar a partir de outros sistemas: quantos atributos novos entram (repetidos pelo nome entram uma vez).
+  const tem = new Set(s.attrs.map(a => a.n.trim().toLowerCase()))
+  const vindo = Array.from(new Set(fontes.filter(f => s.src.includes(f.id)).flatMap(f => f.attrs)))
+  const novos = vindo.filter(n => !tem.has(n.toLowerCase()))
+
   return {
     $href: (link: string) => dcHref(link),
+    img: s.img, onImg: (e: ChangeEvent<HTMLInputElement>) => set({ img: e.target.value.slice(0, 500) }),
+    srcs: fontes.map(f => { const on = s.src.includes(f.id); return { l: f.n, on, go: () => set({ src: on ? s.src.filter(x => x !== f.id) : [...s.src, f.id].slice(0, 5) }), bg: on ? 'var(--ink)' : 'var(--surface)', color: on ? 'var(--bg)' : 'var(--ink)', ring: on ? 'var(--ink)' : 'var(--line)' } }),
+    hasSrc: s.src.length > 0,
+    srcLine: novos.length ? `Na criação entram mais ${novos.length}: ${novos.slice(0, 8).join(', ')}${novos.length > 8 ? '…' : ''}. Os outros ${vindo.length - novos.length} já existem.` : `Todos os ${vindo.length} atributos desses sistemas já estão na lista.`,
     name: s.name, onName: (e: ChangeEvent<HTMLInputElement>) => set({ name: e.target.value }), nameCount: `${s.name.length}/40`, nameShow: s.name.trim() || 'Sem título',
     desc: s.desc, onDesc: (e: ChangeEvent<HTMLTextAreaElement>) => set({ desc: e.target.value }), descCount: `${s.desc.length}/180`,
     cats: chip(CATS, k => s.cat === k, k => set({ cat: k, leather: LEATHER_BY_CAT[k] })),
@@ -143,7 +163,7 @@ export function useCriarSistemaVals() {
     onSkKey: (e: KeyboardEvent) => { if (e.key === 'Enter' && skDraft.trim()) { const id = nextId(); set({ skills: [...s.skills, { id, n: skDraft.trim() }], nid: id + 1 }); setSkDraft(''); setFresh(id) } },
     visOpts: seg(['Privado', 'Só minhas mesas', 'Comunidade'], s.vis, k => set({ vis: k })),
     swClone: sw(s.clone, () => set({ clone: !s.clone })), swImport: sw(s.imp, () => set({ imp: !s.imp })),
-    leather: LEATHER[s.leather], iconUrl: Icone, catLabel: s.cat, visLabel: s.vis, ribbonOp: s.vis === 'Comunidade' ? 1 : 0,
+    leather: capaUrl ? `url(${JSON.stringify(capaUrl)}) center/cover, ${LEATHER[s.leather]}` : LEATHER[s.leather], iconUrl: Icone, catLabel: s.cat, visLabel: s.vis, ribbonOp: s.vis === 'Comunidade' ? 1 : 0,
     summary: `${s.attrs.length} atributos · ${s.res.length} recursos · ${s.skills.length} perícias · ${MECH[s.mech][0].toLowerCase()} (${s.die})`,
     pvAttrs: s.attrs.slice(0, 9).map(a => { const v = pvVal(a); return { a: a.a || '—', v, m: fmtMod(a, v), anim: a.id === fresh ? 'criarsistema-popA .35s' : 'none', go: () => testRoll(a, s.mech === 'pool' ? Math.max(1, Math.round(v / 4)) : v) } }),
     pvRes: s.res.map(r => ({ n: r.n, f: r.f, c: RES_C[r.c % RES_C.length] })),

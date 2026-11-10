@@ -20,19 +20,34 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const system = await authorizeOwner(params.id, session.user.discordId)
   if (!system) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const body = await req.json() as { name?: string; defaultDie?: string; description?: string }
+  const body = await req.json() as { name?: string; defaultDie?: string; description?: string; sigla?: string; minimo?: number; maximo?: number; tipo?: string; base?: string; order?: number }
   if (!body.name?.trim()) return NextResponse.json({ error: 'Nome obrigatório' }, { status: 400 })
 
-  const attr = await prisma.systemAttribute.create({
-    data: {
-      name: body.name.trim().slice(0, 80),
-      defaultDie: body.defaultDie?.trim() || 'd20',
-      description: body.description?.trim().slice(0, 200) || null,
-      systemId: params.id,
-    },
-  })
+  // Sigla (até 4), faixa e tipo (Criar Sistema). Mesmo nome no sistema atualiza (os copiados de outros sistemas).
+  const int = (v: unknown) => (typeof v === 'number' && isFinite(v) ? Math.max(-999, Math.min(9999, Math.round(v))) : undefined)
+  const name = body.name.trim().slice(0, 80)
+  const extras = {
+    ...(typeof body.sigla === 'string' && body.sigla.trim() ? { sigla: body.sigla.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || null } : {}),
+    ...(int(body.minimo) !== undefined ? { minimo: int(body.minimo) } : {}),
+    ...(int(body.maximo) !== undefined ? { maximo: int(body.maximo) } : {}),
+    ...(body.tipo === 'atributo' || body.tipo === 'pericia' ? { tipo: body.tipo } : {}),
+    ...(typeof body.base === 'string' ? { base: body.base.trim().toUpperCase().slice(0, 4) || null } : {}),
+    ...(int(body.order) !== undefined ? { order: int(body.order) } : {}),
+  }
+  const existente = await prisma.systemAttribute.findFirst({ where: { systemId: params.id, name } }).catch(() => null)
+  const attr = existente
+    ? await prisma.systemAttribute.update({ where: { id: existente.id }, data: { defaultDie: body.defaultDie?.trim() || existente.defaultDie, ...extras } })
+    : await prisma.systemAttribute.create({
+        data: {
+          name,
+          defaultDie: body.defaultDie?.trim() || 'd20',
+          description: body.description?.trim().slice(0, 200) || null,
+          systemId: params.id,
+          ...extras,
+        },
+      })
 
-  return NextResponse.json(attr, { status: 201 })
+  return NextResponse.json(attr, { status: existente ? 200 : 201 })
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
