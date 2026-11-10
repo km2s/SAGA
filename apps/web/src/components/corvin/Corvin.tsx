@@ -1,124 +1,210 @@
 'use client'
 
 import { useId } from 'react'
-import s from './Corvin.module.css'
+import './corvin.css'
 
-/**
- * Lorde Corvin, o vampiro cronista — guia do tutorial. Porte 1:1 de
- * Saga NOVO/Corvin.dc.html. `medalhao` recorta o rosto (viewBox 80 76 120 120).
- * Os ids dos gradientes levam prefixo por instância: retrato e medalhão
- * podem estar na mesma página.
+/*
+ * Lorde Corvin, o vampiro cronista (guia do tutorial), em gravura de nanquim.
+ * Gerado por scripts/corvin-jsx.js a partir de Saga NOVO/Corvin.dc.html: não edite à mão.
+ * `medalhao` recorta o rosto (viewBox 80 76 120 120); os ids levam um sufixo por
+ * instância porque retrato e medalhão podem estar na mesma página.
  */
 export function Corvin({ variante = 'retrato', falando = false }: { variante?: 'retrato' | 'medalhao'; falando?: boolean }) {
-  const p = useId().replace(/:/g, '')
-  const id = (n: string) => `${p}${n}`
-  const url = (n: string) => `url(#${p}${n})`
-  const bat = 'M0 0 q5 -6 10 -1 q2 -3 4 0 q5 -5 10 1 q-6 1 -9 6 q-3 -3 -6 0 q-3 -5 -9 -6 z'
-
+  const u = useId().replace(/:/g, '')
+  const med = variante === 'medalhao'
+  const vb = med ? '80 76 120 120' : '0 0 280 370'
+  const modeClass = med ? 'cv-med' : 'cv-ret'
+  const figT = med ? 'translate(140 136) scale(.66) translate(-140 -146)' : 'translate(0 0)'
+  const clip = med ? `url(#cvMed-${u})` : 'none'
+  const tex = med ? 'none' : `url(#cvPaper-${u})`
+  const mouthOpen = falando ? 1 : 0.18
+  const mouthAnim = falando ? 'corvTalk .26s ease-in-out infinite' : 'none'
   return (
-    <svg viewBox={variante === 'medalhao' ? '80 76 120 120' : '0 0 280 370'} preserveAspectRatio="xMidYMid slice" className={s.svg} role="img" aria-label="Lorde Corvin, o vampiro cronista">
-      <defs>
-        <radialGradient id={id('Bg')} cx="50%" cy="38%" r="75%"><stop offset="0" stopColor="#5a1a24" /><stop offset=".6" stopColor="#2a0c12" /><stop offset="1" stopColor="#120507" /></radialGradient>
-        <radialGradient id={id('MoonG')} cx="50%" cy="50%" r="50%"><stop offset="0" stopColor="#ffe2b0" stopOpacity=".55" /><stop offset="1" stopColor="#ffe2b0" stopOpacity="0" /></radialGradient>
-        <linearGradient id={id('Skin')} x1="0" x2="1" y1="0" y2="0"><stop offset="0" stopColor="#c2b0a8" /><stop offset=".32" stopColor="#e9ddd2" /><stop offset=".58" stopColor="#efe5db" /><stop offset="1" stopColor="#bfaca4" /></linearGradient>
-        <linearGradient id={id('Cape')} x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#22141c" /><stop offset="1" stopColor="#070305" /></linearGradient>
-        <linearGradient id={id('Lining')} x1="0" x2="1" y1="0" y2="1"><stop offset="0" stopColor="#c22a34" /><stop offset="1" stopColor="#5a0e14" /></linearGradient>
-        <linearGradient id={id('Gold')} x1="0" x2="1" y1="0" y2="1"><stop offset="0" stopColor="#f6dd86" /><stop offset=".5" stopColor="#c9a22a" /><stop offset="1" stopColor="#6a4c14" /></linearGradient>
-        <linearGradient id={id('Rim')} x1="0" x2="1" y1="0" y2="0"><stop offset="0" stopColor="#ffa860" stopOpacity=".22" /><stop offset=".45" stopColor="#ffa860" stopOpacity="0" /></linearGradient>
-        <clipPath id={id('Win')}><path d="M30 370 V160 Q30 60 140 26 Q250 60 250 160 V370 Z" /></clipPath>
-      </defs>
+    <svg viewBox={`${vb}`} preserveAspectRatio="xMidYMid slice" className={`cv-svg ${modeClass}`} style={{ display: "block", width: "100%", height: "100%" }} role="img" aria-label="Lorde Corvin, o vampiro cronista">
+  <defs>
+    <pattern id={`cvHatch-${u}`} width="2.6" height="2.6" patternUnits="userSpaceOnUse" patternTransform="rotate(-38)"><path d="M0 -1 V4" stroke="#1a0e0a" strokeWidth=".7"></path></pattern>
+    <pattern id={`cvHatchW-${u}`} width="3.6" height="3.6" patternUnits="userSpaceOnUse" patternTransform="rotate(-56)"><path d="M0 -1 V5" stroke="#0a0605" strokeWidth=".9"></path></pattern>
+    <filter id={`cvPaper-${u}`} colorInterpolationFilters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="1.15 .9" numOctaves="2" seed="11" result="n"></feTurbulence>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -.12 0 0 0 1.02" result="a"></feColorMatrix>
+      <feComposite in="SourceGraphic" in2="a" operator="in"></feComposite>
+    </filter>
+    <clipPath id={`cvWin-${u}`}><path d="M30 370 V160 Q30 60 140 26 Q250 60 250 160 V370 Z"></path></clipPath>
+    <clipPath id={`cvMed-${u}`}><circle cx="140" cy="136" r="56"></circle></clipPath>
+  </defs>
 
-      <rect x="0" y="0" width="280" height="370" fill={url('Bg')} />
-      <path d="M30 370 V160 Q30 60 140 26 Q250 60 250 160 V370 Z" fill="#0d0407" />
-      <g clipPath={url('Win')}>
-        <circle cx="206" cy="80" r="52" fill={url('MoonG')} className={s.moon} />
-        <circle cx="206" cy="80" r="22" fill="#f3dcae" />
-        <circle cx="198" cy="74" r="4" fill="#d9bb88" opacity=".6" />
-        <circle cx="212" cy="88" r="3" fill="#d9bb88" opacity=".5" />
-        <g className={s.bat1}><path d={bat} fill="#1c0a10" className={s.flap1} /></g>
-        <g className={s.bat2}><path d={bat} fill="#1c0a10" className={s.flap2} /></g>
-        <line x1="140" y1="26" x2="140" y2="370" stroke="#c9a22a" strokeOpacity=".28" strokeWidth="2" />
-        <line x1="30" y1="150" x2="250" y2="150" stroke="#c9a22a" strokeOpacity=".22" strokeWidth="2" />
+  <g className="cv-scene">
+    <g filter={`${tex}`}>
+      <rect x="0" y="0" width="280" height="370" fill="#1c0f0f"></rect>
+      <path d="M6 370 V160 Q6 42 140 3 Q274 42 274 160 V370 Z" fill="#2a0e12"></path>
+      <path d="M18 370 V160 Q18 51 140 14 Q262 51 262 160 V370 Z" fill="#3a0e14"></path>
+    </g>
+    <path d="M30 370 V160 Q30 60 140 26 Q250 60 250 160 V370 Z" fill="#2e1419"></path>
+    <g clipPath={`url(#cvWin-${u})`}>
+      <path d="M30 370 V160 Q30 60 140 26 Q250 60 250 160 V370 Z M50 370 V168 Q50 86 140 56 Q230 86 230 168 V370 Z" fill="#241016" fillRule="evenodd"></path>
+      <g style={{ animation: "corvMoon 6s ease-in-out infinite" }}>
+        <circle cx="206" cy="80" r="50" fill="#f3dcae" opacity=".08"></circle>
+        <circle cx="206" cy="80" r="35" fill="#f3dcae" opacity=".1"></circle>
       </g>
-      <path d="M30 370 V160 Q30 60 140 26 Q250 60 250 160 V370" fill="none" stroke="#c9a22a" strokeOpacity=".45" strokeWidth="3" />
+      <circle cx="206" cy="80" r="22" fill="#f3dcae" stroke="#1a0e0a" strokeWidth="1.4"></circle>
+      <circle cx="197" cy="75" r="4.2" stroke="#9c7e56" strokeWidth="1" fill="none"></circle>
+      <circle cx="211" cy="89.5" r="2.9" stroke="#9c7e56" strokeWidth=".9" fill="none"></circle>
+      <circle cx="214.5" cy="71" r="1.7" stroke="#9c7e56" strokeWidth=".8" fill="none"></circle>
+      <path d="M187 86 l3 -2 M188.5 90 l3.5 -2.4 M191 94 l3.6 -2.4" className="cv-fine" stroke="#9c7e56" strokeWidth=".7" strokeLinecap="round"></path>
+      <g style={{ animation: "corvBat 11s linear infinite" }}><path d="M0 0 q5 -6 10 -1 q2 -3 4 0 q5 -5 10 1 q-6 1 -9 6 q-3 -3 -6 0 q-3 -5 -9 -6 z" fill="#1a0e0a" style={{ transformBox: "fill-box", transformOrigin: "center", animation: "corvFlap .32s ease-in-out infinite" }}></path></g>
+      <g style={{ animation: "corvBat2 15s 4s linear infinite" }}><path d="M0 0 q5 -6 10 -1 q2 -3 4 0 q5 -5 10 1 q-6 1 -9 6 q-3 -3 -6 0 q-3 -5 -9 -6 z" fill="#1a0e0a" style={{ transformBox: "fill-box", transformOrigin: "center", animation: "corvFlap .28s ease-in-out infinite" }}></path></g>
+      <path d="M140 26 V370 M30 150 H250" stroke="#c9a22a" strokeOpacity=".55" strokeWidth=".9" fill="none"></path>
+    </g>
+    <path d="M30 370 V160 Q30 60 140 26 Q250 60 250 160 V370" fill="none" stroke="#c9a22a" strokeWidth="2"></path>
+    <path d="M35 370 V160 Q35 64 140 31.6 Q245 64 245 160 V370" fill="none" stroke="#c9a22a" strokeWidth=".75"></path>
+  </g>
 
-      <g className={s.breath}>
-        <path d="M122 246 C94 228 64 194 46 140 C72 154 98 166 110 174 C110 200 114 226 122 246 Z" fill="#0a0507" />
-        <path d="M158 246 C186 228 216 194 234 140 C208 154 182 166 170 174 C170 200 166 226 158 246 Z" fill="#0a0507" />
-        <path d="M120 238 C98 222 74 194 60 156 C80 166 98 176 106 182 C107 204 112 224 120 238 Z" fill={url('Lining')} />
-        <path d="M160 238 C182 222 206 194 220 156 C200 166 182 176 174 182 C173 204 168 224 160 238 Z" fill={url('Lining')} />
+  <g className="cv-medal">
+    <circle cx="140" cy="136" r="57" fill="#2a0e12"></circle>
+    <circle cx="140" cy="126" r="44" fill="#3a0e14"></circle>
+  </g>
 
-        <path d="M8 370 C18 310 60 268 122 252 L158 252 C220 268 262 310 272 370 Z" fill={url('Cape')} />
-        <path d="M40 330 C60 300 90 280 118 268" stroke="#3a2430" strokeWidth="1.5" fill="none" opacity=".7" />
-        <path d="M240 330 C220 300 190 280 162 268" stroke="#3a2430" strokeWidth="1.5" fill="none" opacity=".7" />
-        <path d="M120 252 L106 370 L174 370 L160 252 Z" fill="#3a0e14" />
-        <path d="M122 252 L140 312 L158 252 Z" fill="#efe6d6" />
-        <path d="M122 252 L140 312 M158 252 L140 312" stroke="#1a0608" strokeWidth="2.5" fill="none" />
-        <circle cx="140" cy="326" r="2.6" fill={url('Gold')} />
-        <circle cx="140" cy="346" r="2.6" fill={url('Gold')} />
+  <g clipPath={`${clip}`}><g transform={`${figT}`}>
+  <g style={{ animation: "corvBreath 5s ease-in-out infinite" }}>
+    
+    <g filter={`${tex}`}>
+      <path d="M121 248 C96 230 70 192 60 130 C78 148 96 162 108 172 C108 198 112 226 121 248 Z" fill="#241c14"></path>
+      <path d="M159 248 C184 230 210 190 221 126 C204 145 186 160 172 172 C172 198 168 226 159 248 Z" fill="#241c14"></path>
+      <path d="M119 240 C100 224 79 194 68 145 C84 159 98 169 106 177 C106 202 110 224 119 240 Z" fill="#8a1c24"></path>
+      <path d="M161 240 C180 224 202 194 213 141 C197 157 182 168 174 177 C174 202 170 224 161 240 Z" fill="#5a1015"></path>
+      <path d="M119 240 C108 230 98 214 90 194 C98 202 104 206 107 208 C108 222 112 232 119 240 Z" fill="#5a1015"></path>
+      <path d="M213 141 C206 170 194 196 180 214 C186 196 194 172 200 154 Z" fill="#8a1c24"></path>
+    </g>
+    <path d="M121 248 C96 230 70 192 60 130 C78 148 96 162 108 172 C108 198 112 226 121 248 Z" className="o" fill="none"></path>
+    <path d="M159 248 C184 230 210 190 221 126 C204 145 186 160 172 172 C172 198 168 226 159 248 Z" className="o" fill="none"></path>
+    <path d="M119 240 C100 224 79 194 68 145 C84 159 98 169 106 177" className="f" fill="none"></path>
+    <path d="M161 240 C180 224 202 194 213 141 C197 157 182 168 174 177" className="f" fill="none"></path>
+    <path d="M106 177 C106 202 110 224 119 240 C104 226 96 210 100 190 Z" className="cv-fine" fill={`url(#cvHatch-${u})`} opacity=".38"></path>
+    <path d="M174 177 C174 202 170 224 161 240 C178 226 186 206 184 186 Z" className="cv-fine" fill={`url(#cvHatch-${u})`} opacity=".4"></path>
+    <path d="M219 134 C210 186 186 226 163 244" className="cv-fine" stroke="#efe4d2" strokeOpacity=".32" strokeWidth="1.1" fill="none" strokeLinecap="round"></path>
 
-        <path d="M124 204 L156 204 L159 254 L121 254 Z" fill="#cdbcb2" />
-        <path d="M124 208 Q140 228 156 208 L157 224 Q140 238 123 224 Z" fill="#5a2c3a" opacity=".28" />
-        <path d="M128 254 Q140 270 152 254 Q148 278 140 286 Q132 278 128 254 Z" fill="#f8f1e4" stroke="#d8ccb8" strokeWidth="1" />
-        <path d="M132 266 Q140 274 148 266" stroke="#d8ccb8" strokeWidth="1" fill="none" />
-        <circle cx="140" cy="258" r="8.5" fill={url('Gold')} />
-        <circle cx="140" cy="258" r="5" fill="#a8262f" />
-        <circle cx="138.4" cy="256.4" r="1.4" fill="#ffb8b0" opacity=".8" />
+    
+    <g filter={`${tex}`}>
+      <path d="M8 370 C18 310 60 268 122 252 L158 252 C220 268 262 310 272 370 Z" fill="#241c14"></path>
+      <path d="M8 370 C18 310 60 268 122 252 L114 298 C92 310 74 336 66 370 Z" fill="#140c0a"></path>
+      <path d="M194 288 C210 310 222 338 228 370 L242 370 C232 334 214 304 194 288 Z" fill="#140c0a"></path>
+      <path d="M150 300 C162 320 168 346 168 370 L176 370 C176 344 166 318 150 300 Z" fill="#140c0a"></path>
+    </g>
+    <path d="M66 370 C74 336 92 310 114 298 L110 326 C98 336 90 352 86 370 Z" className="cv-fine" fill={`url(#cvHatchW-${u})`} opacity=".55"></path>
+    <path d="M8 370 C18 310 60 268 122 252 L158 252 C220 268 262 310 272 370" className="o" fill="none"></path>
+    <path d="M166 256 C214 270 248 302 262 344" className="cv-fine" stroke="#efe4d2" strokeOpacity=".28" strokeWidth="1.2" fill="none" strokeLinecap="round"></path>
+    <path d="M40 332 C58 304 84 286 110 274" className="cv-fine" stroke="#3a2c26" strokeWidth="1.2" fill="none" strokeLinecap="round"></path>
 
-        <path d="M104 150 C94 146 86 132 82 112 C94 126 102 132 107 136 Z" fill="#cdbcb2" />
-        <path d="M176 150 C186 146 194 132 198 112 C186 126 178 132 173 136 Z" fill="#cdbcb2" />
-        <path d="M140 90 C112 90 100 114 102 144 C104 176 120 208 140 220 C160 208 176 176 178 144 C180 114 168 90 140 90 Z" fill={url('Skin')} />
-        <path d="M108 166 Q116 186 128 194" stroke="#7a4a5a" strokeOpacity=".22" strokeWidth="5" fill="none" strokeLinecap="round" />
-        <path d="M172 166 Q164 186 152 194" stroke="#7a4a5a" strokeOpacity=".22" strokeWidth="5" fill="none" strokeLinecap="round" />
-        <path d="M128 214 Q140 222 152 214" stroke="#fff6ec" strokeOpacity=".5" strokeWidth="2" fill="none" strokeLinecap="round" />
+    
+    <path d="M120 252 L106 370 L174 370 L160 252 Z" fill="#5a1015" className="m"></path>
+    <path d="M122 252 L140 312 L158 252 Z" fill="#f6efe2" className="f"></path>
+    <path d="M121.5 252 L140 313 L158.5 252" className="m" fill="none"></path>
+    <circle cx="140" cy="328" r="2.8" fill="#c9a22a" className="f"></circle>
+    <circle cx="140" cy="348" r="2.8" fill="#c9a22a" className="f"></circle>
+    <circle cx="139.2" cy="327.2" r=".9" fill="#f3dc94"></circle>
+    <circle cx="139.2" cy="347.2" r=".9" fill="#f3dc94"></circle>
 
-        <path d="M98 150 C92 108 112 74 140 72 C168 74 188 108 182 150 C178 128 172 112 162 104 C154 108 146 112 140 118 C134 112 126 108 118 104 C108 112 102 128 98 150 Z" fill="#14090c" />
-        <path d="M118 88 Q140 78 164 90" stroke="#6a4a6a" strokeOpacity=".55" strokeWidth="2" fill="none" strokeLinecap="round" />
-        <path d="M106 118 Q112 98 128 88" stroke="#6a4a6a" strokeOpacity=".45" strokeWidth="1.6" fill="none" strokeLinecap="round" />
+    
+    <path d="M124 204 L156 204 L159 254 L121 254 Z" fill="#cdbcae" filter={`${tex}`}></path>
+    <path d="M125 212 L121.5 253 M155 212 L158.5 253" className="m" fill="none"></path>
+    <path d="M124 207 Q140 230 156 207 L157 224 Q140 240 123 224 Z" className="cv-fine" fill={`url(#cvHatch-${u})`} opacity=".42"></path>
+    <path d="M131 228 L129.4 250 M149.6 228 L151 250" className="cv-fine" stroke="#1a0e0a" strokeOpacity=".45" strokeWidth=".8" fill="none" strokeLinecap="round"></path>
 
-        <g className={s.brow}>
-          <path d="M110 135 Q122 127 134 139" stroke="#14090c" strokeWidth="3.4" fill="none" strokeLinecap="round" />
-          <path d="M170 135 Q158 127 146 139" stroke="#14090c" strokeWidth="3.4" fill="none" strokeLinecap="round" />
-        </g>
-        <path d="M114 152 Q123 156 132 152" stroke="#6a3a5a" strokeOpacity=".35" strokeWidth="1.6" fill="none" />
-        <path d="M148 152 Q157 156 166 152" stroke="#6a3a5a" strokeOpacity=".35" strokeWidth="1.6" fill="none" />
-        <path d="M114 146 Q123 139.5 132 146 Q123 151 114 146 Z" fill="#f6eee0" />
-        <path d="M148 146 Q157 139.5 166 146 Q157 151 148 146 Z" fill="#f6eee0" />
-        <circle cx="124" cy="146" r="6" fill="#ff3a3a" className={s.glow} />
-        <circle cx="156" cy="146" r="6" fill="#ff3a3a" className={s.glow} />
-        <circle cx="124" cy="146" r="3.3" fill="#c8242c" />
-        <circle cx="156" cy="146" r="3.3" fill="#c8242c" />
-        <circle cx="124" cy="146" r="1.3" fill="#2a0508" />
-        <circle cx="156" cy="146" r="1.3" fill="#2a0508" />
-        <circle cx="125.2" cy="144.8" r=".9" fill="#fff" />
-        <circle cx="157.2" cy="144.8" r=".9" fill="#fff" />
-        <ellipse cx="123" cy="145.5" rx="10.5" ry="7" fill="#e3d6ca" className={s.blink} />
-        <ellipse cx="157" cy="145.5" rx="10.5" ry="7" fill="#e3d6ca" className={s.blink} />
+    
+    <path d="M127 254 Q133 262 140 262 Q147 262 153 254 Q154 266 149.5 272 Q152 279 144.5 284 Q140 290 135.5 284 Q128 279 130.5 272 Q126 266 127 254 Z" fill="#f6efe2" className="f"></path>
+    <path d="M132.5 268.5 Q140 275 147.5 268.5 M135.5 278.5 Q140 282 144.5 278.5" className="f" fill="none"></path>
+    <path d="M128 256 Q129 266 132 271 Q129 278 135 284 L137 280 Q133 276 134.5 271 Q131 266 131 260 Z" className="cv-fine" fill={`url(#cvHatch-${u})`} opacity=".35"></path>
 
-        <path d="M140 148 L136 177 Q140 181 144 177" stroke="#a8968c" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-        <g className={`${s.mouth} ${falando ? s.talking : ''}`}><path d="M129 193 Q140 206 151 193 Q140 197 129 193 Z" fill="#3a0a0e" /></g>
-        <path d="M126 192 Q140 199 154 192" stroke="#5a1418" strokeWidth="2.2" fill="none" strokeLinecap="round" />
-        <path d="M131.5 193.6 L133.6 202 L136 194.8 Z" fill="#fbf6ee" />
-        <path d="M148.5 193.6 L146.4 202 L144 194.8 Z" fill="#fbf6ee" />
+    
+    <circle cx="140" cy="258" r="8.6" fill="#c9a22a" className="f"></circle>
+    <path d="M133.6 255.4 A7 7 0 0 1 137.6 251.6" stroke="#f3dc94" strokeWidth="1.7" fill="none" strokeLinecap="round"></path>
+    <circle cx="140" cy="258" r="4.9" fill="#8a1c24" className="f"></circle>
+    <path d="M144.2 259.2 A4.2 4.2 0 0 1 139 262.1 A5.4 5.4 0 0 0 144.2 259.2 Z" fill="#5a1015"></path>
+    <circle cx="138.4" cy="256.4" r="1.1" fill="#f6efe2"></circle>
+
+    
+    <path d="M104 150 C94 146 86 132 82 112 C94 126 102 132 107 136 Z" fill="#efe4d2" className="m"></path>
+    <path d="M176 150 C186 146 194 131 199 109 C186 125 178 132 173 136 Z" fill="#cdbcae" className="m"></path>
+    <path d="M101 143 C95 138 91 131 88.5 123" className="f" fill="none"></path>
+    <path d="M179 143 C185 138 190 130 193 121" className="f" fill="none"></path>
+
+    
+    <path d="M140 90 C112 90 100 114 102 144 C104 176 120 208 140 220 C160 208 176 176 178 144 C180 114 168 90 140 90 Z" fill="#efe4d2" filter={`${tex}`}></path>
+    <path d="M140 220 C120 208 104 176 102 144 C101 128 104 116 110 106 C108 124 110 142 114 160 C118 182 127 204 140 220 Z" fill="#cdbcae"></path>
+    <path d="M108 164 Q115 184 130 195 Q120 182 115 166 Z" fill="#cdbcae"></path>
+    <path d="M139.4 151 C138.4 160 137 168 135.4 175.6 L138.6 176.4 C139.6 168 140 160 139.4 151 Z" fill="#cdbcae"></path>
+    <path d="M140 220 C124 209 111 188 106 164 C113 184 124 203 140 220 Z" className="cv-fine" fill={`url(#cvHatch-${u})`} opacity=".4"></path>
+    <path d="M172 166 Q166 182 154 193" className="cv-fine" stroke="#1a0e0a" strokeOpacity=".5" strokeWidth=".9" fill="none" strokeLinecap="round"></path>
+    <path d="M140 90 C112 90 100 114 102 144 C104 176 120 208 140 220 C160 208 176 176 178 144 C180 114 168 90 140 90 Z" className="m" fill="none"></path>
+    <path d="M128 216.6 Q140 224.4 152 216.6 Q140 221.6 128 216.6 Z" fill="#1a0e0a"></path>
+
+    
+    <path d="M98 150 C92 108 112 74 140 72 C168 74 188 108 182 150 C178 128 172 112 162 104 C154 108 146 112 140 118 C134 112 126 108 118 104 C108 112 102 128 98 150 Z" fill="#1a0e0a" className="m"></path>
+    <path d="M150 80.5 Q170 90 177 116" className="cv-fine" stroke="#8a7466" strokeOpacity=".6" strokeWidth="1" fill="none" strokeLinecap="round"></path>
+    <path d="M158 79.5 Q176 92 180 124" className="cv-fine" stroke="#8a7466" strokeOpacity=".4" strokeWidth=".8" fill="none" strokeLinecap="round"></path>
+    <path d="M146.4 113.4 C152.6 116.4 156.6 121.6 154.2 129.4 C153.2 124.2 150.4 119.8 143.6 116.6 Z" fill="#1a0e0a" className="bw"></path>
+
+    
+    <g style={{ animation: "corvBrow 7s ease-in-out infinite" }}>
+      <path d="M108.6 133.4 Q121 122 135.4 136.4 Q121 126.6 108.6 133.4 Z" fill="#1a0e0a" className="bw"></path>
+      <path d="M171.4 135.6 Q159 125 144.6 137.8 Q159 129.6 171.4 135.6 Z" fill="#1a0e0a" className="bw"></path>
+    </g>
+
+    
+    <path d="M115.6 148.6 Q123 152.6 130.4 148.6 M149.6 148.6 Q157 152.4 164.4 148.6" className="cv-fine" stroke="#1a0e0a" strokeOpacity=".55" strokeWidth=".8" fill="none" strokeLinecap="round"></path>
+    <path d="M114 146 Q123 139.5 132 146 Q123 151 114 146 Z" fill="#f6efe2"></path>
+    <path d="M148 146 Q157 140 166 146 Q157 150.6 148 146 Z" fill="#f6efe2"></path>
+    <circle cx="124" cy="146" r="4.6" fill="#e0303a" fillOpacity=".6" style={{ filter: "blur(1.6px)", animation: "corvGlow 3s ease-in-out infinite" }}></circle>
+    <circle cx="156" cy="146" r="4.6" fill="#e0303a" fillOpacity=".6" style={{ filter: "blur(1.6px)", animation: "corvGlow 3s ease-in-out infinite" }}></circle>
+    <circle cx="124" cy="146" r="3.3" fill="#c8242c"></circle>
+    <circle cx="156" cy="146" r="3.3" fill="#c8242c"></circle>
+    <ellipse cx="124" cy="146" rx=".8" ry="2.4" fill="#1a0e0a"></ellipse>
+    <ellipse cx="156" cy="146" rx=".8" ry="2.4" fill="#1a0e0a"></ellipse>
+    <circle cx="125.3" cy="144.6" r=".85" fill="#f6efe2"></circle>
+    <circle cx="157.3" cy="144.6" r=".85" fill="#f6efe2"></circle>
+    <path d="M112.6 146.4 Q123 137.6 133.4 145.6 Q123 140.8 112.6 146.4 Z" fill="#1a0e0a" className="bw"></path>
+    <path d="M146.6 145.8 Q157 138.2 167.4 146.2 Q157 141.2 146.6 145.8 Z" fill="#1a0e0a" className="bw"></path>
+    <path d="M112.5 146.2 Q123 136.6 133.5 146 Q123 152.2 112.5 146.2 Z" fill="#efe4d2" stroke="#1a0e0a" strokeWidth=".9" style={{ transformBox: "fill-box", transformOrigin: "center top", animation: "corvBlink 5s ease-in-out infinite" }}></path>
+    <path d="M146.5 146 Q157 136.8 167.5 146.2 Q157 152 146.5 146 Z" fill="#efe4d2" stroke="#1a0e0a" strokeWidth=".9" style={{ transformBox: "fill-box", transformOrigin: "center top", animation: "corvBlink 5s ease-in-out infinite" }}></path>
+
+    
+    <path d="M140.8 148.6 C139.6 159 138 168 135.4 176.4 Q140 182.4 144.8 176.8 Q140 180.2 137 176.2 C139.2 168 140.6 159 140.8 148.6 Z" fill="#1a0e0a" className="bw"></path>
+
+    
+    <path d="M135 202.6 Q140 204.4 145 202.6" className="cv-fine" stroke="#1a0e0a" strokeOpacity=".6" strokeWidth=".9" fill="none" strokeLinecap="round"></path>
+    <g style={{ transformBox: "fill-box", transformOrigin: "center top", transform: `scaleY(${mouthOpen})`, animation: `${mouthAnim}` }}><path d="M129 193 Q140 206 151 193 Q140 197 129 193 Z" fill="#4a0e14"></path></g>
+    <path d="M125.4 191.8 Q140 200.6 154.8 190.8 Q140 197.4 125.4 191.8 Z" fill="#1a0e0a" className="bw"></path>
+    <path d="M131.5 193.6 L133.6 202 L136 194.8 Z" fill="#f6efe2" stroke="#1a0e0a" strokeWidth=".7" strokeLinejoin="round"></path>
+    <path d="M148.5 193.4 L146.4 201.8 L144 194.6 Z" fill="#f6efe2" stroke="#1a0e0a" strokeWidth=".7" strokeLinejoin="round"></path>
+  </g>
+  </g></g>
+
+  <g className="cv-medal">
+    <circle cx="140" cy="136" r="57.4" fill="none" stroke="#c9a22a" strokeWidth="2.2"></circle>
+    <circle cx="140" cy="136" r="53.8" fill="none" stroke="#c9a22a" strokeWidth=".75"></circle>
+  </g>
+
+  <g className="cv-raven" transform="translate(198 232)">
+    <g style={{ animation: "corvBreath 5s ease-in-out infinite" }}>
+      <path d="M0 30 C0 12 14 2 28 6 C40 10 46 24 40 38 L56 60 L34 46 C22 52 4 46 0 30 Z" fill="#1a0e0a" stroke="#1a0e0a" strokeWidth="1.6" strokeLinejoin="round"></path>
+      <path d="M12 5 C24 1 37 6 43 20" stroke="#efe4d2" strokeOpacity=".34" strokeWidth="1.1" fill="none" strokeLinecap="round"></path>
+      <g style={{ transformBox: "fill-box", transformOrigin: "20% 15%", animation: "corvWing 7s ease-in-out infinite" }}>
+        <path d="M7 26 C13 16 27 13 36 21 C42 27 45 38 55 57 L36 44 C26 46 13 40 7 26 Z" fill="#2e2420" stroke="#1a0e0a" strokeWidth="1" strokeLinejoin="round"></path>
+        <path d="M13 27 C19 21 27 20 33 25 M15 33 C21 29 29 29 35 34 M28 40 L48 53" stroke="#7a6458" strokeWidth="1" fill="none" strokeLinecap="round"></path>
       </g>
-
-      <g transform="translate(198 232)">
-        <g className={s.breath}>
-          <path d="M0 30 C0 12 14 2 28 6 C40 10 46 24 40 38 L56 60 L34 46 C22 52 4 46 0 30 Z" fill="#0b0709" className={s.wing} />
-          <path d="M6 30 C12 20 26 16 36 24" stroke="#3a2a40" strokeWidth="2" fill="none" strokeLinecap="round" />
-          <path d="M10 36 C16 30 26 28 34 32" stroke="#3a2a40" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-          <path d="M14 46 l-2 9 M22 48 l0 9" stroke="#c9a22a" strokeWidth="2" strokeLinecap="round" />
-          <g className={s.raven}>
-            <circle cx="24" cy="4" r="11.5" fill="#0b0709" />
-            <path d="M33 0 L49 5 L33 10 Z" fill="#2e2a30" />
-            <path d="M33 5 L49 5" stroke="#0b0709" strokeWidth="1" />
-            <circle cx="27" cy="1" r="2.2" fill="#e8c46a" />
-            <circle cx="27.6" cy=".4" r=".7" fill="#fff" />
-          </g>
-        </g>
+      <path d="M14 46 l-2 9 l-2.6 1.4 M12 55 l2.4 1.2 M22 48 l0 9 l-2.6 1.2 M22 57 l2.6 1" stroke="#c9a22a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"></path>
+      <g style={{ transformBox: "fill-box", transformOrigin: "30% 85%", animation: "corvRaven 7s ease-in-out infinite" }}>
+        <circle cx="24" cy="4" r="11.5" fill="#1a0e0a"></circle>
+        <path d="M17.6 -5.6 C16.4 -10.6 18.6 -14.6 22.4 -15.6 C21 -11.6 21 -8.6 22.2 -6.4 Z" fill="#1a0e0a"></path>
+        <path d="M17 -4.6 C24 -9 32 -6 35 -.6" stroke="#efe4d2" strokeOpacity=".34" strokeWidth="1" fill="none" strokeLinecap="round"></path>
+        <path d="M33 0 L49 5 L33 10 Z" fill="#4a3e38" stroke="#1a0e0a" strokeWidth="1" strokeLinejoin="round"></path>
+        <path d="M33 5 L47 5" stroke="#1a0e0a" strokeWidth=".8"></path>
+        <circle cx="27" cy="1" r="2.3" fill="#c9a22a"></circle>
+        <circle cx="27.2" cy="1.1" r=".9" fill="#1a0e0a"></circle>
+        <circle cx="26.3" cy=".2" r=".6" fill="#f3dc94"></circle>
       </g>
-
-      <rect x="0" y="0" width="280" height="370" fill={url('Rim')} style={{ pointerEvents: 'none' }} />
-    </svg>
+    </g>
+  </g>
+</svg>
   )
 }

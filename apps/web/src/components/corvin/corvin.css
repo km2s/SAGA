@@ -1,0 +1,22 @@
+/* Gerado por scripts/corvin-jsx.js (Saga NOVO/Corvin.dc.html). */
+@keyframes corvBlink{0%,93%,100%{transform:scaleY(0)}95.5%{transform:scaleY(1)}}
+@keyframes corvBreath{0%,100%{transform:translateY(0)}50%{transform:translateY(-2.5px)}}
+@keyframes corvGlow{0%,100%{opacity:.25}50%{opacity:.8}}
+@keyframes corvTalk{0%,100%{transform:scaleY(.2)}50%{transform:scaleY(1)}}
+@keyframes corvRaven{0%,64%,100%{transform:rotate(0)}70%,80%{transform:rotate(-16deg)}88%{transform:rotate(8deg)}}
+@keyframes corvWing{0%,84%,100%{transform:scaleY(1)}88%{transform:scaleY(.8)}92%{transform:scaleY(1.08)}}
+@keyframes corvBat{0%{transform:translate(-40px,70px) scale(.5)}100%{transform:translate(300px,-10px) scale(.9)}}
+@keyframes corvBat2{0%{transform:translate(320px,40px) scale(.4)}100%{transform:translate(-40px,90px) scale(.7)}}
+@keyframes corvFlap{0%,100%{transform:scaleY(1)}50%{transform:scaleY(-.5)}}
+@keyframes corvMoon{0%,100%{opacity:.45}50%{opacity:.85}}
+@keyframes corvBrow{0%,78%,100%{transform:translateY(0)}82%,90%{transform:translateY(-2px)}}
+.cv-svg .o{stroke:#1a0e0a;stroke-width:3;stroke-linejoin:round;stroke-linecap:round}
+.cv-svg .m{stroke:#1a0e0a;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.cv-svg .f{stroke:#1a0e0a;stroke-width:1.2;stroke-linejoin:round;stroke-linecap:round}
+.cv-svg .bw{stroke:#1a0e0a;stroke-width:.4;stroke-linejoin:round}
+.cv-svg.cv-med .o{stroke-width:4.6}
+.cv-svg.cv-med .m{stroke-width:3.2}
+.cv-svg.cv-med .f{stroke-width:2}
+.cv-svg.cv-med .bw{stroke-width:1.6}
+.cv-svg.cv-med .cv-fine,.cv-svg.cv-med .cv-scene,.cv-svg.cv-med .cv-raven{display:none}
+.cv-svg.cv-ret .cv-medal{display:none}
