@@ -3,13 +3,14 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { Award, Backpack, NotebookPen, ScrollText, WandSparkles, type LucideIcon } from 'lucide-react'
 import { dcHref } from '@/lib/dc-routes'
+import { useInventario, type InvInicial } from '@/lib/inventario'
 
 /**
  * Porte do renderVals() de SAGA Ficha.dc.html (ficha de D&D 5e) com os dados
  * reais da ficha. Magias e habilidades vêm dos campos de texto da ficha antiga
  * (spells_*, char_abilities); PV temporários, inspiração, dados de vida, testes
  * contra a morte e Cura pelas Mãos ficam em `dnd_estado`. Inventário, moedas, XP
- * e recursos de classe ainda não têm onde morar (docs/api-pendente.md).
+ * e moedas vêm de lib/inventario; recursos de classe ainda não têm onde morar.
  */
 export type FichaDados = {
   id: string; memberId: string; campaignId: string; podeEditar: boolean
@@ -25,6 +26,7 @@ export type FichaDados = {
   magias: { lv: number; n: string; cost: string; desc: string }[]
   habilidades: { n: string; d: string; cost: string }[]
   estado: Partial<Estado> | null
+  inventario: InvInicial
 }
 /** Estado de mesa da ficha (campo de texto `dnd_estado`). */
 export type Estado = { tmp: number; hdGastos: number; insp: boolean; dsOk: number; dsFail: number; lohGasto: number }
@@ -133,12 +135,19 @@ export function useFichaVals(d: FichaDados) {
   const intuicao = d.skills.find(s => s.n === 'Intuição')?.b
   const tabs: [string, string, LucideIcon][] = [['main', 'Principal', ScrollText], ['spells', 'Magias', WandSparkles], ['inv', 'Inventário', Backpack], ['feat', 'Traços', Award], ['notes', 'Notas', NotebookPen]]
 
+  // Inventário, moedas e XP (components/inventario): a CA da armadura equipada vale sobre a da ficha.
+  const inv = useInventario({
+    id: d.id, podeEditar: d.podeEditar, inicial: d.inventario, nomeCurto: d.nome.split(' ')[0] ?? d.nome, temCa: true, destreza: dex,
+    cargaMax: forca * 7.5, toast: (label, detail, total, tag = '') => toast({ label, detail, total, color: '#f1e3c2', ring: 'rgb(201 162 42/.3)', tag, tagColor: '#8fbf6a' }),
+  })
+
   return {
+    inv,
     // Id da ficha: /ficha/[id] usa ele e /personagens/[id] aceita os dois.
     $href: (link: string) => dcHref(link, { campaignId: d.campaignId, characterId: d.id }),
     $img: (_id: string) => d.img,
     init: (d.nome[0] ?? '?').toUpperCase(), nome: d.nome, linha: d.linha, sysCamp: d.sysCamp,
-    temXp: false, xp: '', xpPct: 0, // TODO(api): experiência
+    temXp: true,
     ini: sg(dex),
     toggleInsp: () => { setInsp(!insp); setInspTick(n => n + 1) },
     inspBg: insp ? 'var(--gold-t)' : 'var(--surface)', inspRing: insp ? 'var(--gold)' : 'var(--line)', inspDot: insp ? 'var(--gold)' : 'var(--line)',
@@ -162,7 +171,7 @@ export function useFichaVals(d: FichaDados) {
       const sv = d.saves[a.k] ?? M[a.k]
       return { n: a.n, v: a.v, m: sg(M[a.k]), sv: sg(sv), svDot: sv > M[a.k] ? 'var(--accent)' : 'transparent', check: () => roll(`Teste de ${a.n}`, 1, 20, M[a.k]), save: () => roll(`Salvaguarda de ${a.n}`, 1, 20, sv, { tag: 'Salvaguarda' }) }
     }),
-    ca: d.ca ?? 10 + dex, caAnim: 'none',
+    ca: inv.caEquipada ? inv.ca : d.ca ?? 10 + dex, caAnim: inv.caAnim,
     stats: [{ v: d.desloc ?? '—', l: 'Deslocamento' }, { v: sg(PB), l: 'Proficiência' }, { v: String(d.percPassiva ?? 10 + (M.SAB ?? 0)), l: 'Percepção passiva' }],
     passivas: `Percepção passiva ${d.percPassiva ?? 10 + (M.SAB ?? 0)} · Intuição passiva ${10 + (intuicao ?? M.SAB ?? 0)}`,
     hp, hpMax: d.mx, hpPct, tmpPct, hpColor: hpPct > 50 ? 'var(--ok)' : hpPct > 25 ? 'var(--gold)' : '#c8424c',
@@ -225,10 +234,6 @@ export function useFichaVals(d: FichaDados) {
     resources: [] as { n: string; d: string; pips: ReturnType<typeof pip>[] }[], // TODO(api): recursos de classe
     loh, lohMax, lohPct: lohMax ? Math.round(loh / lohMax * 100) : 0,
     lohBtns: [1, 5, 10].map(x => ({ l: `+${x} PV`, go: () => { const g = Math.min(x, loh, d.mx - hp); if (g > 0) { setLoh(loh - g); setHp(hp + g, 'heal') } } })),
-    items: [] as { icon: LucideIcon; n: string; d: string; q: number; w: string; tag: string; tagD: string; tagBg: string; tagColor: string; anim: string; dn: () => void; up: () => void; usable: boolean; use: () => void; equip: boolean; eqLabel: string; eqBg: string; eqColor: string; eqRing: string; toggle: () => void }[], // TODO(api): inventário
-    coins: [['Ouro', 'radial-gradient(circle at 35% 30%, #fff1b0, #d9a22a 55%, #8a6320)'], ['Prata', 'radial-gradient(circle at 35% 30%, #ffffff, #b8b8b0 55%, #6a6a66)'], ['Cobre', 'radial-gradient(circle at 35% 30%, #f6c8a0, #b8642a 55%, #6e3210)']].map(([l, bg]) => ({ l, bg, v: 0, on: () => { /* TODO(api): moedas */ } })),
-    load: '0', loadPct: 0, loadColor: 'var(--gold)',
-    cargaMax: String(+(forca * 7.5).toFixed(1)).replace('.', ','), cargaNota: `FOR ${forca} × 7,5 kg.`,
     feats: d.habilidades.map(h => ({ src: h.cost || 'Habilidade', n: h.n, d: h.d })),
     diarioTitulo: `Diário de ${d.nome.split(' ')[0]}`,
     diary, onDiary: (e: ChangeEvent<HTMLTextAreaElement>) => { setDiary(e.target.value); salvarTexto('diario', 'Diário', e.target.value) },

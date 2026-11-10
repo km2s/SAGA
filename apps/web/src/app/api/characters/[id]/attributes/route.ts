@@ -36,10 +36,12 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     }).catch(() => null)
     if (!sheet) return NextResponse.json({ error: 'Ficha não encontrada' }, { status: 404 })
 
+    // Ficha com sistema próprio (sheetSystemId) usa os atributos dele; senão, os da campanha.
     let systemAttr = await prisma.systemAttribute.findFirst({
-      where: { name: body.name.trim(), systemId: sheet.member.campaign.systemId ?? '__none__' },
+      where: { name: body.name.trim(), systemId: sheet.sheetSystemId ?? sheet.member.campaign.systemId ?? '__none__' },
     }).catch(() => null)
 
+    if (!systemAttr && sheet.sheetSystemId) return NextResponse.json({ error: 'Atributo não existe no sistema da ficha' }, { status: 404 })
     if (!systemAttr) {
       let system = sheet.member.campaign.system
       if (!system) {

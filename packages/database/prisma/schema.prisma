@@ -22,6 +22,11 @@ model User {
   titulo      String?
   moldura     String?
   prefsJson   String?
+  // Verificação em duas etapas (TOTP) e códigos de recuperação (hash).
+  totpSecret      String?
+  totpAtivoEm     DateTime?
+  recuperacaoJson String?
+  dispositivos Dispositivo[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -61,6 +66,9 @@ model Campaign {
   archivedAt        DateTime?
   // Quem vê as rolagens dos jogadores: todos (públicas) · mestre · escolha (cada um escolhe).
   rollVisibility    String   @default("escolha")
+  // Recado fixado no canal (Mensagens): texto livre do mestre.
+  recado            String?
+  recadoEm          DateTime?
   botEnabled        Boolean  @default(true)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
@@ -164,6 +172,12 @@ model RPGSystem {
   imageUrl    String?
   category    String   @default("custom")
   isPreset    Boolean  @default(false)
+  // Criar Sistema: soma · parada · abaixo; dado base; recursos [{ nome, formula, cor }];
+  // o resto (dificuldade, crítico, couro, ícone, visibilidade, permissões) em configJson.
+  mecanica     String?
+  dadoBase     String?
+  recursosJson String?
+  configJson   String?
   createdAt   DateTime @default(now())
 
   creatorId   String?
@@ -183,6 +197,12 @@ model SystemAttribute {
   systemId    String
   // Ordem na ficha (Editar Sistema); empate cai no nome.
   order       Int     @default(0)
+  // Sigla (até 4), faixa mín–máx; tipo atributo | pericia; perícia aponta a sigla do atributo base.
+  sigla       String?
+  minimo      Int?
+  maximo      Int?
+  tipo        String  @default("atributo")
+  base        String?
 
   system              RPGSystem            @relation(fields: [systemId], references: [id])
   characterAttributes CharacterAttribute[]
@@ -207,6 +227,11 @@ model CharacterSheet {
   sheetSystemId String?
   // Valores das barras de recurso além da vida (hp/maxHp), JSON {chave: {current, max}}
   resourcesJson String?
+  // Inventário [{ icone, nome, descricao, quantidade, peso, tipo, equipado, ca }], moedas { pc pp pe po pl }, XP e histórico.
+  inventarioJson String?
+  moedasJson     String?
+  xp             Int     @default(0)
+  xpHistoricoJson String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -541,6 +566,8 @@ model Mensagem {
   paraId     String?
   texto      String   @db.Text
   personagem String?  // "Em personagem": nome do personagem que fala
+  // Sussurro selado: mensagem de campanha com paraId (só o mestre e o destinatário recebem).
+  abertoEm   DateTime?
   createdAt  DateTime @default(now())
 
   campaign Campaign? @relation(fields: [campaignId], references: [id], onDelete: Cascade)
@@ -562,4 +589,30 @@ model Leitura {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, conversa])
+}
+
+/// Sessões de login por navegador (Segurança › Dispositivos). O JWT leva o id; encerrar = encerradoEm.
+model Dispositivo {
+  id          String    @id @default(cuid())
+  userId      String
+  nome        String    // "Chrome · Windows"
+  local       String?
+  criadoEm    DateTime  @default(now())
+  vistoEm     DateTime  @default(now())
+  encerradoEm DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, encerradoEm])
+}
+
+/// "X está escrevendo…": quem digitou na conversa nos últimos segundos.
+model Digitando {
+  id       String   @id @default(cuid())
+  userId   String
+  conversa String
+  em       DateTime @default(now())
+
+  @@unique([userId, conversa])
+  @@index([conversa, em])
 }

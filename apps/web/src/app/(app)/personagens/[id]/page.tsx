@@ -6,9 +6,13 @@ import { FichaAntiga } from '@/components/character/FichaAntiga'
 import { FichaSistema } from '@/components/screens/fichasistema/FichaSistema'
 import { SPECS } from '@/lib/ficha-sistema/specs'
 import type { FichaSistemaDados } from '@/lib/ficha-sistema/montar'
-import { hasHpTrack, parseTracks } from '@/lib/resource-tracks'
+import { hasHpTrack, parseResources, parseTracks, TRACK_COLORS } from '@/lib/resource-tracks'
+import { FichaPersonalizada } from '@/components/screens/fichapersonalizada/FichaPersonalizada'
+import type { FichaPersonalizadaDados } from '@/components/screens/fichapersonalizada/vals'
+import { montarSistema } from '@/lib/sistema-proprio'
 import { Ficha } from '@/components/screens/ficha/Ficha'
 import type { FichaDados } from '@/components/screens/ficha/vals'
+import { lerInventario } from '@/lib/inventario-dados'
 
 // Atributos do D&D 5e do seed (lib/systems-seed.ts).
 // Campos de texto em JSON da ficha antiga: listas de { name, cost?, desc? } (ou só nomes).
@@ -40,7 +44,7 @@ export default async function PersonagemPage({ params }: { params: { id: string 
     where: { id: memberId },
     include: {
       user: { select: { discordId: true } },
-      campaign: { select: { id: true, name: true, resourceTracksJson: true, system: { select: { name: true } } } },
+      campaign: { select: { id: true, name: true, resourceTracksJson: true, systemId: true, system: { select: { name: true } } } },
       character: {
         include: {
           sheetSystem: { select: { name: true } },
@@ -56,11 +60,35 @@ export default async function PersonagemPage({ params }: { params: { id: string 
 
   const sistema = m.character.sheetSystem?.name ?? m.campaign.system?.name ?? null
   const spec = sistema ? SPECS[sistema] : undefined
-  if (sistema !== 'D&D 5e' && !spec) return <FichaAntiga params={{ id: memberId }} />
 
   const isMine = m.user.discordId === session.user.discordId
   const gm = isMine ? null : await prisma.campaignMember.findFirst({ where: { campaignId: m.campaignId, role: 'GM', user: { discordId: session.user.discordId } } }).catch(() => null)
   if (!isMine && !gm) notFound()
+
+  // Sistema feito por usuário: SAGA Ficha Personalizada, montada a partir do sistema.
+  if (sistema !== 'D&D 5e' && !spec) {
+    const sisId = m.character.sheetSystemId ?? m.campaign.systemId
+    const sis = sisId ? await prisma.rPGSystem.findUnique({
+      where: { id: sisId },
+      select: { name: true, category: true, mecanica: true, recursosJson: true, creator: { select: { username: true } }, attributes: { orderBy: [{ order: 'asc' }, { name: 'asc' }], select: { name: true, description: true, defaultDie: true, sigla: true, minimo: true, maximo: true, tipo: true, base: true } } },
+    }).catch(() => null) : null
+    // Sem sistema (campanha antiga sem modelo): a ficha antiga continua.
+    if (!sis || !sis.attributes.length) return <FichaAntiga params={{ id: memberId }} />
+    const ch = m.character
+    const tracks = parseTracks(m.campaign.resourceTracksJson)
+    const dados: FichaPersonalizadaDados = {
+      id: ch.id, nome: ch.name, img: ch.imageUrl, voltarHref: '/personagens', podeEditar: true,
+      linha: [[ch.race, ch.class].filter(Boolean).join(' '), m.campaign.name].filter(Boolean).join(' · '),
+      sistema: montarSistema(sis),
+      valores: Object.fromEntries(ch.attributes.map(a => [a.attribute.name, a.value])),
+      hp: ch.hp, maxHp: ch.maxHp,
+      recursosValores: parseResources(ch.resourcesJson),
+      barrasCampanha: tracks.map(t => ({ key: t.key, label: t.label, cor: TRACK_COLORS[t.color]?.hex ?? 'var(--gold)' })),
+      notas: ch.textFields.find(t => t.key === 'notas')?.value ?? ch.textFields.find(t => t.key === 'historia')?.value ?? '',
+      inventario: lerInventario(ch.inventarioJson, ch.moedasJson, ch.xp, ch.xpHistoricoJson),
+    }
+    return <FichaPersonalizada dados={dados} />
+  }
 
   // Fichas por Sistema (lib/ficha-sistema): os mesmos dados que a ficha antiga gravava.
   if (sistema && spec && sistema !== 'D&D 5e') {
@@ -112,6 +140,7 @@ export default async function PersonagemPage({ params }: { params: { id: string 
       // Testes contra a morte da ficha antiga, se o estado novo ainda não existe.
       return e ?? { dsOk: parseInt(texto('deathSuccesses'), 10) || 0, dsFail: parseInt(texto('deathFailures'), 10) || 0 }
     })(),
+    inventario: lerInventario(ch.inventarioJson, ch.moedasJson, ch.xp, ch.xpHistoricoJson),
   }
   return <Ficha dados={dados} />
 }

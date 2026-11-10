@@ -146,10 +146,43 @@ if (& $want 'ficha') {
     $c = Rep $c '>/ 15</span>' '>/ {v.lohMax}</span>'
     $c = Rep $c '>Espaços de 1º círculo<' '>{v.slotsTitulo}<'
     $c = Rep $c '>Percepção passiva 11 · Intuição passiva 13<' '>{v.passivas}<'
-    $c = Rep $c "{' / 120 kg'}" "{' / '}{v.cargaMax}{' kg'}"
-    $c = Rep $c '>FOR 16 × 7,5 kg. A cota de malha impõe desvantagem em Furtividade.</p>' '>{v.cargaNota}</p>'
+    # Inventário, moedas e XP (SAGA Ficha Inventario): peças de components/inventario.
+    $c = Rep $c "{v.xp}{' XP'}" '{v.inv.xpLine}'
+    $c = Rep $c 'width: `${v.xpPct}%`' 'width: `${v.inv.xpPct}%`'
+    $c = Rep $c '>2.700 · Nv 4</span>' '>{`Nível ${v.inv.lvl}`}</span>'
+    $c = Rep $c '<button onClick={v.toggleInsp}' '<XpBotao v={v.inv} /><button onClick={v.toggleInsp}'
+    $c = Rep $c '{v.tMain && (' '<XpNivel v={v.inv} />{v.tMain && ('
+    $i = $c.IndexOf('{v.tInv && (', $O); $fim = $c.IndexOf('{v.tFeat && (', $O)
+    if ($i -lt 0 -or $fim -lt $i) { throw 'aba Inventário não achada' }
+    $c = $c.Substring(0, $i) + "{v.tInv && (<div style={{ marginTop: '20px', animation: 'ficha-up .35s both' }}><Inventario v={v.inv} /></div>)}" + $c.Substring($fim)
+    $c = Rep $c "import type { Vals } from './vals'" "import type { Vals } from './vals'`nimport { Inventario, XpBotao, XpNivel } from '@/components/inventario/Inventario'"
     Rep $c '>Diário de Aldric<' '>{v.diarioTitulo}<'
-  } 'cabeçalho, passivas, carga e notas com dados da ficha; Destruição Divina e Cura pelas Mãos só para Paladino; XP escondido sem dado.'
+  } 'cabeçalho, passivas e notas com dados da ficha; Destruição Divina e Cura pelas Mãos só para Paladino; XP, inventário e bolsa pelas peças de components/inventario.'
+}
+if (& $want 'fichainventario') {
+  # Não é tela: fonte das peças de components/inventario (scripts/recortar-inventario.js).
+  $t = Gen 'SAGA Ficha Inventario' 'fichainventario' @('header')
+  & node (Join-Path $PSScriptRoot 'recortar-inventario.js')
+  # Só o CSS fica (as peças importam); o Template inteiro não compila sem tela.
+  Remove-Item $t
+}
+if (& $want 'fichapersonalizada') {
+  $p = Gen 'SAGA Ficha Personalizada' 'fichapersonalizada' @('header')
+  Edit $p {
+    param($c)
+    $c = Rep $c "v.`$href('SAGA Personagens.dc.html')" 'v.voltarHref'
+    $c = Rep $c ">N</span><ImageSlot src={v.`$img('fp-retrato')} />" ">{v.init}</span><ImageSlot src={v.img} />"
+    $c = Rep $c '>Crônicas de Arton (Homebrew)<' '>{v.sistema}<'
+    $c = Rep $c '>sistema da comunidade · por Kael<' '>{v.autorLine}<'
+    $c = Rep $c '>Nyra das Areias<' '>{v.nome}<'
+    $c = Rep $c '>Andarilha do deserto · A Queda de Valdris<' '>{v.linha}<'
+    $c = WrapEnclosing $c '>Perícias<' 'section' 'v.temPericias'
+    # Aba Inventário: a mesma peça da Ficha de D&D, sem CA.
+    $i = $c.IndexOf('{v.tInv && (', $O); $fim = $c.IndexOf('{v.tNotes && (', $O)
+    if ($i -lt 0 -or $fim -lt $i) { throw 'aba Inventário não achada' }
+    $c = $c.Substring(0, $i) + "{v.tInv && (<div style={{ marginTop: '18px' }}><Inventario v={v.inv} /></div>)}" + $c.Substring($fim)
+    Rep $c "import type { Vals } from './vals'" "import type { Vals } from './vals'`nimport { Inventario } from '@/components/inventario/Inventario'"
+  } 'ficha de um sistema feito por usuário: atributos, perícias e recursos do sistema; inventário pela peça de components/inventario.'
 }
 if (& $want 'explorar') {
   $p = Gen 'SAGA Explorar' 'explorar'
